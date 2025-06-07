@@ -7,7 +7,6 @@ import { dataSearch } from "./controllers/search.js";
 import { passwordMail } from "./controllers/mailer.js";
 import passport from "passport";
 import { authenticate} from "../config/passportConfig.js";
-import { body, param, validationResult } from 'express-validator';
 
 const router = express.Router();
 
