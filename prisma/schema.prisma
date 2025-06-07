@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  step1           PersonalInfo?
+  step2           ContactInfo?
+  emergencyContacts EmergencyContact[]
+  paymentMethods    PaymentMethod[]    
+  step4           TaxInfo?
+  step6           Documents?
+}
+
+model PersonalInfo {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  LegalName      String
+  PrefferredName String?
+  LegalSex       String
+  DateOfBirth    DateTime
+  SSN            String
+  PhotoPath      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContactInfo {
+  id                       String   @id @default(uuid())
+  userId                   String   @unique
+  personalEmail            String
+  isPersonalEmailVisible   Boolean  @default(false)
+  personalPhone            String?
+  isPersonalPhoneVisible   Boolean  @default(false)
+  country                  String
+  address                  String
+  city                     String
+  state                    String
+  zipCode                  String
+  workEmail                String?
+  workPhone                String?
+  preferedContactMethod    String
+  sendMessagePersonalPhone Boolean  @default(false)
+  createdAt                DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmergencyContact {
+  id             String   @id @default(uuid())
+  userId         String
+  Fullname       String
+  Phone          String
+  secondaryPhone String?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TaxInfo {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  nameOnTaxReturn     String
+  bussinesName        String?
+  taxClassification   String
+  taxIdNumType        String?
+  employerIdNum       String?
+  llcClassification   String?
+  otherClassification String?
+  taxExempt           Boolean  @default(false)
+  signatureTaxDoc     String?
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PaymentMethod {
+  id              String   @id @default(uuid())
+  userId          String
+  bankAccountType String?
+  bankAccountNum  String
+  bankRoutingNum  String
+  accountNickname String
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Documents {
+  id                            String   @id @default(uuid())
+  userId                        String   @unique
+  directDepositForm             String
+  driverLicense                 String
+  EINconfirmation               String
+  EmploymentAuthCardBack        String
+  EmploymentAuthCardFront       String
+  EmploymentAuthExtensionLetter String
+  eANDo                         String
+  GTDisciplinaryPolicy          String
+  permanentResidentCard         String
+  proLicense                    String
+  socialSecurityCard            String
+  USpassport                    String
+  createdAt                     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

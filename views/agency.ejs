@@ -1,0 +1,1181 @@
+<!doctype html>
+
+<html
+  lang="en"
+  class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+  dir="ltr"
+  data-theme="theme-default"
+  data-assets-path="/"
+  data-template="vertical-menu-template">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/img/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
+    <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
+
+    <title>Agencies | GTI</title>
+
+    <meta name="description" content="" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+      rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css" />
+
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
+
+    <!-- Helpers -->
+    <script src="/vendor/js/helpers.js"></script>
+    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
+    <script src="/vendor/js/template-customizer.js"></script>
+    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+    <script src="/js/config.js"></script>
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+
+        <!-- Menu -->
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/users/dashboard" class="app-brand-link">
+               <!--<span class="app-brand-logo">
+              <img src="/img/branding/gt.png" alt="">
+            </span>-->
+            <span class="app-brand-text">
+              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo">
+            </span>
+            </a>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+              <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+            </a>
+          </div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="/users/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+            <% if(user.id_role == 5 || user.id_role == 6 || user.id_role == 9 || user.id_role == 7 || user.id_user == 161 || user.id_user == 163 || user.id_user == 35) {%>
+              <li class="menu-item">
+                <a href="/users/accounting/stm-commissions" class="menu-link">
+                  <i class="menu-icon tf-icons ti ti-coin"></i>
+                  <div data-i18n="Commissions">Commissions</div>
+                </a>
+              </li>
+            <%}%>
+            <!-- Sales marker -->
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text" data-i18n="Sales">Sales</span>
+            </li>
+             <!-- Agency marker -->
+             <li class="menu-item active">
+              <a href="/users/agency" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-home-heart"></i>
+                <div data-i18n="Agency">Agency</div>
+              </a>
+            </li>
+            <% if(user.id_location_type != 1) {%>
+              <!-- Renewals marker -->
+             <li class="menu-item">
+              <a href="/users/renewals/agency-upcoming-renewals" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-repeat"></i>
+                <div data-i18n="Renewals">Renewals</div>
+              </a>
+            </li>
+                                <!-- Marketing marker -->
+
+          <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" data-i18n="Marketing">Marketing</span>
+          </li>
+
+          <!-- Message-Center -->
+
+          <li class="menu-item">
+            <a href="/users/message-center" class="menu-link">
+            <i class="menu-icon tf-icons ti ti-alert-square"></i>
+            <div data-i18n="Message Center">Message Center</div>
+            </a>
+          </li>  
+            <%}%>
+            <% if(user.id_location_type === 1) {%>
+            <!-- Corporate marker -->
+            <li class="menu-item">
+              <a href="/users/corporate" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-home-heart"></i>
+                <div data-i18n="Corporate">Corporate</div>
+              </a>
+            </li>
+
+             <!-- Franchises marker -->
+
+             <li class="menu-item">
+              <a href="/users/franchises" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-home-star"></i>
+                <div data-i18n="Franchises">Franchises</div>
+              </a>
+            </li>
+
+            <!-- Company marker -->
+
+            <li class="menu-item">
+              <a href="/users/company" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-building-skyscraper"></i>
+                <div data-i18n="Company">Company</div>
+              </a>
+            </li>
+
+          <!-- Statistics marker 
+
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text" data-i18n="Statistics">Statistics</span>
+            </li>
+
+          <!-- CSR 
+            
+            <li class="menu-item">
+                <a href="#" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-users"></i>
+                <div data-i18n="CSR">CSR</div>
+                </a>
+            </li>
+
+          <!-- Agencies
+            
+            <li class="menu-item">
+                <a href="#" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-home"></i>
+                <div data-i18n="Agencies">Agencies</div>
+                </a>
+            </li>
+
+          <!-- Carriers
+                
+            <li class="menu-item">
+                <a href="#" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-building"></i>
+                <div data-i18n="Carriers">Carriers</div>
+                </a>
+            </li>
+          
+          <!-- Charts
+                
+          <li class="menu-item">
+              <a href="#" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-chart-pie"></i>
+              <div data-i18n="Charts">Charts</div>
+             </a>
+         </li>-->
+
+        <% if(user.apps && user.apps.length > 0) {%>
+          
+          <!-- ////////////////APPS/////////////////////// -->
+            
+          <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" data-i18n="APPS">APPS</span>
+          </li>
+
+        <%}%>
+
+      <% if(user.apps && user.apps.find(value => value === 1)) {%>
+
+
+        <!-- Commisions -->
+
+          <li class="menu-item">
+            <a href="#" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-coin"></i>
+              <div data-i18n="Accounting">Accounting</div>
+            </a>
+            <ul class="menu-sub">
+              <li class="menu-item">
+                <a href="/users/accounting/commissions" class="menu-link">
+                  <div data-i18n="Commisions">Commissions</div>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <%}%>
+          <% if(user.apps && user.apps.find(value => value === 2)) {%>
+          <li class="menu-item">
+            <a href="#" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-repeat"></i>
+              <div data-i18n="Renewals">Renewals</div>
+            </a>
+            <ul class="menu-sub">
+              <li class="menu-item">
+                <a href="/users/renewals/upcoming-renewals" class="menu-link">
+                  <div data-i18n="Statistics">Statistics</div>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <%}%>
+
+          <% if(user.id_role >= 2 && user.id_role <= 7 ) {%>
+            <li class="menu-item">
+              <a href="/users/apps/licensee-detail" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-license"></i>
+                <div data-i18n="Licensee Detail">Licensee Detail</div>
+              </a>
+            </li>
+
+            <%}%>
+
+        <!-- Marketing marker -->
+
+          <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" data-i18n="Marketing">Marketing</span>
+          </li>
+
+          <!-- Message-Center -->
+
+          <li class="menu-item">
+            <a href="/users/message-center" class="menu-link">
+            <i class="menu-icon tf-icons ti ti-alert-square"></i>
+            <div data-i18n="Message Center">Message Center</div>
+            </a>
+          </li>     
+
+
+          <!-- GTI Directory -->
+                
+          <li class="menu-item">
+              <a href="/users/gtidirectory" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-phone"></i>
+              <div data-i18n="GTI Directory">GTI Directory</div>
+              </a>
+         </li>       
+
+          <!-- Google Reviews -->
+                
+          <li class="menu-item">
+              <a href="#" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-brand-google"></i>
+              <div data-i18n="Reviews">Reviews</div>
+              </a>
+         </li>   
+
+            <!-- TV marker -->
+
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-device-tv"></i>
+                <div data-i18n="TV">TV</div>
+                </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/nbtv" class="menu-link" target="_blank">
+                  <div data-i18n="New Business">New Business</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/rntv" class="menu-link" target="_blank">
+                  <div data-i18n="Renewals">Renewals</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/franchisestv" class="menu-link" target="_blank">
+                    <div data-i18n="Franchises">Franchises</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+        <!-- Users -->
+        
+        <% if(user.name=='Wilfredo' || user.name=='Ediezel' || user.name=='Christian' ) {%>
+
+          <!-- Admin marker -->
+
+          <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" data-i18n="Administration">Administration</span>
+          </li>
+          
+   
+
+          <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-database-import"></i>
+              <div data-i18n="Data QQ">Data QQ</div>
+            </a>
+            
+            <ul class="menu-sub">
+  
+              <li class="menu-item">
+                <a href="/mdataqq" class="menu-link" target="_blank">
+                <div data-i18n="Monthly">Monthly</div>
+                </a>
+              </li>
+              
+              <li class="menu-item">
+                <a href="/fdataqq" class="menu-link" target="_blank">
+                <div data-i18n="Full">Full</div>
+                </a>
+              </li>
+  
+            </ul>
+  
+          </li>
+
+          <li class="menu-item">
+            <a href="/users/users" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-user"></i>
+              <div data-i18n="Users">Users</div>
+            </a>
+          </li> 
+
+         
+
+        <li class="menu-item">
+          <a href="/users/carriercodes" class="menu-link">
+            <i class="menu-icon tf-icons ti ti-key"></i>
+            <div data-i18n="Carriers Codes">Carriers Codes</div>
+          </a>
+        </li>
+
+        <% }%>  
+        <%}%>
+
+          </ul>
+
+        </aside>
+
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+
+          <nav
+            class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                <i class="ti ti-menu-2 ti-sm"></i>
+              </a>
+            </div>        
+
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+
+
+              <!-- Search -->
+              <div class="navbar-nav align-items-center">
+                <div class="nav-item navbar-search-wrapper mb-0">
+                  <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
+                    <i class="ti ti-search ti-md me-2"></i>
+                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                  </a>
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+
+                <!-- Style Switcher -->
+                <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <i class="ti ti-md"></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                        <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                        <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                        <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+
+                <!-- Notification -->
+                <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                  <a
+                    class="nav-link dropdown-toggle hide-arrow"
+                    href="javascript:void(0);"
+                    data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+                    <i class="ti ti-bell ti-md"></i>
+                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                  </a>
+                 
+                  <ul class="dropdown-menu dropdown-menu-end py-0">
+                    <li class="dropdown-menu-header border-bottom">
+                      <div class="dropdown-header d-flex align-items-center py-3">
+                        <h5 class="text-body mb-0 me-auto">Notification</h5>
+                        <a
+                          href="javascript:void(0)"
+                          class="dropdown-notifications-all text-body"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="Mark all as read"
+                          ><i class="ti ti-mail-opened fs-4"></i
+                        ></a>
+                      </div>
+                    </li>
+                    </li>
+                    <li class="dropdown-menu-footer border-top">
+                      <a
+                        href="javascript:void(0);"
+                        class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                        View all notifications
+                      </a>
+                    </li>
+                  </ul> 
+                </li>
+                <!--/ Notification -->
+
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/img/avatars/users/<%=user.id_user%>.png" alt class="h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/img/avatars/users/<%=user.id_user%>.png" alt class="h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block"><%= user.name %></span>
+                            <small class="text-muted"><%=user.role%></small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <!--<li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-profile-user.html">
+                        <i class="ti ti-user-check me-2 ti-sm"></i>
+                        <span class="align-middle">My Profile</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-account.html">
+                        <i class="ti ti-settings me-2 ti-sm"></i>
+                        <span class="align-middle">Settings</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-account-settings-billing.html">
+                        <span class="d-flex align-items-center align-middle">
+                          <i class="flex-shrink-0 ti ti-credit-card me-2 ti-sm"></i>
+                          <span class="flex-grow-1 align-middle">Billing</span>
+                          <span class="flex-shrink-0 badge badge-center rounded-pill bg-label-danger w-px-20 h-px-20"
+                            >2</span
+                          >
+                        </span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-faq.html">
+                        <i class="ti ti-help me-2 ti-sm"></i>
+                        <span class="align-middle">FAQ</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="pages-pricing.html">
+                        <i class="ti ti-currency-dollar me-2 ti-sm"></i>
+                        <span class="align-middle">Pricing</span>
+                      </a>
+                    </li>-->
+                    <li>
+                      <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/users/logout" > <!-- target="_blank" -->
+                        <i class="ti ti-logout me-2 ti-sm"></i>
+                        <span class="align-middle">Log Out</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+
+            <!-- Search Small Screens -->
+            <div class="navbar-search-wrapper search-input-wrapper d-none">
+              <input
+                type="text"
+                class="form-control search-input container-xxl border-0"
+                placeholder="Search..."
+                aria-label="Search..." />
+              <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+            </div>
+          </nav>
+
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="row">
+
+                <!-- Policies/Premium Corporate/Company -->
+                <div class="row mt-4 mb-3">
+                
+                  <!-- Agency Today -->
+                  <div class="col-sm-6 col-lg-3 mb-2">
+                    <p class="mb-0 text-primary"><%=agency%> - Today</p>
+                    <div class="card card-border-shadow-primary mb-0">
+                      <div class="card-body pt-1">
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-user-dollar ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ld_nb_prem %> / <%= ld_nb_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-repeat ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0 mt-0"><%= ld_rn_prem %> / <%= ld_rn_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-writing ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ld_rw_prem %> / <%= ld_rw_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-moneybag ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ld_tot_prem %> / <%= ld_tot_pol %></h5>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!--/ Agency Today -->
+
+                  <!-- Company Today -->
+                  <div class="col-sm-6 col-lg-3 mb-2">
+                    <p class="mb-0 text-primary">Company - Today</p>
+                    <div class="card card-border-shadow-primary">
+                      <div class="card-body pt-1">
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-user-dollar ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ct_nb_prem %> / <%= ct_nb_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-repeat ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0 mt-0"><%= ct_rn_prem %> / <%= ct_rn_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-writing ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ct_rw_prem %> / <%= ct_rw_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-moneybag ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= ct_tot_prem %> / <%= ct_tot_pol %></h5>
+                        </div>
+                      </div>                    
+                    </div>
+                  </div>
+                  <!--/ Company Today -->
+
+                  <!-- Agency this month -->
+                  <div class="col-sm-6 col-lg-3 mb-2">
+                    <p class="mb-0 text-primary"><%=agency%> - This Month</p>
+                    <div class="card card-border-shadow-primary">
+                      <div class="card-body pt-1">
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-user-dollar ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= lm_nb_prem %> / <%= lm_nb_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-repeat ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0 mt-0"><%= lm_rn_prem %> / <%= lm_rn_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-writing ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= lm_rw_prem %> / <%= lm_rw_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-moneybag ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= lm_tot_prem %> / <%= lm_tot_pol %></h5>
+                        </div>
+                      </div>                    
+                    </div>
+                  </div>
+                  <!--/ Agency this month -->
+
+                  <!-- Company this month -->                 
+                  <div class="col-sm-6 col-lg-3 mb-2">
+                    <p class="mb-0 text-primary">Company - This Month</p>
+                    <div class="card card-border-shadow-primary">
+                      <div class="card-body pt-1">
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-user-dollar ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= cm_nb_prem %> / <%= cm_nb_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-repeat ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0 mt-0"><%= cm_rn_prem %> / <%= cm_rn_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-writing ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= cm_rw_prem %> / <%= cm_rw_pol %></h5>
+                        </div>
+                        <div class="d-flex align-items-center">
+                          <div class="avatar me-2">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="ti ti-moneybag ti-sm"></i></span>
+                          </div>
+                          <h5 class="ms-1 mb-0"><%= cm_tot_prem %> / <%= cm_tot_pol %></h5>
+                        </div>
+                      </div>                    
+                    </div>
+                  </div>
+                  <!--/ Company this month --> 
+
+                </div>
+                <!--/ Policies/Premium Corporate/Company -->
+
+                <!-- View sales First -->
+                <div class="col-xl-4 mb-4 col-lg-5 col-12">
+                  <div class="card">
+                    <div class="d-flex align-items-end row">
+                      <div class="col-7">
+                        <div class="card-body text-nowrap">
+                          <h5 class="card-title mb-0">Congratulations <%= franchises_best_last_week.name%>! 🎉</h5>
+                          <p class="mb-0"><%= franchises_best_last_week.location%></p>
+                          <p class="mb-2">1st Place P&C Sales Last Week</p>
+                          <h4 class="text-primary mb-1"><%= franchises_best_last_week.premium %> / <%= franchises_best_last_week.policies %></h4>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#firstCsr">
+                            By Carriers
+                        </button>
+                        </div>
+                      </div>
+                      <div class="col-5 text-center text-sm-left">
+                        <div class="card-body pb-0 px-0 px-md-4">
+                          <img
+                            src="/img/illustrations/users/<%=franchises_best_last_week.id_user%>.png"
+                            height="140"
+                            alt="First CSR" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- View sales -->
+
+                <!-- View sales Second-->
+                <div class="col-xl-4 mb-4 col-lg-5 col-12">
+                  <div class="card">
+                    <div class="d-flex align-items-end row">
+                      <div class="col-7">
+                        <div class="card-body text-nowrap">
+                          <h5 class="card-title mb-0">Congratulations <%= franchises_second_last_week.name%>! 🎉</h5>
+                          <p class="mb-0"><%= franchises_second_last_week.location%></p>
+                          <p class="mb-2">2nd Place P&C Sales Last Week</p>
+                          <h4 class="text-primary mb-1"><%= franchises_second_last_week.premium %> / <%= franchises_second_last_week.policies %></h4>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#secondCsr">
+                            By Carriers
+                        </button>
+                        </div>
+                      </div>
+                      <div class="col-5 text-center text-sm-left">
+                        <div class="card-body pb-0 px-0 px-md-4">
+                          <img
+                            src="/img/illustrations/users/<%=franchises_second_last_week.id_user%>.png"
+                            height="140"
+                            alt="Second CSR" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- View sales -->
+
+                <!-- View sales Third -->
+                <div class="col-xl-4 mb-4 col-lg-5 col-12">
+                  <div class="card">
+                    <div class="d-flex align-items-end row">
+                      <div class="col-7">
+                        <div class="card-body text-nowrap">
+                          <h5 class="card-title mb-0">Congratulations <%= franchises_third_last_week.name%>! 🎉</h5>
+                          <p class="mb-0"><%= franchises_third_last_week.location%></p>
+                          <p class="mb-2">3rd Place P&C Sales Last Week</p>
+                          <h4 class="text-primary mb-1"><%= franchises_third_last_week.premium %> / <%= franchises_third_last_week.policies %></h4>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#thirdCsr">
+                            By Carriers
+                        </button>
+                        </div>
+                      </div>
+                      <div class="col-5 text-center text-sm-left">
+                        <div class="card-body pb-0 px-0 px-md-4">
+                          <img
+                            src="/img/illustrations/users/<%=franchises_third_last_week.id_user%>.png"
+                            height="140"
+                            alt="Third CSR" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- View sales -->
+
+
+
+                <!-- Agencies Dayly -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                                  <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between">
+                                      <div class="card-title mb-0">
+                                        <h5 class="m-0 me-2">Agencies Today</h5>
+                                        <small class="text-muted">New Business</small>
+                                      </div>
+                                      <div>
+                                        <h6 class="pt-2"><b><%= ct_nb_prem %> / <%= ct_nb_pol %></b></h6>
+                                      </div>
+                                    </div>
+                                    <div class="card-body">
+                                      <ul class="p-0 m-0">
+                                        <% agencies_today.forEach(element => { %>
+                                          <li class="d-flex align-items-center mb-4">
+                                            <div class="avatar flex-shrink-0 me-3">
+                                                <img src="/img/avatars/agencies/<%=element.idl%>.png" alt class="h-auto rounded-circle" />
+                                            </div>
+                                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                                              <div class="me-2">
+                                                <div class="d-flex align-items-center">
+                                                  <h6 class="mb-0 me-1"><%=  element.location %></h6>
+                                                </div>
+                                              </div>
+                                              <div>
+                                                <h6 class="mb-0 me-1"><%= element.premium %> / <%= element.policies %></h6>
+                                              </div> 
+                                            </div>
+                                          </li>
+                                          <% }) %>
+                                      </ul>
+                                    </div>
+                                  </div>
+                </div>
+                <!--/Agencies Dayly-->
+
+                <!-- Sales By Agencies -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                  <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between">
+                      <div class="card-title mb-0">
+                        <h5 class="m-0 me-2">Agencies This Month</h5>
+                            <small class="text-muted">New Business</small>
+                      </div>
+                      <div>
+                        <h6 class="pt-2"><b>
+                          <%= cm_nb_prem %> / <%= cm_nb_pol %>
+                        </b></h6>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <ul class="p-0 m-0">
+                        <% dashboard_location.forEach(element=> { %>
+                          <li class="d-flex align-items-center mb-4">
+                            <div class="avatar flex-shrink-0 me-3">
+                              <% if(element.avatar) {%>
+                                <img src="/img/avatars/agencies/<%=element.avatar%>" alt class="h-auto rounded-circle" />
+                                <%}else{%>
+                                  <%-element.output%>
+                                    <%}%>
+                            </div>
+                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                              <div class="me-2">
+                                <div class="d-flex align-items-center">
+                                  <h6 class="mb-0 me-1">
+                                    <%= element.premium %> / <%= element.policies %>
+                                  </h6>
+                                </div>
+                                <small class="text-muted">
+                                  <%= element.location %>
+                                </small>
+                              </div>
+                              <div class="user-progress">
+                                <% if(element.percent){ if(element.percent>= 0) {%>
+                                  <p class="text-success fw-medium mb-0 d-flex justify-content-center gap-1">
+                                    <i class="ti ti-chevron-up"></i>
+                                    <%= element.percent %>%
+                                  </p>
+                                  <%} else { element.percent=element.percent*(-1)%>
+                                    <p class="text-danger fw-medium mb-0 d-flex justify-content-center gap-1">
+                                      <i class="ti ti-chevron-down"></i>
+                                      <%= element.percent %>%
+                                    </p>
+                                    <% }} else { %>
+                                      <p class="text-warning fw-medium mb-0 d-flex justify-content-center gap-1">
+                                        <i class="ti"></i>
+                                        NRLM
+                                      </p>
+                                      <% } %>
+                              </div>
+                            </div>
+                          </li>
+                          <% }) %>
+                
+                      </ul>
+                    </div>
+                  </div>
+</div>
+<!--/ Sales By Agencies -->
+
+                <!-- Sales By Companies -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                  <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between">
+                      <div class="card-title mb-0">
+                        <h5 class="m-0 me-2">Carriers This Month</h5>
+                        <small class="text-muted">New Business</small>
+                      </div>
+                      <div>
+                        <h6 class="pt-2"><b>
+                          <%= cm_nb_prem %> / <%= cm_nb_pol %>
+                        </b></h6>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <ul class="p-0 m-0">
+                        <% dashboard_company.forEach(element=> { %>
+                          <li class="d-flex align-items-center mb-4">
+                            <div class="avatar flex-shrink-0 me-3">
+                              <% if(element.avatar) {%>
+                                <img src="/img/avatars/comp/<%=element.avatar%>" alt class="h-auto rounded-circle" />
+                                <%}else{%>
+                                  <%-element.output%>
+                                    <%}%>
+                            </div>
+                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                              <div class="me-2">
+                                <div class="d-flex align-items-center">
+                                  <h6 class="mb-0 me-1">
+                                    <%= element.premium %> / <%= element.policies %>
+                                  </h6>
+                                </div>
+                                <small class="text-muted">
+                                  <%= element.company %>
+                                </small>
+                              </div>
+                              <div class="user-progress">
+                                <% if(element.percent){ if(element.percent>= 0) {%>
+                                  <p class="text-success fw-medium mb-0 d-flex justify-content-center gap-1">
+                                    <i class="ti ti-chevron-up"></i>
+                                    <%= element.percent %>%
+                                  </p>
+                                  <%} else { element.percent=element.percent*(-1)%>
+                                    <p class="text-danger fw-medium mb-0 d-flex justify-content-center gap-1">
+                                      <i class="ti ti-chevron-down"></i>
+                                      <%= element.percent %>%
+                                    </p>
+                                    <% }} else { %>
+                                      <p class="text-warning fw-medium mb-0 d-flex justify-content-center gap-1">
+                                        <i class="ti"></i>
+                                        NRLM
+                                      </p>
+                                      <% } %>
+                              </div>
+                            </div>
+                          </li>
+                          <% }) %>
+                
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <!--/ Sales By Companies -->
+
+              </div>
+            </div>
+            <!-- / Content -->
+
+              <!-- Franchises Best Seller Modal-->
+              <div class="modal fade" id="firstCsr" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                  <div class="modal-content p-3 p-md-5">
+                    <div class="modal-body">
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <div class="text-center mb-4">
+                        <h3 class="mb-3">Top 5 Carriers</h3>
+                        <p class="text-muted"><%=franchises_best_last_week.csr%>'s Sales</p>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <ul class="p-0 m-0">
+                          <% franchises_best_last_week.carriers.forEach(element => {%>
+                          <li class="d-flex align-items-center mb-4">
+                            <div class="avatar flex-shrink-0 me-3">
+                              <img src="/img/avatars/comp/<%=element.id_company%>.png" alt="Carrier" class="h-auto rounded-circle" />
+                            </div>
+                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                              <div class="me-2">
+                                <div class="d-flex align-items-center">
+                                  <h6 class="mb-0 me-1"><%= element.premium %> / <%= element.policies %></h6>
+                                </div>
+                                <small class="text-muted"><%= element.carrier %></small>
+                              </div>
+                            </div>
+                          </li>
+                          <% }) %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Franchises Second Seller Modal -->
+              <div class="modal fade" id="secondCsr" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                  <div class="modal-content p-3 p-md-5">
+                    <div class="modal-body">
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <div class="text-center mb-4">
+                        <h3 class="mb-3">Top 5 Carriers</h3>
+                        <p class="text-muted"><%=franchises_second_last_week.csr%>'s Sales</p>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <ul class="p-0 m-0">
+                          <% franchises_second_last_week.carriers.forEach(element => {%>
+                          <li class="d-flex align-items-center mb-4">
+                            <div class="avatar flex-shrink-0 me-3">
+                              <img src="/img/avatars/comp/<%=element.id_company%>.png" alt="Carrier" class="h-auto rounded-circle" />
+                            </div>
+                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                              <div class="me-2">
+                                <div class="d-flex align-items-center">
+                                  <h6 class="mb-0 me-1"><%= element.premium %> / <%= element.policies %></h6>
+                                </div>
+                                <small class="text-muted"><%= element.carrier %></small>
+                              </div>
+                            </div>
+                          </li>
+                          <% }) %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Franchises Third Seller Modal -->
+              <div class="modal fade" id="thirdCsr" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-simple modal-enable-otp modal-dialog-centered">
+                  <div class="modal-content p-3 p-md-5">
+                    <div class="modal-body">
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <div class="text-center mb-4">
+                        <h3 class="mb-3">Top 5 Carriers</h3>
+                        <p class="text-muted"><%=franchises_third_last_week.csr%>'s Sales</p>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <ul class="p-0 m-0">
+                          <% franchises_third_last_week.carriers.forEach(element => {%>
+                          <li class="d-flex align-items-center mb-4">
+                            <div class="avatar flex-shrink-0 me-3">
+                              <img src="/img/avatars/comp/<%=element.id_company%>.png" alt="Carrier" class="h-auto rounded-circle" />
+                            </div>
+                            <div class="d-flex w-100 align-items-center justify-content-between gap-2">
+                              <div class="me-2">
+                                <div class="d-flex align-items-center">
+                                  <h6 class="mb-0 me-1"><%= element.premium %> / <%= element.policies %></h6>
+                                </div>
+                                <small class="text-muted"><%= element.carrier %></small>
+                              </div>
+                            </div>
+                          </li>
+                          <% }) %>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl">
+                <div
+                  class="footer-container d-flex align-items-center justify-content-between py-2 flex-md-row flex-column">
+                  <div>
+                    ©
+                    <script>
+                      document.write(new Date().getFullYear());
+                    </script>
+                    , &nbsp
+                    <a href="https://goldentrust.com" target="_blank" class="footer-link text-primary fw-medium"
+                      > GTI | Marketing & IT Department</a
+                    >
+                  </div>
+                  <div class="d-none d-lg-inline-block">
+                    <a href="https://goldentrust.com" class="footer-link me-4" target="_blank"
+                      >GoldenTrust.com</a
+                    >
+                    <a href="https://admin.goldensoft.pro" target="_blank" class="footer-link me-4"
+                      >CRM</a
+                    >
+                    <a
+                      href="https://365.goldentrustinsurance.com"
+                      target="_blank"
+                      class="footer-link me-4"
+                      >Email</a>
+                    <a
+                      href="https://internal.goldentrustinsurance.com"
+                      target="_blank"
+                      class="footer-link me-4"
+                      >Intranet</a>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <!-- / Footer -->
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+
+      <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+      <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="/vendor/libs/swiper/swiper.js"></script>
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    <!-- Page JS -->
+   
+    <!--<script src="/js/tables-datatables-basic.js"></script>-->
+
+  </body>
+</html>
