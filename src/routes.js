@@ -6,7 +6,7 @@ import { headcarrier, addHeadCarrier, head_carrier_list, addCarrier, deleteCarri
 import { dataSearch } from "./controllers/search.js";
 import { passwordMail } from "./controllers/mailer.js";
 import passport from "passport";
-import { authenticate} from "../config/passportConfig.js";
+import { authenticate} from "./config/passportConfig.js";
 
 const router = express.Router();
 

@@ -11,6 +11,7 @@ export const createPersonalInfo = async (req, res) => {
   }
 };
 export const getAllPersonalInfo = async (req, res) => {
+  console.log('Fetching all personal info');
   const personalInfos = await prisma.personalInfo.findMany();
   res.json(personalInfos);
 };

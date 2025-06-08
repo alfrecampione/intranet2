@@ -1,4 +1,4 @@
-import {pool} from "../../config/dbConfig.js";
+import {pool} from "../config/dbConfig.js";
 
 const redirect_dashboard = (req, res) => {
     res.redirect('/users/dashboard')

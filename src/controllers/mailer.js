@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import dotenv from "dotenv";
-import { pool } from "../../config/dbConfig.js";
+import { pool } from "../config/dbConfig.js";
 import {encrypt} from "./crypto.js";
 
 dotenv.config();
