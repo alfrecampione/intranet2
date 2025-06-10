@@ -1,9 +1,16 @@
 import axios from "axios";
+import https from "https";
+import {pool} from "../config/dbConfig.js";
+
+const agent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 const register = async (req, res) => {
   try {
     const PORT = process.env.PORT || 443;
-    const userId = req.user;
+    const userId = req.user.user_id;
+    const user = req.user;
     const endpoints = {
       personalInfo: `https://localhost:${PORT}/steps/personal-info/${userId}`,
       contactInfo: `https://localhost:${PORT}/steps/contact-info/${userId}`,
@@ -13,46 +20,28 @@ const register = async (req, res) => {
       documents: `https://localhost:${PORT}/steps/documents/${userId}`
     };
 
-    // Get personal information
-    const personalInfo = await axios.get(endpoints.personalInfo);
-
-    console.log("Personal Info:", personalInfo.data);
-
-    // Perform all requests in parallel
-    const [
-      personalInfoRes,
-      contactInfoRes,
-      emergencyContactRes,
-      taxInfoRes,
-      paymentMethodRes,
-      documentsRes
-    ] = await Promise.all([
-      axios.get(endpoints.personalInfo),
-      axios.get(endpoints.contactInfo),
-      axios.get(endpoints.emergencyContact),
-      axios.get(endpoints.taxInfo),
-      axios.get(endpoints.paymentMethod),
-      axios.get(endpoints.documents)
-    ]);
-
+    // Perform all requests in parallel with custom HTTPS agent
+    const personalInfoRes = await axios.get(endpoints.personalInfo, { httpsAgent: agent });
+    const contactInfoRes = await axios.get(endpoints.contactInfo, { httpsAgent: agent });
+    const emergencyContactRes = await axios.get(endpoints.emergencyContact, { httpsAgent: agent });
+    const taxInfoRes = await axios.get(endpoints.taxInfo, { httpsAgent: agent });
+    const paymentMethodRes = await axios.get(endpoints.paymentMethod, { httpsAgent: agent });
+    const documentsRes = await axios.get(endpoints.documents, { httpsAgent: agent });
+    // Aggregating results into a single object
     const data = {
-      userId,
+      user,
       personalInfo: personalInfoRes.data,
       contactInfo: contactInfoRes.data,
-      emergencyContact: emergencyContactRes.data,
+      emergencyContacts: emergencyContactRes.data,
       taxInfo: taxInfoRes.data,
-      paymentMethod: paymentMethodRes.data,
+      paymentMethods: paymentMethodRes.data,
       documents: documentsRes.data
     };
-
-    console.log(data)
-
     res.render("registration", data);
-
   } catch (error) {
     console.error("Error loading registration data:", error.message);
     res.status(500).send("Error loading registration data.");
   }
 };
 
-export {register};
+export { register };

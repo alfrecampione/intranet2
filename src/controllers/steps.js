@@ -137,7 +137,7 @@ export const getEmergencyContactById = async (req, res) => {
   try {
     const emergencyContacts = await prisma.emergencyContact.findMany({
       where: { userId: parseInt(req.params.id) }
-    });
+    }) || [];
     res.json(emergencyContacts);
   } catch (error) {
     res.status(500).json({ error: 'Error retrieving emergency contacts' });
@@ -189,7 +189,7 @@ export const createPaymentMethods = async (req, res) => {
 };
 export const getPaymentMethodById = async (req, res) => {
   try{
-    const paymentMethods = await prisma.paymentMethod.findMany({ where: { userId: parseInt(req.params.id) } });
+    const paymentMethods = await prisma.paymentMethod.findMany({ where: { userId: parseInt(req.params.id) } }) || [];
     res.json(paymentMethods);
   }
   catch(error){
