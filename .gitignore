@@ -4,3 +4,6 @@ node_modules
 
 /generated/prisma
 assets/
+uploads/
+registration/assets/
+prisma/migrations/

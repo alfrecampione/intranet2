@@ -11,6 +11,7 @@ import fs from "fs";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import pino from 'pino-http';
+import cors from 'cors';
 
 
 import router from "./routes.js";
@@ -26,6 +27,17 @@ const options = {
     cert: fs.readFileSync('./src/config/ssl/4779dbccdf63510b.crt'),
     ca: fs.readFileSync('./src/config/ssl/gd_bundle-g2-g1.crt')
 };
+
+// Configuración CORS para permitir todos los orígenes
+app.use(cors({
+  origin: '*', // Permite cualquier origen
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeceras permitidas
+  credentials: true // Permite cookies y autenticación
+}));
+
+// Manejar solicitudes OPTIONS (preflight)
+app.options('*', cors());
 
 initialize(passport);
 
@@ -81,38 +93,61 @@ app.use(express.static(path.join(__dirname, '..', 'assets')));
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 app.use(express.json());
 
+
+app.post('/signatures', async (req, res) => {
+  try {
+    const { signature } = req.body;
+    
+    // Guardar la firma como imagen
+    const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, 'base64');
+    const fileName = `signature_${Date.now()}.png`;
+    const filePath = path.join(__dirname, 'uploads/signatures', fileName);
+
+    fs.writeFileSync(filePath, buffer);
+
+    // Devolver solo el path (el backend lo guardará en TaxInfo)
+    res.json({ 
+      success: true,
+      path: `/uploads/signatures/${fileName}`
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error al procesar firma" });
+  }
+});
+
+
 // File upload endpoint
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/upload', upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Construct relative file path
-    const filePath = req.file.path.replace(/\\/g, '/'); // Normalize for Windows
-    const relativePath = filePath.startsWith('uploads/') 
-      ? filePath 
-      : filePath.substring(filePath.indexOf('uploads/'));
+    // Normaliza la ruta (útil para Windows)
+    const filePath = req.file.path.replace(/\\/g, '/');
 
+    // Asegúrate de que la ruta empiece con 'uploads/'
+    const relativePath = filePath.includes('uploads/')
+      ? filePath.substring(filePath.indexOf('uploads/'))
+      : `uploads/${req.file.filename}`;
+
+    // Devolver solo lo que necesita el frontend
     res.json({
-      success: true,
-      message: 'File uploaded successfully',
-      filePath: relativePath,
-      fileName: req.file.filename,
-      originalName: req.file.originalname,
-      fileUrl: `/uploads/${relativePath.split('uploads/')[1]}`
+      path: relativePath
     });
+
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ 
-      success: false,
       error: 'Upload failed',
       details: error.message 
     });
   }
 });
 
-app.use(pino());
+// app.use(pino());
 
 app.use('/', router);
 

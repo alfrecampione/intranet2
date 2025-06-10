@@ -7,6 +7,7 @@ import { dataSearch } from "./controllers/search.js";
 import { passwordMail } from "./controllers/mailer.js";
 import passport from "passport";
 import { authenticate} from "./config/passportConfig.js";
+import {register} from "./controllers/registration.js"
 
 const router = express.Router();
 
@@ -35,14 +36,16 @@ router.post('/users/config/headcarrier/addCarrier', checkNotAuthenticated, addCa
 router.post('/users/config/headcarrier/deleteCarrier', checkNotAuthenticated, deleteCarrier);
 router.post('/users/search', checkNotAuthenticated, dataSearch)
 
+router.get('/users/registration',checkNotAuthenticated,register)
+
 // STEPS ROUTES
 import {
-  createPersonalInfo, getAllPersonalInfo, getPersonalInfoById, updatePersonalInfo, deletePersonalInfo,
-  createContactInfo, getAllContactInfo, getContactInfoById, updateContactInfo, deleteContactInfo,
-  createEmergencyContact, getAllEmergencyContacts, getEmergencyContactById, updateEmergencyContact, deleteEmergencyContact,
-  createTaxInfo, getAllTaxInfo, getTaxInfoById, updateTaxInfo, deleteTaxInfo,
-  createPaymentMethod, getAllPaymentMethods, getPaymentMethodById, updatePaymentMethod, deletePaymentMethod,
-  createDocuments, getAllDocuments, getDocumentsById, updateDocuments, deleteDocuments
+  createPersonalInfo, getPersonalInfoById, updatePersonalInfo, 
+  createContactInfo, getContactInfoById, updateContactInfo, 
+  createEmergencyContact, getEmergencyContactById, updateEmergencyContact, 
+  createTaxInfo, getTaxInfoById, updateTaxInfo, 
+  createPaymentMethod, getPaymentMethodById, updatePaymentMethod, 
+  createDocuments, getDocumentsById, updateDocuments,
 } from "./controllers/steps.js";
 
 // Step 1: Personal Info

@@ -4,198 +4,216 @@ const prisma = new PrismaClient();
 // Step 1: Personal Info
 export const createPersonalInfo = async (req, res) => {
   try {
-    const personalInfo = await prisma.personalInfo.create({ data: req.body });
-    res.status(201).json(personalInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-export const getAllPersonalInfo = async (req, res) => {
-  console.log('Fetching all personal info');
-  const personalInfos = await prisma.personalInfo.findMany();
-  res.json(personalInfos);
-};
-export const getPersonalInfoById = async (req, res) => {
-  const personalInfo = await prisma.personalInfo.findUnique({ where: { id: req.params.id } });
-  res.json(personalInfo);
-};
-export const updatePersonalInfo = async (req, res) => {
-  try {
-    const personalInfo = await prisma.personalInfo.update({
-      where: { id: req.params.id },
-      data: req.body,
+    const { 
+      LegalName,       
+      PreferredName,   
+      LegalSex,                  
+      DateOfBirth,
+      SSN,                           
+      userId
+    } = req.body;
+
+    const data = {
+      LegalName,
+      PreferredName: PreferredName || null,
+      LegalSex,
+      DateOfBirth: new Date(DateOfBirth),
+      SSN,
+      userId             
+    };
+
+    const personalInfo = await prisma.personalInfo.upsert({
+      where: { userId },
+      update: data,
+      create: data 
     });
+
     res.json(personalInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    console.error("Error creating or updating personal info:", error);
+    res.status(500).json({ 
+      error: "Failed to create or update personal info",
+      details: error.message 
+    });
   }
 };
-export const deletePersonalInfo = async (req, res) => {
-  await prisma.personalInfo.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
+
+export const getPersonalInfoById = async (req, res) => {
+  const personalInfo = await prisma.personalInfo.findUnique({ userId: parseInt(req.params.id) });
+  res.json(personalInfo);
 };
 
 // Step 2: Contact Info
 export const createContactInfo = async (req, res) => {
   try {
-    const contactInfo = await prisma.contactInfo.create({ data: req.body });
-    res.status(201).json(contactInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-export const getAllContactInfo = async (req, res) => {
-  const contactInfos = await prisma.contactInfo.findMany();
-  res.json(contactInfos);
-};
-export const getContactInfoById = async (req, res) => {
-  const contactInfo = await prisma.contactInfo.findUnique({ where: { id: req.params.id } });
-  res.json(contactInfo);
-};
-export const updateContactInfo = async (req, res) => {
-  try {
-    const contactInfo = await prisma.contactInfo.update({
-      where: { id: req.params.id },
-      data: req.body,
+    const {
+      personalEmail,
+      personalPhone,
+      country,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      zipCode,
+      workEmail,
+      workPhone,
+      preferredContactMethod,
+      userId
+    } = req.body;
+
+    // Combinar direcciones
+    const address = `${addressLine1}${addressLine2 ? `, ${addressLine2}` : ''}`;
+
+    const data = {
+      personalEmail,
+      personalPhone: personalPhone || null,
+      country,
+      address,
+      city,
+      state,
+      zipCode,
+      workEmail: workEmail || null,
+      workPhone: workPhone || null,
+      preferredContactMethod: preferredContactMethod || null,
+      userId
+    };
+
+    // Crear registro en la base de datos
+    const contactInfo = await prisma.contactInfo.upsert({
+      where: { userId: data.userId },
+      update: data,
+      create: data
     });
     res.json(contactInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    console.error("Error creating or updating contact info:", error);
+    res.status(500).json({ 
+      error: "Failed to save contact information",
+      details: error.message 
+    });
   }
 };
-export const deleteContactInfo = async (req, res) => {
-  await prisma.contactInfo.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
+
+export const getContactInfoById = async (req, res) => {
+  const contactInfo = await prisma.contactInfo.findUnique({ where: { userId: parseInt(req.params.id) } });
+  res.json(contactInfo);
 };
 
 // Step 3: Emergency Contact
-export const createEmergencyContact = async (req, res) => {
+export const createOrUpdateEmergencyContacts = async (req, res) => {
   try {
-    const emergencyContact = await prisma.emergencyContact.create({ data: req.body });
-    res.status(201).json(emergencyContact);
+    const contacts = req.body;
+
+    if (!Array.isArray(contacts)) {
+      return res.status(400).json({ error: "Se esperaba un arreglo de contactos." });
+    }
+
+    await Promise.all(
+      contacts.map(async (contact) => {
+        await prisma.emergencyContact.upsert({
+          where: { userId: contact.userId },
+          update: {
+            Fullname: contact.Fullname,
+            Phone: contact.Phone,
+            secondaryPhone: contact.secondaryPhone ?? null
+          },
+          create: {
+            Fullname: contact.Fullname,
+            Phone: contact.Phone,
+            secondaryPhone: contact.secondaryPhone ?? null,
+            userId: contact.userId
+          }
+        });
+      })
+    );
+
+    res.status(201).json({ message: "Contactos de emergencia creados o actualizados exitosamente" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error al crear o actualizar contactos de emergencia:", err);
+    res.status(500).json({ error: err.message });
   }
-};
-export const getAllEmergencyContacts = async (req, res) => {
-  const emergencyContacts = await prisma.emergencyContact.findMany();
-  res.json(emergencyContacts);
 };
 export const getEmergencyContactById = async (req, res) => {
-  const emergencyContact = await prisma.emergencyContact.findUnique({ where: { id: req.params.id } });
-  res.json(emergencyContact);
-};
-export const updateEmergencyContact = async (req, res) => {
   try {
-    const emergencyContact = await prisma.emergencyContact.update({
-      where: { id: req.params.id },
-      data: req.body,
+    const emergencyContacts = await prisma.emergencyContact.findMany({
+      where: { userId: parseInt(req.params.id) }
     });
-    res.json(emergencyContact);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.json(emergencyContacts);
+  } catch (error) {
+    res.status(500).json({ error: 'Error retrieving emergency contacts' });
   }
 };
-export const deleteEmergencyContact = async (req, res) => {
-  await prisma.emergencyContact.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
-};
-
 // Step 4: Tax Info
 export const createTaxInfo = async (req, res) => {
   try {
-    const taxInfo = await prisma.taxInfo.create({ data: req.body });
+    const taxInfo = await prisma.taxInfo.upsert({
+      where: { userId: req.body.userId },
+      update: req.body,
+      create: req.body
+    });
+
     res.status(201).json(taxInfo);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
-export const getAllTaxInfo = async (req, res) => {
-  const taxInfos = await prisma.taxInfo.findMany();
-  res.json(taxInfos);
-};
 export const getTaxInfoById = async (req, res) => {
-  const taxInfo = await prisma.taxInfo.findUnique({ where: { id: req.params.id } });
+  const taxInfo = await prisma.taxInfo.findUnique({ where: { userId: parseInt(req.params.id) } });
   res.json(taxInfo);
-};
-export const updateTaxInfo = async (req, res) => {
-  try {
-    const taxInfo = await prisma.taxInfo.update({
-      where: { id: req.params.id },
-      data: req.body,
-    });
-    res.json(taxInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-export const deleteTaxInfo = async (req, res) => {
-  await prisma.taxInfo.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
 };
 
 // Step 5: Payment Method
-export const createPaymentMethod = async (req, res) => {
+export const createOrUpdatePaymentMethods = async (req, res) => {
   try {
-    const paymentMethod = await prisma.paymentMethod.create({ data: req.body });
-    res.status(201).json(paymentMethod);
+    const paymentMethods = req.body;
+
+    if (!Array.isArray(paymentMethods)) {
+      return res.status(400).json({ error: "Expected an array of payment methods." });
+    }
+
+    await Promise.all(
+      paymentMethods.map(async (method) => {
+        await prisma.paymentMethod.upsert({
+          where: { userId: method.userId },
+          update: method,
+          create: method
+        });
+      })
+    );
+
+    res.status(201).json({ message: "Payment methods created or updated successfully" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error creating/updating payment methods:", err);
+    res.status(500).json({ error: err.message });
   }
-};
-export const getAllPaymentMethods = async (req, res) => {
-  const paymentMethods = await prisma.paymentMethod.findMany();
-  res.json(paymentMethods);
 };
 export const getPaymentMethodById = async (req, res) => {
-  const paymentMethod = await prisma.paymentMethod.findUnique({ where: { id: req.params.id } });
-  res.json(paymentMethod);
-};
-export const updatePaymentMethod = async (req, res) => {
-  try {
-    const paymentMethod = await prisma.paymentMethod.update({
-      where: { id: req.params.id },
-      data: req.body,
-    });
-    res.json(paymentMethod);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  try{
+    const paymentMethods = await prisma.paymentMethod.findMany({ where: { userId: parseInt(req.params.id) } });
+    res.json(paymentMethods);
+  }
+  catch(error){
+    res.status(500).json({ error: 'Error retrieving payment methods' });
   }
 };
-export const deletePaymentMethod = async (req, res) => {
-  await prisma.paymentMethod.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
-};
-
 // Step 6: Documents
-export const createDocuments = async (req, res) => {
+export const createOrUpdateDocuments = async (req, res) => {
   try {
-    const documents = await prisma.documents.create({ data: req.body });
+    const { userId, ...documentData } = req.body;
+
+    const documents = await prisma.documents.upsert({
+      where: { userId },
+      update: documentData,
+      create: { userId, ...documentData }
+    });
+
     res.status(201).json(documents);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error creating or updating documents:", err);
+    res.status(500).json({ error: "Failed to create or update documents", details: err.message });
   }
-};
-export const getAllDocuments = async (req, res) => {
-  const documentsList = await prisma.documents.findMany();
-  res.json(documentsList);
 };
 export const getDocumentsById = async (req, res) => {
-  const documents = await prisma.documents.findUnique({ where: { id: req.params.id } });
+  const documents = await prisma.documents.findUnique({ where: { userId: parseInt(req.params.id) } });
   res.json(documents);
-};
-export const updateDocuments = async (req, res) => {
-  try {
-    const documents = await prisma.documents.update({
-      where: { id: req.params.id },
-      data: req.body,
-    });
-    res.json(documents);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-export const deleteDocuments = async (req, res) => {
-  await prisma.documents.delete({ where: { id: req.params.id } });
-  res.json({ message: 'Deleted' });
 };

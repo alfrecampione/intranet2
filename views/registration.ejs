@@ -1,0 +1,1495 @@
+<!doctype html>
+
+<html lang="en" class="light-style layout-wide customizer-hide" dir="ltr" data-theme="theme-default"
+  data-assets-path="../registration/assets" data-template="vertical-menu-template" data-style="light">
+
+<head>
+  <script>
+  window.API_BASE_URL = "https://localhost:443";
+  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+  <title>Multi Steps Sign-up - Pages | Vuexy - Bootstrap Admin Template</title>
+
+  <meta name="description" content="" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../registration/assets/img/favicon/favicon.ico" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+    rel="stylesheet" />
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="../registration/assets/vendor/fonts/fontawesome.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/fonts/tabler-icons.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/fonts/flag-icons.css" />
+
+  <!-- Core CSS -->
+
+  <link rel="stylesheet" href="../registration/assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+
+  <link rel="stylesheet" href="../registration/assets/css/demo.css" />
+
+  <!-- Vendors CSS -->
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/node-waves/node-waves.css" />
+
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/typeahead-js/typeahead.css" />
+  <!-- Vendor -->
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/bs-stepper/bs-stepper.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/select2/select2.css" />
+  <link rel="stylesheet" href="../registration/assets/vendor/libs/@form-validation/form-validation.css" />
+
+  <!-- Page CSS -->
+
+  <!-- Page -->
+  <link rel="stylesheet" href="../registration/assets/vendor/css/pages/page-auth.css" />
+
+  <!-- Helpers -->
+  <script src="../registration/assets/vendor/js/helpers.js"></script>
+  <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+
+  <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
+  <script src="../registration/assets/vendor/js/template-customizer.js"></script>
+
+  <!--? !!!!!!!!!!!!!!!!!!Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+  <script src="../../registration/assets/js/config.js"></script>
+
+  <!-- Signature -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+
+  <style .bs-stepper-content .content { display: none; } .bs-stepper-content .content.active { display: block; }
+    .form-control.is-invalid, .form-select.is-invalid { border-color: #ff3e1d !important; }></style>
+  <style .invalid-feedback { display: none; width: 100%; margin-top: 0.25rem; font-size: 0.875em; color: #ff3e1d; }
+    .is-invalid ~ .invalid-feedback { display: block; }> </style>
+</head>
+
+<body>
+  <!-- Content -->
+  <div class="authentication-wrapper authentication-cover authentication-bg">
+    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+        <div class="app-brand demo">
+          <a href="/users/dashboard" class="app-brand-link">
+            <!--<span class="app-brand-logo">
+              <img src="/img/branding/gt.png" alt="">
+            </span>-->
+            <span class="app-brand-text">
+              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo">
+            </span>
+          </a>
+          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+            <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+            <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+          </a>
+        </div>
+
+        <div class="menu-inner-shadow"></div>
+
+        <ul class="menu-inner py-1">
+        
+          <!-- Dashboard -->
+
+          <li class="menu-item active">
+            <a href="/users/dashboard" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-smart-home"></i>
+              <div data-i18n="Dashboard">Dashboard</div>
+            </a>
+          </li>
+
+
+
+          <!-- ////////////////ADMIN/////////////////////// -->
+        
+          <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+          </li>
+        
+          <li class="menu-item">
+            <a href="/users/config/headcarriers" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-settings-check"></i>
+              <div data-i18n="Config">Config</div>
+            </a>
+          </li>
+
+        </ul>
+
+    </aside>
+
+    <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+              <i class="ti ti-menu-2 ti-sm"></i>
+            </a>
+          </div>
+
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+
+
+            <!-- Search -->
+            <div class="navbar-nav align-items-center">
+              <div class="nav-item navbar-search-wrapper mb-0">
+                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
+                  <i class="ti ti-search ti-md me-2"></i>
+                  <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                </a>
+              </div>
+            </div>
+            <!-- /Search -->
+
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
+
+              <!-- Style Switcher -->
+              <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <i class="ti ti-md"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                      <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                      <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                      <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+
+              <!-- Notification -->
+              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside" aria-expanded="false">
+                  <i class="ti ti-bell ti-md"></i>
+                  <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end py-0">
+                  <li class="dropdown-menu-header border-bottom">
+                    <div class="dropdown-header d-flex align-items-center py-3">
+                      <h5 class="text-body mb-0 me-auto">Notification</h5>
+                      <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
+                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                    </div>
+                  </li>
+              </li>
+              <li class="dropdown-menu-footer border-top">
+                <a href="javascript:void(0);"
+                  class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                  View all notifications
+                </a>
+              </li>
+            </ul>
+            </li>
+            <!--/ Notification -->
+
+            <!-- User -->
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+              <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                <div class="avatar avatar-online">
+                  <img src="/img/avatars/users/<%=user.user_id%>.png" alt class="h-auto rounded-circle" />
+                </div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="pages-account-settings-account.html">
+                    <div class="d-flex">
+                      <div class="flex-shrink-0 me-3">
+                        <div class="avatar avatar-online">
+                          <img src="/img/avatars/users/<%=user.user_id%>.png" alt class="h-auto rounded-circle" />
+                        </div>
+                      </div>
+                      <div class="flex-grow-1">
+                        <span class="fw-medium d-block">
+                          <%= user.display_name %>
+                        </span>
+                        <small class="text-muted">
+                          <%=user.job_title%>
+                        </small>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <div class="dropdown-divider"></div>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/users/logout"> <!-- target="_blank" -->
+                    <i class="ti ti-logout me-2 ti-sm"></i>
+                    <span class="align-middle">Log Out</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <!--/ User -->
+            </ul>
+          </div>
+
+          <!-- Search Small Screens -->
+          <div class="navbar-search-wrapper search-input-wrapper d-none">
+            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
+              aria-label="Search..." />
+            <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+          </div>
+    </nav>
+
+    <div class="authentication-inner row">
+      <!-- Left Text -->
+      <div
+        class="d-none d-lg-flex col-lg-4 align-items-center justify-content-center p-5 auth-cover-bg-color position-relative auth-multisteps-bg-height">
+        <img src="../registration/assets/img/illustrations/auth-register-multisteps-illustration.png" alt="auth-register-multisteps"
+          class="img-fluid" width="190" />
+
+        <!--<img src="../registration/assets/img/illustrations/auth-register-multisteps-shape-light.png"
+          alt="auth-register-multisteps" class="platform-bg"
+          data-app-light-img="illustrations/auth-register-multisteps-shape-light.png"
+          data-app-dark-img="illustrations/auth-register-multisteps-shape-dark.png" />
+        -->
+      </div>
+      <!-- /Left Text -->
+
+      <!-- Multi Steps Registration -->
+      <div class="d-flex col-lg-8 align-items-center justify-content-center authentication-bg p-5">
+        <div class="w-px-700">
+          <form id="multiStepsForm" class="w-100" onsubmit="return false">
+            <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
+              <div class="bs-stepper-header border-none pt-12 px-0">
+
+                <!-- Paso 1: Personal Info -->
+                <div class="step" data-target="#accountDetailsValidation">
+                  <button type="button" class="step-trigger">
+                    <span class="bs-stepper-circle"><i class="ti ti-file-analytics ti-md"></i></span>
+                    <span class="bs-stepper-label"><span class="bs-stepper-title">Personal Info</span></span>
+                  </button>
+                </div>
+                <div class="line"><i class="ti ti-chevron-right"></i></div>
+
+                <!-- Paso 2: Contact Info -->
+                <div class="step" data-target="#contactInfoValidation">
+                  <button type="button" class="step-trigger">
+                    <span class="bs-stepper-circle"><i class="ti ti-user ti-md"></i></span>
+                    <span class="bs-stepper-label"><span class="bs-stepper-title">Contact Info</span></span>
+                  </button>
+                </div>
+                <div class="line"><i class="ti ti-chevron-right"></i></div>
+
+                <!-- Paso 3: Emergency Contacts -->
+                <div class="step" data-target="#emergencyContactsValidation">
+                  <button type="button" class="step-trigger">
+                    <span class="bs-stepper-circle"><i class="ti ti-phone-plus ti-md"></i></span>
+                    <span class="bs-stepper-label"><span class="bs-stepper-title">Emergency Contacts</span></span>
+                  </button>
+                </div>
+                <div class="line"><i class="ti ti-chevron-right"></i></div>
+
+                <!-- Paso 4: Payroll -->
+                <div class="step" data-target="#payrollValidation">
+                  <button type="button" class="step-trigger">
+                    <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
+                    <span class="bs-stepper-label"><span class="bs-stepper-title">Payroll</span></span>
+                  </button>
+                </div>
+                <div class="line"><i class="ti ti-chevron-right"></i></div>
+
+                <!-- Paso 5: Documents -->
+                <div class="step" data-target="#documentsValidation">
+                  <button type="button" class="step-trigger">
+                    <span class="bs-stepper-circle"><i class="ti ti-file-text ti-md"></i></span>
+                    <span class="bs-stepper-label"><span class="bs-stepper-title">Documents</span></span>
+                  </button>
+                </div>
+              </div>
+
+
+              <div class="bs-stepper-content">
+
+                <!-- Contenido 1 -->
+                <div id="accountDetailsValidation" class="content active">
+                  <div class="content-header mb-6">
+                    <h4 class="mb-0">Personal Info</h4>
+                    <p class="mb-0">Enter Your Personal Information</p>
+                  </div>
+                  <div class="row g-3">
+                    <!-- Contact type (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="contactType">
+                        Contact Type <span class="text-danger">*</span>
+                      </label>
+                      <select id="contactType" name="contactType" class="form-select" required>
+                        <option value="" disabled <%= !personalInfo?.ContractorType ? 'selected' : '' %>>Select type...</option>
+                        <option value="individual" <%= personalInfo?.ContractorType === 'individual' ? 'selected' : '' %>>Individual</option>
+                        <option value="business" <%= personalInfo?.ContractorType === 'business' ? 'selected' : '' %>>Business</option>
+                      </select>
+                    </div>
+
+                    <!-- Legal Name (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="legalName">
+                        Legal Name <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="legalName"
+                        id="legalName"
+                        class="form-control"
+                        placeholder="John Doe"
+                        value="<%= personalInfo?.LegalName || '' %>"
+                        required
+                      />
+                      <div class="invalid-feedback"></div>
+                    </div>
+
+                    <!-- Preferred First Name -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="preferredFirstName">Preferred First Name</label>
+                      <input type="text" 
+                             name="preferredFirstName" 
+                             id="preferredFirstName" 
+                             class="form-control"
+                             placeholder="John"
+                             value="<%= personalInfo?.PreferredName || '' %>" />
+                    </div>
+                    
+                    <!-- Legal Sex (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label">Legal Sex <span class="text-danger">*</span></label>
+                      <div class="mt-2">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" 
+                                 type="radio" 
+                                 name="legalSex" 
+                                 id="legalSexMale" 
+                                 value="male"
+                                 required
+                                 <%= personalInfo?.LegalSex === 'male' ? 'checked' : '' %> />
+                          <label class="form-check-label" for="legalSexMale">Male</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" 
+                                 type="radio" 
+                                 name="legalSex" 
+                                 id="legalSexFemale" 
+                                 value="female"
+                                 required
+                                 <%= personalInfo?.LegalSex === 'female' ? 'checked' : '' %> />
+                          <label class="form-check-label" for="legalSexFemale">Female</label>
+                        </div>
+                      </div>
+                      <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- Date of Birth (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="dateOfBirth">
+                        Date of Birth <span class="text-danger">*</span>
+                      </label>
+                      <input type="date" 
+                             class="form-control" 
+                             placeholder="YYYY-MM-DD" 
+                             id="dateOfBirth"
+                             name="dateOfBirth" 
+                             required
+                             value="<%= personalInfo?.DateOfBirth ? personalInfo.DateOfBirth.toISOString().substring(0, 10) : '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <!-- SSN (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="ssn">
+                        SSN <span class="text-danger">*</span>
+                      </label>
+                      <input type="text" 
+                             name="ssn" 
+                             id="ssn" 
+                             class="form-control" 
+                             placeholder="XXX-XX-XXXX"
+                             aria-label="Social Security Number" 
+                             required
+                             pattern="\d{3}-\d{2}-\d{4}"
+                             maxlength="11"
+                             value="<%= personalInfo?.SSN || '' %>" />
+                      <div class="invalid-feedback">Por favor ingrese un SSN válido (formato: XXX-XX-XXXX)</div>
+                    </div>
+                    <script>
+                      document.getElementById("ssn").addEventListener("input", function (e) {
+                        // Eliminar todo excepto dígitos
+                        let value = e.target.value.replace(/\D/g, "");
+                        
+                        // Aplicar formato solo si hay dígitos suficientes
+                        if (value.length > 5) {
+                          e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}-${value.slice(5, 9)}`;
+                        } else if (value.length > 3) {
+                          e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}`;
+                        } else {
+                          e.target.value = value.slice(0, 9); // Limitar a 9 dígitos máx
+                        }
+                      });
+                    
+                      // Validación adicional al enviar el formulario
+                      document.querySelector("form").addEventListener("submit", function(e) {
+                        const ssnInput = document.getElementById("ssn");
+                        if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
+                          ssnInput.classList.add("is-invalid");
+                          e.preventDefault();
+                        }
+                      });
+                    </script>
+
+                    <!-- 7. Photo -->
+                    <div class="col-md-12">
+                      <label class="form-label" for="profilePhoto">Profile Photo</label>
+                    
+                      <% if (personalInfo?.PhotoPath) { %>
+                        <div class="mb-3">
+                          <img src="<%= personalInfo.PhotoPath %>" alt="Profile Photo" style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
+                        </div>
+                      <% } %>
+                    
+                      <input class="form-control" type="file" id="profilePhoto" name="profilePhoto" accept="image/*" />
+                      <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between mt-4">
+                      <button class="btn btn-label-secondary btn-prev" disabled>Previous</button>
+                      <button type="button" class="btn btn-primary btn-next">Next</button>
+                    </div>
+
+                <!-- Contenido 2 -->
+                <div id="contactInfoValidation" class="content">
+                  <div class="content-header mb-6">
+                    <h4 class="mb-0">Contact Info</h4>
+                    <p class="mb-0">Enter Your Contact Information</p>
+                  </div>
+                  <div class="row g-6">
+                    <!-- 1. Personal Email (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="personalEmail">Personal Email <span class="text-danger">*</span></label>
+                      <input type="email" id="personalEmail" name="personalEmail" class="form-control"
+                        placeholder="john.doe@email.com" required 
+                        value="<%= contactInfo?.personalEmail || '' %>" />
+                      <div class="mt-2">
+                        <label class="form-label d-block">Visible to coworkers?</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="personalEmailVisibility"
+                            id="emailVisibleYes" value="yes" <%= contactInfo?.isPersonalEmailVisible ? 'checked' : '' %> />
+                          <label class="form-check-label" for="emailVisibleYes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="personalEmailVisibility"
+                            id="emailVisibleNo" value="no" <%= !contactInfo?.isPersonalEmailVisible ? 'checked' : '' %> />
+                          <label class="form-check-label" for="emailVisibleNo">No</label>
+                        </div>
+                      </div>
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 2. Personal Phone -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="personalPhone">Personal Phone</label>
+                      <input type="tel" id="personalPhone" name="personalPhone" class="form-control"
+                        placeholder="202 555 0111" maxlength="14" required
+                        value="<%= contactInfo?.personalPhone || '' %>" />
+                      <div class="mt-2">
+                        <label class="form-label d-block">Visible to coworkers?</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="personalPhoneVisibility"
+                            id="phoneVisibleYes" value="yes" <%= contactInfo?.isPersonalPhoneVisible ? 'checked' : '' %> />
+                          <label class="form-check-label" for="phoneVisibleYes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="personalPhoneVisibility"
+                            id="phoneVisibleNo" value="no" <%= !contactInfo?.isPersonalPhoneVisible ? 'checked' : '' %> />
+                          <label class="form-check-label" for="phoneVisibleNo">No</label>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <script>
+                      const phoneInput = document.getElementById("personalPhone");
+                    
+                      phoneInput.addEventListener("input", function (e) {
+                        let value = e.target.value.replace(/\D/g, ""); // Solo números
+                    
+                        if (value.length > 10) value = value.slice(0, 10);
+                    
+                        let formatted = value;
+                        if (value.length > 6) {
+                          formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+                        } else if (value.length > 3) {
+                          formatted = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                        } else if (value.length > 0) {
+                          formatted = `(${value}`;
+                        }
+                    
+                        e.target.value = formatted;
+                      });
+                    </script>
+
+                    <!-- 3. Country (Required) -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="country">Country <span class="text-danger">*</span></label>
+                      <input type="text" id="country" name="country" class="form-control"
+                        placeholder="e.g. United States" required
+                        value="<%= contactInfo?.country || '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 4. Address Line 1 (Required) -->
+                    <div class="col-md-12">
+                      <label class="form-label" for="addressLine1">Address Line 1 <span class="text-danger">*</span></label>
+                      <input type="text" id="addressLine1" name="addressLine1" class="form-control"
+                        placeholder="1234 Main St" required
+                        value="<%= contactInfo?.address || '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 5. Address Line 2 -->
+                    <div class="col-md-12">
+                      <label class="form-label" for="addressLine2">Address Line 2</label>
+                      <input type="text" id="addressLine2" name="addressLine2" class="form-control"
+                        placeholder="Apartment, studio, or floor" value="" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 6. City (Required) -->
+                    <div class="col-sm-4">
+                      <label class="form-label" for="city">City <span class="text-danger">*</span></label>
+                      <input type="text" id="city" name="city" class="form-control" placeholder="e.g. New York" required
+                        value="<%= contactInfo?.city || '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 7. State (Required) -->
+                    <div class="col-sm-4">
+                      <label class="form-label" for="multiStepsState">State <span class="text-danger">*</span></label>
+                      <input type="text" id="state" name="state" class="form-control"
+                        placeholder="e.g. California" required
+                        value="<%= contactInfo?.state || '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 8. ZIP Code (Required) -->
+                    <div class="col-sm-4">
+                      <label class="form-label" for="zipCode">ZIP Code <span class="text-danger">*</span></label>
+                      <input type="number" id="zipCode" name="zipCode" class="form-control" placeholder="10001"
+                        maxlength="5" minlength="5" required
+                        value="<%= contactInfo?.zipCode || '' %>" />
+                      <div class="invalid-feedback"></div>
+                    </div>
+                
+                    <!-- 9. Work Email -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="workEmail">Work Email</label>
+                      <input type="email" id="workEmail" name="workEmail" class="form-control"
+                        placeholder="j.doe@company.com" 
+                        value="<%= contactInfo?.workEmail || '' %>" />
+                      <div class="form-text">This will be visible to your coworkers.</div>
+                    </div>
+                
+                    <!-- 10. Work Phone -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="workPhone">Work Phone</label>
+                      <input type="number" id="workPhone" name="workPhone" class="form-control"
+                        placeholder="212 555 0123"
+                        value="<%= contactInfo?.workPhone || '' %>" />
+                      <div class="form-text">This will be visible to your coworkers.</div>
+                    </div>
+                
+                    <!-- 11. Preferred Contact Method -->
+                    <div class="col-sm-6">
+                      <label class="form-label" for="preferredContact">Preferred Contact Method</label>
+                      <select id="preferredContact" name="preferredContact" class="form-select">
+                        <option value="" <%= !contactInfo?.preferredContactMethod ? 'selected' : '' %>>Select a method</option>
+                        <option value="personal_email" <%= contactInfo?.preferredContactMethod === 'personal_email' ? 'selected' : '' %>>Personal Email</option>
+                        <option value="work_email" <%= contactInfo?.preferredContactMethod === 'work_email' ? 'selected' : '' %>>Work Email</option>
+                        <option value="personal_phone" <%= contactInfo?.preferredContactMethod === 'personal_phone' ? 'selected' : '' %>>Personal Phone</option>
+                        <option value="work_phone" <%= contactInfo?.preferredContactMethod === 'work_phone' ? 'selected' : '' %>>Work Phone</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-12 d-flex justify-content-between mt-6">
+                    <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                    <button type="button" class="btn btn-primary btn-next">Next</button>
+                  </div>
+                </div>
+
+
+                <!-- Contenido 3 -->
+                <div id="emergencyContactsValidation" class="content">
+                  <div class="content-header mb-6">
+                    <h4 class="mb-0">Emergency Contacts</h4>
+                    <p class="mb-0">This section is optional. Add a contact for emergency situations if you wish.</p>
+                  </div>
+              
+                  <!-- Container for Dynamic Contact Forms -->
+                  <div id="emergencyContactsContainer">
+                    <% if (emergencyContacts && emergencyContacts.length > 0) { %>
+                      <% emergencyContacts.forEach(function(contact, index) { %>
+                        <div class="emergency-contact-entry row g-6 emergency-contact-entry mb-4 border-top pt-4">
+                          <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                              <h5 class="mb-0">Contact</h5>
+                              <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
+                                <i class="ti ti-x ti-xs me-1"></i>Remove
+                              </button>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label" for="emergencyFullName_<%= index %>">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="emergencyContacts[<%= index %>][fullName]" id="emergencyFullName_<%= index %>" class="form-control"
+                              placeholder="Jane Doe" value="<%= contact.Fullname %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label" for="emergencyPhone_<%= index %>">Phone <span class="text-danger">*</span></label>
+                            <input type="number" name="emergencyContacts[<%= index %>][phone]" id="emergencyPhone_<%= index %>" class="form-control"
+                              placeholder="555-123-4567" value="<%= contact.Phone %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label" for="emergencySecondaryPhone_<%= index %>">Secondary Phone</label>
+                            <input type="number" name="emergencyContacts[<%= index %>][secondaryPhone]" id="emergencySecondaryPhone_<%= index %>" class="form-control"
+                              placeholder="555-987-6543" value="<%= contact.secondaryPhone || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <!-- Empty state: no contacts yet -->
+                      <div class="emergency-contact-template row g-6 emergency-contact-entry mb-4 border-top pt-4" style="display: none;">
+                        <div class="col-12">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Contact</h5>
+                            <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
+                              <i class="ti ti-x ti-xs me-1"></i>Remove
+                            </button>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label" for="emergencyFullName">Full Name <span class="text-danger">*</span></label>
+                          <input type="text" name="emergencyContacts[0][fullName]" class="form-control" placeholder="Jane Doe" />
+                          <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label" for="emergencyPhone">Phone <span class="text-danger">*</span></label>
+                          <input type="number" name="emergencyContacts[0][phone]" class="form-control" placeholder="555-123-4567" />
+                          <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label" for="emergencySecondaryPhone">Secondary Phone</label>
+                          <input type="number" name="emergencyContacts[0][secondaryPhone]" class="form-control" placeholder="555-987-6543" />
+                          <div class="invalid-feedback"></div>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+              
+                  <!-- Button for the list of emergency contacts -->
+                  <div class="row mt-4">
+                    <div class="col-12">
+                      <button type="button" id="addContactBtn" class="btn btn-primary">
+                        <i class="ti ti-plus ti-xs me-sm-2 me-0"></i>
+                        <span class="align-middle">Add Emergency Contact</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-12 d-flex justify-content-between mt-6">
+                    <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                    <button type="button" class="btn btn-primary btn-next">Next</button>
+                  </div>
+                </div>
+
+                <!-- Contenido 4 -->
+                <div id="payrollValidation" class="content">
+                  <!-- Main Header -->
+                  <div class="content-header mb-6">
+                    <h4 class="mb-0">Payroll</h4>
+                    <p class="mb-0">Please enter your tax and payment information.</p>
+                  </div>
+              
+                  <!-- ====== SUB-SECTION 1: TAX INFORMATION ====== -->
+                  <div class="tax-info-section">
+                    <!-- Sub-sub-section 1.1: Tax Identification (W-9) -->
+                    <h5 class="mb-4">Tax Identification (W-9)</h5>
+                    <div class="row g-6">
+                      <!-- Name of Tax Return -->
+                      <div class="col-md-6">
+                        <label class="form-label" for="taxReturnName">Name on Tax Return <span class="text-danger">*</span></label>
+                        <input type="text" id="taxReturnName" name="taxReturnName" class="form-control" placeholder="John M. Doe"
+                          required value="<%= taxInfo ? taxInfo.nameOnTaxReturn : '' %>" />
+                      </div>
+                      <!-- Business Name -->
+                      <div class="col-md-6">
+                        <label class="form-label" for="businessName">Business Name (if different from above)</label>
+                        <input type="text" id="businessName" name="businessName" class="form-control"
+                          value="<%= taxInfo ? taxInfo.bussinesName || '' : '' %>" />
+                      </div>
+                      <!-- Tax Classification -->
+                      <div class="col-md-12">
+                        <label class="form-label" for="taxClassification">Tax Classification <span class="text-danger">*</span></label>
+                        <select id="taxClassification" name="taxClassification" class="form-select" required>
+                          <option value="" <%= !taxInfo || !taxInfo.taxClassification ? 'selected' : '' %>>
+                            Select a classification...</option>
+                          <option value="individual" <%= taxInfo && taxInfo.taxClassification === 'individual' ? 'selected' : '' %>>Individual</option>
+                          <option value="sole_proprietor" <%= taxInfo && taxInfo.taxClassification === 'sole_proprietor' ? 'selected' : '' %>>Sole Proprietor</option>
+                          <option value="single_member_llc" <%= taxInfo && taxInfo.taxClassification === 'single_member_llc' ? 'selected' : '' %>>Single-member LLC</option>
+                          <option value="c_corporation" <%= taxInfo && taxInfo.taxClassification === 'c_corporation' ? 'selected' : '' %>>C Corporation</option>
+                          <option value="s_corporation" <%= taxInfo && taxInfo.taxClassification === 's_corporation' ? 'selected' : '' %>>S Corporation</option>
+                          <option value="partnership" <%= taxInfo && taxInfo.taxClassification === 'partnership' ? 'selected' : '' %>>Partnership</option>
+                          <option value="trust_estate" <%= taxInfo && taxInfo.taxClassification === 'trust_estate' ? 'selected' : '' %>>Trust/Estate</option>
+                          <option value="llc_multiple_members" <%= taxInfo && taxInfo.taxClassification === 'llc_multiple_members' ? 'selected' : '' %>>LLC with multiple members</option>
+                          <option value="other" <%= taxInfo && taxInfo.taxClassification === 'other' ? 'selected' : '' %>>Other</option>
+                        </select>
+                      </div>
+                    </div>
+                
+                    <!-- Container for CONDITIONAL W-9 Fields -->
+                    <div id="conditionalW9FieldsContainer" class="row g-6 mt-1">
+                      <!-- Taxpayer Identification Number Type -->
+                      <div id="tinTypeField" class="col-md-12 conditional-field" style="display: none;">
+                        <label class="form-label">Taxpayer Identification Number Type <span class="text-danger">*</span></label>
+                        <div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tinType" id="tinTypeSsn" value="ssn"
+                              <%= taxInfo && taxInfo.taxIdNumType === 'ssn' ? 'checked' : '' %>>
+                            <label class="form-check-label" for="tinTypeSsn">SSN</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tinType" id="tinTypeEin" value="ein"
+                              <%= taxInfo && taxInfo.taxIdNumType === 'ein' ? 'checked' : '' %>>
+                            <label class="form-check-label" for="tinTypeEin">EIN</label>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Employer Identification Number -->
+                      <div id="einField" class="col-md-6 conditional-field" style="display: none;">
+                        <label class="form-label" for="employerIdNumber">Employer Identification Number <span class="text-danger">*</span></label>
+                        <input type="text" id="employerIdNumber" name="employerIdNumber" class="form-control" placeholder="XX-XXXXXXX"
+                          value="<%= taxInfo ? taxInfo.employerIdNum || '' : '' %>" />
+                      </div>
+                      <!-- LLC Classification -->
+                      <div id="llcClassField" class="col-md-6 conditional-field" style="display: none;">
+                        <label class="form-label" for="llcClassification">LLC Classification (C=C Corp, S=S Corp, P=Partnership)</label>
+                        <input type="text" id="llcClassification" name="llcClassification" class="form-control" maxlength="1"
+                          placeholder="C, S, or P" value="<%= taxInfo ? taxInfo.llcClassification || '' : '' %>" />
+                      </div>
+                      <!-- Other Classification -->
+                      <div id="otherClassField" class="col-md-6 conditional-field" style="display: none;">
+                        <label class="form-label" for="otherClassification">Other Classification <span class="text-danger">*</span></label>
+                        <input type="text" id="otherClassification" name="otherClassification" class="form-control"
+                          value="<%= taxInfo ? taxInfo.otherClassification || '' : '' %>" />
+                      </div>
+                    </div>
+                    <hr class="my-8" />
+                
+                    <!-- Sub-sub-section 1.2: Tax Exemptions -->
+                    <h5 class="mb-4">Tax Exemptions</h5>
+                    <div class="row g-6">
+                      <div class="col-12">
+                        <label class="form-label">Are you exempt from backup withholding or FATCA reporting?</label>
+                        <div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="isExempt" id="isExemptYes" value="yes"
+                              <%= taxInfo && taxInfo.taxExempt ? 'checked' : '' %>>
+                            <label class="form-check-label" for="isExemptYes">Yes</label>
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="isExempt" id="isExemptNo" value="no"
+                              <%= !taxInfo || !taxInfo.taxExempt ? 'checked' : '' %>>
+                            <label class="form-check-label" for="isExemptNo">No</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <hr class="my-8" />
+                
+                    <!-- Sub-sub-section 1.3: Sign Tax Documents -->
+                    <h5 class="mb-4">Sign Tax Documents</h5>
+                    <div class="row g-6">
+                      <div class="col-12">
+                        <label class="form-label">Signature</label>
+                        <div class="signature-pad-container border rounded" style="touch-action: none;">
+                          <canvas id="signature-canvas" class="w-100"></canvas>
+                        </div>
+                        <div class="mt-2 text-end">
+                          <button type="button" id="clear-signature-btn" class="btn btn-sm btn-label-secondary">Clear</button>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" value="" id="w9Acknowledgement" required>
+                          <label class="form-check-label" for="w9Acknowledgement">
+                            I acknowledge that my tax withholding information is correct and agree to a W-9 document being produced using my
+                            information and signature.
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <!-- Payment Method Section -->
+                  <div class="payment-method-section mt-5">
+                    <h5 class="mb-2">Payment Method</h5>
+                    <div class="card bg-label-secondary">
+                      <div class="card-body text-center">
+                        <h6 class="mb-2">Add your Bank Account(s)</h6>
+                        <p class="mb-4">Your employer will deposit your wages into the bank account(s) you add.</p>
+                        <button type="button" id="addBankAccountBtn" class="btn btn-primary">
+                          <i class="ti ti-plus ti-xs me-sm-2 me-0"></i>
+                          <span>Add a Bank Account</span>
+                        </button>
+                      </div>
+                    </div>
+                
+                    <!-- Container for Bank Account Forms -->
+                    <div id="bankAccountsContainer" class="mt-4">
+                      <% if (paymentMethods && paymentMethods.length > 0) { %>
+                        <% paymentMethods.forEach(function(account, i) { %>
+                          <div class="card bank-account-entry mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                              <h6 class="mb-0">Bank Account <%= i + 1 %></h6>
+                              <button type="button" class="btn btn-label-danger btn-sm remove-account-btn">
+                                <i class="ti ti-x ti-xs me-1"></i>Remove
+                              </button>
+                            </div>
+                            <div class="card-body">
+                              <div class="row g-6">
+                                <div class="col-12">
+                                  <label class="form-label">Bank Account Type</label>
+                                  <div>
+                                    <div class="form-check form-check-inline">
+                                      <input class="form-check-input" type="radio" name="paymentMethods[<%= i %>][bankAccountType]" value="checking"
+                                        <%= account.bankAccountType === 'checking' ? 'checked' : '' %>>
+                                      <label class="form-check-label">Checking</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                      <input class="form-check-input" type="radio" name="paymentMethods[<%= i %>][bankAccountType]" value="savings"
+                                        <%= account.bankAccountType === 'savings' ? 'checked' : '' %>>
+                                      <label class="form-check-label">Savings</label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Bank Account Number <span class="text-danger">*</span></label>
+                                  <input type="number" name="paymentMethods[<%= i %>][bankAccountNum]" class="form-control" autocomplete="off"
+                                    value="<%= account.bankAccountNum %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Confirm Account Number <span class="text-danger">*</span></label>
+                                  <input type="number" name="paymentMethods[<%= i %>][confirmAccountNum]" class="form-control" autocomplete="off"
+                                    value="<%= account.bankAccountNum %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Bank Routing Number <span class="text-danger">*</span></label>
+                                  <input type="text" name="paymentMethods[<%= i %>][bankRoutingNum]" class="form-control"
+                                    value="<%= account.bankRoutingNum %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
+                                  <input type="text" name="paymentMethods[<%= i %>][accountNickname]" class="form-control"
+                                    placeholder="e.g., My Primary Checking" value="<%= account.accountNickname %>" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        <% }); %>
+                      <% } %>
+                    </div>
+                  </div>
+              
+                  <!-- Navigation Buttons -->
+                  <div class="col-12 d-flex justify-content-between mt-6">
+                    <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                    <button type="submit" class="btn btn-primary btn-next">Next</button>
+                  </div>
+                </div>
+
+
+
+                <!-- Contenido 5 -->
+                <div id="documentsValidation" class="content">
+                  <div class="content-header mb-6">
+                    <h4 class="mb-0">Documents</h4>
+                    <p class="mb-0">Please upload the required documents to complete your profile.</p>
+                  </div>
+                  <div class="row g-4">
+                    <% const docs = documents || {}; %>
+                
+                    <!-- Direct Deposit Form -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Direct Deposit Form</span>
+                        <div>
+                          <input type="file" id="directDepositUpload" name="directDepositUpload" class="d-none" />
+                          <label for="directDepositUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.directDepositForm) { %>
+                            <a href="<%= docs.directDepositForm %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Driver's License -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Driver's License</span>
+                        <div>
+                          <input type="file" id="driversLicenseUpload" name="driversLicenseUpload" class="d-none" />
+                          <label for="driversLicenseUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.driverLicense) { %>
+                            <a href="<%= docs.driverLicense %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- EIN Confirmation Letter -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>EIN Confirmation Letter</span>
+                        <div>
+                          <input type="file" id="einConfirmationUpload" name="einConfirmationUpload" class="d-none" />
+                          <label for="einConfirmationUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.EINconfirmation) { %>
+                            <a href="<%= docs.EINconfirmation %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Employment Authorization Card (Back) -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth Card (Back)</span>
+                        <div>
+                          <input type="file" id="eacBackUpload" name="eacBackUpload" class="d-none" />
+                          <label for="eacBackUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.EmploymentAuthCardBack) { %>
+                            <a href="<%= docs.EmploymentAuthCardBack %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Employment Authorization Card (Front) -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth Card (Front)</span>
+                        <div>
+                          <input type="file" id="eacFrontUpload" name="eacFrontUpload" class="d-none" />
+                          <label for="eacFrontUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.EmploymentAuthCardFront) { %>
+                            <a href="<%= docs.EmploymentAuthCardFront %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Employment Authorization Extension Letter -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth Extension</span>
+                        <div>
+                          <input type="file" id="eacExtensionUpload" name="eacExtensionUpload" class="d-none" />
+                          <label for="eacExtensionUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.EmploymentAuthExtensionLetter) { %>
+                            <a href="<%= docs.EmploymentAuthExtensionLetter %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- E&O -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>E&O</span>
+                        <div>
+                          <input type="file" id="eoUpload" name="eoUpload" class="d-none" />
+                          <label for="eoUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.eANDo) { %>
+                            <a href="<%= docs.eANDo %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- GoldenTrust Disciplinary Policy -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>GoldenTrust Disciplinary Policy</span>
+                        <div>
+                          <input type="file" id="goldenTrustPolicyUpload" name="goldenTrustPolicyUpload" class="d-none" />
+                          <label for="goldenTrustPolicyUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.GTDisciplinaryPolicy) { %>
+                            <a href="<%= docs.GTDisciplinaryPolicy %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Permanent Residence Card -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Permanent Residence Card</span>
+                        <div>
+                          <input type="file" id="permanentResidenceUpload" name="permanentResidenceUpload" class="d-none" />
+                          <label for="permanentResidenceUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.permanentResidentCard) { %>
+                            <a href="<%= docs.permanentResidentCard %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Professional License -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Professional License</span>
+                        <div>
+                          <input type="file" id="professionalLicenseUpload" name="professionalLicenseUpload" class="d-none" />
+                          <label for="professionalLicenseUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.proLicense) { %>
+                            <a href="<%= docs.proLicense %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- Social Security Card -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Social Security Card</span>
+                        <div>
+                          <input type="file" id="ssnCardUpload" name="ssnCardUpload" class="d-none" />
+                          <label for="ssnCardUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.socialSecurityCard) { %>
+                            <a href="<%= docs.socialSecurityCard %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <!-- US Passport -->
+                    <div class="col-md-6">
+                      <div class="d-flex justify-content-between align-items-center border rounded p-3">
+                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>US Passport</span>
+                        <div>
+                          <input type="file" id="passportUpload" name="passportUpload" class="d-none" />
+                          <label for="passportUpload" class="btn btn-sm btn-outline-primary">Upload</label>
+                          <% if (docs.USpassport) { %>
+                            <a href="<%= docs.USpassport %>" target="_blank" class="ms-2">View</a>
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                
+                  </div>
+                  <div class="col-12 d-flex justify-content-between mt-6">
+                    <button type="button" class="btn btn-label-secondary btn-prev">
+                      <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
+                    </button>
+                    <button type="submit" class="btn btn-success btn-submit">
+                      Review & Submit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    // Check selected custom option
+    window.Helpers.initCustomOptionCheck();
+  </script>
+
+  <!-- / Content -->
+
+  <!-- Core JS -->
+  <!-- build:js assets/vendor/js/core.js -->
+
+  <script src="../registration/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="../registration/assets/vendor/libs/popper/popper.js"></script>
+  <script src="../registration/assets/vendor/js/bootstrap.js"></script>
+  <script src="../registration/assets/vendor/libs/node-waves/node-waves.js"></script>
+  <script src="../registration/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="../registration/assets/vendor/libs/hammer/hammer.js"></script>
+  <script src="../registration/assets/vendor/libs/i18n/i18n.js"></script>
+  <script src="../registration/assets/vendor/libs/typeahead-js/typeahead.js"></script>
+  <script src="../registration/assets/vendor/js/menu.js"></script>
+
+  <!-- endbuild -->
+
+  <!-- Vendors JS -->
+  <script src="../registration/assets/vendor/libs/cleavejs/cleave.js"></script>
+  <script src="../registration/assets/vendor/libs/cleavejs/cleave-phone.js"></script>
+  <script src="../registration/assets/vendor/libs/bs-stepper/bs-stepper.js"></script>
+  <script src="../registration/assets/vendor/libs/select2/select2.js"></script>
+  <script src="../registration/assets/vendor/libs/@form-validation/popular.js"></script>
+  <script src="../registration/assets/vendor/libs/@form-validation/bootstrap5.js"></script>
+  <script src="../registration/assets/vendor/libs/@form-validation/auto-focus.js"></script>
+
+  <!-- Main JS -->
+  <script src="../registration/assets/js/main.js"></script>
+
+  <!-- Page JS -->
+  <script src="../registration/assets/js/pages-auth-multisteps.js"></script>
+
+  <!-- Button Emergency contacts-->
+  <script src=" ../registration/js/button-list-emergency-contacts.js"></script>
+
+  <!-- Funcionality of the payroll -->
+  <script src=" ../registration/js/function-of-payroll.js"></script>
+  <script src="../registration/js/signature.js"></script>
+
+  <!-- Funcionality of the formulary -->
+  <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
+  <script src=" ../registration/js/funcionality-of-form.js"></script>
+
+  <!-- Push the info -->
+<script>
+  // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
+  const currentUserId = <%= JSON.stringify(userId) %>;
+
+
+  // Función para subir archivos
+  async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${window.API_BASE_URL}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error("Error al subir archivo");
+    return await response.json();
+  }
+
+  // Función para subir la firma
+  async function uploadSignature() {
+    const canvas = document.querySelector("#signature-canvas");
+    if (!canvas) return null;
+    
+    const base64 = canvas.toDataURL();
+    const response = await fetch(`${window.API_BASE_URL}/signatures`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        signature: base64,
+        userId: currentUserId 
+      })
+    });
+
+    if (!response.ok) throw new Error("Error al subir firma");
+    return await response.json();
+  }
+
+  async function savePersonalInfo() {
+    const contactType = document.getElementById("contactType")?.value || "";
+    const legalName = document.getElementById("legalName")?.value || "";
+    const preferredFirstName = document.getElementById("preferredFirstName")?.value || "";
+    const dateOfBirth = document.getElementById("dateOfBirth")?.value || "";
+    const ssn = document.getElementById("ssn")?.value || "";
+
+    const isMale = document.getElementById("legalSexMale")?.checked;
+    const legalSex = isMale ? "male" : "female";
+
+    const personalInfo = {
+      ContractorType: contactType,
+      LegalName: legalName,
+      PreferredName: preferredFirstName,
+      DateOfBirth: dateOfBirth,
+      SSN: ssn,
+      LegalSex: legalSex,
+      userId: currentUserId
+    };
+
+
+    const response = await fetch(`${window.API_BASE_URL}/steps/personal-info`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(personalInfo)
+    });
+
+    if (!response.ok) throw new Error("Error guardando información personal");
+    return await response.json();
+}
+
+
+async function saveContactInfo() {
+    const personalEmail = document.getElementById("personalEmail")?.value || "";
+    const emailVisible = document.getElementById("emailVisibleYes")?.checked;
+    const personalPhone = document.getElementById("personalPhone")?.value || "";
+    const phoneVisible = document.getElementById("phoneVisibleYes")?.checked;
+    const country = document.getElementById("country")?.value || "";
+    const addressLine1 = document.getElementById("addressLine1")?.value || "";
+    const addressLine2 = document.getElementById("addressLine2")?.value || "";
+    const city = document.getElementById("city")?.value || "";
+    const state = document.getElementById("state")?.value || "";
+    const zipCode = document.getElementById("zipCode")?.value || "";
+    const workEmail = document.getElementById("workEmail")?.value || "";
+    const workPhone = document.getElementById("workPhone")?.value || "";
+    const preferredContact = document.getElementById("preferredContact")?.value || "";
+
+    const contactInfo = {
+      personalEmail,
+      isPersonalEmailVisible: !!emailVisible,
+      personalPhone,
+      isPersonalPhoneVisible: !!phoneVisible,
+      country,
+      address: `${addressLine1} ${addressLine2}`.trim(),
+      city,
+      state,
+      zipCode,
+      workEmail,
+      workPhone,
+      preferredContactMethod: preferredContact,
+      userId: currentUserId
+    };
+
+
+    const response = await fetch(`${window.API_BASE_URL}/steps/contact-info`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contactInfo)
+    });
+
+    if (!response.ok) throw new Error("Error guardando información de contacto");
+    return await response.json();
+}
+
+  async function saveEmergencyContacts() {
+    const contacts = [];
+    document.querySelectorAll('#emergencyContactsContainer .emergency-contact-entry:not([style*="display: none"])')
+      .forEach((entry, index) => {
+        const fullName = document.getElementById(`emergencyFullName_${index}`)?.value.trim() || "";
+        const phone = document.getElementById(`emergencyPhone_${index}`)?.value.trim() || "";
+        const secondaryPhone = document.getElementById(`emergencySecondaryPhone_${index}`)?.value.trim() || "";
+      
+        if (fullName || phone || secondaryPhone) {
+          contacts.push({ 
+            Fullname: fullName,
+            Phone: phone,
+            secondaryPhone,
+            userId: currentUserId
+          });
+        }
+      });
+
+    if (contacts.length === 0) return [];
+    
+    const response = await fetch(`${window.API_BASE_URL}/steps/emergency-contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(contacts)
+    });
+    
+    if (!response.ok) throw new Error("Error guardando contactos de emergencia");
+    return await response.json();
+}
+
+async function saveTaxInfo() {
+    // Tax Identification (W-9) section
+    const taxReturnName = document.getElementById("taxReturnName")?.value || "";
+    const businessName = document.getElementById("businessName")?.value || "";
+    const taxClassification = document.getElementById("taxClassification")?.value || "";
+    
+    // Tax Identification Number Type
+    const tinType = document.querySelector('input[name="tinType"]:checked')?.value || "";
+    const employerIdNumber = document.getElementById("employerIdNumber")?.value || "";
+    const llcClassification = document.getElementById("llcClassification")?.value || "";
+    const otherClassification = document.getElementById("otherClassification")?.value || "";
+    
+    // Tax Exemptions
+    const isExempt = document.querySelector('input[name="isExempt"]:checked')?.value || "no";
+    // const w9Acknowledgement = document.getElementById("w9Acknowledgement")?.checked || false;
+    
+    const taxInfo = {
+      nameOnTaxReturn: taxReturnName,
+      bussinesName: businessName,
+      taxClassification,
+      taxIdNumType: tinType,
+      employerIdNum: employerIdNumber,
+      llcClassification,
+      otherClassification,
+      taxExempt: isExempt === "yes",
+      signatureTaxDoc: "",
+      userId: currentUserId
+    };
+
+
+    const response = await fetch(`${window.API_BASE_URL}/steps/tax-info`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taxInfo)
+    });
+
+    if (!response.ok) throw new Error("Error guardando información fiscal");
+    return await response.json();
+}
+
+async function savePaymentMethods() {
+    const bankAccounts = [];
+    const accountEntries = document.querySelectorAll("#bankAccountsContainer .bank-account-entry");
+    
+    accountEntries.forEach((entry, index) => {
+        const bankAccountType = entry.querySelector(`input[name="paymentMethods[${index}][bankAccountType]"]:checked`)?.value || "";
+        const bankAccountNum = entry.querySelector(`input[name="paymentMethods[${index}][bankAccountNum]"]`)?.value || "";
+        const confirmAccountNum = entry.querySelector(`input[name="paymentMethods[${index}][confirmAccountNum]"]`)?.value || "";
+        const bankRoutingNum = entry.querySelector(`input[name="paymentMethods[${index}][bankRoutingNum]"]`)?.value || "";
+        const accountNickname = entry.querySelector(`input[name="paymentMethods[${index}][accountNickname]"]`)?.value || "";
+        
+        if (bankAccountType || bankAccountNum || bankRoutingNum) {
+            bankAccounts.push({
+                bankAccountType,
+                bankAccountNum,
+                bankRoutingNum,
+                accountNickname,
+                userId: currentUserId
+            });
+        }
+    });
+
+    if (bankAccounts.length === 0) return [];
+    
+    const response = await fetch(`${window.API_BASE_URL}/steps/payment-method`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bankAccounts)
+    });
+
+    if (!response.ok) throw new Error("Error guardando métodos de pago");
+    return await response.json();
+}
+
+async function saveDocuments() {
+    const directDepositFile = document.getElementById("directDepositUpload")?.files[0];
+    const driversLicenseFile = document.getElementById("driversLicenseUpload")?.files[0];
+    const einConfirmationFile = document.getElementById("einConfirmationUpload")?.files[0];
+    const eacBackFile = document.getElementById("eacBackUpload")?.files[0];
+    const eacFrontFile = document.getElementById("eacFrontUpload")?.files[0];
+    const eacExtensionFile = document.getElementById("eacExtensionUpload")?.files[0];
+    const eoFile = document.getElementById("eoUpload")?.files[0];
+    const goldenTrustPolicyFile = document.getElementById("goldenTrustPolicyUpload")?.files[0];
+    const permanentResidenceFile = document.getElementById("permanentResidenceUpload")?.files[0];
+    const professionalLicenseFile = document.getElementById("professionalLicenseUpload")?.files[0];
+    const ssnCardFile = document.getElementById("ssnCardUpload")?.files[0];
+    const passportFile = document.getElementById("passportUpload")?.files[0];
+
+    const uploadFileIfExists = async (file) => file ? (await uploadFile(file)).path : null;
+
+    const [
+        directDepositPath,
+        driversLicensePath,
+        einConfirmationPath,
+        eacBackPath,
+        eacFrontPath,
+        eacExtensionPath,
+        eoPath,
+        goldenTrustPolicyPath,
+        permanentResidencePath,
+        professionalLicensePath,
+        ssnCardPath,
+        passportPath
+    ] = await Promise.all([
+        uploadFileIfExists(directDepositFile),
+        uploadFileIfExists(driversLicenseFile),
+        uploadFileIfExists(einConfirmationFile),
+        uploadFileIfExists(eacBackFile),
+        uploadFileIfExists(eacFrontFile),
+        uploadFileIfExists(eacExtensionFile),
+        uploadFileIfExists(eoFile),
+        uploadFileIfExists(goldenTrustPolicyFile),
+        uploadFileIfExists(permanentResidenceFile),
+        uploadFileIfExists(professionalLicenseFile),
+        uploadFileIfExists(ssnCardFile),
+        uploadFileIfExists(passportFile)
+    ]);
+
+    const documentsData = {
+        userId: currentUserId,
+        directDepositForm: directDepositPath,
+        driverLicense: driversLicensePath,
+        EINconfirmation: einConfirmationPath,
+        EmploymentAuthCardBack: eacBackPath,
+        EmploymentAuthCardFront: eacFrontPath,
+        EmploymentAuthExtensionLetter: eacExtensionPath,
+        eANDo: eoPath,
+        GTDisciplinaryPolicy: goldenTrustPolicyPath,
+        permanentResidentCard: permanentResidencePath,
+        proLicense: professionalLicensePath,
+        socialSecurityCard: ssnCardPath,
+        USpassport: passportPath
+    };
+    const payload = Object.fromEntries(
+        Object.entries(documentsData).filter(([_, value]) => value !== null)
+    );
+    const response = await fetch(`${window.API_BASE_URL}/steps/documents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error("Error guardando documentos");
+    return await response.json();
+}
+
+  document.querySelector(".btn-submit").addEventListener("click", async function (e) {
+    e.preventDefault();
+    
+    try {
+      
+      if (currentUserId === null) throw new Error("Se requiere ID de usuario");
+
+      const personalInfo = await savePersonalInfo();
+      const contactInfo = await saveContactInfo();
+      const emergencyContacts = await saveEmergencyContacts();
+      const taxInfo = await saveTaxInfo();
+      const paymentMethod = await savePaymentMethods()
+      const documentsData = await saveDocuments();
+    
+      const fullData = {
+        personalInfo,
+        contactInfo,
+        emergencyContacts,
+        payrollData,
+        documentsData
+      };
+
+      console.log({fullData})
+
+      alert("¡Todos los datos se guardaron correctamente!");
+      
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Error: ${error.message}`);
+    }
+  });
+</script>
+
+</body>
+
+</html>

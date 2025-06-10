@@ -15,37 +15,21 @@ model session {
   @@index([expire], map: "IDX_session_expire")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  step1           PersonalInfo?
-  step2           ContactInfo?
-  emergencyContacts EmergencyContact[]
-  paymentMethods    PaymentMethod[]    
-  step4           TaxInfo?
-  step6           Documents?
-}
-
 model PersonalInfo {
-  id             String   @id @default(uuid())
-  userId         String   @unique
+  id             Int @id @default(autoincrement())
+  userId         Int   @unique
+  ContractorType String
   LegalName      String
-  PrefferredName String?
+  PreferredName  String?
   LegalSex       String
   DateOfBirth    DateTime
   SSN            String
   PhotoPath      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ContactInfo {
-  id                       String   @id @default(uuid())
-  userId                   String   @unique
+  id                       Int @id @default(autoincrement())
+  userId                   Int   @unique
   personalEmail            String
   isPersonalEmailVisible   Boolean  @default(false)
   personalPhone            String?
@@ -57,27 +41,23 @@ model ContactInfo {
   zipCode                  String
   workEmail                String?
   workPhone                String?
-  preferedContactMethod    String
+  preferredContactMethod   String?
   sendMessagePersonalPhone Boolean  @default(false)
   createdAt                DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model EmergencyContact {
   id             String   @id @default(uuid())
-  userId         String
+  userId         Int
   Fullname       String
   Phone          String
   secondaryPhone String?
   createdAt      DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model TaxInfo {
   id                  String   @id @default(uuid())
-  userId              String   @unique
+  userId              Int   @unique
   nameOnTaxReturn     String
   bussinesName        String?
   taxClassification   String
@@ -88,25 +68,21 @@ model TaxInfo {
   taxExempt           Boolean  @default(false)
   signatureTaxDoc     String?
   createdAt           DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PaymentMethod {
   id              String   @id @default(uuid())
-  userId          String
-  bankAccountType String?
+  userId          Int   
+  bankAccountType String
   bankAccountNum  String
   bankRoutingNum  String
   accountNickname String
   createdAt       DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Documents {
   id                            String   @id @default(uuid())
-  userId                        String   @unique
+  userId                        Int   @unique
   directDepositForm             String
   driverLicense                 String
   EINconfirmation               String
@@ -120,6 +96,4 @@ model Documents {
   socialSecurityCard            String
   USpassport                    String
   createdAt                     DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
