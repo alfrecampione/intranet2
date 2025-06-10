@@ -100,7 +100,7 @@ export const getContactInfoById = async (req, res) => {
 };
 
 // Step 3: Emergency Contact
-export const createOrUpdateEmergencyContacts = async (req, res) => {
+export const createEmergencyContacts = async (req, res) => {
   try {
     const contacts = req.body;
 
@@ -163,7 +163,7 @@ export const getTaxInfoById = async (req, res) => {
 };
 
 // Step 5: Payment Method
-export const createOrUpdatePaymentMethods = async (req, res) => {
+export const createPaymentMethods = async (req, res) => {
   try {
     const paymentMethods = req.body;
 
@@ -197,7 +197,7 @@ export const getPaymentMethodById = async (req, res) => {
   }
 };
 // Step 6: Documents
-export const createOrUpdateDocuments = async (req, res) => {
+export const createDocuments = async (req, res) => {
   try {
     const { userId, ...documentData } = req.body;
 

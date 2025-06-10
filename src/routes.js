@@ -40,42 +40,36 @@ router.get('/users/registration',checkNotAuthenticated,register)
 
 // STEPS ROUTES
 import {
-  createPersonalInfo, getPersonalInfoById, updatePersonalInfo, 
-  createContactInfo, getContactInfoById, updateContactInfo, 
-  createEmergencyContact, getEmergencyContactById, updateEmergencyContact, 
-  createTaxInfo, getTaxInfoById, updateTaxInfo, 
-  createPaymentMethod, getPaymentMethodById, updatePaymentMethod, 
-  createDocuments, getDocumentsById, updateDocuments,
+  createPersonalInfo, getPersonalInfoById,  
+  createContactInfo, getContactInfoById,  
+  createEmergencyContacts, getEmergencyContactById,  
+  createTaxInfo, getTaxInfoById,  
+  createPaymentMethods, getPaymentMethodById,  
+  createDocuments, getDocumentsById, 
 } from "./controllers/steps.js";
 
 // Step 1: Personal Info
 router.post('/steps/personal-info', checkNotAuthenticated, createPersonalInfo);
 router.get('/steps/personal-info/:id', checkNotAuthenticated, getPersonalInfoById);
-router.put('/steps/personal-info/:id', checkNotAuthenticated, updatePersonalInfo);
 
 // Step 2: Contact Info
 router.post('/steps/contact-info', checkNotAuthenticated, createContactInfo);
 router.get('/steps/contact-info/:id', checkNotAuthenticated, getContactInfoById);
-router.put('/steps/contact-info/:id', checkNotAuthenticated, updateContactInfo);
 
 // Step 3: Emergency Contact
-router.post('/steps/emergency-contact', checkNotAuthenticated, createEmergencyContact);
+router.post('/steps/emergency-contact', checkNotAuthenticated, createEmergencyContacts);
 router.get('/steps/emergency-contact/:id', checkNotAuthenticated, getEmergencyContactById);
-router.put('/steps/emergency-contact/:id', checkNotAuthenticated, updateEmergencyContact);
 
 // Step 4: Tax Info
 router.post('/steps/tax-info', checkNotAuthenticated, createTaxInfo);
 router.get('/steps/tax-info/:id', checkNotAuthenticated, getTaxInfoById);
-router.put('/steps/tax-info/:id', checkNotAuthenticated, updateTaxInfo);
 
 // Step 5: Payment Method
-router.post('/steps/payment-method', checkNotAuthenticated, createPaymentMethod);
+router.post('/steps/payment-method', checkNotAuthenticated, createPaymentMethods);
 router.get('/steps/payment-method/:id', checkNotAuthenticated, getPaymentMethodById);
-router.put('/steps/payment-method/:id', checkNotAuthenticated, updatePaymentMethod);
 
 // Step 6: Documents
 router.post('/steps/documents', checkNotAuthenticated, createDocuments);
 router.get('/steps/documents/:id', checkNotAuthenticated, getDocumentsById);
-router.put('/steps/documents/:id', checkNotAuthenticated, updateDocuments);
 
 export default router;
