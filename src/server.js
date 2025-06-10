@@ -89,6 +89,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
+app.use((req, res, next) => {
+  if (req.url.endsWith('.css')) {
+    res.setHeader('Content-Type', 'text/css');
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, '..', 'assets')));
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 app.use(express.json());
@@ -145,6 +152,13 @@ app.post('/upload', upload.single('file'), (req, res) => {
       details: error.message 
     });
   }
+});
+
+app.use((req, res, next) => {
+  if (req.url.endsWith('.css')) {
+    res.setHeader('Content-Type', 'text/css');
+  }
+  next();
 });
 
 // app.use(pino());

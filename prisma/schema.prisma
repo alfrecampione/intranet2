@@ -17,7 +17,7 @@ model session {
 
 model PersonalInfo {
   id             Int @id @default(autoincrement())
-  userId         Int   @unique
+  userId         String   @unique
   ContractorType String
   LegalName      String
   PreferredName  String?
@@ -29,13 +29,14 @@ model PersonalInfo {
 
 model ContactInfo {
   id                       Int @id @default(autoincrement())
-  userId                   Int   @unique
+  userId                   String   @unique
   personalEmail            String
   isPersonalEmailVisible   Boolean  @default(false)
   personalPhone            String?
   isPersonalPhoneVisible   Boolean  @default(false)
   country                  String
-  address                  String
+  addressLine1             String
+  addressLine2             String?
   city                     String
   state                    String
   zipCode                  String
@@ -48,16 +49,16 @@ model ContactInfo {
 
 model EmergencyContact {
   id             String   @id @default(uuid())
-  userId         Int
+  userId         String
   Fullname       String
-  Phone          String
+  Phone          String   @unique
   secondaryPhone String?
   createdAt      DateTime @default(now())
 }
 
 model TaxInfo {
   id                  String   @id @default(uuid())
-  userId              Int   @unique
+  userId              String   @unique
   nameOnTaxReturn     String
   bussinesName        String?
   taxClassification   String
@@ -72,9 +73,9 @@ model TaxInfo {
 
 model PaymentMethod {
   id              String   @id @default(uuid())
-  userId          Int   
+  userId          String   
   bankAccountType String
-  bankAccountNum  String
+  bankAccountNum  String   @unique
   bankRoutingNum  String
   accountNickname String
   createdAt       DateTime @default(now())
@@ -82,7 +83,7 @@ model PaymentMethod {
 
 model Documents {
   id                            String   @id @default(uuid())
-  userId                        Int   @unique
+  userId                        String   @unique
   directDepositForm             String
   driverLicense                 String
   EINconfirmation               String
