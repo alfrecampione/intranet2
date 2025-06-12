@@ -11,7 +11,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-  <title>Multi Steps Sign-up - Pages | Vuexy - Bootstrap Admin Template</title>
+  <title>Registration</title>
 
   <meta name="description" content="" />
 
@@ -76,6 +76,7 @@
 <body>
   <!-- Content -->
   <div class="authentication-wrapper authentication-cover authentication-bg">
+    <div class="layout-container">
       <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
         <div class="app-brand demo">
           <a href="/users/dashboard" class="app-brand-link">
@@ -98,15 +99,18 @@
         
           <!-- Dashboard -->
 
-          <li class="menu-item active">
+          <li class="menu-item">
             <a href="/users/dashboard" class="menu-link">
               <i class="menu-icon tf-icons ti ti-smart-home"></i>
               <div data-i18n="Dashboard">Dashboard</div>
             </a>
           </li>
-
-
-
+          <li class="menu-item active">
+            <a href="/users/registration" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-smart-home"></i>
+              <div data-i18n="Registration">Registration</div>
+            </a>
+          </li>
           <!-- ////////////////ADMIN/////////////////////// -->
         
           <li class="menu-header small text-uppercase">
@@ -119,11 +123,128 @@
               <div data-i18n="Config">Config</div>
             </a>
           </li>
-
         </ul>
+      </aside>
 
-    </aside>
-    <nav
+    <div class="layout-page">
+      <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+              <i class="ti ti-menu-2 ti-sm"></i>
+            </a>
+          </div>
+
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+
+
+            <!-- Search -->
+            <div class="navbar-nav align-items-center">
+              <div class="nav-item navbar-search-wrapper mb-0">
+                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
+                  <i class="ti ti-search ti-md me-2"></i>
+                  <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                </a>
+              </div>
+            </div>
+            <!-- /Search -->
+
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
+
+              <!-- Style Switcher -->
+              <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <i class="ti ti-md"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                      <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                      <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                      <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+
+              <!-- Notification -->
+              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside" aria-expanded="false">
+                  <i class="ti ti-bell ti-md"></i>
+                  <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end py-0">
+                  <li class="dropdown-menu-header border-bottom">
+                    <div class="dropdown-header d-flex align-items-center py-3">
+                      <h5 class="text-body mb-0 me-auto">Notification</h5>
+                      <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
+                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                    </div>
+                  </li>
+              </li>
+              <li class="dropdown-menu-footer border-top">
+                <a href="javascript:void(0);"
+                  class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                  View all notifications
+                </a>
+              </li>
+            </ul>
+            </li>
+            <!--/ Notification -->
+
+            <!-- User -->
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="pages-account-settings-account.html">
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <span class="fw-medium d-block">
+                          <%= user.display_name %>
+                        </span>
+                        <small class="text-muted">
+                          <%=user.job_title%>
+                        </small>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <div class="dropdown-divider"></div>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/users/logout"> <!-- target="_blank" -->
+                    <i class="ti ti-logout me-2 ti-sm"></i>
+                    <span class="align-middle">Log Out</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <!--/ User -->
+            </ul>
+          </div>
+
+          <!-- Search Small Screens -->
+          <div class="navbar-search-wrapper search-input-wrapper d-none">
+            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
+              aria-label="Search..." />
+            <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+          </div>
+      </nav>
+
+    <div class="content-wrapper">
+          <nav
           class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
           id="layout-navbar">
           <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
@@ -238,7 +359,6 @@
             <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
           </div>
     </nav>
-    <div class="content-wrapper">
       <!-- Left Text -->
       <!-- <div
         class="d-none d-lg-flex col-lg-4 align-items-center justify-content-center p-5 auth-cover-bg-color position-relative auth-multisteps-bg-height">
@@ -654,34 +774,33 @@
                           </div>
                         </div>
                       <% }); %>
-                    <% } else { %>
-                      <!-- Empty state: no contacts yet -->
-                      <div class="emergency-contact-template row g-6 emergency-contact-entry mb-4 border-top pt-4" style="display: none;">
-                        <div class="col-12">
-                          <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Contact</h5>
-                            <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
-                              <i class="ti ti-x ti-xs me-1"></i>Remove
-                            </button>
-                          </div>
-                        </div>
-                        <div class="col-md-4">
-                          <label class="form-label" for="emergencyFullName">Full Name <span class="text-danger">*</span></label>
-                          <input type="text" name="emergencyContacts[0][fullName]" class="form-control" placeholder="Jane Doe" />
-                          <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-4">
-                          <label class="form-label" for="emergencyPhone">Phone <span class="text-danger">*</span></label>
-                          <input type="number" name="emergencyContacts[0][phone]" class="form-control" placeholder="555-123-4567" />
-                          <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-4">
-                          <label class="form-label" for="emergencySecondaryPhone">Secondary Phone</label>
-                          <input type="number" name="emergencyContacts[0][secondaryPhone]" class="form-control" placeholder="555-987-6543" />
-                          <div class="invalid-feedback"></div>
+                    <% } %>
+                    <!-- Empty state: no contacts yet -->
+                    <div class="emergency-contact-template row g-6 emergency-contact-entry mb-4 border-top pt-4" style="display: none;">
+                      <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <h5 class="mb-0">Contact</h5>
+                          <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
+                            <i class="ti ti-x ti-xs me-1"></i>Remove
+                          </button>
                         </div>
                       </div>
-                    <% } %>
+                      <div class="col-md-4">
+                        <label class="form-label" for="emergencyFullName">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="emergencyContacts[0][fullName]" class="form-control" placeholder="Jane Doe" />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label" for="emergencyPhone">Phone <span class="text-danger">*</span></label>
+                        <input type="number" name="emergencyContacts[0][phone]" class="form-control" placeholder="555-123-4567" />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label" for="emergencySecondaryPhone">Secondary Phone</label>
+                        <input type="number" name="emergencyContacts[0][secondaryPhone]" class="form-control" placeholder="555-987-6543" />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
                   </div>
               
                   <!-- Button for the list of emergency contacts -->
@@ -1139,6 +1258,8 @@
         </div>
       </div>
     </div>
+    </div>
+  </div>
   </div>
 
 
@@ -1200,16 +1321,24 @@
 
   // Función para subir archivos
   async function uploadFile(file) {
+    // If no file is provided, return null
+    if (!file) return { filePath: null };
+    
     const formData = new FormData();
     formData.append("file", file);
-
-    const response = await fetch(`${window.API_BASE_URL}/upload`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error("Error al subir archivo");
-    return await response.json();
+  
+    try {
+      const response = await fetch(`${window.API_BASE_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+    
+      if (!response.ok) throw new Error("Error al subir archivo");
+      return await response.json();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      return { filePath: null };
+    }
   }
   // Función para subir la firma
   async function uploadSignature() {
@@ -1225,7 +1354,7 @@
         userId: currentUserId 
       })
     });
-
+    console.log("Uploading signature", base64);
     if (!response.ok) throw new Error("Error al subir firma");
     return await response.json();
   }
@@ -1236,6 +1365,7 @@
     const preferredFirstName = document.getElementById("preferredFirstName")?.value || "";
     const dateOfBirth = document.getElementById("dateOfBirth")?.value || "";
     const ssn = document.getElementById("ssn")?.value || "";
+    const photo = document.getElementById("profilePhoto")?.files[0] || null;
 
     const isMale = document.getElementById("legalSexMale")?.checked;
     const legalSex = isMale ? "male" : "female";
@@ -1247,7 +1377,8 @@
       DateOfBirth: dateOfBirth,
       SSN: ssn,
       LegalSex: legalSex,
-      userId: currentUserId
+      userId: currentUserId,
+      Photo: photo
     };
     const response = await fetch(`${window.API_BASE_URL}/steps/personal-info`, {
       method: "POST",
@@ -1510,7 +1641,7 @@
       const emergencyContacts = await saveEmergencyContacts();
       const taxInfo = await saveTaxInfo();
       const paymentMethod = await savePaymentMethods()
-      // const documentsData = await saveDocuments();
+      const documentsData = await saveDocuments();
     
       const fullData = {
         personalInfo,

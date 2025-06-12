@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Step 1: Personal Info
@@ -6,12 +6,12 @@ export const createPersonalInfo = async (req, res) => {
   try {
     const {
       ContractorType,
-      LegalName,       
-      PreferredName,   
-      LegalSex,                  
+      LegalName,
+      PreferredName,
+      LegalSex,
       DateOfBirth,
-      SSN,                           
-      userId
+      SSN,
+      userId,
     } = req.body;
 
     const data = {
@@ -21,27 +21,29 @@ export const createPersonalInfo = async (req, res) => {
       LegalSex,
       DateOfBirth: new Date(DateOfBirth),
       SSN,
-      userId             
+      userId,
     };
 
     const personalInfo = await prisma.personalInfo.upsert({
       where: { userId },
       update: data,
-      create: data 
+      create: data,
     });
 
     res.json(personalInfo);
   } catch (error) {
     console.error("Error creating or updating personal info:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to create or update personal info",
-      details: error.message 
+      details: error.message,
     });
   }
 };
 
 export const getPersonalInfoById = async (req, res) => {
-  const personalInfo = await prisma.personalInfo.findUnique({ where : {userId: req.params.id }});
+  const personalInfo = await prisma.personalInfo.findUnique({
+    where: { userId: req.params.id },
+  });
   res.json(personalInfo);
 };
 
@@ -60,7 +62,7 @@ export const createContactInfo = async (req, res) => {
       workEmail,
       workPhone,
       preferredContactMethod,
-      userId
+      userId,
     } = req.body;
     const data = {
       personalEmail,
@@ -74,27 +76,29 @@ export const createContactInfo = async (req, res) => {
       workEmail: workEmail || null,
       workPhone: workPhone || null,
       preferredContactMethod: preferredContactMethod || null,
-      userId
+      userId,
     };
 
     // Crear registro en la base de datos
     const contactInfo = await prisma.contactInfo.upsert({
       where: { userId: data.userId },
       update: data,
-      create: data
+      create: data,
     });
     res.json(contactInfo);
   } catch (error) {
     console.error("Error creating or updating contact info:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to save contact information",
-      details: error.message 
+      details: error.message,
     });
   }
 };
 
 export const getContactInfoById = async (req, res) => {
-  const contactInfo = await prisma.contactInfo.findUnique({ where: { userId: req.params.id } });
+  const contactInfo = await prisma.contactInfo.findUnique({
+    where: { userId: req.params.id },
+  });
   res.json(contactInfo);
 };
 
@@ -104,32 +108,36 @@ export const createEmergencyContacts = async (req, res) => {
     const contacts = req.body;
 
     if (!Array.isArray(contacts)) {
-      return res.status(400).json({ error: "Se esperaba un arreglo de contactos." });
+      return res
+        .status(400)
+        .json({ error: "Se esperaba un arreglo de contactos." });
     }
 
     // Group contacts by userId
-    const userIds = [...new Set(contacts.map(contact => contact.userId))];
+    const userIds = [...new Set(contacts.map((contact) => contact.userId))];
 
     // Delete existing contacts for the affected users
     await prisma.emergencyContact.deleteMany({
       where: {
         userId: {
-          in: userIds
-        }
-      }
+          in: userIds,
+        },
+      },
     });
 
     // Create new contacts
     await prisma.emergencyContact.createMany({
-      data: contacts.map(contact => ({
+      data: contacts.map((contact) => ({
         Fullname: contact.Fullname,
         Phone: contact.Phone,
         secondaryPhone: contact.secondaryPhone ?? null,
-        userId: contact.userId
-      }))
+        userId: contact.userId,
+      })),
     });
 
-    res.status(201).json({ message: "Contactos de emergencia reemplazados exitosamente" });
+    res
+      .status(201)
+      .json({ message: "Contactos de emergencia reemplazados exitosamente" });
   } catch (err) {
     console.error("Error al reemplazar contactos de emergencia:", err);
     res.status(500).json({ error: err.message });
@@ -137,12 +145,13 @@ export const createEmergencyContacts = async (req, res) => {
 };
 export const getEmergencyContactById = async (req, res) => {
   try {
-    const emergencyContacts = await prisma.emergencyContact.findMany({
-      where: { userId: req.params.id }
-    }) || [];
+    const emergencyContacts =
+      (await prisma.emergencyContact.findMany({
+        where: { userId: req.params.id },
+      })) || [];
     res.json(emergencyContacts);
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving emergency contacts' });
+    res.status(500).json({ error: "Error retrieving emergency contacts" });
   }
 };
 // Step 4: Tax Info
@@ -151,7 +160,7 @@ export const createTaxInfo = async (req, res) => {
     const taxInfo = await prisma.taxInfo.upsert({
       where: { userId: req.body.userId },
       update: req.body,
-      create: req.body
+      create: req.body,
     });
 
     res.status(201).json(taxInfo);
@@ -160,7 +169,9 @@ export const createTaxInfo = async (req, res) => {
   }
 };
 export const getTaxInfoById = async (req, res) => {
-  const taxInfo = await prisma.taxInfo.findUnique({ where: { userId: req.params.id } });
+  const taxInfo = await prisma.taxInfo.findUnique({
+    where: { userId: req.params.id },
+  });
   res.json(taxInfo);
 };
 
@@ -170,24 +181,26 @@ export const createPaymentMethods = async (req, res) => {
     const paymentMethods = req.body;
 
     if (!Array.isArray(paymentMethods)) {
-      return res.status(400).json({ error: "Expected an array of payment methods." });
+      return res
+        .status(400)
+        .json({ error: "Expected an array of payment methods." });
     }
 
     // Extract unique user IDs from incoming data
-    const userIds = [...new Set(paymentMethods.map(method => method.userId))];
+    const userIds = [...new Set(paymentMethods.map((method) => method.userId))];
 
     // Delete existing payment methods for those users
     await prisma.paymentMethod.deleteMany({
       where: {
         userId: {
-          in: userIds
-        }
-      }
+          in: userIds,
+        },
+      },
     });
 
     // Create new payment methods
     await prisma.paymentMethod.createMany({
-      data: paymentMethods
+      data: paymentMethods,
     });
 
     res.status(201).json({ message: "Payment methods replaced successfully" });
@@ -198,12 +211,14 @@ export const createPaymentMethods = async (req, res) => {
 };
 
 export const getPaymentMethodById = async (req, res) => {
-  try{
-    const paymentMethods = await prisma.paymentMethod.findMany({ where: { userId: req.params.id } }) || [];
+  try {
+    const paymentMethods =
+      (await prisma.paymentMethod.findMany({
+        where: { userId: req.params.id },
+      })) || [];
     res.json(paymentMethods);
-  }
-  catch(error){
-    res.status(500).json({ error: 'Error retrieving payment methods' });
+  } catch (error) {
+    res.status(500).json({ error: "Error retrieving payment methods" });
   }
 };
 // Step 6: Documents
@@ -214,16 +229,23 @@ export const createDocuments = async (req, res) => {
     const documents = await prisma.documents.upsert({
       where: { userId },
       update: documentData,
-      create: { userId, ...documentData }
+      create: { userId, ...documentData },
     });
 
     res.status(201).json(documents);
   } catch (err) {
     console.error("Error creating or updating documents:", err);
-    res.status(500).json({ error: "Failed to create or update documents", details: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to create or update documents",
+        details: err.message,
+      });
   }
 };
 export const getDocumentsById = async (req, res) => {
-  const documents = await prisma.documents.findUnique({ where: { userId: req.params.id } });
+  const documents = await prisma.documents.findUnique({
+    where: { userId: req.params.id },
+  });
   res.json(documents);
 };
