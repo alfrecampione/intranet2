@@ -1,13 +1,13 @@
 import express from "express";
-import { login, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated} from "./controllers/auth.js"
+import { login, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated } from "./controllers/auth.js"
 import { redirect_dashboard, dashboard, dashboardLastQuarter, dashboardWeekReports, totalSalesStatistics, nbSalesStatistics, rnSalesStatistics, rwSalesStatistics, cnSalesStatistics } from "./controllers/dash-reports.js"
 import { agency } from "./controllers/agency-reports.js";
 import { headcarrier, addHeadCarrier, head_carrier_list, addCarrier, deleteCarrier } from "./controllers/config.js";
 import { dataSearch } from "./controllers/search.js";
 import { passwordMail } from "./controllers/mailer.js";
 import passport from "passport";
-import { authenticate} from "./config/passportConfig.js";
-import {register} from "./controllers/registration.js"
+import { authenticate } from "./config/passportConfig.js";
+import { register } from "./controllers/registration.js"
 
 const router = express.Router();
 
@@ -36,16 +36,17 @@ router.post('/users/config/headcarrier/addCarrier', checkNotAuthenticated, addCa
 router.post('/users/config/headcarrier/deleteCarrier', checkNotAuthenticated, deleteCarrier);
 router.post('/users/search', checkNotAuthenticated, dataSearch)
 
-router.get('/users/registration',checkNotAuthenticated,register)
+router.get('/users/registration', checkNotAuthenticated, register)
+
 
 // STEPS ROUTES
 import {
-  createPersonalInfo, getPersonalInfoById,  
-  createContactInfo, getContactInfoById,  
-  createEmergencyContacts, getEmergencyContactById,  
-  createTaxInfo, getTaxInfoById,  
-  createPaymentMethods, getPaymentMethodById,  
-  createDocuments, getDocumentsById, 
+  createPersonalInfo, getPersonalInfoById,
+  createContactInfo, getContactInfoById,
+  createEmergencyContacts, getEmergencyContactById,
+  createTaxInfo, getTaxInfoById,
+  createPaymentMethods, getPaymentMethodById,
+  createDocuments, getDocumentsById,
 } from "./controllers/steps.js";
 
 // Step 1: Personal Info

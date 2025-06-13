@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from "../config/dbConfig.js";
 
 const register = async (req, res) => {
   try {
@@ -31,4 +30,25 @@ const register = async (req, res) => {
   }
 };
 
-export { register };
+const handleFileUpload = (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const normalizedPath = req.file.path.replace(/\\/g, '/');
+    const relativePath = normalizedPath.includes('uploads/')
+      ? normalizedPath.substring(normalizedPath.indexOf('uploads/'))
+      : `uploads/${req.file.filename}`;
+
+    res.json({ path: relativePath });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      error: 'Upload failed',
+      details: error.message
+    });
+  }
+};
+
+export { register, handleFileUpload };

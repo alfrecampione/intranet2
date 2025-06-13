@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "../config/dbConfig.js";
 
 // Step 1: Personal Info
 export const createPersonalInfo = async (req, res) => {
@@ -12,6 +11,7 @@ export const createPersonalInfo = async (req, res) => {
       DateOfBirth,
       SSN,
       userId,
+      PhotoPath
     } = req.body;
 
     const data = {
@@ -22,6 +22,7 @@ export const createPersonalInfo = async (req, res) => {
       DateOfBirth: new Date(DateOfBirth),
       SSN,
       userId,
+      PhotoPath
     };
 
     const personalInfo = await prisma.personalInfo.upsert({
