@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!stepperElement) return; // Salir si el stepper no existe
 
     const stepper = new Stepper(stepperElement, {
-        linear: true // Recomendado: obliga al usuario a seguir los pasos en orden.
+        linear: true // Obliga al usuario a seguir los pasos en orden
     });
 
     const multiStepsForm = document.getElementById('multiStepsForm');
@@ -15,38 +15,52 @@ document.addEventListener('DOMContentLoaded', function () {
         let errorMessage = '';
         const feedbackElement = input.nextElementSibling;
 
-        // Limpiar estados previos
+        // Limpiar clases de validación previas
         input.classList.remove('is-invalid', 'is-valid');
-        if (feedbackElement) feedbackElement.textContent = '';
-        input.setCustomValidity(''); // Limpiar cualquier mensaje de validez personalizado previo
+        if (feedbackElement) {
+            feedbackElement.classList.remove('text-danger', 'text-success');
+        }
+        input.setCustomValidity(''); // Limpiar validación personalizada previa
 
         // --- Manejo especial para grupos de radio ---
         if (input.type === 'radio') {
             const radioGroupName = input.name;
-            // Selecciona todos los radios con el mismo nombre y que sean requeridos
             const radioGroup = document.querySelectorAll(`input[name="${radioGroupName}"][required]`);
             const isAnyRadioChecked = Array.from(radioGroup).some(radio => radio.checked);
 
             if (!isAnyRadioChecked) {
                 isValid = false;
-                errorMessage = `Por favor, seleccione una opción para ${radioGroupName.replace(/([A-Z])/g, ' $1').trim()}.`; // Hace el nombre más legible
-                radioGroup.forEach(radio => radio.classList.add('is-invalid')); // Marca todos los radios del grupo como inválidos
-                // Establece el mensaje de error en el primer elemento de feedback del grupo
-                if (feedbackElement) feedbackElement.textContent = errorMessage;
-                // setCustomValidity en uno de ellos para que el navegador lo marque si hay submit de formulario
+                errorMessage = `Por favor, seleccione una opción para ${radioGroupName.replace(/([A-Z])/g, ' $1').trim()}.`;
+                radioGroup.forEach(radio => radio.classList.add('is-invalid'));
+
+                // Añadir clase de error al primer feedback disponible
+                const firstRadio = radioGroup[0];
+                const feedback = firstRadio.nextElementSibling;
+                if (feedback) {
+                    feedback.classList.add('text-danger');
+                }
+
                 input.setCustomValidity(errorMessage);
             } else {
-                radioGroup.forEach(radio => radio.classList.remove('is-invalid')); // Limpia si ya hay una selección
-                input.setCustomValidity(''); // Limpia custom validity
+                radioGroup.forEach(radio => radio.classList.remove('is-invalid'));
+                const firstRadio = radioGroup[0];
+                const feedback = firstRadio.nextElementSibling;
+                if (feedback) {
+                    feedback.classList.remove('text-danger');
+                }
+                input.setCustomValidity('');
             }
         } else {
             if (input.checkValidity()) {
                 input.classList.add('is-valid');
+                if (feedbackElement) {
+                    feedbackElement.classList.add('text-success');
+                    feedbackElement.classList.remove('text-danger');
+                }
             } else {
                 isValid = false;
                 input.classList.add('is-invalid');
 
-                // Determinar el mensaje de error basado en el tipo de validación fallida
                 if (input.validity.valueMissing) {
                     errorMessage = 'Este campo es requerido.';
                 } else if (input.validity.typeMismatch) {
@@ -65,13 +79,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     errorMessage = 'El campo no es válido.';
                 }
 
+                if (feedbackElement) {
+                    feedbackElement.classList.add('text-danger');
+                }
 
-                if (feedbackElement) feedbackElement.textContent = errorMessage;
                 input.setCustomValidity(errorMessage);
             }
         }
+
         return isValid;
     };
+
     // --- FUNCIÓN PARA VALIDAR UN PASO COMPLETO ---
     const validateStep = (stepElement) => {
         let allFieldsValid = true;
@@ -84,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Validar grupos de radio por separado para no repetir la validación
+        // Validar grupos de radio
         const radioGroups = {};
         stepElement.querySelectorAll('input[type="radio"][required]').forEach(radio => {
             radioGroups[radio.name] = radio; // Guardamos solo un radio por grupo
@@ -114,24 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnPrevList = document.querySelectorAll('.btn-prev');
     btnPrevList.forEach(btn => {
         btn.addEventListener('click', () => {
-            stepper.previous(); // No se necesita validación para ir hacia atrás
+            stepper.previous();
         });
     });
-
-    // // --- LÓGICA DE ENVÍO FINAL ---
-    // multiStepsForm.addEventListener('submit', function (event) {
-    //     event.preventDefault();
-
-    //     const lastStep = document.getElementById('documentsValidation'); // O el ID de tu último paso
-    //     if (validateStep(lastStep)) {
-    //         alert("Formulario enviado con éxito!");
-    //         // Aquí iría el envío real de datos al servidor (ej. usando fetch)
-    //         // multiStepsForm.submit(); // Descomentar para un envío de formulario normal
-    //     } else {
-    //         console.error("Envío bloqueado: el último paso contiene errores.");
-    //     }
-    // });
-
-
-
 });
