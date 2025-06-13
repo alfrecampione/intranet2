@@ -3,7 +3,5 @@ node_modules
 .env
 
 /generated/prisma
-assets/
 uploads/
-registration/assets/
 prisma/migrations/
