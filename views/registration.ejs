@@ -1510,19 +1510,49 @@
         USpassport: "passportUpload"
       };
 
-      const uploadFileIfExists = async (file) => file ? (await uploadFile(file)).path : null;
+      const directDepositFormPath = await uploadFile(document.getElementById(fileIds.directDepositForm)?.files[0]);
+      console.log("Direct Deposit Form Path:", directDepositFormPath);
+      const driverLicensePath = await uploadFile(document.getElementById(fileIds.driverLicense)?.files[0]);
+      console.log("Driver License Path:", driverLicensePath);
+      const EINconfirmationPath = await uploadFile(document.getElementById(fileIds.EINconfirmation)?.files[0]);
+      console.log("EIN Confirmation Path:", EINconfirmationPath);
+      const EmploymentAuthCardBackPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthCardBack)?.files[0]);
+      console.log("Employment Auth Card Back Path:", EmploymentAuthCardBackPath);
+      const EmploymentAuthCardFrontPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthCardFront)?.files[0]);
+      console.log("Employment Auth Card Front Path:", EmploymentAuthCardFrontPath);
+      const EmploymentAuthExtensionLetterPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthExtensionLetter)?.files[0]);
+      console.log("Employment Auth Extension Letter Path:", EmploymentAuthExtensionLetterPath);
+      const eANDoPath = await uploadFile(document.getElementById(fileIds.eANDo)?.files[0]);
+      console.log("E&O Path:", eANDoPath);
+      const GTDisciplinaryPolicyPath = await uploadFile(document.getElementById(fileIds.GTDisciplinaryPolicy)?.files[0]);
+      console.log("GoldenTrust Disciplinary Policy Path:", GTDisciplinaryPolicyPath);
+      const permanentResidentCardPath = await uploadFile(document.getElementById(fileIds.permanentResidentCard)?.files[0]);
+      console.log("Permanent Resident Card Path:", permanentResidentCardPath);
+      const proLicensePath = await uploadFile(document.getElementById(fileIds.proLicense)?.files[0]);
+      console.log("Professional License Path:", proLicensePath);
+      const socialSecurityCardPath = await uploadFile(document.getElementById(fileIds.socialSecurityCard)?.files[0]);
+      console.log("Social Security Card Path:", socialSecurityCardPath);
+      const USpassportPath = await uploadFile(document.getElementById(fileIds.USpassport)?.files[0]);
+      console.log("US Passport Path:", USpassportPath);
 
-      const entries = await Promise.all(
-        Object.entries(fileIds).map(async ([key, elementId]) => {
-          const file = document.getElementById(elementId)?.files[0];
-          const path = await uploadFileIfExists(file);
-          return [key, path];
-        })
-      );
+      const payload = {
+        userId: currentUserId,
+        directDepositForm: directDepositFormPath,
+        driverLicense: driverLicensePath,
+        EINconfirmation: EINconfirmationPath,
+        EmploymentAuthCardBack: EmploymentAuthCardBackPath,
+        EmploymentAuthCardFront: EmploymentAuthCardFrontPath,
+        EmploymentAuthExtensionLetter: EmploymentAuthExtensionLetterPath,
+        eANDo: eANDoPath,
+        GTDisciplinaryPolicy: GTDisciplinaryPolicyPath,
+        permanentResidentCard: permanentResidentCardPath,
+        proLicense: proLicensePath,
+        socialSecurityCard: socialSecurityCardPath,
+        USpassport: USpassportPath
+      };
+      const payloadJSON = JSON.stringify(payload)
 
-      const payload = Object.fromEntries(
-        [["userId", currentUserId], ...entries.filter(([_, path]) => path !== null)]
-      );
+      console.log(payloadJSON)
 
       const response = await fetch(`${window.API_BASE_URL}/steps/documents`, {
         method: "POST",
@@ -1546,15 +1576,15 @@
         const emergencyContacts = await saveEmergencyContacts();
         const taxInfo = await saveTaxInfo();
         const paymentMethod = await savePaymentMethods()
-        // const documentsData = await saveDocuments();
+        const documentsData = await saveDocuments();
 
         const fullData = {
           personalInfo,
           contactInfo,
           emergencyContacts,
           taxInfo,
-          paymentMethod//,
-          // documentsData
+          paymentMethod,
+          documentsData
         };
 
         alert("¡Todos los datos se guardaron correctamente!");
