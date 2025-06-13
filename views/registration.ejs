@@ -11,7 +11,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-  <title>Registration</title>
+  <title>Registration | GTI</title>
 
   <meta name="description" content="" />
 
@@ -63,9 +63,6 @@
   <!--? !!!!!!!!!!!!!!!!!!Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
   <script src="/js/config.js"></script>
 
-  <!-- Signature -->
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
 
   <style .bs-stepper-content .content { display: none; } .bs-stepper-content .content.active { display: block; }
     .form-control.is-invalid, .form-select.is-invalid { border-color: #ff3e1d !important; }></style>
@@ -75,7 +72,7 @@
 
 <body>
   <!-- Content -->
-  <div class="authentication-wrapper authentication-cover authentication-bg">
+  <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
       <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
         <div class="app-brand demo">
@@ -128,125 +125,123 @@
 
       <div class="layout-page">
 
-        <div class="content-wrapper">
-          <nav
-            class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
-            id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-                <i class="ti ti-menu-2 ti-sm"></i>
-              </a>
-            </div>
+        <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+              <i class="ti ti-menu-2 ti-sm"></i>
+            </a>
+          </div>
 
-            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
 
 
-              <!-- Search -->
-              <div class="navbar-nav align-items-center">
-                <div class="nav-item navbar-search-wrapper mb-0">
-                  <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
-                    <i class="ti ti-search ti-md me-2"></i>
-                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
-                  </a>
-                </div>
+            <!-- Search -->
+            <div class="navbar-nav align-items-center">
+              <div class="nav-item navbar-search-wrapper mb-0">
+                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
+                  <i class="ti ti-search ti-md me-2"></i>
+                  <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                </a>
               </div>
-              <!-- /Search -->
+            </div>
+            <!-- /Search -->
 
-              <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
 
-                <!-- Style Switcher -->
-                <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <i class="ti ti-md"></i>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
-                    <li>
-                      <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                        <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                        <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                        <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-
-                <!-- Notification -->
-                <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside" aria-expanded="false">
-                    <i class="ti ti-bell ti-md"></i>
-                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
-                  </a>
-
-                  <ul class="dropdown-menu dropdown-menu-end py-0">
-                    <li class="dropdown-menu-header border-bottom">
-                      <div class="dropdown-header d-flex align-items-center py-3">
-                        <h5 class="text-body mb-0 me-auto">Notification</h5>
-                        <a href="javascript:void(0)" class="dropdown-notifications-all text-body"
-                          data-bs-toggle="tooltip" data-bs-placement="top" title="Mark all as read"><i
-                            class="ti ti-mail-opened fs-4"></i></a>
-                      </div>
-                    </li>
-                </li>
-                <li class="dropdown-menu-footer border-top">
-                  <a href="javascript:void(0);"
-                    class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                    View all notifications
-                  </a>
-                </li>
-              </ul>
-              </li>
-              <!--/ Notification -->
-
-              <!-- User -->
-              <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <ul class="dropdown-menu dropdown-menu-end">
+              <!-- Style Switcher -->
+              <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <i class="ti ti-md"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
                   <li>
-                    <a class="dropdown-item" href="pages-account-settings-account.html">
-                      <div class="d-flex">
-                        <div class="flex-grow-1">
-                          <span class="fw-medium d-block">
-                            <%= user.display_name %>
-                          </span>
-                          <small class="text-muted">
-                            <%=user.job_title%>
-                          </small>
-                        </div>
-                      </div>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                      <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
                     </a>
                   </li>
                   <li>
-                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                      <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                    </a>
                   </li>
                   <li>
-                    <a class="dropdown-item" href="/users/logout"> <!-- target="_blank" -->
-                      <i class="ti ti-logout me-2 ti-sm"></i>
-                      <span class="align-middle">Log Out</span>
+                    <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                      <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
                     </a>
                   </li>
                 </ul>
               </li>
-              <!--/ User -->
-              </ul>
-            </div>
 
-            <!-- Search Small Screens -->
-            <div class="navbar-search-wrapper search-input-wrapper d-none">
-              <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
-                aria-label="Search..." />
-              <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
-            </div>
-          </nav>
-          <!-- Left Text -->
-          <!-- <div
+              <!-- Notification -->
+              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside" aria-expanded="false">
+                  <i class="ti ti-bell ti-md"></i>
+                  <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end py-0">
+                  <li class="dropdown-menu-header border-bottom">
+                    <div class="dropdown-header d-flex align-items-center py-3">
+                      <h5 class="text-body mb-0 me-auto">Notification</h5>
+                      <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
+                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                    </div>
+                  </li>
+              </li>
+              <li class="dropdown-menu-footer border-top">
+                <a href="javascript:void(0);"
+                  class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                  View all notifications
+                </a>
+              </li>
+            </ul>
+            </li>
+            <!--/ Notification -->
+
+            <!-- User -->
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="pages-account-settings-account.html">
+                    <div class="d-flex">
+                      <div class="flex-grow-1">
+                        <span class="fw-medium d-block">
+                          <%= user.display_name %>
+                        </span>
+                        <small class="text-muted">
+                          <%=user.job_title%>
+                        </small>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <div class="dropdown-divider"></div>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/users/logout"> <!-- target="_blank" -->
+                    <i class="ti ti-logout me-2 ti-sm"></i>
+                    <span class="align-middle">Log Out</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <!--/ User -->
+            </ul>
+          </div>
+
+          <!-- Search Small Screens -->
+          <div class="navbar-search-wrapper search-input-wrapper d-none">
+            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
+              aria-label="Search..." />
+            <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+          </div>
+        </nav>
+        <!-- Left Text -->
+        <!-- <div
         class="d-none d-lg-flex col-lg-4 align-items-center justify-content-center p-5 auth-cover-bg-color position-relative auth-multisteps-bg-height">
         <img src="/img/illustrations/auth-register-multisteps-illustration.png" alt="auth-register-multisteps"
           class="img-fluid" width="190" />
@@ -256,14 +251,15 @@
           data-app-light-img="illustrations/auth-register-multisteps-shape-light.png"
           data-app-dark-img="illustrations/auth-register-multisteps-shape-dark.png" />
       </div> -->
-          <!-- /Left Text -->
+        <!-- /Left Text -->
 
+        <div class="content-wrapper">
           <!-- Multi Steps Registration -->
           <div class="d-flex col-lg-8 align-items-center justify-content-center authentication-bg p-5">
-            <div class="w-px-700">
+            <div class="w-px-900">
               <form id="multiStepsForm" class="w-100" onsubmit="return false">
                 <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
-                  <div class="bs-stepper-header border-none pt-12 px-0">
+                  <div class="bs-stepper-header d-flex flex-wrap gap-2 w-100">
 
                     <!-- Paso 1: Personal Info -->
                     <div class="step" data-target="#accountDetailsValidation">
@@ -326,7 +322,8 @@
                             <option value="" disabled <%=!personalInfo?.ContractorType ? 'selected' : '' %>>Select
                               type...</option>
                             <option value="individual" <%=personalInfo?.ContractorType==='individual' ? 'selected' : ''
-                              %>>Individual</option>
+                              %>
+                              >Individual</option>
                             <option value="business" <%=personalInfo?.ContractorType==='business' ? 'selected' : '' %>
                               >Business</option>
                           </select>
@@ -419,11 +416,10 @@
 
                           <% if (personalInfo?.PhotoPath) { %>
                             <div class="mb-3">
-                              <img src="<%= personalInfo.PhotoPath %>" alt="Profile Photo"
+                              <img src="https://localhost:443/<%= personalInfo.PhotoPath %>" alt="Profile Photo"
                                 style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
                             </div>
                             <% } %>
-
                               <input class="form-control" type="file" id="profilePhoto" name="profilePhoto"
                                 accept="image/*" />
                               <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
@@ -459,7 +455,8 @@
                             <div class="form-check form-check-inline">
                               <input class="form-check-input" type="radio" name="personalEmailVisibility"
                                 id="emailVisibleNo" value="no" <%=!contactInfo?.isPersonalEmailVisible ? 'checked' : ''
-                                %> />
+                                %>
+                              />
                               <label class="form-check-label" for="emailVisibleNo">No</label>
                             </div>
                           </div>
@@ -483,7 +480,8 @@
                             <div class="form-check form-check-inline">
                               <input class="form-check-input" type="radio" name="personalPhoneVisibility"
                                 id="phoneVisibleNo" value="no" <%=!contactInfo?.isPersonalPhoneVisible ? 'checked' : ''
-                                %> />
+                                %>
+                              />
                               <label class="form-check-label" for="phoneVisibleNo">No</label>
                             </div>
                           </div>
@@ -750,7 +748,8 @@
                                 taxInfo.taxClassification==='llc_multiple_members' ? 'selected' : '' %>>LLC with
                                 multiple members</option>
                               <option value="other" <%=taxInfo && taxInfo.taxClassification==='other' ? 'selected' : ''
-                                %>>Other</option>
+                                %>
+                                >Other</option>
                             </select>
                           </div>
                         </div>
@@ -824,14 +823,43 @@
                         <h5 class="mb-4">Sign Tax Documents</h5>
                         <div class="row g-6">
                           <div class="col-12">
-                            <label class="form-label">Signature</label>
-                            <div class="signature-pad-container border rounded" style="touch-action: none;">
-                              <canvas id="signature-canvas" class="w-100"></canvas>
+                            <p class="form-label">Signature</p>
+                            <script
+                              src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+                            <!-- Canvas -->
+                            <div class="signature-pad-container border rounded">
+                              <canvas id="signature-canvas" class="w-full h-40"></canvas>
                             </div>
-                            <div class="mt-2 text-end">
-                              <button type="button" id="clear-signature-btn"
-                                class="btn btn-sm btn-label-secondary">Clear</button>
-                            </div>
+                            <button id="clear-signature-btn" class="btn btn-sm btn-label-secondary mt-2">Clear</button>
+
+                            <script>
+                              document.addEventListener('DOMContentLoaded', function () {
+                                const canvas = document.getElementById('signature-canvas');
+                                const clearButton = document.getElementById('clear-signature-btn');
+
+                                if (!canvas) return;
+
+                                function resizeCanvas() {
+                                  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                                  canvas.width = canvas.offsetWidth * ratio;
+                                  canvas.height = canvas.offsetHeight * ratio;
+                                  canvas.getContext('2d').scale(ratio, ratio);
+                                }
+
+                                window.addEventListener("resize", resizeCanvas);
+                                resizeCanvas();
+
+                                const signaturePad = new SignaturePad(canvas, {
+                                  backgroundColor: 'rgb(255,255,255)',
+                                  penColor: 'rgb(0,0,0)'
+                                });
+
+                                clearButton.addEventListener('click', function () {
+                                  signaturePad.clear();
+                                });
+                              });
+                            </script>
                           </div>
                           <div class="col-12">
                             <div class="form-check">
@@ -1232,9 +1260,12 @@
   <!-- Button Emergency contacts-->
   <script src="/js/button-list-emergency-contacts.js"></script>
 
+  <!-- Signature -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> -->
+
   <!-- Funcionality of the payroll -->
   <script src="/js/function-of-payroll.js"></script>
-  <script src="/js/signature.js"></script>
+  <!-- <script src="/js/signature.js"></script> -->
 
   <!-- Funcionality of the formulary -->
   <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
@@ -1248,12 +1279,11 @@
     const currentUserId = "<%= user.user_id %>";
 
     // Función para subir archivos
-    const uploadFile = async (file, customFileName) => {
+    const uploadFile = async (file) => {
       if (file) {
         try {
           const formData = new FormData();
           formData.append("file", file);
-          formData.append("customFileName", customFileName);
 
           const uploadResponse = await fetch(`${window.API_BASE_URL}/upload`, {
             method: "POST",
@@ -1283,7 +1313,7 @@
       const isMale = document.getElementById("legalSexMale")?.checked;
       const legalSex = isMale ? "male" : "female";
 
-      const uploadedPhoto = await uploadFile(photo, "profile_photo");
+      const uploadedPhoto = await uploadFile(photo);
 
       const personalInfo = {
         ContractorType: contactType,
@@ -1464,67 +1494,35 @@
     }
 
     async function saveDocuments() {
-      const directDepositFile = document.getElementById("directDepositUpload")?.files[0];
-      const driversLicenseFile = document.getElementById("driversLicenseUpload")?.files[0];
-      const einConfirmationFile = document.getElementById("einConfirmationUpload")?.files[0];
-      const eacBackFile = document.getElementById("eacBackUpload")?.files[0];
-      const eacFrontFile = document.getElementById("eacFrontUpload")?.files[0];
-      const eacExtensionFile = document.getElementById("eacExtensionUpload")?.files[0];
-      const eoFile = document.getElementById("eoUpload")?.files[0];
-      const goldenTrustPolicyFile = document.getElementById("goldenTrustPolicyUpload")?.files[0];
-      const permanentResidenceFile = document.getElementById("permanentResidenceUpload")?.files[0];
-      const professionalLicenseFile = document.getElementById("professionalLicenseUpload")?.files[0];
-      const ssnCardFile = document.getElementById("ssnCardUpload")?.files[0];
-      const passportFile = document.getElementById("passportUpload")?.files[0];
+      const fileIds = {
+        directDepositForm: "directDepositUpload",
+        driverLicense: "driversLicenseUpload",
+        EINconfirmation: "einConfirmationUpload",
+        EmploymentAuthCardBack: "eacBackUpload",
+        EmploymentAuthCardFront: "eacFrontUpload",
+        EmploymentAuthExtensionLetter: "eacExtensionUpload",
+        eANDo: "eoUpload",
+        GTDisciplinaryPolicy: "goldenTrustPolicyUpload",
+        permanentResidentCard: "permanentResidenceUpload",
+        proLicense: "professionalLicenseUpload",
+        socialSecurityCard: "ssnCardUpload",
+        USpassport: "passportUpload"
+      };
 
       const uploadFileIfExists = async (file) => file ? (await uploadFile(file)).path : null;
 
-      const [
-        directDepositPath,
-        driversLicensePath,
-        einConfirmationPath,
-        eacBackPath,
-        eacFrontPath,
-        eacExtensionPath,
-        eoPath,
-        goldenTrustPolicyPath,
-        permanentResidencePath,
-        professionalLicensePath,
-        ssnCardPath,
-        passportPath
-      ] = await Promise.all([
-        uploadFileIfExists(directDepositFile),
-        uploadFileIfExists(driversLicenseFile),
-        uploadFileIfExists(einConfirmationFile),
-        uploadFileIfExists(eacBackFile),
-        uploadFileIfExists(eacFrontFile),
-        uploadFileIfExists(eacExtensionFile),
-        uploadFileIfExists(eoFile),
-        uploadFileIfExists(goldenTrustPolicyFile),
-        uploadFileIfExists(permanentResidenceFile),
-        uploadFileIfExists(professionalLicenseFile),
-        uploadFileIfExists(ssnCardFile),
-        uploadFileIfExists(passportFile)
-      ]);
-
-      const documentsData = {
-        userId: currentUserId,
-        directDepositForm: directDepositPath,
-        driverLicense: driversLicensePath,
-        EINconfirmation: einConfirmationPath,
-        EmploymentAuthCardBack: eacBackPath,
-        EmploymentAuthCardFront: eacFrontPath,
-        EmploymentAuthExtensionLetter: eacExtensionPath,
-        eANDo: eoPath,
-        GTDisciplinaryPolicy: goldenTrustPolicyPath,
-        permanentResidentCard: permanentResidencePath,
-        proLicense: professionalLicensePath,
-        socialSecurityCard: ssnCardPath,
-        USpassport: passportPath
-      };
-      const payload = Object.fromEntries(
-        Object.entries(documentsData).filter(([_, value]) => value !== null)
+      const entries = await Promise.all(
+        Object.entries(fileIds).map(async ([key, elementId]) => {
+          const file = document.getElementById(elementId)?.files[0];
+          const path = await uploadFileIfExists(file);
+          return [key, path];
+        })
       );
+
+      const payload = Object.fromEntries(
+        [["userId", currentUserId], ...entries.filter(([_, path]) => path !== null)]
+      );
+
       const response = await fetch(`${window.API_BASE_URL}/steps/documents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1534,6 +1532,7 @@
       if (!response.ok) throw new Error("Error guardando documentos");
       return await response.json();
     }
+
 
     document.querySelector(".btn-submit").addEventListener("click", async function (e) {
       e.preventDefault();
