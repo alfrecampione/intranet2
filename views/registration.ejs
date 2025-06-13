@@ -1327,6 +1327,8 @@
         PhotoPath: uploadedPhoto
       };
 
+      console.log("PersonalInfo: ", personalInfo);
+
       const response = await fetch(`${window.API_BASE_URL}/steps/personal-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1368,12 +1370,14 @@
         preferredContactMethod: preferredContact,
         userId: currentUserId
       };
+      const contactInfoJSON = JSON.stringify(contactInfo)
 
+      console.log("ContactInfo: ", contactInfoJSON);
 
       const response = await fetch(`${window.API_BASE_URL}/steps/contact-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contactInfo)
+        body: contactInfoJSON
       });
 
       if (!response.ok) throw new Error("Error guardando información de contacto");
@@ -1403,10 +1407,14 @@
 
       if (contacts.length === 0) return [];
 
+      const contactsJSON = JSON.stringify(contacts)
+
+      console.log("Emergency Contacts: ", contactsJSON);
+
       const response = await fetch(`${window.API_BASE_URL}/steps/emergency-contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contacts)
+        body: contacts
       });
 
       if (!response.ok) throw new Error("Error guardando contactos de emergencia");
@@ -1441,12 +1449,14 @@
         signatureTaxDoc: "",
         userId: currentUserId
       };
+      const taxInfoJSON = JSON.stringify(taxInfo)
 
+      console.log("TaxInfo: ", taxInfoJSON);
 
       const response = await fetch(`${window.API_BASE_URL}/steps/tax-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taxInfo)
+        body: taxInfoJSON
       });
 
       if (!response.ok) throw new Error("Error guardando información fiscal");
@@ -1484,10 +1494,13 @@
 
       if (bankAccounts.length === 0) return [];
 
+      const bankAccountsJSON = JSON.stringify(bankAccounts)
+      console.log("Bank Accounts: ", bankAccountsJSON);
+
       const response = await fetch(`${window.API_BASE_URL}/steps/payment-method`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bankAccounts)
+        body: bankAccountsJSON
       });
 
       if (!response.ok) throw new Error("Error guardando métodos de pago");
@@ -1557,7 +1570,7 @@
       const response = await fetch(`${window.API_BASE_URL}/steps/documents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: payloadJSON
       });
 
       if (!response.ok) throw new Error("Error guardando documentos");
