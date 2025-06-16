@@ -5,7 +5,8 @@
 
 <head>
   <script>
-    window.API_BASE_URL = "https://54.198.251.220";
+    const url = `${window.location.protocol}//${window.location.host}`;
+    console.log("URL completa:", url);
   </script>
   <meta charset="utf-8" />
   <meta name="viewport"
@@ -412,17 +413,27 @@
 
                         <!-- 7. Photo -->
                         <div class="col-md-12">
-                          <label class="form-label" for="profilePhoto">Profile Photo</label>
+                          <label class="form-label" for="profilePhotoInput">Profile Photo</label>
 
                           <% if (personalInfo?.PhotoPath) { %>
                             <div class="mb-3">
-                              <img src="https://54.198.251.220/<%= personalInfo.PhotoPath %>" alt="Profile Photo"
+                              <img id="profilePhotoPreview" alt="Profile Photo"
                                 style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
                             </div>
                             <% } %>
-                              <input class="form-control" type="file" id="profilePhoto" name="profilePhoto"
+
+                              <input class="form-control" type="file" id="profilePhotoInput" name="profilePhoto"
                                 accept="image/*" />
                               <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
+
+                              <% if (personalInfo?.PhotoPath) { %>
+                                <script>
+                                  const origin = window.location.origin;
+                                  const photoPath = "<%= personalInfo.PhotoPath %>";
+                                  document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
+                                  document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
+                                </script>
+                                <% } %>
                         </div>
                       </div>
                       <div class="col-12 d-flex justify-content-between mt-4">
@@ -1022,7 +1033,7 @@
                                 <input type="file" id="directDepositUpload" name="directDepositUpload" class="d-none" />
                                 <label for="directDepositUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.directDepositForm) { %>
-                                  <a href="<%= docs.directDepositForm %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.directDepositForm %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1037,7 +1048,7 @@
                                   class="d-none" />
                                 <label for="driversLicenseUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.driverLicense) { %>
-                                  <a href="<%= docs.driverLicense %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.driverLicense %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1053,7 +1064,7 @@
                                   class="d-none" />
                                 <label for="einConfirmationUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.EINconfirmation) { %>
-                                  <a href="<%= docs.EINconfirmation %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.EINconfirmation %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1068,7 +1079,7 @@
                                 <input type="file" id="eacBackUpload" name="eacBackUpload" class="d-none" />
                                 <label for="eacBackUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.EmploymentAuthCardBack) { %>
-                                  <a href="<%= docs.EmploymentAuthCardBack %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.EmploymentAuthCardBack %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1083,7 +1094,7 @@
                                 <input type="file" id="eacFrontUpload" name="eacFrontUpload" class="d-none" />
                                 <label for="eacFrontUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.EmploymentAuthCardFront) { %>
-                                  <a href="<%= docs.EmploymentAuthCardFront %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.EmploymentAuthCardFront %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1098,7 +1109,7 @@
                                 <input type="file" id="eacExtensionUpload" name="eacExtensionUpload" class="d-none" />
                                 <label for="eacExtensionUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.EmploymentAuthExtensionLetter) { %>
-                                  <a href="<%= docs.EmploymentAuthExtensionLetter %>" target="_blank"
+                                  <a href="/<%= docs.EmploymentAuthExtensionLetter %>" target="_blank"
                                     class="ms-2">View</a>
                                   <% } %>
                               </div>
@@ -1113,7 +1124,7 @@
                                 <input type="file" id="eoUpload" name="eoUpload" class="d-none" />
                                 <label for="eoUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.eANDo) { %>
-                                  <a href="<%= docs.eANDo %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.eANDo %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1130,7 +1141,7 @@
                                 <label for="goldenTrustPolicyUpload"
                                   class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.GTDisciplinaryPolicy) { %>
-                                  <a href="<%= docs.GTDisciplinaryPolicy %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.GTDisciplinaryPolicy %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1147,7 +1158,7 @@
                                 <label for="permanentResidenceUpload"
                                   class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.permanentResidentCard) { %>
-                                  <a href="<%= docs.permanentResidentCard %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.permanentResidentCard %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1164,7 +1175,7 @@
                                 <label for="professionalLicenseUpload"
                                   class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.proLicense) { %>
-                                  <a href="<%= docs.proLicense %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.proLicense %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1179,7 +1190,7 @@
                                 <input type="file" id="ssnCardUpload" name="ssnCardUpload" class="d-none" />
                                 <label for="ssnCardUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.socialSecurityCard) { %>
-                                  <a href="<%= docs.socialSecurityCard %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.socialSecurityCard %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1193,7 +1204,7 @@
                                 <input type="file" id="passportUpload" name="passportUpload" class="d-none" />
                                 <label for="passportUpload" class="btn btn-sm btn-outline-primary">Upload</label>
                                 <% if (docs.USpassport) { %>
-                                  <a href="<%= docs.USpassport %>" target="_blank" class="ms-2">View</a>
+                                  <a href="/<%= docs.USpassport %>" target="_blank" class="ms-2">View</a>
                                   <% } %>
                               </div>
                             </div>
@@ -1209,6 +1220,65 @@
                         </button>
                       </div>
                     </div>
+                    <script>
+                      document.addEventListener("DOMContentLoaded", function () {
+                        const fileInputs = document.querySelectorAll("input[type='file']");
+                        const submitBtn = document.querySelector(".btn-submit");
+
+                        function updateStatusVisual(input) {
+                          const parent = input.closest(".d-flex");
+                          const fileUploaded = input.files.length > 0;
+                          const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
+
+                          if (fileUploaded || hasExistingLink) {
+                            parent.classList.add("border-success");
+                            parent.classList.remove("border-danger");
+
+                            // Agregar ícono visual (check) solo si no existe
+                            if (!parent.querySelector(".check-icon")) {
+                              const check = document.createElement("i");
+                              check.className = "ti ti-check text-success ms-2 check-icon";
+                              parent.querySelector("span").appendChild(check);
+                            }
+                          } else {
+                            parent.classList.remove("border-success");
+                            parent.classList.add("border-danger");
+
+                            // Remover ícono si no aplica
+                            const check = parent.querySelector(".check-icon");
+                            if (check) check.remove();
+                          }
+                        }
+
+                        fileInputs.forEach(input => {
+                          updateStatusVisual(input); // Aplica check visual si ya hay link cargado
+
+                          input.addEventListener("change", function () {
+                            updateStatusVisual(this);
+                          });
+                        });
+
+                        submitBtn.addEventListener("click", function (e) {
+                          let allValid = true;
+
+                          fileInputs.forEach(input => {
+                            const parent = input.closest(".d-flex");
+                            const fileUploaded = input.files.length > 0;
+                            const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
+
+                            if (!fileUploaded && !hasExistingLink) {
+                              parent.classList.add("border-danger");
+                              allValid = false;
+                            }
+                          });
+
+                          if (!allValid) {
+                            e.preventDefault();
+                            alert("Please upload all required documents before submitting.");
+                          }
+                        });
+                      });
+                    </script>
                   </div>
                 </div>
               </form>
@@ -1286,7 +1356,7 @@
           const formData = new FormData();
           formData.append("file", file);
 
-          const uploadResponse = await fetch(`${window.API_BASE_URL}/upload`, {
+          const uploadResponse = await fetch(`${url}/upload`, {
             method: "POST",
             body: formData,
           });
@@ -1309,12 +1379,19 @@
       const preferredFirstName = document.getElementById("preferredFirstName")?.value || "";
       const dateOfBirth = document.getElementById("dateOfBirth")?.value || "";
       const ssn = document.getElementById("ssn")?.value || "";
-      const photo = document.getElementById("profilePhoto")?.files[0] || null;
+      const photoInput = document.getElementById("profilePhotoInput");
+
+      const photoFile = photoInput?.files[0] || null;
+      const existingPhotoURL = photoInput?.dataset.existingUrl || "";
 
       const isMale = document.getElementById("legalSexMale")?.checked;
       const legalSex = isMale ? "male" : "female";
 
-      const uploadedPhoto = await uploadFile(photo);
+      let uploadedPhoto = existingPhotoURL;
+
+      if (photoFile) {
+        uploadedPhoto = await uploadFile(photoFile);
+      }
 
       const personalInfo = {
         ContractorType: contactType,
@@ -1327,9 +1404,7 @@
         PhotoPath: uploadedPhoto
       };
 
-      console.log("PersonalInfo: ", personalInfo);
-
-      const response = await fetch(`${window.API_BASE_URL}/steps/personal-info`, {
+      const response = await fetch(`${url}/steps/personal-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(personalInfo)
@@ -1372,9 +1447,7 @@
       };
       const contactInfoJSON = JSON.stringify(contactInfo)
 
-      console.log("ContactInfo: ", contactInfoJSON);
-
-      const response = await fetch(`${window.API_BASE_URL}/steps/contact-info`, {
+      const response = await fetch(`${url}/steps/contact-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: contactInfoJSON
@@ -1409,12 +1482,10 @@
 
       const contactsJSON = JSON.stringify(contacts)
 
-      console.log("Emergency Contacts: ", contactsJSON);
-
-      const response = await fetch(`${window.API_BASE_URL}/steps/emergency-contact`, {
+      const response = await fetch(`${url}/steps/emergency-contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: contacts
+        body: contactsJSON
       });
 
       if (!response.ok) throw new Error("Error guardando contactos de emergencia");
@@ -1451,9 +1522,7 @@
       };
       const taxInfoJSON = JSON.stringify(taxInfo)
 
-      console.log("TaxInfo: ", taxInfoJSON);
-
-      const response = await fetch(`${window.API_BASE_URL}/steps/tax-info`, {
+      const response = await fetch(`${url}/steps/tax-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: taxInfoJSON
@@ -1495,9 +1564,8 @@
       if (bankAccounts.length === 0) return [];
 
       const bankAccountsJSON = JSON.stringify(bankAccounts)
-      console.log("Bank Accounts: ", bankAccountsJSON);
 
-      const response = await fetch(`${window.API_BASE_URL}/steps/payment-method`, {
+      const response = await fetch(`${url}/steps/payment-method`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: bankAccountsJSON
@@ -1523,54 +1591,52 @@
         USpassport: "passportUpload"
       };
 
-      const directDepositFormPath = await uploadFile(document.getElementById(fileIds.directDepositForm)?.files[0]);
-      console.log("Direct Deposit Form Path:", directDepositFormPath);
-      const driverLicensePath = await uploadFile(document.getElementById(fileIds.driverLicense)?.files[0]);
-      console.log("Driver License Path:", driverLicensePath);
-      const EINconfirmationPath = await uploadFile(document.getElementById(fileIds.EINconfirmation)?.files[0]);
-      console.log("EIN Confirmation Path:", EINconfirmationPath);
-      const EmploymentAuthCardBackPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthCardBack)?.files[0]);
-      console.log("Employment Auth Card Back Path:", EmploymentAuthCardBackPath);
-      const EmploymentAuthCardFrontPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthCardFront)?.files[0]);
-      console.log("Employment Auth Card Front Path:", EmploymentAuthCardFrontPath);
-      const EmploymentAuthExtensionLetterPath = await uploadFile(document.getElementById(fileIds.EmploymentAuthExtensionLetter)?.files[0]);
-      console.log("Employment Auth Extension Letter Path:", EmploymentAuthExtensionLetterPath);
-      const eANDoPath = await uploadFile(document.getElementById(fileIds.eANDo)?.files[0]);
-      console.log("E&O Path:", eANDoPath);
-      const GTDisciplinaryPolicyPath = await uploadFile(document.getElementById(fileIds.GTDisciplinaryPolicy)?.files[0]);
-      console.log("GoldenTrust Disciplinary Policy Path:", GTDisciplinaryPolicyPath);
-      const permanentResidentCardPath = await uploadFile(document.getElementById(fileIds.permanentResidentCard)?.files[0]);
-      console.log("Permanent Resident Card Path:", permanentResidentCardPath);
-      const proLicensePath = await uploadFile(document.getElementById(fileIds.proLicense)?.files[0]);
-      console.log("Professional License Path:", proLicensePath);
-      const socialSecurityCardPath = await uploadFile(document.getElementById(fileIds.socialSecurityCard)?.files[0]);
-      console.log("Social Security Card Path:", socialSecurityCardPath);
-      const USpassportPath = await uploadFile(document.getElementById(fileIds.USpassport)?.files[0]);
-      console.log("US Passport Path:", USpassportPath);
+      const payload = { userId: currentUserId };
+      let allValid = true;
 
-      const payload = {
-        userId: currentUserId,
-        directDepositForm: directDepositFormPath,
-        driverLicense: driverLicensePath,
-        EINconfirmation: EINconfirmationPath,
-        EmploymentAuthCardBack: EmploymentAuthCardBackPath,
-        EmploymentAuthCardFront: EmploymentAuthCardFrontPath,
-        EmploymentAuthExtensionLetter: EmploymentAuthExtensionLetterPath,
-        eANDo: eANDoPath,
-        GTDisciplinaryPolicy: GTDisciplinaryPolicyPath,
-        permanentResidentCard: permanentResidentCardPath,
-        proLicense: proLicensePath,
-        socialSecurityCard: socialSecurityCardPath,
-        USpassport: USpassportPath
-      };
-      const payloadJSON = JSON.stringify(payload)
+      for (const [key, inputId] of Object.entries(fileIds)) {
+        const input = document.getElementById(inputId);
+        const file = input?.files?.[0];
+        const parent = input.closest(".d-flex");
+        const existingLink = parent.querySelector("a[href]:not([href=''])");
 
-      console.log(payloadJSON)
+        // Validación visual
+        const span = parent.querySelector("span");
 
-      const response = await fetch(`${window.API_BASE_URL}/steps/documents`, {
+        if (file || existingLink) {
+          parent.classList.add("border-success");
+          parent.classList.remove("border-danger");
+
+          // Agregar check si no existe
+          if (!span.querySelector(".check-icon")) {
+            const check = document.createElement("i");
+            check.className = "ti ti-check text-success ms-2 check-icon";
+            span.appendChild(check);
+          }
+        } else {
+          parent.classList.add("border-danger");
+          parent.classList.remove("border-success");
+
+          // Remover check si está
+          const check = span.querySelector(".check-icon");
+          if (check) check.remove();
+
+          allValid = false;
+        }
+
+        // Solo subir si hay archivo nuevo
+        payload[key] = file ? await uploadFile(file) : existingLink?.getAttribute("href") || null;
+      }
+
+      if (!allValid) {
+        alert("Please upload all required documents before saving.");
+        throw new Error("Missing documents");
+      }
+
+      const response = await fetch(`${url}/steps/documents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: payloadJSON
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error("Error guardando documentos");
@@ -1584,21 +1650,12 @@
 
         if (currentUserId === null) throw new Error("Se requiere ID de usuario");
 
-        const personalInfo = await savePersonalInfo();
-        const contactInfo = await saveContactInfo();
-        const emergencyContacts = await saveEmergencyContacts();
-        const taxInfo = await saveTaxInfo();
-        const paymentMethod = await savePaymentMethods()
-        const documentsData = await saveDocuments();
-
-        const fullData = {
-          personalInfo,
-          contactInfo,
-          emergencyContacts,
-          taxInfo,
-          paymentMethod,
-          documentsData
-        };
+        await savePersonalInfo();
+        await saveContactInfo();
+        await saveEmergencyContacts();
+        await saveTaxInfo();
+        await savePaymentMethods()
+        await saveDocuments();
 
         alert("¡Todos los datos se guardaron correctamente!");
 
