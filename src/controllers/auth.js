@@ -1,6 +1,7 @@
 import { pool, prisma } from "../config/dbConfig.js";
 import { decrypt } from "./crypto.js";
 import bcrypt from "bcrypt";
+import { sendConfirmationCode } from './mailer.js';
 
 const login = (req, res) => {
     res.render('login');
@@ -11,10 +12,7 @@ const signUp = (req, res) => {
 }
 
 const createAccount = async (req, res) => {
-    const {
-        email,
-        password,
-    } = req.body;
+    const { email, password } = req.body;
 
     // Validate all required fields
     if (!email || !password) {
@@ -32,9 +30,17 @@ const createAccount = async (req, res) => {
 
         const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit confirmation code
 
-        await prisma.user.create({ email: email, password: hashedPassword, confirmationCode: confirmationCode });
+        await prisma.user.create({
+            data: {
+                email: email,
+                password: hashedPassword,
+                confirmationCode: confirmationCode
+            }
+        });
 
-        return res.status(201).json({ success: true, message: 'Account created successfully' });
+        await sendConfirmationCode(email, confirmationCode)
+
+        return res.status(201).json({ success: true, email: email });
 
     } catch (err) {
         console.error('createAccount function error:', err);
@@ -43,19 +49,25 @@ const createAccount = async (req, res) => {
 };
 
 const renderEmailValidation = (req, res) => {
-    res.render('email-validation', { email: req.body.email });
+    res.render('validateEmail', { email: req.query.email });
 }
 
 const validateEmail = async (req, res, next) => {
     const { email, confirmationCode } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { email: email, confirmationCode: confirmationCode }
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                confirmationCode: confirmationCode
+            }
         });
 
-        if (!user) {
+        if (!existingUser) {
             return res.status(400).json({ success: false, message: 'Invalid email or confirmation code' });
+        }
+
+        if (existingUser.email !== email) {
+            return res.status(400).json({ success: false, message: 'Email does not match the confirmation code' });
         }
 
         await prisma.user.update({
@@ -63,8 +75,15 @@ const validateEmail = async (req, res, next) => {
             data: { confirmationCode: null }
         });
 
+        const user = {
+            user_id: existingUser.user_id,
+            email: existingUser.email,
+            password: existingUser.password,
+        }
+
         req.login(user, (err) => {
             if (err) {
+                console.error('Login error:', err);
                 return next(err);
             }
             return res.status(200).json({ success: true, redirect: '/users/registration' });

@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import dotenv from "dotenv";
 import { pool } from "../config/dbConfig.js";
-import {encrypt} from "./crypto.js";
+import { encrypt } from "./crypto.js";
 
 dotenv.config();
 
@@ -13,7 +13,7 @@ const passwordMail = async (req, res) => {
     let result, result1;
 
     try {
-        
+
         result = await pool.query(`SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`, [email]);
         result1 = await pool.query(`INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`, [encryptedData, key, iv]);
 
@@ -22,8 +22,8 @@ const passwordMail = async (req, res) => {
         res.status(500).json({ msg: 'Data Access Error' });
     }
 
-    if(result.rows.length == 0){
-       return res.status(401).json({msg: `Please enter you GoldenTrust's email`})
+    if (result.rows.length == 0) {
+        return res.status(401).json({ msg: `Please enter you GoldenTrust's email` })
     }
 
     const display_name = result.rows[0].display_name;
@@ -81,4 +81,47 @@ const passwordMail = async (req, res) => {
 
 }
 
-export { passwordMail }
+const sendConfirmationCode = async (email, code) => {
+    if (!email || !code) {
+        throw new Error("Email and code are required");
+    }
+
+    let config = {
+        service: 'gmail',
+        auth: {
+            user: process.env.G_EMAIL,
+            pass: process.env.G_PASSWORD
+        }
+    };
+
+    let transporter = nodemailer.createTransport(config);
+
+    let mailGenerator = new Mailgen({
+        theme: 'default',
+        product: {
+            name: `GoldenTrust Insurance's Intranet`,
+            link: 'https://goldentrustinsurance.com/'
+        }
+    });
+
+    let response = {
+        body: {
+            name: email,
+            intro: `Your confirmation code is: ${code}`,
+            outro: `If you did not request this, please ignore this email.`
+        }
+    };
+
+    let mail = mailGenerator.generate(response);
+
+    let message = {
+        from: `GTI <${process.env.G_EMAIL}>`,
+        to: email,
+        subject: 'Your Confirmation Code',
+        html: mail
+    };
+
+    await transporter.sendMail(message);
+};
+
+export { passwordMail, sendConfirmationCode }

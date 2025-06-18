@@ -71,7 +71,7 @@
                         <h4 class="mb-1">Welcome to <span class="text-primary">GoldenTrust </span>👋</h4>
                         <p class="mb-6">Please sign-up to create a new account</p>
 
-                        <form id="formAuthentication" class="mb-4" action="index.html" method="GET">
+                        <form id="formAuthentication" class="mb-4" method="POST">
                             <div class="mb-6">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="text" class="form-control" id="email" name="email"
@@ -139,15 +139,9 @@
                             const data = await res.json();
 
                             if (res.ok) {
-                                await fetch(`${url}/signUp`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ email: email })
-                                });
+                                window.location.href = `${url}/email-validation?email=${encodeURIComponent(email)}`;
                             } else {
-                                alert(data.error || 'An error occurred during registration');
+                                alert(data.message || 'An error occurred during registration');
                             }
                         } catch (err) {
                             alert('An unexpected error occurred');
@@ -180,8 +174,6 @@
     <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
 
-    <!-- Main JS -->
-    <script src="/js/main.js"></script>
 </body>
 
 </html>

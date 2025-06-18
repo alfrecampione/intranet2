@@ -16,10 +16,11 @@ model session {
 }
 
 model User {
-  id               String  @id @default(uuid())
-  email            String  @unique
+  user_id          String   @id @default(uuid())
+  email            String   @unique
   password         String
   confirmationCode String?
+  createdAt        DateTime @default(now())
 }
 
 model PersonalInfo {
