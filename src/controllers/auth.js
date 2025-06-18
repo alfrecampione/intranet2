@@ -1,10 +1,82 @@
-import {pool} from "../config/dbConfig.js";
+import { pool, prisma } from "../config/dbConfig.js";
 import { decrypt } from "./crypto.js";
 import bcrypt from "bcrypt";
 
 const login = (req, res) => {
-        res.render('login');
+    res.render('login');
 }
+
+const signUp = (req, res) => {
+    res.render('signUp');
+}
+
+const createAccount = async (req, res) => {
+    const {
+        email,
+        password,
+    } = req.body;
+
+    // Validate all required fields
+    if (!email || !password) {
+        return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    try {
+        const result = await prisma.user.findUnique({ where: { email: email } });
+
+        if (result) {
+            return res.status(400).json({ success: false, message: 'Email already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit confirmation code
+
+        await prisma.user.create({ email: email, password: hashedPassword, confirmationCode: confirmationCode });
+
+        return res.status(201).json({ success: true, message: 'Account created successfully' });
+
+    } catch (err) {
+        console.error('createAccount function error:', err);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+const renderEmailValidation = (req, res) => {
+    res.render('email-validation', { email: req.body.email });
+}
+
+const validateEmail = async (req, res, next) => {
+    const { email, confirmationCode } = req.body;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: email, confirmationCode: confirmationCode }
+        });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Invalid email or confirmation code' });
+        }
+
+        await prisma.user.update({
+            where: { email: email },
+            data: { confirmationCode: null }
+        });
+
+        req.login(user, (err) => {
+            if (err) {
+                return next(err);
+            }
+            return res.status(200).json({ success: true, redirect: '/users/registration' });
+        });
+
+    } catch (err) {
+        console.error('validateEmail function error:', err);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+
 /*
 const loginCheck = (req, res) => {
     const {email, password} = req.body;
@@ -31,21 +103,21 @@ const resetPassword = (req, res) => {
     const encrypted = req.params.email;
     const { password } = req.body;
     pool.query(`SELECT * FROM admin.crypto WHERE encrypted_data = $1`, [encrypted], async (err, result) => {
-        if(err){
+        if (err) {
             console.log(`resetPassword function error`, err);
             res.status(500);
         }
-        if(result.rows.length == 0) {
+        if (result.rows.length == 0) {
             return res.redirect('/login')
         }
         const email = decrypt(encrypted, result.rows[0].key, result.rows[0].iv);
         const hashedPassword = await bcrypt.hash(password, 10);
         pool.query(`UPDATE entra.users SET password=$1 WHERE mail=$2`, [hashedPassword, email], (err, result) => {
-            if(err){
+            if (err) {
                 console.log(`resetPassword function error`, err);
             }
             pool.query(`DELETE FROM admin.crypto WHERE encrypted_data = $1`, [encrypted], async (err, result) => {
-                if(err){
+                if (err) {
                     console.log(`resetPassword function error`, err);
                 }
             })
@@ -55,21 +127,21 @@ const resetPassword = (req, res) => {
 }
 
 const logout = (req, res) => {
-        req.logout((err) => {
-            if (err) {
-                return next(err);
-            }
-        })
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        }
+    })
     req.flash("success_msg", 'You have logged out');
     res.redirect('/login');
 }
 
 const checkAuthenticated = (req, res, next) => {
-    if(req.isAuthenticated()) {
-       return res.redirect('users/dashboard'); 
+    if (req.isAuthenticated()) {
+        return res.redirect('users/dashboard');
     }
     next();
-} 
+}
 
 const checkNotAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
@@ -81,4 +153,4 @@ const checkNotAuthenticated = (req, res, next) => {
 
 
 
-export {login, index, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated};
+export { login, index, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated, createAccount, signUp, validateEmail, renderEmailValidation };

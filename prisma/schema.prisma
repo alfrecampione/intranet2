@@ -15,8 +15,15 @@ model session {
   @@index([expire], map: "IDX_session_expire")
 }
 
+model User {
+  id               String  @id @default(uuid())
+  email            String  @unique
+  password         String
+  confirmationCode String?
+}
+
 model PersonalInfo {
-  id             Int @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   userId         String   @unique
   ContractorType String
   LegalName      String
@@ -28,7 +35,7 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  id                       Int @id @default(autoincrement())
+  id                       Int      @id @default(autoincrement())
   userId                   String   @unique
   personalEmail            String
   isPersonalEmailVisible   Boolean  @default(false)
@@ -73,7 +80,7 @@ model TaxInfo {
 
 model PaymentMethod {
   id              String   @id @default(uuid())
-  userId          String   
+  userId          String
   bankAccountType String
   bankAccountNum  String   @unique
   bankRoutingNum  String

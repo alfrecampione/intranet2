@@ -1,5 +1,5 @@
 import express from "express";
-import { login, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated } from "./controllers/auth.js"
+import { login, renderResetPassword, resetPassword, logout, checkAuthenticated, checkNotAuthenticated, signUp, createAccount, validateEmail, renderEmailValidation } from "./controllers/auth.js"
 import { redirect_dashboard, dashboard, dashboardLastQuarter, dashboardWeekReports, totalSalesStatistics, nbSalesStatistics, rnSalesStatistics, rwSalesStatistics, cnSalesStatistics } from "./controllers/dash-reports.js"
 import { agency } from "./controllers/agency-reports.js";
 import { headcarrier, addHeadCarrier, head_carrier_list, addCarrier, deleteCarrier } from "./controllers/config.js";
@@ -34,9 +34,15 @@ router.post('/users/config/headcarrier/addHeadCarrier', checkNotAuthenticated, a
 router.post('/users/config/headcarrier/list', checkNotAuthenticated, head_carrier_list);
 router.post('/users/config/headcarrier/addCarrier', checkNotAuthenticated, addCarrier);
 router.post('/users/config/headcarrier/deleteCarrier', checkNotAuthenticated, deleteCarrier);
-router.post('/users/search', checkNotAuthenticated, dataSearch)
+router.post('/users/search', checkNotAuthenticated, dataSearch);
 
-router.get('/users/registration', checkNotAuthenticated, register)
+router.get('/users/registration', checkNotAuthenticated, register);
+
+router.get('/signUp', signUp);
+router.post('/signUp', createAccount);
+
+router.get('/email-validation', renderEmailValidation);
+router.post('/email-validation', validateEmail);
 
 
 // STEPS ROUTES
