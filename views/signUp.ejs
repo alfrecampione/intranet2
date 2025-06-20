@@ -124,6 +124,15 @@
         <div id="toast"
           style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
         </div>
+        <!-- Overlay Spinner -->
+        <div id="email-overlay"
+          style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+          <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Sending...</span>
+          </div>
+        </div>
+
+
         <script>
           function showToast(message, type = "success") {
             const toast = document.getElementById("toast");
@@ -153,6 +162,9 @@
                 password: password,
               };
 
+              const overlay = document.getElementById("email-overlay");
+              overlay.style.display = "flex";
+
               try {
                 const res = await fetch(`${url}/signUp`, {
                   method: "POST",
@@ -165,6 +177,10 @@
                 const data = await res.json();
 
                 if (res.ok) {
+                  const offcanvas = document.getElementById("add-new-record");
+                  const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+                  if (bsOffcanvas) bsOffcanvas.hide()
+
                   window.location.href = `${url}/email-validation?email=${encodeURIComponent(email)}`;
                 } else {
                   showToast(data.message || "An error occurred during registration", "error");
