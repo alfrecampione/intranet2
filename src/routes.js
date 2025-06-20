@@ -85,27 +85,7 @@ router.post(
   cnSalesStatistics,
 );
 router.get("/users/agency", checkNotAuthenticated, agency);
-router.get("/users/config/headcarriers", checkNotAuthenticated, headcarrier);
-router.post(
-  "/users/config/headcarrier/addHeadCarrier",
-  checkNotAuthenticated,
-  addHeadCarrier,
-);
-router.post(
-  "/users/config/headcarrier/list",
-  checkNotAuthenticated,
-  head_carrier_list,
-);
-router.post(
-  "/users/config/headcarrier/addCarrier",
-  checkNotAuthenticated,
-  addCarrier,
-);
-router.post(
-  "/users/config/headcarrier/deleteCarrier",
-  checkNotAuthenticated,
-  deleteCarrier,
-);
+
 router.post("/users/search", checkNotAuthenticated, dataSearch);
 
 router.get("/users/registration", checkNotAuthenticated, register);
