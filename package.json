@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "prettier": "prettier --write \"src/**/*.{js,ejs}\" \"views/**/*.{js,ejs}\""
   },
   "author": "Wilfredo Valle",
   "license": "ISC",
@@ -37,6 +38,8 @@
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.1",
     "pino-http": "^10.5.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-ejs": "^1.0.3",
     "prisma": "^6.9.0",
     "url": "^0.11.4",
     "uuid": "^11.1.0"

@@ -7,121 +7,139 @@ import { encrypt } from "./crypto.js";
 dotenv.config();
 
 const passwordMail = async (req, res) => {
+  const email = req.params.email;
+  const { encryptedData, key, iv } = encrypt(email);
+  let result, result1;
 
-    const email = req.params.email;
-    const { encryptedData, key, iv } = encrypt(email);
-    let result, result1;
+  try {
+    result = await pool.query(
+      `SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
+      [email],
+    );
+    result1 = await pool.query(
+      `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
+      [encryptedData, key, iv],
+    );
+  } catch (error) {
+    console.log("POSTGRESQL:", error);
+    res.status(500).json({ msg: "Data Access Error" });
+  }
 
-    try {
+  if (result.rows.length == 0) {
+    return res
+      .status(401)
+      .json({ msg: `Please enter you GoldenTrust's email` });
+  }
 
-        result = await pool.query(`SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`, [email]);
-        result1 = await pool.query(`INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`, [encryptedData, key, iv]);
+  const display_name = result.rows[0].display_name;
 
-    } catch (error) {
-        console.log('POSTGRESQL:', error);
-        res.status(500).json({ msg: 'Data Access Error' });
-    }
+  let config = {
+    service: "gmail",
+    auth: {
+      user: process.env.G_EMAIL,
+      pass: process.env.G_PASSWORD,
+    },
+  };
 
-    if (result.rows.length == 0) {
-        return res.status(401).json({ msg: `Please enter you GoldenTrust's email` })
-    }
+  let transporter = nodemailer.createTransport(config);
 
-    const display_name = result.rows[0].display_name;
+  let mailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+      name: `GoldenTrust Insurance's Intranet`,
+      link: "https://mailgen.js/",
+    },
+  });
 
-    let config = {
-        service: 'gmail',
-        auth: {
-            user: process.env.G_EMAIL,
-            pass: process.env.G_PASSWORD
-        }
-    }
+  let response = {
+    body: {
+      name: display_name,
+      intro: `Welcome to GoldenTrust Insurance's Intranet! We're very excited to have you on board.`,
+      action: {
+        instructions: "To get started, please click here:",
+        button: {
+          color: "#27388B", // Optional action button color
+          text: "Create your password",
+          link:
+            process.env.ENV == "PROD"
+              ? `https://staging.goldentrustinsurance.com/users/auth/reset-password/${encryptedData}`
+              : `https://localhost/users/auth/reset-password/${encryptedData}`,
+        },
+      },
+      outro: `Need help, or have questions? Just reply to this email, we'd love to help.`,
+    },
+  };
 
-    let transporter = nodemailer.createTransport(config);
+  let mail = mailGenerator.generate(response);
 
-    let mailGenerator = new Mailgen({
-        theme: 'default',
-        product: {
-            name: `GoldenTrust Insurance's Intranet`,
-            link: 'https://mailgen.js/'
-        }
+  let message = {
+    from: `GTI <${process.env.G_EMAIL}>`,
+    to: email,
+    subject: "Create your password",
+    html: mail,
+  };
+
+  transporter
+    .sendMail(message)
+    .then(() => {
+      return res.status(201).json({
+        msg: "You should receive an email",
+      });
     })
-
-    let response = {
-        body: {
-            name: display_name,
-            intro: `Welcome to GoldenTrust Insurance's Intranet! We're very excited to have you on board.`,
-            action: {
-                instructions: 'To get started, please click here:',
-                button: {
-                    color: '#27388B', // Optional action button color
-                    text: 'Create your password',
-                    link: process.env.ENV == 'PROD' ? `https://staging.goldentrustinsurance.com/users/auth/reset-password/${encryptedData}` : `https://localhost/users/auth/reset-password/${encryptedData}`
-                }
-            },
-            outro: `Need help, or have questions? Just reply to this email, we'd love to help.`
-        }
-    }
-
-    let mail = mailGenerator.generate(response);
-
-    let message = {
-        from: `GTI <${process.env.G_EMAIL}>`,
-        to: email,
-        subject: 'Create your password',
-        html: mail
-    }
-
-    transporter.sendMail(message).then(() => {
-        return res.status(201).json({
-            msg: 'You should receive an email'
-        })
-    }).catch(err => {
-        return res.status(500).json({ err })
-    })
-
-}
-
-const sendConfirmationCode = async (email, code) => {
-    if (!email || !code) {
-        throw new Error("Email and code are required");
-    }
-
-    let config = {
-        service: 'gmail',
-        auth: {
-            user: process.env.G_EMAIL,
-            pass: process.env.G_PASSWORD
-        }
-    };
-
-    let transporter = nodemailer.createTransport(config);
-
-    let mailGenerator = new Mailgen({
-        theme: 'default',
-        product: {
-            name: `GoldenTrust Insurance's Intranet`,
-            link: 'https://goldentrustinsurance.com/'
-        }
+    .catch((err) => {
+      return res.status(500).json({ err });
     });
-
-    let response = {
-        body: {
-            name: email,
-            intro: `Your confirmation code is: ${code}`,
-            outro: `If you did not request this, please ignore this email.`
-        }
-    };
-
-    let mail = mailGenerator.generate(response);
-
-    let message = {
-        from: `GTI <${process.env.G_EMAIL}>`,
-        to: email,
-        subject: 'Your Confirmation Code',
-        html: mail
-    };
-
-    await transporter.sendMail(message);
 };
 
-export { passwordMail, sendConfirmationCode }
+const sendMail = async (email, subject, body) => {
+  if (!email || !body || !subject) {
+    throw new Error("Email, subject and body are required");
+  }
+
+  let config = {
+    service: "gmail",
+    auth: {
+      user: process.env.G_EMAIL,
+      pass: process.env.G_PASSWORD,
+    },
+  };
+
+  let transporter = nodemailer.createTransport(config);
+
+  let mailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+      name: `GoldenTrust Insurance's Intranet`,
+      link: "https://goldentrustinsurance.com/",
+    },
+  });
+
+  let response = {
+    body: body,
+  };
+
+  let mail = mailGenerator.generate(response);
+
+  let message = {
+    from: `GTI <${process.env.G_EMAIL}>`,
+    to: email,
+    subject: subject,
+    html: mail,
+  };
+
+  await transporter.sendMail(message);
+};
+
+const email_sender = async (req, res) => {
+  const { email, subject, body } = req.body;
+
+  try {
+    await sendMail(email, subject, body);
+    return res.status(200).json({ success: true, message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return res.status(500).json({ success: false, message: "Failed to send email" });
+  }
+};
+
+export { passwordMail, sendMail, email_sender };

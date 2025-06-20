@@ -28,7 +28,6 @@ try {
   });
 
   console.log("✅ Connected to PostgreSQL session store");
-
 } catch (error) {
   console.warn("⚠️ PostgreSQL not available, using MemoryStore for sessions");
 

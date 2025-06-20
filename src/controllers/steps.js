@@ -11,7 +11,7 @@ export const createPersonalInfo = async (req, res) => {
       DateOfBirth,
       SSN,
       userId,
-      PhotoPath
+      PhotoPath,
     } = req.body;
 
     const data = {
@@ -22,7 +22,7 @@ export const createPersonalInfo = async (req, res) => {
       DateOfBirth: new Date(DateOfBirth),
       SSN,
       userId,
-      PhotoPath
+      PhotoPath,
     };
 
     const personalInfo = await prisma.personalInfo.upsert({
@@ -236,12 +236,10 @@ export const createDocuments = async (req, res) => {
     res.status(201).json(documents);
   } catch (err) {
     console.error("Error creating or updating documents:", err);
-    res
-      .status(500)
-      .json({
-        error: "Failed to create or update documents",
-        details: err.message,
-      });
+    res.status(500).json({
+      error: "Failed to create or update documents",
+      details: err.message,
+    });
   }
 };
 export const getDocumentsById = async (req, res) => {

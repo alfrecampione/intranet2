@@ -1,0 +1,585 @@
+<!doctype html>
+
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
+    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template">
+
+<head>
+    <script>
+        const url = `${window.location.protocol}//${window.location.host}`;
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicon/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/favicon/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicon/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon/apple-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicon/apple-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicon/apple-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicon/apple-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicon/apple-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-icon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon/android-icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
+    <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
+
+    <title>Dashboard | GTI</title>
+
+    <meta name="description" content="" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+        rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <script src="/vendor/js/helpers.js"></script>
+    <script src="/vendor/js/template-customizer.js"></script>
+    <script src="/js/config.js"></script>
+</head>
+
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="/users/dashboard" class="app-brand-link">
+                        <!--<span class="app-brand-logo">
+              <img src="/img/branding/gt.png" alt="">
+            </span>-->
+                        <span class="app-brand-text">
+                            <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
+                        </span>
+                    </a>
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                        <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+                        <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+                    </a>
+                </div>
+
+                <div class="menu-inner-shadow"></div>
+
+                <ul class="menu-inner py-1">
+                    <li class="menu-item">
+                        <a href="/users/dashboard" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                            <div data-i18n="Dashboard">Dashboard</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="/users/registration" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                            <div data-i18n="Registration">Registration</div>
+                        </a>
+                    </li>
+                    <li class="menu-item active">
+                        <a href="/users/agents" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                            <div data-i18n="Agents">Agents</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/users/config/headcarriers" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                            <div data-i18n="Config">Config</div>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+            <div class="layout-page">
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+                    id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="ti ti-menu-2 ti-sm"></i>
+                        </a>
+                    </div>
+
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Search -->
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item navbar-search-wrapper mb-0">
+                                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
+                                    href="javascript:void(0);">
+                                    <i class="ti ti-search ti-md me-2"></i>
+                                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- /Search -->
+
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- Style Switcher -->
+                            <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <i class="ti ti-md"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                                            <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                                            <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                                            <span class="align-middle"><i
+                                                    class="ti ti-device-desktop me-2"></i>System</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Notification -->
+                            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <i class="ti ti-bell ti-md"></i>
+                                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end py-0">
+                                    <li class="dropdown-menu-header border-bottom">
+                                        <div class="dropdown-header d-flex align-items-center py-3">
+                                            <h5 class="text-body mb-0 me-auto">Notification</h5>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-all text-body"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-menu-footer border-top">
+                                        <a href="javascript:void(0);"
+                                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                                            View all notifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ Notification -->
+
+                            <!-- User -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <img src="/img/avatars/users/<%=user.user_id%>.png" alt
+                                            class="h-auto rounded-circle" />
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="pages-account-settings-account.html">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <img src="/img/avatars/users/<%=user.user_id%>.png" alt
+                                                            class="h-auto rounded-circle" />
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-medium d-block">
+                                                        <%= user.display_name %>
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        <%=user.job_title%>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/users/logout">
+                                            <!-- target="_blank" -->
+                                            <i class="ti ti-logout me-2 ti-sm"></i>
+                                            <span class="align-middle">Log Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ User -->
+                        </ul>
+                    </div>
+
+                    <!-- Search Small Screens -->
+                    <div class="navbar-search-wrapper search-input-wrapper d-none">
+                        <input type="text" class="form-control search-input container-xxl border-0"
+                            placeholder="Search..." aria-label="Search..." />
+                        <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+                    </div>
+                </nav>
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        <!-- DataTable with Buttons -->
+                        <div class="card">
+                            <div class="card-datatable table-responsive pt-0">
+                                <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                    <div class="card-header flex-column flex-md-row">
+                                        <div class="head-label text-center">
+                                            <h5 class="card-title mb-0">Users</h5>
+                                        </div>
+                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                            <div class="dt-buttons btn-group flex-wrap">
+                                                <button
+                                                    class="btn btn-secondary create-new btn-primary waves-effect waves-light"
+                                                    tabindex="0" aria-controls="DataTables_Table_0" type="button"
+                                                    data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
+                                                    <span>
+                                                        <i class="ti ti-plus me-sm-1"></i>
+                                                        <span class="d-none d-sm-inline-block">Send New Email</span>
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12 col-md-6">
+                                            <div class="dataTables_length" id="DataTables_Table_0_length">
+                                                <label>Show
+                                                    <select name="DataTables_Table_0_length"
+                                                        aria-controls="DataTables_Table_0" class="form-select">
+                                                        <option value="7">7</option>
+                                                        <option value="10">10</option>
+                                                        <option value="25">25</option>
+                                                        <option value="50">50</option>
+                                                        <option value="75">75</option>
+                                                        <option value="100">100</option>
+                                                    </select>
+                                                    entries</label>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
+                                            <div id="DataTables_Table_0_filter" class="dataTables_filter">
+                                                <label>Search:<input type="search" class="form-control" placeholder=""
+                                                        aria-controls="DataTables_Table_0" /></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <table class="datatables-basic table dataTable no-footer dtr-column"
+                                        id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                        style="width: 1396px">
+                                        <thead>
+                                            <tr>
+                                                <th class="control sorting_disabled dtr-hidden" rowspan="1" colspan="1"
+                                                    style="width: 58px; display: none" aria-label=""></th>
+                                                <th class="sorting_disabled dt-checkboxes-cell dt-checkboxes-select-all"
+                                                    rowspan="1" colspan="1" style="width: 49px" data-col="1"
+                                                    aria-label="">
+                                                    <input type="checkbox" class="form-check-input" />
+                                                </th>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 144px"
+                                                    aria-label="Name: activate to sort column ascending">
+                                                    Name
+                                                </th>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                    aria-label="Email: activate to sort column ascending">
+                                                    Email
+                                                </th>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 130px"
+                                                    aria-label="Created_at: activate to sort column ascending">
+                                                    Created at
+                                                </th>
+                                                <th class="sorting_disabled" rowspan="1" colspan="1"
+                                                    style="width: 174px" aria-label="Actions">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="odd">
+                                                <td valign="top" colspan="7" class="dataTables_empty">
+                                                    Loading...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="row">
+                                        <div class="col-sm-12 col-md-6">
+                                            <div class="dataTables_info" id="DataTables_Table_0_info" role="status"
+                                                aria-live="polite">
+                                                Showing 0 to 0 of 0 entries
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-12 col-md-6">
+                                            <div class="dataTables_paginate paging_simple_numbers"
+                                                id="DataTables_Table_0_paginate">
+                                                <ul class="pagination">
+                                                    <li class="paginate_button page-item previous disabled"
+                                                        id="DataTables_Table_0_previous">
+                                                        <a aria-controls="DataTables_Table_0" aria-disabled="true"
+                                                            role="link" data-dt-idx="previous" tabindex="-1"
+                                                            class="page-link"><i
+                                                                class="ti ti-chevron-left ti-sm"></i></a>
+                                                    </li>
+                                                    <li class="paginate_button page-item next disabled"
+                                                        id="DataTables_Table_0_next">
+                                                        <a aria-controls="DataTables_Table_0" aria-disabled="true"
+                                                            role="link" data-dt-idx="next" tabindex="-1"
+                                                            class="page-link"><i
+                                                                class="ti ti-chevron-right ti-sm"></i></a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Modal to add new record -->
+                        <div class="offcanvas offcanvas-end" id="add-new-record">
+                            <div class="offcanvas-header border-bottom">
+                                <h5 class="offcanvas-title" id="exampleModalLabel">
+                                    Send Email
+                                </h5>
+                                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="offcanvas-body flex-grow-1">
+                                <form class="add-new-record pt-0 row g-2" id="form-send-email" onsubmit="return false">
+                                    <div class="col-sm-12">
+                                        <label class="form-label" for="email">Email</label>
+                                        <div class="input-group input-group-merge">
+                                            <span id="basicFullname2" class="input-group-text"><i
+                                                    class="ti ti-user"></i></span>
+                                            <input type="email" id="email" class="form-control dt-full-name"
+                                                name="email" placeholder="example@mail.com"
+                                                aria-label="example@mail.com" aria-describedby="email" />
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1">
+                                            Send
+                                        </button>
+                                        <button type="reset" class="btn btn-outline-secondary"
+                                            data-bs-dismiss="offcanvas">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!--/ DataTable with Buttons -->
+                    </div>
+                    <div class="content-backdrop fade"></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
+
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+
+    <!-- Overlay Spinner -->
+    <div id="email-overlay"
+        style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Sending...</span>
+        </div>
+    </div>
+
+    <div id="toast"
+        style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+    </div>
+
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <!-- Flat Picker -->
+    <script src="/vendor/libs/moment/moment.js"></script>
+    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+    <!-- Form Validation -->
+    <script src="/vendor/libs/@form-validation/popular.js"></script>
+    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    <script id="users-data" type="application/json">
+      <%- JSON.stringify(registeredUsers) %>
+    </script>
+
+    <script>
+        function showToast(message, type = "success") {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
+            toast.style.color = "#fff";
+            toast.style.display = "block";
+            toast.style.opacity = "1";
+            setTimeout(() => {
+                toast.style.transition = "opacity 0.5s";
+                toast.style.opacity = "0";
+                setTimeout(() => {
+                    toast.style.display = "none";
+                    toast.style.transition = "";
+                }, 500);
+            }, 3000); // 3 segundos visible
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const users = JSON.parse(
+                document.getElementById("users-data").textContent,
+            );
+
+            console.log(users);
+
+            const table = document.querySelector(".datatables-basic");
+            const tbody = table.querySelector("tbody");
+            tbody.innerHTML = "";
+
+            users.forEach((user) => {
+                const tr = document.createElement("tr");
+
+                const tdAvatar = document.createElement("td");
+                tdAvatar.innerHTML = user.PhotoPath
+                    ? `<img src="${url}/${user.PhotoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
+                    : `<span class="avatar-initial rounded-circle bg-label-primary">${user.LegalName?.[0] || user.email[0]}</span>`;
+                tr.appendChild(tdAvatar);
+
+                const tdName = document.createElement("td");
+                tdName.textContent = user.LegalName || "";
+                tr.appendChild(tdName);
+
+                const tdEmail = document.createElement("td");
+                tdEmail.textContent = user.email;
+                tr.appendChild(tdEmail);
+
+                const tdCreated = document.createElement("td");
+                tdCreated.textContent = user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : "";
+                tr.appendChild(tdCreated);
+
+                const tdAction = document.createElement("td");
+                tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
+                tr.appendChild(tdAction);
+
+                tbody.appendChild(tr);
+            });
+
+            // Email form submit
+            document
+                .getElementById("form-send-email")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    const emailInput = document.getElementById("email");
+                    const email = emailInput.value.trim();
+
+                    if (!email) {
+                        showToast("Please enter an email address.", "error");
+                        return;
+                    }
+
+                    const subject = "Create your account on GoldenTrust Insurance";
+
+                    const body = {
+                        name: email,
+                        intro: "Welcome! Please follow the instructions below.",
+                        action: {
+                            instructions: "To create your account, please click here:",
+                            button: {
+                                color: "#27388B",
+                                text: "Create your account",
+                                link: `${url}/signUp`
+                            }
+                        },
+                        outro: "If you have questions, you can reply to this email."
+                    };
+
+                    const data = {
+                        email,
+                        subject,
+                        body
+                    }
+
+                    const overlay = document.getElementById("email-overlay");
+                    overlay.style.display = "flex";
+
+                    try {
+                        const response = await fetch(`${url}/sendEmail`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data),
+                        });
+
+                        const responseData = await response.json();
+
+                        console.log(responseData);
+
+                        if (response.ok) {
+                            showToast("Email sent successfully!", "success");
+                            emailInput.value = "";
+                            const offcanvas = document.getElementById("add-new-record");
+                            const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+                            if (bsOffcanvas) bsOffcanvas.hide();
+                        } else {
+                            showToast(responseData.message || "Error sending email.", "error");
+                        }
+                    } catch (err) {
+                        showToast("Error sending email.", "error");
+                    } finally {
+                        overlay.style.display = "none";
+                    }
+                });
+        });
+    </script>
+</body>
+
+</html>

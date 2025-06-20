@@ -64,10 +64,33 @@
   <script src="/js/config.js"></script>
 
 
-  <style .bs-stepper-content .content { display: none; } .bs-stepper-content .content.active { display: block; }
-    .form-control.is-invalid, .form-select.is-invalid { border-color: #ff3e1d !important; }></style>
-  <style .invalid-feedback { display: none; width: 100%; margin-top: 0.25rem; font-size: 0.875em; color: #ff3e1d; }
-    .is-invalid ~ .invalid-feedback { display: block; }> </style>
+  <style>
+    .bs-stepper-content .content {
+      display: none;
+    }
+
+    .bs-stepper-content .content.active {
+      display: block;
+    }
+
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+      border-color: #ff3e1d !important;
+    }
+  </style>
+  <style>
+    .invalid-feedback {
+      display: none;
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875em;
+      color: #ff3e1d;
+    }
+
+    .is-invalid~.invalid-feedback {
+      display: block;
+    }
+  </style>
 </head>
 
 <body>
@@ -129,8 +152,6 @@
           </div>
 
           <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-
-
             <!-- Search -->
             <div class="navbar-nav align-items-center">
               <div class="nav-item navbar-search-wrapper mb-0">
@@ -143,11 +164,10 @@
             <!-- /Search -->
 
             <ul class="navbar-nav flex-row align-items-center ms-auto">
-
               <!-- Style Switcher -->
               <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <i class="ti ti-md"></i>
+                  <i class="ti ti-md ti-sun"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
                   <li>
@@ -181,56 +201,84 @@
                     <div class="dropdown-header d-flex align-items-center py-3">
                       <h5 class="text-body mb-0 me-auto">Notification</h5>
                       <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                        data-bs-placement="top" aria-label="Mark all as read"
+                        data-bs-original-title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
                     </div>
                   </li>
+                  <li class="dropdown-menu-footer border-top">
+                    <a href="javascript:void(0);"
+                      class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                      View all notifications
+                    </a>
+                  </li>
+                </ul>
               </li>
-              <li class="dropdown-menu-footer border-top">
-                <a href="javascript:void(0);"
-                  class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                  View all notifications
-                </a>
-              </li>
-            </ul>
-            </li>
-            <!--/ Notification -->
+              <!--/ Notification -->
 
-            <!-- User -->
-            <li class="nav-item navbar-dropdown dropdown-user dropdown">
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a class="dropdown-item" href="pages-account-settings-account.html">
-                    <div class="d-flex">
-                      <div class="flex-grow-1">
-                        <span class="fw-medium d-block">
-                          <%= user.display_name %>
-                        </span>
-                        <small class="text-muted">
-                          <%=user.job_title%>
-                        </small>
+              <!-- User -->
+              <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <div class="avatar avatar-online">
+                    <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
+                      class="h-auto rounded-circle">
+                  </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="pages-account-settings-account.html">
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="avatar avatar-online">
+                            <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
+                              class="h-auto rounded-circle">
+                          </div>
+                        </div>
+                        <div class="flex-grow-1">
+                          <span class="fw-medium d-block">
+
+                          </span>
+                          <small class="text-muted">
+
+                          </small>
+                        </div>
                       </div>
-                    </div>
-                  </a>
-                </li>
-                <li>
-                  <div class="dropdown-divider"></div>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="/users/logout"> <!-- target="_blank" -->
-                    <i class="ti ti-logout me-2 ti-sm"></i>
-                    <span class="align-middle">Log Out</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <!--/ User -->
+                    </a>
+                  </li>
+                  <li>
+                    <div class="dropdown-divider"></div>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="/users/logout">
+                      <!-- target="_blank" -->
+                      <i class="ti ti-logout me-2 ti-sm"></i>
+                      <span class="align-middle">Log Out</span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              <!--/ User -->
             </ul>
           </div>
 
           <!-- Search Small Screens -->
           <div class="navbar-search-wrapper search-input-wrapper d-none">
-            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
-              aria-label="Search..." />
+            <span class="twitter-typeahead" style="position: relative; display: inline-block;"><input type="text"
+                class="form-control search-input container-xxl border-0 tt-input" placeholder="Search..."
+                aria-label="Search..." autocomplete="off" spellcheck="false" dir="auto"
+                style="position: relative; vertical-align: top;">
+              <pre aria-hidden="true"
+                style="position: absolute; visibility: hidden; white-space: pre; font-family: &quot;Public Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif; font-size: 15px; font-style: normal; font-variant: normal; font-weight: 400; word-spacing: 0px; letter-spacing: 0px; text-indent: 0px; text-rendering: auto; text-transform: none;"></pre>
+              <div class="tt-menu navbar-search-suggestion ps"
+                style="position: absolute; top: 100%; left: 0px; z-index: 100; display: none;">
+                <div class="tt-dataset tt-dataset-contacts"></div>
+                <div class="ps__rail-x" style="left: 0px; bottom: 0px;">
+                  <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
+                </div>
+                <div class="ps__rail-y" style="top: 0px; right: 0px;">
+                  <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px;"></div>
+                </div>
+              </div>
+            </span>
             <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
           </div>
         </nav>
@@ -314,10 +362,9 @@
                           </label>
                           <select id="contactType" name="contactType" class="form-select" required>
                             <option value="" disabled <%=!personalInfo?.ContractorType ? 'selected' : '' %>>Select
-                              type...</option>
+                              type... </option>
                             <option value="individual" <%=personalInfo?.ContractorType==='individual' ? 'selected' : ''
-                              %>
-                              >Individual</option>
+                              %>>Individual</option>
                             <option value="business" <%=personalInfo?.ContractorType==='business' ? 'selected' : '' %>
                               >Business</option>
                           </select>
@@ -1267,7 +1314,7 @@
 
                           if (!allValid) {
                             e.preventDefault();
-                            alert("Please upload all required documents before submitting.");
+                            showToast("Please upload all required documents before submitting.", "error");
                           }
                         });
                       });
@@ -1282,17 +1329,15 @@
     </div>
   </div>
 
-
+  <!-- Toast Notification -->
+  <div id="toast"
+    style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+  </div>
 
   <script>
     // Check selected custom option
     window.Helpers.initCustomOptionCheck();
   </script>
-
-  <!-- / Content -->
-
-  <!-- Core JS -->
-  <!-- build:js assets/vendor/js/core.js -->
 
   <script src="/vendor/libs/jquery/jquery.js"></script>
   <script src="/vendor/libs/popper/popper.js"></script>
@@ -1304,9 +1349,6 @@
   <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
   <script src="/vendor/js/menu.js"></script>
 
-  <!-- endbuild -->
-
-  <!-- Vendors JS -->
   <script src="/vendor/libs/cleavejs/cleave.js"></script>
   <script src="/vendor/libs/cleavejs/cleave-phone.js"></script>
   <script src="/vendor/libs/bs-stepper/bs-stepper.js"></script>
@@ -1336,11 +1378,34 @@
   <script src="/js/funcionality-of-form.js"></script>
 
 
+  <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+  <!-- Flat Picker -->
+  <script src="/vendor/libs/moment/moment.js"></script>
+  <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+
 
   <!-- Push the info -->
   <script>
     // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
-    const currentUserId = "<%= user.user_id %>";
+    const currentUserId = "<%= userId %>";
+
+
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
+      toast.style.color = "#fff";
+      toast.style.display = "block";
+      toast.style.opacity = "1";
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.5s";
+        toast.style.opacity = "0";
+        setTimeout(() => {
+          toast.style.display = "none";
+          toast.style.transition = "";
+        }, 500);
+      }, 3000); // 3 segundos visible
+    }
 
     // Función para subir archivos
     const uploadFile = async (file) => {
@@ -1622,7 +1687,7 @@
       }
 
       if (!allValid) {
-        alert("Please upload all required documents before saving.");
+        showToast("Please upload all required documents before saving.", "error");
         throw new Error("Missing documents");
       }
 
@@ -1650,11 +1715,14 @@
         await savePaymentMethods()
         await saveDocuments();
 
-        alert("¡Todos los datos se guardaron correctamente!");
+        showToast("¡Todos los datos se guardaron correctamente!", "success");
+
+        // Redirect to Dashboard
+        window.location.href = `${url}/users/dashboard`;
 
       } catch (error) {
         console.error("Error:", error);
-        alert(`Error: ${error.message}`);
+        showToast(`Error: ${error.message}`, "error");
       }
     });
   </script>
