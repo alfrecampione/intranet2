@@ -48,7 +48,7 @@ app.use(
     store: sessionStore,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      secure: true, // Required for HTTPS
+      secure: false, // Required for HTTPS
     },
   }),
 );
