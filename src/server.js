@@ -48,7 +48,7 @@ app.use(
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 60 * 1000, // 1 hour
       secure: false, // Required for HTTPS
     },
   }),
