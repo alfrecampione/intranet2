@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 import passport from "passport";
 import { initialize } from "./config/passportConfig.js";
 import { sessionStore } from "./config/dbConfig.js";
-import https from "https";
+import http from "http";
+// import https from "https";
 import fs from "fs";
 import cors from "cors";
 import { checkNotAuthenticated } from "./controllers/auth.js";
@@ -21,11 +22,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // SSL Configuration
-const options = {
-  key: fs.readFileSync("./src/config/ssl/server.key"),
-  cert: fs.readFileSync("./src/config/ssl/4779dbccdf63510b.crt"),
-  ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2-g1.crt"),
-};
+// const options = {
+//   key: fs.readFileSync("./src/config/ssl/server.key"),
+//   cert: fs.readFileSync("./src/config/ssl/4779dbccdf63510b.crt"),
+//   ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2-g1.crt"),
+// };
 
 app.use(
   cors({
@@ -102,6 +103,9 @@ app.use("/", router);
 
 /** -MIDDLEWARES- */
 
-https.createServer(options, app).listen(PORT, () => {
+// https.createServer(options, app).listen(PORT, () => {
+//   console.log(`Server started at port ${PORT}`);
+// });
+http.createServer(app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
 });
