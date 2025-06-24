@@ -341,7 +341,6 @@
                           </label>
                           <input type="text" name="businessName" id="businessName" class="form-control"
                             placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
-                          <div class="invalid-feedback">Business Name is required.</div>
                         </div>
 
                         <!-- EIN de la Compañía (Required if business) -->
@@ -351,7 +350,6 @@
                           </label>
                           <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
                             maxlength="10" value="<%= personalInfo?.companyEIN || '' %>" required>
-                          <div class="invalid-feedback">EIN is required.</div>
                         </div>
 
                         <!-- Preferred First Name -->
