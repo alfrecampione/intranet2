@@ -1164,9 +1164,10 @@
             allValid = false;
           }
         });
+        if (fileInputs.length == 0)
+          allValid = true;
         if (!allValid) {
           e.preventDefault();
-          showToast("Please upload all required documents before submitting.", "error");
         }
       });
     });
@@ -1294,6 +1295,7 @@
   <script>
     // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
     const currentUserId = "<%= userId %>";
+    const isEdit = "<%= isEdit %>";
 
     const uploadFile = async (file) => {
       if (file) {
@@ -1575,11 +1577,6 @@
         payload[key] = file ? await uploadFile(file) : existingLink?.getAttribute("href") || null;
       }
 
-      if (!allValid) {
-        showToast("Please upload all required documents before saving.", "error");
-        throw new Error("Missing documents");
-      }
-
       const overlay = document.getElementById("email-overlay");
       overlay.style.display = "flex";
 
@@ -1609,7 +1606,10 @@
         await savePaymentMethods()
         await saveDocuments();
 
-        window.location.href = `${url}/users/dashboard`;
+        if (isEdit == "false")
+          window.location.href = `${url}/users/dashboard`;
+        else
+          window.location.href = `${url}/users/agents`;
 
       } catch (error) {
         console.error("Error:", error);

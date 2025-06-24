@@ -1,46 +1,49 @@
 import { prisma } from "../config/dbConfig.js";
 
+async function getRegistrationData(userId, isEdit = false, reqUser) {
+  const user = reqUser;
+
+  // Fetch all related data
+  const [
+    personalInfo,
+    contactInfo,
+    emergencyContacts,
+    taxInfo,
+    paymentMethods,
+    documents,
+    existingUser
+  ] = await Promise.all([
+    prisma.personalInfo.findUnique({ where: { userId } }),
+    prisma.contactInfo.findUnique({ where: { userId } }),
+    prisma.emergencyContact.findMany({ where: { userId } }),
+    prisma.taxInfo.findUnique({ where: { userId } }),
+    prisma.paymentMethod.findMany({ where: { userId } }),
+    prisma.documents.findUnique({ where: { userId } }),
+    prisma.user.findUnique({ where: { user_id: userId } })
+  ]);
+
+  const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+    where: { email: existingUser.email },
+  });
+
+  return {
+    user,
+    userId,
+    personalInfo,
+    contactInfo,
+    emergencyContacts,
+    taxInfo,
+    paymentMethods,
+    documents,
+    necesaryDocuments,
+    isEdit
+  };
+}
+
 const register = async (req, res) => {
   try {
-    const user = req.user;
-    const userId = user.user_id;
-
-    // Consultas separadas
-    const personalInfo = await prisma.personalInfo.findUnique({
-      where: { userId },
-    });
-    const contactInfo = await prisma.contactInfo.findUnique({
-      where: { userId },
-    });
-    const emergencyContacts = await prisma.emergencyContact.findMany({
-      where: { userId },
-    });
-    const taxInfo = await prisma.taxInfo.findUnique({ where: { userId } });
-    const paymentMethods = await prisma.paymentMethod.findMany({
-      where: { userId },
-    });
-    const documents = await prisma.documents.findUnique({ where: { userId } });
-
-    const existingUser = await prisma.user.findUnique({
-      where: { user_id: userId },
-    });
-
-    const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
-      where: { email: existingUser.email },
-    });
-
-    const data = {
-      user,
-      userId,
-      personalInfo,
-      contactInfo,
-      emergencyContacts,
-      taxInfo,
-      paymentMethods,
-      documents,
-      necesaryDocuments,
-    };
-
+    const userId = req.user.user_id;
+    const data = await getRegistrationData(userId, false, req.user);
     res.render("registration", data);
   } catch (error) {
     console.error("Error loading registration data:", error.message);
@@ -52,43 +55,7 @@ const editRegister = async (req, res) => {
   try {
     const user = req.user;
     const userId = req.params.id || user.user_id;
-
-    // Consultas separadas
-    const personalInfo = await prisma.personalInfo.findUnique({
-      where: { userId },
-    });
-    const contactInfo = await prisma.contactInfo.findUnique({
-      where: { userId },
-    });
-    const emergencyContacts = await prisma.emergencyContact.findMany({
-      where: { userId },
-    });
-    const taxInfo = await prisma.taxInfo.findUnique({ where: { userId } });
-    const paymentMethods = await prisma.paymentMethod.findMany({
-      where: { userId },
-    });
-    const documents = await prisma.documents.findUnique({ where: { userId } });
-
-    const existingUser = await prisma.user.findUnique({
-      where: { user_id: userId },
-    });
-
-    const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
-      where: { email: existingUser.email },
-    });
-
-    const data = {
-      user,
-      userId,
-      personalInfo,
-      contactInfo,
-      emergencyContacts,
-      taxInfo,
-      paymentMethods,
-      documents,
-      necesaryDocuments,
-    };
-
+    const data = await getRegistrationData(userId, true, req.user);
     res.render("registration", data);
   } catch (error) {
     console.error("Error loading registration data:", error.message);
