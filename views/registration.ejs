@@ -266,7 +266,7 @@
                 <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
                   <div class="bs-stepper-header d-flex flex-wrap gap-2 w-100">
 
-                    <!-- Paso 1: Personal Info -->
+                    <!-- Paso : Personal Info -->
                     <div class="step" data-target="#accountDetailsValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-file-analytics ti-md"></i></span>
@@ -275,7 +275,7 @@
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-                    <!-- Paso 2: Contact Info -->
+                    <!-- Paso : Contact Info -->
                     <div class="step" data-target="#contactInfoValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-user ti-md"></i></span>
@@ -284,16 +284,7 @@
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-                    <!-- Paso 3: Emergency Contacts -->
-                    <div class="step" data-target="#emergencyContactsValidation">
-                      <button type="button" class="step-trigger">
-                        <span class="bs-stepper-circle"><i class="ti ti-phone-plus ti-md"></i></span>
-                        <span class="bs-stepper-label"><span class="bs-stepper-title">Emergency Contacts</span></span>
-                      </button>
-                    </div>
-                    <div class="line"><i class="ti ti-chevron-right"></i></div>
-
-                    <!-- Paso 4: Payroll -->
+                    <!-- Paso : Payroll -->
                     <div class="step" data-target="#payrollValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
@@ -302,7 +293,7 @@
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-                    <!-- Paso 5: Documents -->
+                    <!-- Paso : Documents -->
                     <div class="step" data-target="#documentsValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-file-text ti-md"></i></span>
@@ -629,104 +620,6 @@
                         <button type="button" class="btn btn-primary btn-next">Next</button>
                       </div>
                     </div>
-                    <!-- Contenido 3 -->
-                    <div id="emergencyContactsValidation" class="content">
-                      <div class="content-header mb-6">
-                        <h4 class="mb-0">Emergency Contacts</h4>
-                        <p class="mb-0">This section is optional. Add a contact for emergency situations if you wish.
-                        </p>
-                      </div>
-
-                      <!-- Container for Dynamic Contact Forms -->
-                      <div id="emergencyContactsContainer">
-                        <% if (emergencyContacts && emergencyContacts.length> 0) { %>
-                          <% emergencyContacts.forEach(function(contact, index) { %>
-                            <div class="emergency-contact-entry row g-6 emergency-contact-entry mb-4 border-top pt-4">
-                              <div class="col-12">
-                                <div class="d-flex justify-content-between align-items-center">
-                                  <h5 class="mb-0">Contact</h5>
-                                  <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
-                                    <i class="ti ti-x ti-xs me-1"></i>Remove
-                                  </button>
-                                </div>
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label" for="emergencyFullName_<%= index %>">Full Name <span
-                                    class="text-danger">*</span></label>
-                                <input type="text" name="emergencyContacts[<%= index %>][fullName]"
-                                  id="emergencyFullName_<%= index %>" class="form-control" placeholder="Jane Doe"
-                                  value="<%= contact.fullname %>" />
-                                <div class="invalid-feedback"></div>
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label" for="emergencyPhone_<%= index %>">Phone <span
-                                    class="text-danger">*</span></label>
-                                <input type="number" name="emergencyContacts[<%= index %>][phone]"
-                                  id="emergencyPhone_<%= index %>" class="form-control" placeholder="555-123-4567"
-                                  value="<%= contact.phone %>" />
-                                <div class="invalid-feedback"></div>
-                              </div>
-                              <div class="col-md-4">
-                                <label class="form-label" for="emergencySecondaryPhone_<%= index %>">Secondary
-                                  Phone</label>
-                                <input type="number" name="emergencyContacts[<%= index %>][secondaryPhone]"
-                                  id="emergencySecondaryPhone_<%= index %>" class="form-control"
-                                  placeholder="555-987-6543" value="<%= contact.secondaryPhone || '' %>" />
-                                <div class="invalid-feedback"></div>
-                              </div>
-                            </div>
-                            <% }); %>
-                              <% } %>
-                                <!-- Empty state: no contacts yet -->
-                                <div
-                                  class="emergency-contact-template row g-6 emergency-contact-entry mb-4 border-top pt-4"
-                                  style="display: none;">
-                                  <div class="col-12">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                      <h5 class="mb-0">Contact</h5>
-                                      <button type="button" class="btn btn-label-danger btn-sm remove-contact-btn">
-                                        <i class="ti ti-x ti-xs me-1"></i>Remove
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div class="col-md-4">
-                                    <label class="form-label" for="emergencyFullName">Full Name <span
-                                        class="text-danger">*</span></label>
-                                    <input type="text" name="emergencyContacts[0][fullName]" class="form-control"
-                                      placeholder="Jane Doe" />
-                                    <div class="invalid-feedback"></div>
-                                  </div>
-                                  <div class="col-md-4">
-                                    <label class="form-label" for="emergencyPhone">Phone <span
-                                        class="text-danger">*</span></label>
-                                    <input type="number" name="emergencyContacts[0][phone]" class="form-control"
-                                      placeholder="555-123-4567" />
-                                    <div class="invalid-feedback"></div>
-                                  </div>
-                                  <div class="col-md-4">
-                                    <label class="form-label" for="emergencySecondaryPhone">Secondary Phone</label>
-                                    <input type="number" name="emergencyContacts[0][secondaryPhone]"
-                                      class="form-control" placeholder="555-987-6543" />
-                                    <div class="invalid-feedback"></div>
-                                  </div>
-                                </div>
-                      </div>
-
-                      <!-- Button for the list of emergency contacts -->
-                      <div class="row mt-4">
-                        <div class="col-12">
-                          <button type="button" id="addContactBtn" class="btn btn-primary">
-                            <i class="ti ti-plus ti-xs me-sm-2 me-0"></i>
-                            <span class="align-middle">Add Emergency Contact</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div class="col-12 d-flex justify-content-between mt-6">
-                        <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                        <button type="button" class="btn btn-primary btn-next">Next</button>
-                      </div>
-                    </div>
-
                     <!-- Contenido 4 -->
                     <div id="payrollValidation" class="content">
                       <!-- Main Header -->
@@ -1601,7 +1494,7 @@
 
         await savePersonalInfo();
         await saveContactInfo();
-        await saveEmergencyContacts();
+        // await saveEmergencyContacts();
         await saveTaxInfo();
         await savePaymentMethods()
         await saveDocuments();
