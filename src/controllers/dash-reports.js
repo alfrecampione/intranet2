@@ -17,7 +17,7 @@ const dashboard = async (req, res) => {
     const personalInfo = await prisma.personalInfo.findUnique({
       where: { userId: req.user.user_id },
     });
-    displayName = personalInfo.LegalName;
+    displayName = personalInfo.legalName;
   }
 
   res.render("dashboard", { user: req.user, displayName });
@@ -128,12 +128,12 @@ const dashboardLastQuarter = async (req, res) => {
   const result =
     !req.user || req.user.location_type == 1
       ? await pool.query(
-          `SELECT * FROM intranet.dashboard_sales_nb_last_quarter`,
-        )
+        `SELECT * FROM intranet.dashboard_sales_nb_last_quarter`,
+      )
       : await pool.query(
-          `SELECT * FROM intranet.dashboard_nb_last_quarter($1)`,
-          [req.user.location_id],
-        );
+        `SELECT * FROM intranet.dashboard_nb_last_quarter($1)`,
+        [req.user.location_id],
+      );
   /// Last Quarter Premium
 
   aux1 = result.rows[5].premnb ? result.rows[5].premnb : "$0.00";
@@ -191,14 +191,14 @@ const dashboardWeekReports = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_nb_week`)
       : await pool.query(`SELECT * FROM intranet.dashboard_nb_week($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
   const result2 =
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_nb_last_week`)
       : await pool.query(`SELECT * FROM intranet.dashboard_nb_last_week($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
 
   array.weekSales = [];
   let id_max1 = 0;
@@ -239,9 +239,9 @@ const totalSalesStatistics = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_last_year`)
       : await pool.query(
-          `SELECT * FROM intranet.dashboard_sales_last_year($1)`,
-          [req.user.location_id],
-        );
+        `SELECT * FROM intranet.dashboard_sales_last_year($1)`,
+        [req.user.location_id],
+      );
   let aux,
     id_max1 = 0,
     max1 = 0;
@@ -274,8 +274,8 @@ const nbSalesStatistics = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_last_year_nb`)
       : await pool.query(`SELECT * FROM intranet.dashboard_nb_last_year($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
 
   let aux,
     id_max1 = 0,
@@ -309,8 +309,8 @@ const rnSalesStatistics = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_last_year_rn`)
       : await pool.query(`SELECT * FROM  intranet.dashboard_rn_last_year($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
 
   let aux,
     id_max1 = 0,
@@ -344,8 +344,8 @@ const rwSalesStatistics = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_last_year_rw`)
       : await pool.query(`SELECT * FROM intranet.dashboard_rw_last_year($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
 
   let aux,
     id_max1 = 0,
@@ -379,8 +379,8 @@ const cnSalesStatistics = async (req, res) => {
     !req.user || req.user.location_type == 1
       ? await pool.query(`SELECT * FROM intranet.dashboard_sales_last_year_cn`)
       : await pool.query(`SELECT * FROM intranet.dashboard_cn_last_year($1)`, [
-          req.user.location_id,
-        ]);
+        req.user.location_id,
+      ]);
 
   let aux,
     id_max1 = 0,

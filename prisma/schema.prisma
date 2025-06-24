@@ -16,23 +16,35 @@ model session {
 }
 
 model User {
-  user_id          String   @id @default(uuid())
-  email            String   @unique
-  password         String
-  confirmationCode String?
-  createdAt        DateTime @default(now())
+  user_id               String   @id @default(uuid())
+  email                 String   @unique
+  password              String
+  confirmationCode      String?
+  registrationCompleted Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  personalInfo     PersonalInfo?
+  contactInfo      ContactInfo?
+  emergencyContact EmergencyContact[]
+  taxInfo          TaxInfo?
+  paymentMethod    PaymentMethod[]
+  documents        Documents?
 }
 
 model PersonalInfo {
-  id             Int      @id @default(autoincrement())
-  userId         String   @unique
-  ContractorType String
-  LegalName      String
-  PreferredName  String?
-  LegalSex       String
-  DateOfBirth    DateTime
-  SSN            String
-  PhotoPath      String?
+  id            Int      @id @default(autoincrement())
+  userId        String   @unique
+  contactType   String
+  legalName     String
+  preferredName String?
+  legalSex      String
+  dateOfBirth   DateTime
+  ssn           String
+  photoPath     String?
+  businessName  String?
+  companyEIN    String?
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model ContactInfo {
@@ -53,15 +65,18 @@ model ContactInfo {
   preferredContactMethod   String?
   sendMessagePersonalPhone Boolean  @default(false)
   createdAt                DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model EmergencyContact {
   id             String   @id @default(uuid())
   userId         String
-  Fullname       String
-  Phone          String   @unique
+  fullname       String
+  phone          String   @unique
   secondaryPhone String?
   createdAt      DateTime @default(now())
+  User           User?    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model TaxInfo {
@@ -77,6 +92,8 @@ model TaxInfo {
   taxExempt           Boolean  @default(false)
   signatureTaxDoc     String?
   createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model PaymentMethod {
@@ -87,22 +104,41 @@ model PaymentMethod {
   bankRoutingNum  String
   accountNickname String
   createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model Documents {
-  id                            String   @id @default(uuid())
-  userId                        String   @unique
-  directDepositForm             String
-  driverLicense                 String
-  EINconfirmation               String
-  EmploymentAuthCardBack        String
-  EmploymentAuthCardFront       String
-  EmploymentAuthExtensionLetter String
-  eANDo                         String
-  GTDisciplinaryPolicy          String
-  permanentResidentCard         String
-  proLicense                    String
-  socialSecurityCard            String
-  USpassport                    String
-  createdAt                     DateTime @default(now())
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  directDepositForm  String?
+  driverLicense      String?
+  EINconfirmation    String?
+  eANDo              String?
+  proLicense         String?
+  socialSecurityCard String?
+  ffmCertification   String?
+  gaLicense          String?
+  gaCertification    String?
+  sunbiz             String?
+  corporationLicense String?
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+}
+
+model NecesaryDocuments {
+  id                 String  @id @default(uuid())
+  email              String  @unique
+  directDepositForm  Boolean @default(false)
+  driverLicense      Boolean @default(false)
+  EINconfirmation    Boolean @default(false)
+  eANDo              Boolean @default(false)
+  proLicense         Boolean @default(false)
+  socialSecurityCard Boolean @default(false)
+  ffmCertification   Boolean @default(false)
+  gaLicense          Boolean @default(false)
+  gaCertification    Boolean @default(false)
+  sunbiz             Boolean @default(false)
+  corporationLicense Boolean @default(false)
 }

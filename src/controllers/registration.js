@@ -21,6 +21,14 @@ const register = async (req, res) => {
     });
     const documents = await prisma.documents.findUnique({ where: { userId } });
 
+    const existingUser = await prisma.user.findUnique({
+      where: { user_id: userId },
+    });
+
+    const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+      where: { email: existingUser.email },
+    });
+
     const data = {
       user,
       userId,
@@ -30,6 +38,7 @@ const register = async (req, res) => {
       taxInfo,
       paymentMethods,
       documents,
+      necesaryDocuments,
     };
 
     res.render("registration", data);
@@ -60,6 +69,14 @@ const editRegister = async (req, res) => {
     });
     const documents = await prisma.documents.findUnique({ where: { userId } });
 
+    const existingUser = await prisma.user.findUnique({
+      where: { user_id: userId },
+    });
+
+    const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+      where: { email: existingUser.email },
+    });
+
     const data = {
       user,
       userId,
@@ -69,6 +86,7 @@ const editRegister = async (req, res) => {
       taxInfo,
       paymentMethods,
       documents,
+      necesaryDocuments,
     };
 
     res.render("registration", data);

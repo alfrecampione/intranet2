@@ -258,19 +258,6 @@
             <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
           </div>
         </nav>
-        <!-- Left Text -->
-        <!-- <div
-        class="d-none d-lg-flex col-lg-4 align-items-center justify-content-center p-5 auth-cover-bg-color position-relative auth-multisteps-bg-height">
-        <img src="/img/illustrations/auth-register-multisteps-illustration.png" alt="auth-register-multisteps"
-          class="img-fluid" width="190" />
-
-        <img src="/img/illustrations/auth-register-multisteps-shape-light.png"
-          alt="auth-register-multisteps" class="platform-bg"
-          data-app-light-img="illustrations/auth-register-multisteps-shape-light.png"
-          data-app-dark-img="illustrations/auth-register-multisteps-shape-dark.png" />
-      </div> -->
-        <!-- /Left Text -->
-
         <div class="content-wrapper">
           <!-- Multi Steps Registration -->
           <div class="d-flex col-lg-8 align-items-center justify-content-center authentication-bg p-5">
@@ -337,11 +324,11 @@
                             Contact Type <span class="text-danger">*</span>
                           </label>
                           <select id="contactType" name="contactType" class="form-select" required>
-                            <option value="" disabled <%=!personalInfo?.ContractorType ? 'selected' : '' %>>Select
+                            <option value="" disabled <%=!personalInfo?.contactType ? 'selected' : '' %>>Select
                               type... </option>
-                            <option value="individual" <%=personalInfo?.ContractorType==='individual' ? 'selected' : ''
-                              %>>Individual</option>
-                            <option value="business" <%=personalInfo?.ContractorType==='business' ? 'selected' : '' %>
+                            <option value="individual" <%=personalInfo?.contactType==='individual' ? 'selected' : '' %>
+                              >Individual</option>
+                            <option value="business" <%=personalInfo?.contactType==='business' ? 'selected' : '' %>
                               >Business</option>
                           </select>
                         </div>
@@ -352,15 +339,35 @@
                             Legal Name <span class="text-danger">*</span>
                           </label>
                           <input type="text" name="legalName" id="legalName" class="form-control" placeholder="John Doe"
-                            value="<%= personalInfo?.LegalName || '' %>" required />
+                            value="<%= personalInfo?.legalName || '' %>" required />
                           <div class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Business Name (Required if business) -->
+                        <div class="col-sm-6" id="businessNameGroup" style="display:none;">
+                          <label class="form-label" for="businessName">
+                            Business Name <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" name="businessName" id="businessName" class="form-control"
+                            placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
+                          <div class="invalid-feedback">Business Name is required.</div>
+                        </div>
+
+                        <!-- EIN de la Compañía (Required if business) -->
+                        <div class="col-sm-6" id="einGroup" style="display:none;">
+                          <label class="form-label" for="ein">
+                            EIN de la Compañía <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
+                            maxlength="10" value="<%= personalInfo?.companyEIN || '' %>" required>
+                          <div class="invalid-feedback">EIN is required.</div>
                         </div>
 
                         <!-- Preferred First Name -->
                         <div class="col-sm-6">
                           <label class="form-label" for="preferredFirstName">Preferred First Name</label>
                           <input type="text" name="preferredFirstName" id="preferredFirstName" class="form-control"
-                            placeholder="John" value="<%= personalInfo?.PreferredName || '' %>" />
+                            placeholder="John" value="<%= personalInfo?.preferredName || '' %>" />
                         </div>
 
                         <!-- Legal Sex (Required) -->
@@ -369,12 +376,12 @@
                           <div class="mt-2">
                             <div class="form-check form-check-inline">
                               <input class="form-check-input" type="radio" name="legalSex" id="legalSexMale"
-                                value="male" required <%=personalInfo?.LegalSex==='male' ? 'checked' : '' %> />
+                                value="male" required <%=personalInfo?.legalSex==='male' ? 'checked' : '' %> />
                               <label class="form-check-label" for="legalSexMale">Male</label>
                             </div>
                             <div class="form-check form-check-inline">
                               <input class="form-check-input" type="radio" name="legalSex" id="legalSexFemale"
-                                value="female" required <%=personalInfo?.LegalSex==='female' ? 'checked' : '' %> />
+                                value="female" required <%=personalInfo?.legalSex==='female' ? 'checked' : '' %> />
                               <label class="form-check-label" for="legalSexFemale">Female</label>
                             </div>
                           </div>
@@ -388,7 +395,7 @@
                           </label>
                           <input type="date" class="form-control" placeholder="YYYY-MM-DD" id="dateOfBirth"
                             name="dateOfBirth" required
-                            value="<%= personalInfo?.DateOfBirth ? personalInfo.DateOfBirth.toISOString().substring(0, 10) : '' %>" />
+                            value="<%= personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.toISOString().substring(0, 10) : '' %>" />
                           <div class="invalid-feedback"></div>
                         </div>
 
@@ -399,8 +406,7 @@
                           </label>
                           <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
                             aria-label="Social Security Number" required pattern="\d{3}-\d{2}-\d{4}" maxlength="11"
-                            value="<%= personalInfo?.SSN || '' %>" />
-                          <div class="invalid-feedback">Por favor ingrese un SSN válido (formato: XXX-XX-XXXX)</div>
+                            value="<%= personalInfo?.ssn || '' %>" />
                         </div>
                         <script>
                           document.getElementById("ssn").addEventListener("input", function (e) {
@@ -431,7 +437,7 @@
                         <div class="col-md-12">
                           <label class="form-label" for="profilePhotoInput">Profile Photo</label>
 
-                          <% if (personalInfo?.PhotoPath) { %>
+                          <% if (personalInfo?.photoPath) { %>
                             <div class="mb-3">
                               <img id="profilePhotoPreview" alt="Profile Photo"
                                 style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
@@ -442,10 +448,10 @@
                                 accept="image/*" />
                               <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
 
-                              <% if (personalInfo?.PhotoPath) { %>
+                              <% if (personalInfo?.photoPath) { %>
                                 <script>
                                   const origin = window.location.origin;
-                                  const photoPath = "<%= personalInfo.PhotoPath %>";
+                                  const photoPath = "<%= personalInfo.photoPath %>";
                                   document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
                                   document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
                                 </script>
@@ -649,7 +655,7 @@
                                     class="text-danger">*</span></label>
                                 <input type="text" name="emergencyContacts[<%= index %>][fullName]"
                                   id="emergencyFullName_<%= index %>" class="form-control" placeholder="Jane Doe"
-                                  value="<%= contact.Fullname %>" />
+                                  value="<%= contact.fullname %>" />
                                 <div class="invalid-feedback"></div>
                               </div>
                               <div class="col-md-4">
@@ -657,7 +663,7 @@
                                     class="text-danger">*</span></label>
                                 <input type="number" name="emergencyContacts[<%= index %>][phone]"
                                   id="emergencyPhone_<%= index %>" class="form-control" placeholder="555-123-4567"
-                                  value="<%= contact.Phone %>" />
+                                  value="<%= contact.phone %>" />
                                 <div class="invalid-feedback"></div>
                               </div>
                               <div class="col-md-4">
@@ -1038,195 +1044,50 @@
                         <p class="mb-0">Please upload the required documents to complete your profile.</p>
                       </div>
                       <div class="row g-4">
-                        <% const docs=documents || {}; %>
-
-                          <!-- Direct Deposit Form -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Direct Deposit
-                                Form</span>
-                              <div>
-                                <input type="file" id="directDepositUpload" name="directDepositUpload" class="d-none" />
-                                <label for="directDepositUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.directDepositForm) { %>
-                                  <a href="/<%= docs.directDepositForm %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
+                        <% const docs=documents || {}; const requiredDocs=necesaryDocuments || {}; const docFields=[ {
+                          key: "directDepositForm" , label: "Direct Deposit Form" , inputId: "directDepositUpload" }, {
+                          key: "driverLicense" , label: "Driver's License" , inputId: "driversLicenseUpload" }, {
+                          key: "EINconfirmation" , label: "EIN Confirmation Letter" , inputId: "einConfirmationUpload"
+                          }, { key: "eANDo" , label: "E&O" , inputId: "eoUpload" }, { key: "proLicense" ,
+                          label: "Professional License" , inputId: "professionalLicenseUpload" }, {
+                          key: "socialSecurityCard" , label: "Social Security Card" , inputId: "ssnCardUpload" }, {
+                          key: "ffmCertification" , label: "FFM Certification" , inputId: "ffmCertificationUpload" }, {
+                          key: "gaLicense" , label: "GA License" , inputId: "gaLicenseUpload" }, {
+                          key: "gaCertification" , label: "GA Certification" , inputId: "gaCertificationUpload" }, {
+                          key: "sunbiz" , label: "Sunbiz" , inputId: "sunbizUpload" }, { key: "corporationLicense" ,
+                          label: "Corporation License" , inputId: "corporationLicenseUpload" } ]; const
+                          hasRequiredDocs=docFields.some(doc=> requiredDocs[doc.key]);
+                          %>
+                          <% if (!hasRequiredDocs) { %>
+                            <div class="col-12">
+                              <div class="alert alert-info mb-0">
+                                No documents are required for your profile at this time.
                               </div>
                             </div>
-                          </div>
-
-                          <!-- Driver's License -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Driver's License</span>
-                              <div>
-                                <input type="file" id="driversLicenseUpload" name="driversLicenseUpload"
-                                  class="d-none" />
-                                <label for="driversLicenseUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.driverLicense) { %>
-                                  <a href="/<%= docs.driverLicense %>" target="_blank" class="ms-2">View</a>
+                            <% } %>
+                              <% docFields.forEach(doc=> { %>
+                                <% if (requiredDocs[doc.key]) { %>
+                                  <div class="col-md-6">
+                                    <div
+                                      class="d-flex justify-content-between align-items-center border rounded p-3 mb-3">
+                                      <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>
+                                        <%= doc.label %>
+                                      </span>
+                                      <div>
+                                        <input type="file" id="<%= doc.inputId %>" name="<%= doc.inputId %>"
+                                          class="d-none" />
+                                        <label for="<%= doc.inputId %>"
+                                          class="btn btn-sm btn-outline-primary">Upload</label>
+                                        <% if (docs[doc.key]) { %>
+                                          <a href="/<%= docs[doc.key] %>" target="_blank" class="ms-2">View</a>
+                                          <% } %>
+                                      </div>
+                                    </div>
+                                  </div>
                                   <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- EIN Confirmation Letter -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>EIN Confirmation
-                                Letter</span>
-                              <div>
-                                <input type="file" id="einConfirmationUpload" name="einConfirmationUpload"
-                                  class="d-none" />
-                                <label for="einConfirmationUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.EINconfirmation) { %>
-                                  <a href="/<%= docs.EINconfirmation %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Employment Authorization Card (Back) -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth Card
-                                (Back)</span>
-                              <div>
-                                <input type="file" id="eacBackUpload" name="eacBackUpload" class="d-none" />
-                                <label for="eacBackUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.EmploymentAuthCardBack) { %>
-                                  <a href="/<%= docs.EmploymentAuthCardBack %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Employment Authorization Card (Front) -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth Card
-                                (Front)</span>
-                              <div>
-                                <input type="file" id="eacFrontUpload" name="eacFrontUpload" class="d-none" />
-                                <label for="eacFrontUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.EmploymentAuthCardFront) { %>
-                                  <a href="/<%= docs.EmploymentAuthCardFront %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Employment Authorization Extension Letter -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Employment Auth
-                                Extension</span>
-                              <div>
-                                <input type="file" id="eacExtensionUpload" name="eacExtensionUpload" class="d-none" />
-                                <label for="eacExtensionUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.EmploymentAuthExtensionLetter) { %>
-                                  <a href="/<%= docs.EmploymentAuthExtensionLetter %>" target="_blank"
-                                    class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- E&O -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>E&O</span>
-                              <div>
-                                <input type="file" id="eoUpload" name="eoUpload" class="d-none" />
-                                <label for="eoUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.eANDo) { %>
-                                  <a href="/<%= docs.eANDo %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- GoldenTrust Disciplinary Policy -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>GoldenTrust Disciplinary
-                                Policy</span>
-                              <div>
-                                <input type="file" id="goldenTrustPolicyUpload" name="goldenTrustPolicyUpload"
-                                  class="d-none" />
-                                <label for="goldenTrustPolicyUpload"
-                                  class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.GTDisciplinaryPolicy) { %>
-                                  <a href="/<%= docs.GTDisciplinaryPolicy %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Permanent Residence Card -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Permanent Residence
-                                Card</span>
-                              <div>
-                                <input type="file" id="permanentResidenceUpload" name="permanentResidenceUpload"
-                                  class="d-none" />
-                                <label for="permanentResidenceUpload"
-                                  class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.permanentResidentCard) { %>
-                                  <a href="/<%= docs.permanentResidentCard %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Professional License -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Professional
-                                License</span>
-                              <div>
-                                <input type="file" id="professionalLicenseUpload" name="professionalLicenseUpload"
-                                  class="d-none" />
-                                <label for="professionalLicenseUpload"
-                                  class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.proLicense) { %>
-                                  <a href="/<%= docs.proLicense %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Social Security Card -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>Social Security
-                                Card</span>
-                              <div>
-                                <input type="file" id="ssnCardUpload" name="ssnCardUpload" class="d-none" />
-                                <label for="ssnCardUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.socialSecurityCard) { %>
-                                  <a href="/<%= docs.socialSecurityCard %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- US Passport -->
-                          <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3">
-                              <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>US Passport</span>
-                              <div>
-                                <input type="file" id="passportUpload" name="passportUpload" class="d-none" />
-                                <label for="passportUpload" class="btn btn-sm btn-outline-primary">Upload</label>
-                                <% if (docs.USpassport) { %>
-                                  <a href="/<%= docs.USpassport %>" target="_blank" class="ms-2">View</a>
-                                  <% } %>
-                              </div>
-                            </div>
-                          </div>
+                                    <% }); %>
                       </div>
-
+                      <div class="mb-4"></div>
                       <div class="col-12 d-flex justify-content-between mt-6">
                         <button type="button" class="btn btn-label-secondary btn-prev">
                           <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
@@ -1236,65 +1097,6 @@
                         </button>
                       </div>
                     </div>
-                    <script>
-                      document.addEventListener("DOMContentLoaded", function () {
-                        const fileInputs = document.querySelectorAll("input[type='file']");
-                        const submitBtn = document.querySelector(".btn-submit");
-
-                        function updateStatusVisual(input) {
-                          const parent = input.closest(".d-flex");
-                          const fileUploaded = input.files.length > 0;
-                          const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
-
-                          if (fileUploaded || hasExistingLink) {
-                            parent.classList.add("border-success");
-                            parent.classList.remove("border-danger");
-
-                            // Agregar ícono visual (check) solo si no existe
-                            if (!parent.querySelector(".check-icon")) {
-                              const check = document.createElement("i");
-                              check.className = "ti ti-check text-success ms-2 check-icon";
-                              parent.querySelector("span").appendChild(check);
-                            }
-                          } else {
-                            parent.classList.remove("border-success");
-                            parent.classList.add("border-danger");
-
-                            // Remover ícono si no aplica
-                            const check = parent.querySelector(".check-icon");
-                            if (check) check.remove();
-                          }
-                        }
-
-                        fileInputs.forEach(input => {
-                          updateStatusVisual(input); // Aplica check visual si ya hay link cargado
-
-                          input.addEventListener("change", function () {
-                            updateStatusVisual(this);
-                          });
-                        });
-
-                        submitBtn.addEventListener("click", function (e) {
-                          let allValid = true;
-
-                          fileInputs.forEach(input => {
-                            const parent = input.closest(".d-flex");
-                            const fileUploaded = input.files.length > 0;
-                            const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
-
-                            if (!fileUploaded && !hasExistingLink) {
-                              parent.classList.add("border-danger");
-                              allValid = false;
-                            }
-                          });
-
-                          if (!allValid) {
-                            e.preventDefault();
-                            showToast("Please upload all required documents before submitting.", "error");
-                          }
-                        });
-                      });
-                    </script>
                   </div>
                 </div>
               </form>
@@ -1310,8 +1112,67 @@
     style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
   </div>
 
+  <!-- Overlay Spinner -->
+  <div id="email-overlay"
+    style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+    <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+      <span class="visually-hidden">Sending...</span>
+    </div>
+  </div>
+
   <script>
-    // Check selected custom option
+    document.addEventListener("DOMContentLoaded", function () {
+      const fileInputs = document.querySelectorAll("input[type='file']");
+      const submitBtn = document.querySelector(".btn-submit");
+
+      function updateStatusVisual(input) {
+        const parent = input.closest(".d-flex");
+        const fileUploaded = input.files.length > 0;
+        const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
+
+        if (fileUploaded || hasExistingLink) {
+          parent.classList.add("border-success");
+          parent.classList.remove("border-danger");
+          if (!parent.querySelector(".check-icon")) {
+            const check = document.createElement("i");
+            check.className = "ti ti-check text-success ms-2 check-icon";
+            parent.querySelector("span").appendChild(check);
+          }
+        } else {
+          parent.classList.remove("border-success");
+          parent.classList.add("border-danger");
+          const check = parent.querySelector(".check-icon");
+          if (check) check.remove();
+        }
+      }
+
+      fileInputs.forEach(input => {
+        updateStatusVisual(input);
+        input.addEventListener("change", function () {
+          updateStatusVisual(this);
+        });
+      });
+
+      submitBtn.addEventListener("click", function (e) {
+        let allValid = true;
+        fileInputs.forEach(input => {
+          const parent = input.closest(".d-flex");
+          const fileUploaded = input.files.length > 0;
+          const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
+          if (!fileUploaded && !hasExistingLink) {
+            parent.classList.add("border-danger");
+            allValid = false;
+          }
+        });
+        if (!allValid) {
+          e.preventDefault();
+          showToast("Please upload all required documents before submitting.", "error");
+        }
+      });
+    });
+  </script>
+
+  <script>
     window.Helpers.initCustomOptionCheck();
   </script>
 
@@ -1359,13 +1220,7 @@
   <script src="/vendor/libs/moment/moment.js"></script>
   <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
 
-
-  <!-- Push the info -->
   <script>
-    // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
-    const currentUserId = "<%= userId %>";
-
-
     function showToast(message, type = "success") {
       const toast = document.getElementById("toast");
       toast.textContent = message;
@@ -1380,10 +1235,66 @@
           toast.style.display = "none";
           toast.style.transition = "";
         }, 500);
-      }, 3000); // 3 segundos visible
+      }, 3000);
     }
+  </script>
 
-    // Función para subir archivos
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const contactType = document.getElementById("contactType");
+      const businessNameGroup = document.getElementById("businessNameGroup");
+      const einGroup = document.getElementById("einGroup");
+      const businessName = document.getElementById("businessName");
+      const ein = document.getElementById("ein");
+
+      function toggleBusinessFields() {
+        if (contactType.value === "business") {
+          businessNameGroup.style.display = "";
+          einGroup.style.display = "";
+          businessName.required = true;
+          ein.required = true;
+        } else {
+          businessNameGroup.style.display = "none";
+          einGroup.style.display = "none";
+          businessName.required = false;
+          ein.required = false;
+          businessName.classList.remove("is-invalid");
+          ein.classList.remove("is-invalid");
+        }
+      }
+
+      contactType.addEventListener("change", toggleBusinessFields);
+      toggleBusinessFields();
+      document.querySelector(".btn-next").addEventListener("click", function (e) {
+        if (contactType.value === "business") {
+          let valid = true;
+          if (!businessName.value.trim()) {
+            businessName.classList.add("is-invalid");
+            valid = false;
+          } else {
+            businessName.classList.remove("is-invalid");
+          }
+          if (!ein.value.trim()) {
+            ein.classList.add("is-invalid");
+            valid = false;
+          } else {
+            ein.classList.remove("is-invalid");
+          }
+          if (!valid) {
+            e.preventDefault();
+            showToast("Business Name and EIN are required for Business type.", "error");
+          }
+        }
+      });
+    });
+  </script>
+
+
+  <!-- Push the info -->
+  <script>
+    // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
+    const currentUserId = "<%= userId %>";
+
     const uploadFile = async (file) => {
       if (file) {
         try {
@@ -1415,6 +1326,9 @@
       const ssn = document.getElementById("ssn")?.value || "";
       const photoInput = document.getElementById("profilePhotoInput");
 
+      const businessName = document.getElementById("businessName")?.value || "";
+      const companyEIN = document.getElementById("ein")?.value || "";
+
       const photoFile = photoInput?.files[0] || null;
       const existingPhotoURL = photoInput?.dataset.existingUrl || "";
 
@@ -1428,14 +1342,16 @@
       }
 
       const personalInfo = {
-        ContractorType: contactType,
-        LegalName: legalName,
-        PreferredName: preferredFirstName,
-        DateOfBirth: dateOfBirth,
-        SSN: ssn,
-        LegalSex: legalSex,
+        contactType: contactType,
+        legalName: legalName,
+        preferredName: preferredFirstName,
+        dateOfBirth: dateOfBirth,
+        ssn: ssn,
+        legalSex: legalSex,
         userId: currentUserId,
-        PhotoPath: uploadedPhoto
+        photoPath: uploadedPhoto,
+        businessName: businessName || null,
+        companyEIN: companyEIN || null
       };
 
       const response = await fetch(`${url}/steps/personal-info`, {
@@ -1464,19 +1380,19 @@
       const preferredContact = document.getElementById("preferredContact")?.value || "";
 
       const contactInfo = {
-        personalEmail,
+        personalEmail: personalEmail,
         isPersonalEmailVisible: !!emailVisible,
-        personalPhone,
+        personalPhone: personalPhone,
         isPersonalPhoneVisible: !!phoneVisible,
-        country,
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        zipCode,
-        workEmail,
-        workPhone,
-        preferredContactMethod: preferredContact,
+        country: country,
+        addressLine1: addressLine1,
+        addressLine2: addressLine2 || null,
+        city: city,
+        state: state,
+        zipCode: zipCode,
+        workEmail: workEmail || null,
+        workPhone: workPhone || null,
+        preferredContactMethod: preferredContact || null,
         userId: currentUserId
       };
       const contactInfoJSON = JSON.stringify(contactInfo)
@@ -1504,8 +1420,8 @@
 
           if (fullName || phone || secondaryPhone) {
             contacts.push({
-              Fullname: fullName,
-              Phone: phone,
+              fullname: fullName,
+              phone: phone,
               secondaryPhone,
               userId: currentUserId
             });
@@ -1614,15 +1530,14 @@
         directDepositForm: "directDepositUpload",
         driverLicense: "driversLicenseUpload",
         EINconfirmation: "einConfirmationUpload",
-        EmploymentAuthCardBack: "eacBackUpload",
-        EmploymentAuthCardFront: "eacFrontUpload",
-        EmploymentAuthExtensionLetter: "eacExtensionUpload",
         eANDo: "eoUpload",
-        GTDisciplinaryPolicy: "goldenTrustPolicyUpload",
-        permanentResidentCard: "permanentResidenceUpload",
         proLicense: "professionalLicenseUpload",
         socialSecurityCard: "ssnCardUpload",
-        USpassport: "passportUpload"
+        ffmCertification: "ffmCertificationUpload",
+        gaLicense: "gaLicenseUpload",
+        gaCertification: "gaCertificationUpload",
+        sunbiz: "sunbizUpload",
+        corporationLicense: "corporationLicenseUpload"
       };
 
       const payload = { userId: currentUserId };
@@ -1630,18 +1545,19 @@
 
       for (const [key, inputId] of Object.entries(fileIds)) {
         const input = document.getElementById(inputId);
+        if (!input) {
+          continue;
+        }
         const file = input?.files?.[0];
         const parent = input.closest(".d-flex");
         const existingLink = parent.querySelector("a[href]:not([href=''])");
 
-        // Validación visual
         const span = parent.querySelector("span");
 
         if (file || existingLink) {
           parent.classList.add("border-success");
           parent.classList.remove("border-danger");
 
-          // Agregar check si no existe
           if (!span.querySelector(".check-icon")) {
             const check = document.createElement("i");
             check.className = "ti ti-check text-success ms-2 check-icon";
@@ -1651,14 +1567,11 @@
           parent.classList.add("border-danger");
           parent.classList.remove("border-success");
 
-          // Remover check si está
           const check = span.querySelector(".check-icon");
           if (check) check.remove();
 
           allValid = false;
         }
-
-        // Solo subir si hay archivo nuevo
         payload[key] = file ? await uploadFile(file) : existingLink?.getAttribute("href") || null;
       }
 
@@ -1667,11 +1580,16 @@
         throw new Error("Missing documents");
       }
 
+      const overlay = document.getElementById("email-overlay");
+      overlay.style.display = "flex";
+
       const response = await fetch(`${url}/steps/documents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
+      overlay.style.display = "none";
 
       if (!response.ok) throw new Error("Error guardando documentos");
       return await response.json();
@@ -1691,9 +1609,6 @@
         await savePaymentMethods()
         await saveDocuments();
 
-        showToast("¡Todos los datos se guardaron correctamente!", "success");
-
-        // Redirect to Dashboard
         window.location.href = `${url}/users/dashboard`;
 
       } catch (error) {

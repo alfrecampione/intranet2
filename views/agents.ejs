@@ -385,6 +385,78 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-12">
+                                        <label class="form-label">Required Documents</label>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="directDepositForm" name="directDepositForm">
+                                                    <label class="form-check-label" for="directDepositForm">Direct
+                                                        Deposit Form</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="driverLicense"
+                                                        name="driverLicense">
+                                                    <label class="form-check-label" for="driverLicense">Driver
+                                                        License</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="EINconfirmation"
+                                                        name="EINconfirmation">
+                                                    <label class="form-check-label" for="EINconfirmation">EIN
+                                                        Confirmation</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="eANDo"
+                                                        name="eANDo">
+                                                    <label class="form-check-label" for="eANDo">E&O</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="proLicense"
+                                                        name="proLicense">
+                                                    <label class="form-check-label" for="proLicense">Professional
+                                                        License</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="socialSecurityCard" name="socialSecurityCard">
+                                                    <label class="form-check-label" for="socialSecurityCard">Social
+                                                        Security Card</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="ffmCertification" name="ffmCertification">
+                                                    <label class="form-check-label" for="ffmCertification">FFM
+                                                        Certification</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="gaLicense"
+                                                        name="gaLicense">
+                                                    <label class="form-check-label" for="gaLicense">GA License</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="gaCertification"
+                                                        name="gaCertification">
+                                                    <label class="form-check-label" for="gaCertification">GA
+                                                        Certification</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="sunbiz"
+                                                        name="sunbiz">
+                                                    <label class="form-check-label" for="sunbiz">Sunbiz</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="corporationLicense" name="corporationLicense">
+                                                    <label class="form-check-label" for="corporationLicense">Corporation
+                                                        License</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12">
                                         <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1">
                                             Send
                                         </button>
@@ -482,13 +554,13 @@
                 const tr = document.createElement("tr");
 
                 const tdAvatar = document.createElement("td");
-                tdAvatar.innerHTML = user.PhotoPath
-                    ? `<img src="${url}/${user.PhotoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                    : `<span class="avatar-initial rounded-circle bg-label-primary">${user.LegalName?.[0] || user.email[0]}</span>`;
+                tdAvatar.innerHTML = user.photoPath
+                    ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
+                    : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
                 tr.appendChild(tdAvatar);
 
                 const tdName = document.createElement("td");
-                tdName.textContent = user.LegalName || "";
+                tdName.textContent = user.legalName || "";
                 tr.appendChild(tdName);
 
                 const tdEmail = document.createElement("td");
@@ -521,6 +593,24 @@
                         return;
                     }
 
+                    const docFields = [
+                        "directDepositForm",
+                        "driverLicense",
+                        "EINconfirmation",
+                        "eANDo",
+                        "proLicense",
+                        "socialSecurityCard",
+                        "ffmCertification",
+                        "gaLicense",
+                        "gaCertification",
+                        "sunbiz",
+                        "corporationLicense"
+                    ];
+                    const requiredDocuments = {};
+                    docFields.forEach(field => {
+                        requiredDocuments[field] = document.getElementById(field).checked;
+                    });
+
                     const subject = "Create your account on GoldenTrust Insurance";
 
                     const body = {
@@ -537,29 +627,37 @@
                         outro: "If you have questions, you can reply to this email."
                     };
 
-                    const data = {
-                        email,
-                        subject,
-                        body
-                    }
-
                     const overlay = document.getElementById("email-overlay");
                     overlay.style.display = "flex";
 
                     try {
+                        const docsResponse = await fetch(`${url}/necesaryDocs`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                email,
+                                ...requiredDocuments
+                            }),
+                        });
+
                         const response = await fetch(`${url}/sendEmail`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(data),
+                            body: JSON.stringify({
+                                email,
+                                subject,
+                                body
+                            }),
                         });
 
                         const responseData = await response.json();
 
-                        console.log(responseData);
-
                         if (response.ok) {
                             showToast("Email sent successfully!", "success");
                             emailInput.value = "";
+                            docFields.forEach(field => {
+                                document.getElementById(field).checked = false;
+                            });
                             const offcanvas = document.getElementById("add-new-record");
                             const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
                             if (bsOffcanvas) bsOffcanvas.hide();

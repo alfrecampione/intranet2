@@ -13,7 +13,6 @@ import cors from "cors";
 import { checkNotAuthenticated } from "./controllers/auth.js";
 
 import router from "./routes.js";
-import uploadRouter from "./uploadRouter.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,7 +47,7 @@ app.use(
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      maxAge: 60 * 1000, // 1 hour
+      maxAge: 30 * 24 * 60 * 60 * 1000,
       secure: false, // Required for HTTPS
     },
   }),
@@ -58,8 +57,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /** MIDDLEWARES */
-app.use("/upload", uploadRouter);
-
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());

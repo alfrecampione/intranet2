@@ -4,31 +4,41 @@ import { prisma } from "../config/dbConfig.js";
 export const createPersonalInfo = async (req, res) => {
   try {
     const {
-      ContractorType,
-      LegalName,
-      PreferredName,
-      LegalSex,
-      DateOfBirth,
-      SSN,
+      contactType,
+      legalName,
+      preferredName,
+      legalSex,
+      dateOfBirth,
+      ssn,
       userId,
-      PhotoPath,
+      photoPath,
+      businessName,
+      companyEIN
     } = req.body;
 
     const data = {
-      ContractorType,
-      LegalName,
-      PreferredName: PreferredName || null,
-      LegalSex,
-      DateOfBirth: new Date(DateOfBirth),
-      SSN,
+      contactType,
+      legalName,
+      preferredName: preferredName || null,
+      legalSex,
+      dateOfBirth: new Date(dateOfBirth),
+      ssn,
       userId,
-      PhotoPath,
+      photoPath: photoPath || null,
+      businessName: businessName || null,
+      companyEIN: companyEIN || null,
     };
 
     const personalInfo = await prisma.personalInfo.upsert({
       where: { userId },
       update: data,
       create: data,
+    });
+
+    // Update the registrationCompleted field in the user table
+    await prisma.user.update({
+      where: { user_id: userId },
+      data: { registrationCompleted: true },
     });
 
     res.json(personalInfo);

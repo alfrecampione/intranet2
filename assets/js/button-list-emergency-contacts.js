@@ -5,8 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   const template = document.querySelector(".emergency-contact-template");
 
-  console.log("Template found:", template);
-
   // Función para actualizar los números y los atributos de los contactos
   function updateContactAttributes() {
     const allEntries = contactsContainer.querySelectorAll(

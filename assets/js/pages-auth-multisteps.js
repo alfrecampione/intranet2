@@ -25,17 +25,16 @@ $(function () {
 // --------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', function (e) {
   (function () {
-    const stepsValidation = document.querySelector('#multiStepsValidation');
-    if (typeof stepsValidation !== undefined && stepsValidation !== null) {
+    const stepsValidationForm = document.querySelector('#multiStepsForm');
+    const stepsValidation = stepsValidationForm ? stepsValidationForm.querySelector('#multiStepsValidation') : null;
+    if (stepsValidation && stepsValidationForm) {
       // Multi Steps form
-      const stepsValidationForm = stepsValidation.querySelector('#multiStepsForm');
       // Form steps
       const stepsValidationFormStep1 = stepsValidationForm.querySelector('#accountDetailsValidation');
       const stepsValidationFormStep2 = stepsValidationForm.querySelector('#personalInfoValidation');
       const stepsValidationFormStep3 = stepsValidationForm.querySelector('#billingLinksValidation');
       // Multi steps next prev button
       const stepsValidationNext = [].slice.call(stepsValidationForm.querySelectorAll('.btn-next'));
-      console.log("val: ",stepsValidationNext);
       const stepsValidationPrev = [].slice.call(stepsValidationForm.querySelectorAll('.btn-prev'));
 
       const multiStepsExDate = document.querySelector('.multi-steps-exp-date'),

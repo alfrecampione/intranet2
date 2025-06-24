@@ -23,19 +23,12 @@ import {
   cnSalesStatistics,
 } from "./controllers/dash-reports.js";
 import { agency } from "./controllers/agency-reports.js";
-import {
-  headcarrier,
-  addHeadCarrier,
-  head_carrier_list,
-  addCarrier,
-  deleteCarrier,
-} from "./controllers/config.js";
 import { dataSearch } from "./controllers/search.js";
 import { passwordMail, email_sender } from "./controllers/mailer.js";
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents } from "./controllers/agents.js";
+import { renderAgents, markDocsAsNecessary } from "./controllers/agents.js";
 
 const router = express.Router();
 
@@ -102,6 +95,8 @@ router.get("/users/agents", checkNotAuthenticated, renderAgents);
 
 router.post("/sendEmail", checkNotAuthenticated, email_sender)
 
+router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
+
 // STEPS ROUTES
 import {
   createPersonalInfo,
@@ -165,5 +160,9 @@ router.get(
 // Step 6: Documents
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
+
+import { handleFileUpload } from "./controllers/registration.js";
+import upload from "./config/multerConfig.js";
+router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
 
 export default router;
