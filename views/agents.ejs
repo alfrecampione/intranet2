@@ -666,27 +666,33 @@
         });
     </script>
 
-    <script>
-        function showToast(message, type = "success") {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
-            toast.style.color = "#fff";
-            toast.style.display = "block";
-            toast.style.opacity = "1";
-            setTimeout(() => {
-                toast.style.transition = "opacity 0.5s";
-                toast.style.opacity = "0";
-                setTimeout(() => {
-                    toast.style.display = "none";
-                    toast.style.transition = "";
-                }, 500);
-            }, 3000); // 3 segundos visible
-        }
-    </script>
+    <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4" role="alert"
+        aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+        <div class="d-flex">
+            <div class="toast-body">
+                Email sent successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
+    <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4" role="alert"
+        aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+        <div class="d-flex">
+            <div class="toast-body">
+                Error sending email.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
+            const toastAnimation1 = document.querySelector('.toast-ex1');
+            const toastAnimation2 = document.querySelector('.toast-ex2');
+
             // Email form submit
             document
                 .getElementById("form-send-email")
@@ -696,7 +702,9 @@
                     const email = emailInput.value.trim();
 
                     if (!email) {
-                        showToast("Please enter an email address.", "error");
+                        wrongEmail = new bootstrap.Toast(toastAnimation2);
+                        toastAnimation2.querySelector('.toast-body').textContent = "Please enter an email address.";
+                        wrongEmail.show();
                         return;
                     }
 
@@ -760,7 +768,10 @@
                         const responseData = await response.json();
 
                         if (response.ok) {
-                            showToast("Email sent successfully!", "success");
+                            emailSended = new bootstrap.Toast(toastAnimation1);
+                            toastAnimation1.querySelector('.toast-body').textContent = "Email sent successfully!";
+                            emailSended.show();
+
                             emailInput.value = "";
                             docFields.forEach(field => {
                                 document.getElementById(field).checked = false;
@@ -769,10 +780,14 @@
                             const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
                             if (bsOffcanvas) bsOffcanvas.hide();
                         } else {
-                            showToast(responseData.message || "Error sending email.", "error");
+                            wrongEmail = new bootstrap.Toast(toastAnimation2);
+                            toastAnimation2.querySelector('.toast-body').textContent = responseData.message || "Error sending email.";
+                            wrongEmail.show();
                         }
                     } catch (err) {
-                        showToast("Error sending email.", "error");
+                        wrongEmail = new bootstrap.Toast(toastAnimation2);
+                        toastAnimation2.querySelector('.toast-body').textContent = "Error sending email.";
+                        wrongEmail.show();
                     } finally {
                         overlay.style.display = "none";
                     }

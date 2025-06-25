@@ -1022,26 +1022,32 @@
   <script src="/vendor/libs/moment/moment.js"></script>
   <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
 
-  <script>
-    function showToast(message, type = "success") {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
-      toast.style.color = "#fff";
-      toast.style.display = "block";
-      toast.style.opacity = "1";
-      setTimeout(() => {
-        toast.style.transition = "opacity 0.5s";
-        toast.style.opacity = "0";
-        setTimeout(() => {
-          toast.style.display = "none";
-          toast.style.transition = "";
-        }, 500);
-      }, 3000);
-    }
-  </script>
+  <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4" role="alert"
+    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+    <div class="d-flex">
+      <div class="toast-body">
+        Success!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+        aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4" role="alert"
+    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+    <div class="d-flex">
+      <div class="toast-body">
+        Error!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+        aria-label="Close"></button>
+    </div>
+  </div>
 
   <script>
+    const toastAnimation2 = document.querySelector('.toast-ex2');
+
+    let error;
+
     document.addEventListener("DOMContentLoaded", function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
@@ -1084,7 +1090,9 @@
           }
           if (!valid) {
             e.preventDefault();
-            showToast("Business Name and EIN are required for Business type.", "error");
+            error = new bootstrap.Toast(toastAnimation2);
+            toastAnimation2.querySelector('.toast-body').textContent = "Business Name and EIN are required for Business type.";
+            error.show();
           }
         }
       });
@@ -1401,7 +1409,10 @@
 
       } catch (error) {
         console.error("Error:", error);
-        showToast(`Error: ${error.message}`, "error");
+
+        wrongEmail = new bootstrap.Toast(toastAnimation2);
+        toastAnimation2.querySelector('.toast-body').textContent = `Error: ${error.message}`;
+        wrongEmail.show();
       }
     });
   </script>

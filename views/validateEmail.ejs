@@ -98,9 +98,25 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast"
-    style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+  <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4" role="alert"
+    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+    <div class="d-flex">
+      <div class="toast-body">
+        Success!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+        aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4" role="alert"
+    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+    <div class="d-flex">
+      <div class="toast-body">
+        Error!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+        aria-label="Close"></button>
+    </div>
   </div>
 
   <!-- / Content -->
@@ -127,22 +143,8 @@
 
 
   <script>
-    function showToast(message, type = "success") {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
-      toast.style.color = "#fff";
-      toast.style.display = "block";
-      toast.style.opacity = "1";
-      setTimeout(() => {
-        toast.style.transition = "opacity 0.5s";
-        toast.style.opacity = "0";
-        setTimeout(() => {
-          toast.style.display = "none";
-          toast.style.transition = "";
-        }, 500);
-      }, 3000); // 3 segundos visible
-    }
+    const toastAnimation2 = document.querySelector('.toast-ex2');
+    let error;
 
     document
       .getElementById("formAuthentication")
@@ -170,11 +172,16 @@
           if (res.ok && data.success) {
             // Redirige al registro
             window.location.href = url + data.redirect;
-          } else {
-            showToast(data.message || "Invalid code", "error");
+          }
+          else {
+            error = new bootstrap.Toast(toastAnimation2);
+            toastAnimation2.querySelector('.toast-body').textContent = `Error: ${data.message || "An error occurred during validation"}`;
+            error.show();
           }
         } catch (err) {
-          showToast("An unexpected error occurred", "error");
+          error = new bootstrap.Toast(toastAnimation2);
+          toastAnimation2.querySelector('.toast-body').textContent = "An unexpected error occurred.";
+          error.show();
         }
       });
   </script>

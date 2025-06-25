@@ -133,23 +133,32 @@
         </div>
 
 
+        <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4"
+          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+          <div class="d-flex">
+            <div class="toast-body">
+              Success!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+              aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4"
+          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
+          <div class="d-flex">
+            <div class="toast-body">
+              Error!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+              aria-label="Close"></button>
+          </div>
+        </div>
+
         <script>
-          function showToast(message, type = "success") {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
-            toast.style.color = "#fff";
-            toast.style.display = "block";
-            toast.style.opacity = "1";
-            setTimeout(() => {
-              toast.style.transition = "opacity 0.5s";
-              toast.style.opacity = "0";
-              setTimeout(() => {
-                toast.style.display = "none";
-                toast.style.transition = "";
-              }, 500);
-            }, 3000); // 3 segundos visible
-          }
+          const toastAnimation1 = document.querySelector('.toast-ex1');
+          const toastAnimation2 = document.querySelector('.toast-ex2');
+          let error;
+
           document
             .getElementById("formAuthentication")
             .addEventListener("submit", async function (e) {
@@ -183,10 +192,14 @@
 
                   window.location.href = `${url}/email-validation?email=${encodeURIComponent(email)}`;
                 } else {
-                  showToast(data.message || "An error occurred during registration", "error");
+                  error = new bootstrap.Toast(toastAnimation2);
+                  toastAnimation2.querySelector('.toast-body').textContent = `Error: ${data.message || "An error occurred during registration"}`;
+                  error.show();
                 }
               } catch (err) {
-                showToast("An unexpected error occurred", "error");
+                error = new bootstrap.Toast(toastAnimation2);
+                toastAnimation2.querySelector('.toast-body').textContent = "An unexpected error occurred.";
+                error.show();
               }
             });
         </script>

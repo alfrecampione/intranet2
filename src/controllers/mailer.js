@@ -1,37 +1,47 @@
 import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import dotenv from "dotenv";
-import { pool } from "../config/dbConfig.js";
+import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
 
 dotenv.config();
 
 const passwordMail = async (req, res) => {
   const email = req.params.email;
+
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+  console.log("baseUrl", baseUrl);
+
   const { encryptedData, key, iv } = encrypt(email);
-  let result, result1;
+  let result, result1, prismaUser;
 
   try {
+    // Search in Postgres
     result = await pool.query(
       `SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
       [email],
     );
+    // Search in Prisma
+    prismaUser = await prisma.user.findUnique({
+      where: { email: email },
+    });
+    // Insert encrypted data
     result1 = await pool.query(
       `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
       [encryptedData, key, iv],
     );
   } catch (error) {
-    console.log("POSTGRESQL:", error);
-    res.status(500).json({ msg: "Data Access Error" });
+    console.log("POSTGRESQL/PRISMA:", error);
+    return res.status(500).json({ msg: "Data Access Error" });
   }
 
-  if (result.rows.length == 0) {
+  // If not found in either source
+  if ((result.rows.length === 0) && !prismaUser) {
     return res
       .status(401)
-      .json({ msg: `Please enter you GoldenTrust's email` });
+      .json({ msg: `Please enter an existing email` });
   }
-
-  const display_name = result.rows[0].display_name;
 
   let config = {
     service: "gmail",
@@ -51,23 +61,23 @@ const passwordMail = async (req, res) => {
     },
   });
 
-  let response = {
-    body: {
-      name: display_name,
-      intro: `Welcome to GoldenTrust Insurance's Intranet! We're very excited to have you on board.`,
-      action: {
-        instructions: "To get started, please click here:",
-        button: {
-          color: "#27388B", // Optional action button color
-          text: "Create your password",
-          link:
-            process.env.ENV == "PROD"
-              ? `https://staging.goldentrustinsurance.com/users/auth/reset-password/${encryptedData}`
-              : `https://localhost/users/auth/reset-password/${encryptedData}`,
-        },
+  const body = {
+    name: email,
+    intro: `Welcome to GoldenTrust Insurance! We're very excited to have you on board.`,
+    action: {
+      instructions: "To get started, please click here:",
+      button: {
+        color: "#27388B", // Optional action button color
+        text: "Create your password",
+        link:
+          `${baseUrl}/users/auth/reset-password/${encryptedData}`,
       },
-      outro: `Need help, or have questions? Just reply to this email, we'd love to help.`,
     },
+    outro: `Need help, or have questions? Just reply to this email, we'd love to help.`,
+  }
+
+  let response = {
+    body: body,
   };
 
   let mail = mailGenerator.generate(response);

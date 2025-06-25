@@ -7,6 +7,8 @@
 
 const formAuthentication = document.querySelector('#formAuthentication');
 
+const url = `${window.location.protocol}//${window.location.host}`;
+
 document.addEventListener('DOMContentLoaded', function (e) {
   (function () {
     // Form validation for Add new record
@@ -52,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 message: 'Please enter your email'
               },
               emailAddress: {
-                message: 'Please enter valid GoldenTrust email address'
+                message: 'Please enter a valid email address'
               }
             }
           },
@@ -137,33 +139,38 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }
 
     // Bootstrap toasts example
-  // --------------------------------------------------------------------
-  const toastAnimation1 = document.querySelector('.toast-ex1'),
-    toastAnimation2 = document.querySelector('.toast-ex2'),
-    toastAnimationBtn = document.getElementById('showToastAnimation');
-  let emailSended, wrongEmail
+    // --------------------------------------------------------------------
+    const toastAnimation1 = document.querySelector('.toast-ex1'),
+      toastAnimation2 = document.querySelector('.toast-ex2'),
+      toastAnimationBtn = document.getElementById('showToastAnimation');
+    let emailSended, wrongEmail
 
-  // Animation Button click
-  if (toastAnimationBtn) {
+    // Animation Button click
+    if (toastAnimationBtn) {
       toastAnimationBtn.addEventListener('click', () => {
         const email = document.getElementById('email').value;
-        if(email){
-          fetch(`/users/auth/send/${email}`,{
-            method: 'POST'
+        const data = { url }
+        console.log(email, data);
+
+        if (email) {
+          fetch(`${url}/users/auth/send/${email}`, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
           }).then(res => {
-            if(!res.ok){
+            if (!res.ok) {
               wrongEmail = new bootstrap.Toast(toastAnimation2);
               wrongEmail.show();
-            }else{
+            } else {
               emailSended = new bootstrap.Toast(toastAnimation1);
               emailSended.show();
             }
           });
-       }else{
-        wrongEmail = new bootstrap.Toast(toastAnimation2);
-        wrongEmail.show();
-       }
+        } else {
+          wrongEmail = new bootstrap.Toast(toastAnimation2);
+          wrongEmail.show();
+        }
       });
-  }
+    }
   })();
 });

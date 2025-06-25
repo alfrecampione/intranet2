@@ -144,20 +144,39 @@ const resetPassword = (req, res) => {
     async (err, result) => {
       if (err) {
         console.log(`resetPassword function error`, err);
-        res.status(500);
+        return res.status(500).redirect("/login");
       }
       if (result.rows.length == 0) {
         return res.redirect("/login");
       }
       const email = decrypt(encrypted, result.rows[0].key, result.rows[0].iv);
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Actualiza en Postgres
       pool.query(
         `UPDATE entra.users SET password=$1 WHERE mail=$2`,
         [hashedPassword, email],
-        (err, result) => {
+        async (err, result) => {
           if (err) {
             console.log(`resetPassword function error`, err);
           }
+
+          // Actualiza en Prisma si existe el usuario
+          try {
+            const prismaUser = await prisma.user.findUnique({
+              where: { email: email },
+            });
+            if (prismaUser) {
+              await prisma.user.update({
+                where: { email: email },
+                data: { password: hashedPassword },
+              });
+            }
+          } catch (prismaErr) {
+            console.log(`resetPassword Prisma error`, prismaErr);
+          }
+
+          // Borra el registro de crypto
           pool.query(
             `DELETE FROM admin.crypto WHERE encrypted_data = $1`,
             [encrypted],
