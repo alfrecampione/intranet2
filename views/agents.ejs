@@ -300,12 +300,9 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
-                                                <th class="control sorting_disabled dtr-hidden" rowspan="1" colspan="1"
-                                                    style="width: 58px; display: none" aria-label=""></th>
-                                                <th class="sorting_disabled dt-checkboxes-cell dt-checkboxes-select-all"
-                                                    rowspan="1" colspan="1" style="width: 49px" data-col="1"
-                                                    aria-label="">
-                                                    <input type="checkbox" class="form-check-input" />
+                                                <th class="sorting_disabled dtr-hidden" tabindex="0"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 10px" aria-label=""></th>
                                                 </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 144px"
@@ -526,7 +523,148 @@
       <%- JSON.stringify(registeredUsers) %>
     </script>
 
+    <script>
+        function renderTable(users, page, pageSize, searchTerm = "") {
+            const table = document.querySelector(".datatables-basic");
+            const tbody = table.querySelector("tbody");
+            tbody.innerHTML = "";
 
+            const filtered = users.filter(u =>
+                (u.legalName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+            const pageUsers = filtered.slice(start, end);
+
+            if (pageUsers.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td valign="top" colspan="7" class="dataTables_empty">No users found.</td>`;
+                tbody.appendChild(tr);
+            } else {
+                pageUsers.forEach((user) => {
+                    const tr = document.createElement("tr");
+                    const tdAvatar = document.createElement("td");
+                    tdAvatar.className = "sorting_disabled dtr-hidden";
+                    tdAvatar.innerHTML = user.photoPath
+                        ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
+                        : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
+                    tr.appendChild(tdAvatar);
+
+
+                    const tdName = document.createElement("td");
+                    tdName.textContent = user.legalName || "";
+                    tr.appendChild(tdName);
+
+                    const tdEmail = document.createElement("td");
+                    tdEmail.textContent = user.email;
+                    tr.appendChild(tdEmail);
+
+                    const tdCreated = document.createElement("td");
+                    tdCreated.textContent = user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : "";
+                    tr.appendChild(tdCreated);
+
+                    const tdAction = document.createElement("td");
+                    tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
+                    tr.appendChild(tdAction);
+
+                    tbody.appendChild(tr);
+                });
+            }
+            const info = document.getElementById("DataTables_Table_0_info");
+            const showingStart = filtered.length === 0 ? 0 : start + 1;
+            const showingEnd = Math.min(end, filtered.length);
+            info.textContent = `Showing ${showingStart} to ${showingEnd} of ${filtered.length} entries`;
+
+            renderPagination(filtered.length, page, pageSize);
+        }
+
+        function renderPagination(total, page, pageSize) {
+            const ul = document.querySelector("#DataTables_Table_0_paginate ul.pagination");
+            ul.innerHTML = "";
+
+            const totalPages = Math.ceil(total / pageSize);
+
+            // Prev
+            const prevLi = document.createElement("li");
+            prevLi.className = `paginate_button page-item previous${page === 1 ? " disabled" : ""}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1"><i class="ti ti-chevron-left ti-sm"></i></a>`;
+            prevLi.onclick = (e) => {
+                e.preventDefault();
+                if (page > 1) setPage(page - 1);
+            };
+            ul.appendChild(prevLi);
+
+            // Números de página (máximo 5)
+            let startPage = Math.max(1, page - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement("li");
+                li.className = `paginate_button page-item${i === page ? " active" : ""}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.onclick = (e) => {
+                    e.preventDefault();
+                    setPage(i);
+                };
+                ul.appendChild(li);
+            }
+
+            // Next
+            const nextLi = document.createElement("li");
+            nextLi.className = `paginate_button page-item next${page === totalPages || totalPages === 0 ? " disabled" : ""}`;
+            nextLi.innerHTML = `<a class="page-link" href="#"><i class="ti ti-chevron-right ti-sm"></i></a>`;
+            nextLi.onclick = (e) => {
+                e.preventDefault();
+                if (page < totalPages) setPage(page + 1);
+            };
+            ul.appendChild(nextLi);
+        }
+
+        // Estado global de paginado y búsqueda
+        let users = [];
+        let currentPage = 1;
+        let pageSize = 7;
+        let searchTerm = "";
+
+        function setPage(page) {
+            currentPage = page;
+            renderTable(users, currentPage, pageSize, searchTerm);
+        }
+
+        function setPageSize(size) {
+            pageSize = size;
+            currentPage = 1;
+            renderTable(users, currentPage, pageSize, searchTerm);
+        }
+
+        function setSearch(term) {
+            searchTerm = term;
+            currentPage = 1;
+            renderTable(users, currentPage, pageSize, searchTerm);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            users = JSON.parse(document.getElementById("users-data").textContent);
+
+            // Inicializar tabla
+            renderTable(users, currentPage, pageSize);
+
+            // Selector de cantidad
+            document.querySelector('select[name="DataTables_Table_0_length"]').addEventListener("change", function () {
+                setPageSize(Number(this.value));
+            });
+
+            // Barra de búsqueda
+            document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
+                setSearch(this.value);
+            });
+        });
+    </script>
 
     <script>
         function showToast(message, type = "success") {
@@ -545,46 +683,10 @@
                 }, 500);
             }, 3000); // 3 segundos visible
         }
+    </script>
 
+    <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const users = JSON.parse(
-                document.getElementById("users-data").textContent,
-            );
-
-            const table = document.querySelector(".datatables-basic");
-            const tbody = table.querySelector("tbody");
-            tbody.innerHTML = "";
-
-            users.forEach((user) => {
-                const tr = document.createElement("tr");
-
-                const tdAvatar = document.createElement("td");
-                tdAvatar.innerHTML = user.photoPath
-                    ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                    : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
-                tr.appendChild(tdAvatar);
-
-                const tdName = document.createElement("td");
-                tdName.textContent = user.legalName || "";
-                tr.appendChild(tdName);
-
-                const tdEmail = document.createElement("td");
-                tdEmail.textContent = user.email;
-                tr.appendChild(tdEmail);
-
-                const tdCreated = document.createElement("td");
-                tdCreated.textContent = user.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
-                    : "";
-                tr.appendChild(tdCreated);
-
-                const tdAction = document.createElement("td");
-                tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
-                tr.appendChild(tdAction);
-
-                tbody.appendChild(tr);
-            });
-
             // Email form submit
             document
                 .getElementById("form-send-email")

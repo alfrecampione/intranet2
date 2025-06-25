@@ -1005,9 +1005,6 @@
   <!-- Page JS -->
   <script src="/js/pages-auth-multisteps.js"></script>
 
-  <!-- Button Emergency contacts-->
-  <script src="/js/button-list-emergency-contacts.js"></script>
-
   <!-- Signature -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> -->
 
@@ -1029,7 +1026,7 @@
     function showToast(message, type = "success") {
       const toast = document.getElementById("toast");
       toast.textContent = message;
-      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545"; // verde o rojo
+      toast.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
       toast.style.color = "#fff";
       toast.style.display = "block";
       toast.style.opacity = "1";
