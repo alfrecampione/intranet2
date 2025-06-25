@@ -19,6 +19,7 @@ model User {
   user_id               String   @id @default(uuid())
   email                 String   @unique
   password              String
+  display_name          String?
   confirmationCode      String?
   registrationCompleted Boolean  @default(false)
   createdAt             DateTime @default(now())

@@ -12,9 +12,9 @@ window.isDarkStyle = window.Helpers.isDarkStyle();
 
 var loginlogo = document.getElementById('loginLogo');
 var menuLogo = document.getElementById('menuLogo');
-if(loginlogo && window.isDarkStyle){ loginlogo.setAttribute('src', '/img/branding/gti_logo_dark.png')}
-if(menuLogo && window.isDarkStyle){ menuLogo.setAttribute('src', '/img/branding/gti_logo2.png')}
-if(menuLogo && localStorage.getItem('templateCustomizer-vertical-menu-template--Theme') === 'theme-semi-dark'){ menuLogo.setAttribute('src', '/img/branding/gti_logo2.png')}
+if (loginlogo && window.isDarkStyle) { loginlogo.setAttribute('src', '/img/branding/gti_logo_dark.png') }
+if (menuLogo && window.isDarkStyle) { menuLogo.setAttribute('src', '/img/branding/gti_logo2.png') }
+if (menuLogo && localStorage.getItem('templateCustomizer-vertical-menu-template--Theme') === 'theme-semi-dark') { menuLogo.setAttribute('src', '/img/branding/gti_logo2.png') }
 
 if (!window.isDarkStyle) {
   var radioThemes = document.querySelectorAll('input[name="themeRadios"]')
@@ -56,7 +56,6 @@ if (document.getElementById('layout-menu')) {
   //-----------------
 
   let layoutMenuEl = document.querySelectorAll('#layout-menu');
-  //console.log(templateName)
   layoutMenuEl.forEach(function (element) {
     menu = new Menu(element, {
       orientation: isHorizontalLayout ? 'horizontal' : 'vertical',
@@ -65,8 +64,8 @@ if (document.getElementById('layout-menu')) {
       showDropdownOnHover: localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') // If value(showDropdownOnHover) is set in local storage
         ? localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') === 'true' // Use the local storage value
         : window.templateCustomizer !== undefined // If value is set in config.js
-        ? window.templateCustomizer.settings.defaultShowDropdownOnHover // Use the config.js value
-        : true // Use this if you are not using the config.js and want to set value directly from here
+          ? window.templateCustomizer.settings.defaultShowDropdownOnHover // Use the config.js value
+          : true // Use this if you are not using the config.js and want to set value directly from here
     });
     // Change parameter to true if you want scroll animation
     window.Helpers.scrollToActive((animate = false));
@@ -75,7 +74,7 @@ if (document.getElementById('layout-menu')) {
 
   // Initialize menu togglers and bind click on each
   let menuToggler = document.querySelectorAll('.layout-menu-toggle');
-  
+
   menuToggler.forEach(item => {
     item.addEventListener('click', event => {
       event.preventDefault();
@@ -94,7 +93,7 @@ if (document.getElementById('layout-menu')) {
             let layoutCollapsedVal = window.Helpers.isCollapsed() ? 'collapsed' : 'expanded';
             layoutCollapsedCustomizerOptions.querySelector(`input[value="${layoutCollapsedVal}"]`).click();
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     });
   });
@@ -419,7 +418,7 @@ if (document.getElementById('layout-menu')) {
             localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') === 'true',
             false
           );
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 })();
@@ -475,7 +474,7 @@ if (typeof $ !== 'undefined') {
       });
     }, 10);
 
-    searchInput.on('input', (e)=>{
+    searchInput.on('input', (e) => {
       console.log(e.target.value, 'Hola')
     })
 
@@ -504,20 +503,20 @@ if (typeof $ !== 'undefined') {
         };
       };
 
-    
-/*
-      // Search JSON
-      var searchJson = 'search-vertical.json'; // For vertical layout
-      if ($('#layout-menu').hasClass('menu-horizontal')) {
-        var searchJson = 'search-horizontal.json'; // For vertical layout
-      }
-      // Search API AJAX call
 
-      var searchData = $.ajax({
-        url: assetsPath + 'json/' + searchJson, //? Use your own search api instead
-        dataType: 'json',
-        async: false
-      }).responseJSON;*/
+      /*
+            // Search JSON
+            var searchJson = 'search-vertical.json'; // For vertical layout
+            if ($('#layout-menu').hasClass('menu-horizontal')) {
+              var searchJson = 'search-horizontal.json'; // For vertical layout
+            }
+            // Search API AJAX call
+      
+            var searchData = $.ajax({
+              url: assetsPath + 'json/' + searchJson, //? Use your own search api instead
+              dataType: 'json',
+              async: false
+            }).responseJSON;*/
 
       var response = await fetch('/users/search', {
         method: 'POST'
@@ -529,7 +528,6 @@ if (typeof $ !== 'undefined') {
 
       // Init typeahead on searchInput
       searchInput.each(function () {
-        // console.log('TES')
         var $this = $(this);
         searchInput
           .typeahead(
@@ -683,7 +681,7 @@ if (typeof $ !== 'undefined') {
       });
 
       searchInput.on('keyup', function () {
-          psSearch.update();
+        psSearch.update();
       });
     }
   });

@@ -38,7 +38,7 @@ export const createPersonalInfo = async (req, res) => {
     // Update the registrationCompleted field in the user table
     await prisma.user.update({
       where: { user_id: userId },
-      data: { registrationCompleted: true },
+      data: { registrationCompleted: true, display_name: legalName },
     });
 
     res.json(personalInfo);

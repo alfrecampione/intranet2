@@ -143,7 +143,7 @@
               <!-- Style Switcher -->
               <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <i class="ti ti-md ti-sun"></i>
+                  <i class="ti ti-md"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
                   <li>
@@ -177,8 +177,7 @@
                     <div class="dropdown-header d-flex align-items-center py-3">
                       <h5 class="text-body mb-0 me-auto">Notification</h5>
                       <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                        data-bs-placement="top" aria-label="Mark all as read"
-                        data-bs-original-title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
                     </div>
                   </li>
                   <li class="dropdown-menu-footer border-top">
@@ -195,8 +194,9 @@
               <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                   <div class="avatar avatar-online">
-                    <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
-                      class="h-auto rounded-circle">
+                    <span class="avatar-initial rounded-circle bg-label-primary">
+                      <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
+                    </span>
                   </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -205,17 +205,20 @@
                       <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                           <div class="avatar avatar-online">
-                            <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
-                              class="h-auto rounded-circle">
+                            <span class="avatar-initial rounded-circle bg-label-primary">
+                              <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
+                            </span>
                           </div>
                         </div>
                         <div class="flex-grow-1">
                           <span class="fw-medium d-block">
-
+                            <%= user.display_name %>
                           </span>
-                          <small class="text-muted">
-
-                          </small>
+                          <% if (user.job_title) { %>
+                            <small class="text-muted">
+                              <%= user.job_title %>
+                            </small>
+                            <% } %>
                         </div>
                       </div>
                     </a>
@@ -225,7 +228,6 @@
                   </li>
                   <li>
                     <a class="dropdown-item" href="/users/logout">
-                      <!-- target="_blank" -->
                       <i class="ti ti-logout me-2 ti-sm"></i>
                       <span class="align-middle">Log Out</span>
                     </a>
@@ -238,23 +240,8 @@
 
           <!-- Search Small Screens -->
           <div class="navbar-search-wrapper search-input-wrapper d-none">
-            <span class="twitter-typeahead" style="position: relative; display: inline-block;"><input type="text"
-                class="form-control search-input container-xxl border-0 tt-input" placeholder="Search..."
-                aria-label="Search..." autocomplete="off" spellcheck="false" dir="auto"
-                style="position: relative; vertical-align: top;">
-              <pre aria-hidden="true"
-                style="position: absolute; visibility: hidden; white-space: pre; font-family: &quot;Public Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif; font-size: 15px; font-style: normal; font-variant: normal; font-weight: 400; word-spacing: 0px; letter-spacing: 0px; text-indent: 0px; text-rendering: auto; text-transform: none;"></pre>
-              <div class="tt-menu navbar-search-suggestion ps"
-                style="position: absolute; top: 100%; left: 0px; z-index: 100; display: none;">
-                <div class="tt-dataset tt-dataset-contacts"></div>
-                <div class="ps__rail-x" style="left: 0px; bottom: 0px;">
-                  <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
-                </div>
-                <div class="ps__rail-y" style="top: 0px; right: 0px;">
-                  <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px;"></div>
-                </div>
-              </div>
-            </span>
+            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
+              aria-label="Search..." />
             <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
           </div>
         </nav>
@@ -346,7 +333,7 @@
                         <!-- EIN de la Compañía (Required if business) -->
                         <div class="col-sm-6" id="einGroup" style="display:none;">
                           <label class="form-label" for="ein">
-                            EIN de la Compañía <span class="text-danger">*</span>
+                            EIN<span class="text-danger">*</span>
                           </label>
                           <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
                             maxlength="10" value="<%= personalInfo?.companyEIN || '' %>" required>
@@ -742,60 +729,6 @@
                           </div>
                         </div>
                         <hr class="my-8" />
-
-                        <!-- Sub-sub-section 1.3: Sign Tax Documents -->
-                        <h5 class="mb-4">Sign Tax Documents</h5>
-                        <div class="row g-6">
-                          <div class="col-12">
-                            <p class="form-label">Signature</p>
-                            <script
-                              src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
-                            <!-- Canvas -->
-                            <div class="signature-pad-container border rounded">
-                              <canvas id="signature-canvas" class="w-full h-40"></canvas>
-                            </div>
-                            <button id="clear-signature-btn" class="btn btn-sm btn-label-secondary mt-2">Clear</button>
-
-                            <script>
-                              document.addEventListener('DOMContentLoaded', function () {
-                                const canvas = document.getElementById('signature-canvas');
-                                const clearButton = document.getElementById('clear-signature-btn');
-
-                                if (!canvas) return;
-
-                                function resizeCanvas() {
-                                  const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                                  canvas.width = canvas.offsetWidth * ratio;
-                                  canvas.height = canvas.offsetHeight * ratio;
-                                  canvas.getContext('2d').scale(ratio, ratio);
-                                }
-
-                                window.addEventListener("resize", resizeCanvas);
-                                resizeCanvas();
-
-                                const signaturePad = new SignaturePad(canvas, {
-                                  backgroundColor: 'rgb(255,255,255)',
-                                  penColor: 'rgb(0,0,0)'
-                                });
-
-                                clearButton.addEventListener('click', function () {
-                                  signaturePad.clear();
-                                });
-                              });
-                            </script>
-                          </div>
-                          <div class="col-12">
-                            <div class="form-check">
-                              <input class="form-check-input" type="checkbox" value="" id="w9Acknowledgement" required>
-                              <label class="form-check-label" for="w9Acknowledgement">
-                                I acknowledge that my tax withholding information is correct and agree to a W-9 document
-                                being produced using my
-                                information and signature.
-                              </label>
-                            </div>
-                          </div>
-                        </div>
                       </div>
 
                       <!-- Payment Method Section -->
@@ -1014,7 +947,6 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const fileInputs = document.querySelectorAll("input[type='file']");
-      const submitBtn = document.querySelector(".btn-submit");
 
       function updateStatusVisual(input) {
         const parent = input.closest(".d-flex");
@@ -1043,27 +975,8 @@
           updateStatusVisual(this);
         });
       });
-
-      submitBtn.addEventListener("click", function (e) {
-        let allValid = true;
-        fileInputs.forEach(input => {
-          const parent = input.closest(".d-flex");
-          const fileUploaded = input.files.length > 0;
-          const hasExistingLink = parent.querySelector("a[href]:not([href=''])");
-          if (!fileUploaded && !hasExistingLink) {
-            parent.classList.add("border-danger");
-            allValid = false;
-          }
-        });
-        if (fileInputs.length == 0)
-          allValid = true;
-        if (!allValid) {
-          e.preventDefault();
-        }
-      });
     });
   </script>
-
   <script>
     window.Helpers.initCustomOptionCheck();
   </script>
@@ -1253,7 +1166,7 @@
         body: JSON.stringify(personalInfo)
       });
 
-      if (!response.ok) throw new Error("Error guardando información personal");
+      if (!response.ok) throw new Error("Error uploading personal info");
       return await response.json();
     }
 
@@ -1296,7 +1209,7 @@
         body: contactInfoJSON
       });
 
-      if (!response.ok) throw new Error("Error guardando información de contacto");
+      if (!response.ok) throw new Error("Error uploading contact info");
       return await response.json();
     }
 
@@ -1304,7 +1217,6 @@
       const contacts = [];
       document.querySelectorAll('#emergencyContactsContainer .emergency-contact-entry')
         .forEach((entry) => {
-          // Skip hidden templates
           if (entry.style.display === 'none') return;
 
           const fullName = entry.querySelector('input[name*="[fullName]"]')?.value.trim() || "";
@@ -1331,7 +1243,7 @@
         body: contactsJSON
       });
 
-      if (!response.ok) throw new Error("Error guardando contactos de emergencia");
+      if (!response.ok) throw new Error("Error uploading emergency contacts");
       return await response.json();
     }
 
@@ -1380,7 +1292,6 @@
       const accountEntries = document.querySelectorAll("#bankAccountsContainer .bank-account-entry");
 
       accountEntries.forEach((entry) => {
-        // Skip hidden templates
         if (entry.style.display === "none") return;
 
         const bankAccountType = entry.querySelector('input[type="radio"][name$="[bankAccountType]"]:checked')?.value || "";
@@ -1434,37 +1345,26 @@
       };
 
       const payload = { userId: currentUserId };
-      let allValid = true;
 
+      const validInputs = [];
       for (const [key, inputId] of Object.entries(fileIds)) {
         const input = document.getElementById(inputId);
-        if (!input) {
-          continue;
+        if (input !== null) {
+          validInputs.push({ key, input });
         }
+      }
+
+      for (const { input } of validInputs) {
+        const parent = input.closest(".d-flex");
+        if (parent && parent.classList.contains("border-danger")) {
+          throw new Error("Please upload all required documents before submitting.");
+        }
+      }
+
+      for (const { key, input } of validInputs) {
         const file = input?.files?.[0];
         const parent = input.closest(".d-flex");
         const existingLink = parent.querySelector("a[href]:not([href=''])");
-
-        const span = parent.querySelector("span");
-
-        if (file || existingLink) {
-          parent.classList.add("border-success");
-          parent.classList.remove("border-danger");
-
-          if (!span.querySelector(".check-icon")) {
-            const check = document.createElement("i");
-            check.className = "ti ti-check text-success ms-2 check-icon";
-            span.appendChild(check);
-          }
-        } else {
-          parent.classList.add("border-danger");
-          parent.classList.remove("border-success");
-
-          const check = span.querySelector(".check-icon");
-          if (check) check.remove();
-
-          allValid = false;
-        }
         payload[key] = file ? await uploadFile(file) : existingLink?.getAttribute("href") || null;
       }
 
@@ -1479,7 +1379,7 @@
 
       overlay.style.display = "none";
 
-      if (!response.ok) throw new Error("Error guardando documentos");
+      if (!response.ok) throw new Error("Error uploading documents");
       return await response.json();
     }
 

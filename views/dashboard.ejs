@@ -135,7 +135,7 @@
               <!-- Style Switcher -->
               <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <i class="ti ti-md ti-sun"></i>
+                  <i class="ti ti-md"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
                   <li>
@@ -169,8 +169,7 @@
                     <div class="dropdown-header d-flex align-items-center py-3">
                       <h5 class="text-body mb-0 me-auto">Notification</h5>
                       <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                        data-bs-placement="top" aria-label="Mark all as read"
-                        data-bs-original-title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
                     </div>
                   </li>
                   <li class="dropdown-menu-footer border-top">
@@ -187,8 +186,9 @@
               <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                   <div class="avatar avatar-online">
-                    <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
-                      class="h-auto rounded-circle">
+                    <span class="avatar-initial rounded-circle bg-label-primary">
+                      <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
+                    </span>
                   </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -197,17 +197,20 @@
                       <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                           <div class="avatar avatar-online">
-                            <img src="/img/avatars/users/cb139771-4936-4eff-b1e2-03728d58dd18.png" alt=""
-                              class="h-auto rounded-circle">
+                            <span class="avatar-initial rounded-circle bg-label-primary">
+                              <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
+                            </span>
                           </div>
                         </div>
                         <div class="flex-grow-1">
                           <span class="fw-medium d-block">
-
+                            <%= user.display_name %>
                           </span>
-                          <small class="text-muted">
-
-                          </small>
+                          <% if (user.job_title) { %>
+                            <small class="text-muted">
+                              <%= user.job_title %>
+                            </small>
+                            <% } %>
                         </div>
                       </div>
                     </a>
@@ -217,7 +220,6 @@
                   </li>
                   <li>
                     <a class="dropdown-item" href="/users/logout">
-                      <!-- target="_blank" -->
                       <i class="ti ti-logout me-2 ti-sm"></i>
                       <span class="align-middle">Log Out</span>
                     </a>
@@ -230,23 +232,8 @@
 
           <!-- Search Small Screens -->
           <div class="navbar-search-wrapper search-input-wrapper d-none">
-            <span class="twitter-typeahead" style="position: relative; display: inline-block;"><input type="text"
-                class="form-control search-input container-xxl border-0 tt-input" placeholder="Search..."
-                aria-label="Search..." autocomplete="off" spellcheck="false" dir="auto"
-                style="position: relative; vertical-align: top;">
-              <pre aria-hidden="true"
-                style="position: absolute; visibility: hidden; white-space: pre; font-family: &quot;Public Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Oxygen, Ubuntu, Cantarell, &quot;Fira Sans&quot;, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif; font-size: 15px; font-style: normal; font-variant: normal; font-weight: 400; word-spacing: 0px; letter-spacing: 0px; text-indent: 0px; text-rendering: auto; text-transform: none;"></pre>
-              <div class="tt-menu navbar-search-suggestion ps"
-                style="position: absolute; top: 100%; left: 0px; z-index: 100; display: none;">
-                <div class="tt-dataset tt-dataset-contacts"></div>
-                <div class="ps__rail-x" style="left: 0px; bottom: 0px;">
-                  <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
-                </div>
-                <div class="ps__rail-y" style="top: 0px; right: 0px;">
-                  <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px;"></div>
-                </div>
-              </div>
-            </span>
+            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
+              aria-label="Search..." />
             <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
           </div>
         </nav>
@@ -257,7 +244,7 @@
                 <div class="d-flex justify-content-center align-items-center" style="height: 300px">
                   <div class="text-center">
                     <h2 class="fw-bold">
-                      Welcome <%= displayName %> to GoldenTrust Insurance
+                      Welcome <%= user.display_name %> to GoldenTrust Insurance
                     </h2>
                   </div>
                 </div>

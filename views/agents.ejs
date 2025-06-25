@@ -194,8 +194,10 @@
                                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
                                     data-bs-toggle="dropdown">
                                     <div class="avatar avatar-online">
-                                        <img src="/img/avatars/users/<%=user.user_id%>.png" alt
-                                            class="h-auto rounded-circle" />
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0]
+                                                : "" ) %>
+                                        </span>
                                     </div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
@@ -204,17 +206,21 @@
                                             <div class="d-flex">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="avatar avatar-online">
-                                                        <img src="/img/avatars/users/<%=user.user_id%>.png" alt
-                                                            class="h-auto rounded-circle" />
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                                            <%= user.display_name ? user.display_name[0] : (user.email ?
+                                                                user.email[0] : "" ) %>
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
                                                     <span class="fw-medium d-block">
                                                         <%= user.display_name %>
                                                     </span>
-                                                    <small class="text-muted">
-                                                        <%=user.job_title%>
-                                                    </small>
+                                                    <% if (user.job_title) { %>
+                                                        <small class="text-muted">
+                                                            <%= user.job_title %>
+                                                        </small>
+                                                        <% } %>
                                                 </div>
                                             </div>
                                         </a>
@@ -224,7 +230,6 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="/users/logout">
-                                            <!-- target="_blank" -->
                                             <i class="ti ti-logout me-2 ti-sm"></i>
                                             <span class="align-middle">Log Out</span>
                                         </a>
@@ -521,6 +526,8 @@
       <%- JSON.stringify(registeredUsers) %>
     </script>
 
+
+
     <script>
         function showToast(message, type = "success") {
             const toast = document.getElementById("toast");
@@ -543,8 +550,6 @@
             const users = JSON.parse(
                 document.getElementById("users-data").textContent,
             );
-
-            console.log(users);
 
             const table = document.querySelector(".datatables-basic");
             const tbody = table.querySelector("tbody");
