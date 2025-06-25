@@ -120,10 +120,22 @@
             </div>
           </div>
         </div>
-        <!-- Toast Notification -->
-        <div id="toast"
-          style="display:none;position:fixed;top:30px;right:30px;min-width:250px;z-index:99999;padding:16px 24px;border-radius:8px;font-weight:bold;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+        <!-- Toast with Animation -->
+        <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+          aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+          <div class="toast-header">
+            <i class="ti ti-bell ti-xs me-2"></i>
+            <div class="me-auto fw-medium text-primary">GTI</div>
+            <small class="text-warning">Create password</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body text-primary">
+            You should receive an email, please check it.
+          </div>
         </div>
+        <!--/ Toast with Animation -->
+
+
         <!-- Overlay Spinner -->
         <div id="email-overlay"
           style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
@@ -132,32 +144,14 @@
           </div>
         </div>
 
-
-        <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4"
-          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
-          <div class="d-flex">
-            <div class="toast-body">
-              Success!
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-              aria-label="Close"></button>
-          </div>
-        </div>
-        <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4"
-          role="alert" aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
-          <div class="d-flex">
-            <div class="toast-body">
-              Error!
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-              aria-label="Close"></button>
-          </div>
-        </div>
-
         <script>
-          const toastAnimation1 = document.querySelector('.toast-ex1');
-          const toastAnimation2 = document.querySelector('.toast-ex2');
-          let error;
+          function showToast(headerText, bodyText) {
+            const toast = document.querySelector('.toast-ex1');
+            toast.querySelector('.toast-header small').textContent = headerText;
+            toast.querySelector('.toast-body').textContent = bodyText;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+          }
 
           document
             .getElementById("formAuthentication")
@@ -192,14 +186,10 @@
 
                   window.location.href = `${url}/email-validation?email=${encodeURIComponent(email)}`;
                 } else {
-                  error = new bootstrap.Toast(toastAnimation2);
-                  toastAnimation2.querySelector('.toast-body').textContent = `Error: ${data.message || "An error occurred during registration"}`;
-                  error.show();
+                  showToast("Error", data.message || "An error occurred during registration");
                 }
               } catch (err) {
-                error = new bootstrap.Toast(toastAnimation2);
-                toastAnimation2.querySelector('.toast-body').textContent = "An unexpected error occurred.";
-                error.show();
+                showToast("Error", "An unexpected error occurred. Please try again later.");
               }
             });
         </script>

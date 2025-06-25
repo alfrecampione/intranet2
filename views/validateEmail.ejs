@@ -98,25 +98,13 @@
     </div>
   </div>
 
-  <div class="toast toast-ex1 align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-4" role="alert"
-    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
-    <div class="d-flex">
-      <div class="toast-body">
-        Success!
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-        aria-label="Close"></button>
+  <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+    aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+    <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+      <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Create password</small> <button
+        type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
-  </div>
-  <div class="toast toast-ex2 align-items-center text-bg-danger border-0 position-fixed top-0 end-0 m-4" role="alert"
-    aria-live="assertive" aria-atomic="true" style="z-index:99999; min-width:250px;">
-    <div class="d-flex">
-      <div class="toast-body">
-        Error!
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-        aria-label="Close"></button>
-    </div>
+    <div class="toast-body text-primary"> You should receive an email, please check it. </div>
   </div>
 
   <!-- / Content -->
@@ -143,8 +131,13 @@
 
 
   <script>
-    const toastAnimation2 = document.querySelector('.toast-ex2');
-    let error;
+    function showToast(headerText, bodyText) {
+      const toast = document.querySelector('.toast-ex1');
+      toast.querySelector('.toast-header small').textContent = headerText;
+      toast.querySelector('.toast-body').textContent = bodyText;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
 
     document
       .getElementById("formAuthentication")
@@ -174,14 +167,10 @@
             window.location.href = url + data.redirect;
           }
           else {
-            error = new bootstrap.Toast(toastAnimation2);
-            toastAnimation2.querySelector('.toast-body').textContent = `Error: ${data.message || "An error occurred during validation"}`;
-            error.show();
+            showToast("Error", data.message || "An error occurred during validation");
           }
         } catch (err) {
-          error = new bootstrap.Toast(toastAnimation2);
-          toastAnimation2.querySelector('.toast-body').textContent = "An unexpected error occurred.";
-          error.show();
+          showToast("Error", "An unexpected error occurred. Please try again later.");
         }
       });
   </script>
