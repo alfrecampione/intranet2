@@ -85,7 +85,7 @@ router.get("/users/registration", checkNotAuthenticated, register);
 
 router.get("/users/registration/:id", checkNotAuthenticated, editRegister);
 
-router.get("/signUp", signUp);
+router.get("/signUp/:encrypted_email", signUp);
 router.post("/signUp", createAccount);
 
 router.get("/email-validation", renderEmailValidation);
@@ -93,7 +93,7 @@ router.post("/email-validation", validateEmail);
 
 router.get("/users/agents", checkNotAuthenticated, renderAgents);
 
-router.post("/sendEmail", checkNotAuthenticated, email_sender)
+router.post("/sendEmail/:email", checkNotAuthenticated, email_sender)
 
 router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
@@ -161,8 +161,15 @@ router.get(
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
 
+
+//Utils
+import { encryptEmail, decryptEmail } from "./controllers/cryptUtils.js";
+router.post("/email/encrypt/:email", checkNotAuthenticated, encryptEmail);
+router.get("/email/decrypt/:encrypted_email", checkNotAuthenticated, decryptEmail);
+
 import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
+import { encrypt } from "./controllers/crypto.js";
 router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
 
 export default router;

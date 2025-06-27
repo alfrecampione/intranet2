@@ -418,9 +418,10 @@
                                                 </div>
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="checkbox"
-                                                        id="socialSecurityCard" name="socialSecurityCard">
-                                                    <label class="form-check-label" for="socialSecurityCard">Social
-                                                        Security Card</label>
+                                                        id="taxIdentificationW9" name="taxIdentificationW9" checked
+                                                        readonly>
+                                                    <label class="form-check-label" for="taxIdentificationW9">Tax
+                                                        Identification W9</label>
                                                 </div>
                                             </div>
                                             <div class="col-6">
@@ -702,7 +703,7 @@
                         "EINconfirmation",
                         "eANDo",
                         "proLicense",
-                        "socialSecurityCard",
+                        "taxIdentificationW9",
                         "ffmCertification",
                         "gaLicense",
                         "gaCertification",
@@ -715,20 +716,6 @@
                     });
 
                     const subject = "Create your account on GoldenTrust Insurance";
-
-                    const body = {
-                        name: email,
-                        intro: "Welcome! Please follow the instructions below.",
-                        action: {
-                            instructions: "To create your account, please click here:",
-                            button: {
-                                color: "#27388B",
-                                text: "Create your account",
-                                link: `${url}/signUp`
-                            }
-                        },
-                        outro: "If you have questions, you can reply to this email."
-                    };
 
                     const overlay = document.getElementById("email-overlay");
                     overlay.style.display = "flex";
@@ -743,7 +730,35 @@
                             }),
                         });
 
-                        const response = await fetch(`${url}/sendEmail`, {
+                        const encryptEmail = await fetch(`${url}/email/encrypt/${email}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                        });
+
+                        console.log("Base call: ", encryptEmail)
+
+                        const encryptedEmail = await encryptEmail.json();
+
+                        if (!docsResponse.ok) throw new Error("Error uploading documents");
+                        if (!encryptEmail.ok) throw new Error("Error encrypting email");
+
+                        console.log("Encrypted: ", encryptedEmail.encryptedEmail)
+
+                        const body = {
+                            name: email,
+                            intro: "Welcome! Please follow the instructions below.",
+                            action: {
+                                instructions: "To create your account, please click here:",
+                                button: {
+                                    color: "#27388B",
+                                    text: "Create your account",
+                                    link: `${url}/signUp/${encryptedEmail.encryptedEmail}`
+                                }
+                            },
+                            outro: "If you have questions, you can reply to this email."
+                        };
+
+                        const response = await fetch(`${url}/sendEmail/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({

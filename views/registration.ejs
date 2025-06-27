@@ -66,7 +66,8 @@
 
   <style>
     .bs-stepper-content .content {
-      display: none;
+      min-height: 600px;
+      box-sizing: border-box;
     }
 
     .bs-stepper-content .content.active {
@@ -268,11 +269,11 @@
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-                    <!-- Paso : Payroll -->
-                    <div class="step" data-target="#payrollValidation">
+                    <!-- Paso : Commisions -->
+                    <div class="step" data-target="#commisionValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
-                        <span class="bs-stepper-label"><span class="bs-stepper-title">Payroll</span></span>
+                        <span class="bs-stepper-label"><span class="bs-stepper-title">Commisions</span></span>
                       </button>
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
@@ -450,22 +451,6 @@
                               class="text-danger">*</span></label>
                           <input type="email" id="personalEmail" name="personalEmail" class="form-control"
                             placeholder="john.doe@email.com" required value="<%= contactInfo?.personalEmail || '' %>" />
-                          <div class="mt-2">
-                            <label class="form-label d-block">Visible to coworkers?</label>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="personalEmailVisibility"
-                                id="emailVisibleYes" value="yes" <%=contactInfo?.isPersonalEmailVisible ? 'checked' : ''
-                                %> />
-                              <label class="form-check-label" for="emailVisibleYes">Yes</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="personalEmailVisibility"
-                                id="emailVisibleNo" value="no" <%=!contactInfo?.isPersonalEmailVisible ? 'checked' : ''
-                                %>
-                              />
-                              <label class="form-check-label" for="emailVisibleNo">No</label>
-                            </div>
-                          </div>
                           <div class="invalid-feedback"></div>
                         </div>
 
@@ -475,22 +460,6 @@
                           <input type="tel" id="personalPhone" name="personalPhone" class="form-control"
                             placeholder="202 555 0111" maxlength="14" required
                             value="<%= contactInfo?.personalPhone || '' %>" />
-                          <div class="mt-2">
-                            <label class="form-label d-block">Visible to coworkers?</label>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="personalPhoneVisibility"
-                                id="phoneVisibleYes" value="yes" <%=contactInfo?.isPersonalPhoneVisible ? 'checked' : ''
-                                %> />
-                              <label class="form-check-label" for="phoneVisibleYes">Yes</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="personalPhoneVisibility"
-                                id="phoneVisibleNo" value="no" <%=!contactInfo?.isPersonalPhoneVisible ? 'checked' : ''
-                                %>
-                              />
-                              <label class="form-check-label" for="phoneVisibleNo">No</label>
-                            </div>
-                          </div>
                         </div>
 
                         <script>
@@ -569,7 +538,6 @@
                           <label class="form-label" for="workEmail">Work Email</label>
                           <input type="email" id="workEmail" name="workEmail" class="form-control"
                             placeholder="j.doe@company.com" value="<%= contactInfo?.workEmail || '' %>" />
-                          <div class="form-text">This will be visible to your coworkers.</div>
                         </div>
 
                         <!-- 10. Work Phone -->
@@ -577,7 +545,6 @@
                           <label class="form-label" for="workPhone">Work Phone</label>
                           <input type="number" id="workPhone" name="workPhone" class="form-control"
                             placeholder="212 555 0123" value="<%= contactInfo?.workPhone || '' %>" />
-                          <div class="form-text">This will be visible to your coworkers.</div>
                         </div>
 
                         <!-- 11. Preferred Contact Method -->
@@ -603,129 +570,11 @@
                       </div>
                     </div>
                     <!-- Contenido 4 -->
-                    <div id="payrollValidation" class="content">
+                    <div id="commisionValidation" class="content">
                       <!-- Main Header -->
                       <div class="content-header mb-6">
-                        <h4 class="mb-0">Payroll</h4>
-                        <p class="mb-0">Please enter your tax and payment information.</p>
-                      </div>
-
-                      <!-- ====== SUB-SECTION 1: TAX INFORMATION ====== -->
-                      <div class="tax-info-section">
-                        <!-- Sub-sub-section 1.1: Tax Identification (W-9) -->
-                        <h5 class="mb-4">Tax Identification (W-9)</h5>
-                        <div class="row g-6">
-                          <!-- Name of Tax Return -->
-                          <div class="col-md-6">
-                            <label class="form-label" for="taxReturnName">Name on Tax Return <span
-                                class="text-danger">*</span></label>
-                            <input type="text" id="taxReturnName" name="taxReturnName" class="form-control"
-                              placeholder="John M. Doe" required
-                              value="<%= taxInfo ? taxInfo.nameOnTaxReturn : '' %>" />
-                          </div>
-                          <!-- Business Name -->
-                          <div class="col-md-6">
-                            <label class="form-label" for="businessName">Business Name (if different from above)</label>
-                            <input type="text" id="businessName" name="businessName" class="form-control"
-                              value="<%= taxInfo ? taxInfo.bussinesName || '' : '' %>" />
-                          </div>
-                          <!-- Tax Classification -->
-                          <div class="col-md-12">
-                            <label class="form-label" for="taxClassification">Tax Classification <span
-                                class="text-danger">*</span></label>
-                            <select id="taxClassification" name="taxClassification" class="form-select" required>
-                              <option value="" <%=!taxInfo || !taxInfo.taxClassification ? 'selected' : '' %>>
-                                Select a classification...</option>
-                              <option value="individual" <%=taxInfo && taxInfo.taxClassification==='individual'
-                                ? 'selected' : '' %>>Individual</option>
-                              <option value="sole_proprietor" <%=taxInfo &&
-                                taxInfo.taxClassification==='sole_proprietor' ? 'selected' : '' %>>Sole Proprietor
-                              </option>
-                              <option value="single_member_llc" <%=taxInfo &&
-                                taxInfo.taxClassification==='single_member_llc' ? 'selected' : '' %>>Single-member LLC
-                              </option>
-                              <option value="c_corporation" <%=taxInfo && taxInfo.taxClassification==='c_corporation'
-                                ? 'selected' : '' %>>C Corporation</option>
-                              <option value="s_corporation" <%=taxInfo && taxInfo.taxClassification==='s_corporation'
-                                ? 'selected' : '' %>>S Corporation</option>
-                              <option value="partnership" <%=taxInfo && taxInfo.taxClassification==='partnership'
-                                ? 'selected' : '' %>>Partnership</option>
-                              <option value="trust_estate" <%=taxInfo && taxInfo.taxClassification==='trust_estate'
-                                ? 'selected' : '' %>>Trust/Estate</option>
-                              <option value="llc_multiple_members" <%=taxInfo &&
-                                taxInfo.taxClassification==='llc_multiple_members' ? 'selected' : '' %>>LLC with
-                                multiple members</option>
-                              <option value="other" <%=taxInfo && taxInfo.taxClassification==='other' ? 'selected' : ''
-                                %>
-                                >Other</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <!-- Container for CONDITIONAL W-9 Fields -->
-                        <div id="conditionalW9FieldsContainer" class="row g-6 mt-1">
-                          <!-- Taxpayer Identification Number Type -->
-                          <div id="tinTypeField" class="col-md-12 conditional-field" style="display: none;">
-                            <label class="form-label">Taxpayer Identification Number Type <span
-                                class="text-danger">*</span></label>
-                            <div>
-                              <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tinType" id="tinTypeSsn" value="ssn"
-                                  <%=taxInfo && taxInfo.taxIdNumType==='ssn' ? 'checked' : '' %>>
-                                <label class="form-check-label" for="tinTypeSsn">SSN</label>
-                              </div>
-                              <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tinType" id="tinTypeEin" value="ein"
-                                  <%=taxInfo && taxInfo.taxIdNumType==='ein' ? 'checked' : '' %>>
-                                <label class="form-check-label" for="tinTypeEin">EIN</label>
-                              </div>
-                            </div>
-                          </div>
-                          <!-- Employer Identification Number -->
-                          <div id="einField" class="col-md-6 conditional-field" style="display: none;">
-                            <label class="form-label" for="employerIdNumber">Employer Identification Number <span
-                                class="text-danger">*</span></label>
-                            <input type="text" id="employerIdNumber" name="employerIdNumber" class="form-control"
-                              placeholder="XX-XXXXXXX" value="<%= taxInfo ? taxInfo.employerIdNum || '' : '' %>" />
-                          </div>
-                          <!-- LLC Classification -->
-                          <div id="llcClassField" class="col-md-6 conditional-field" style="display: none;">
-                            <label class="form-label" for="llcClassification">LLC Classification (C=C Corp, S=S Corp,
-                              P=Partnership)</label>
-                            <input type="text" id="llcClassification" name="llcClassification" class="form-control"
-                              maxlength="1" placeholder="C, S, or P"
-                              value="<%= taxInfo ? taxInfo.llcClassification || '' : '' %>" />
-                          </div>
-                          <!-- Other Classification -->
-                          <div id="otherClassField" class="col-md-6 conditional-field" style="display: none;">
-                            <label class="form-label" for="otherClassification">Other Classification <span
-                                class="text-danger">*</span></label>
-                            <input type="text" id="otherClassification" name="otherClassification" class="form-control"
-                              value="<%= taxInfo ? taxInfo.otherClassification || '' : '' %>" />
-                          </div>
-                        </div>
-                        <hr class="my-8" />
-
-                        <!-- Sub-sub-section 1.2: Tax Exemptions -->
-                        <h5 class="mb-4">Tax Exemptions</h5>
-                        <div class="row g-6">
-                          <div class="col-12">
-                            <label class="form-label">Are you exempt from backup withholding or FATCA reporting?</label>
-                            <div>
-                              <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="isExempt" id="isExemptYes"
-                                  value="yes" <%=taxInfo && taxInfo.taxExempt ? 'checked' : '' %>>
-                                <label class="form-check-label" for="isExemptYes">Yes</label>
-                              </div>
-                              <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="isExempt" id="isExemptNo" value="no"
-                                  <%=!taxInfo || !taxInfo.taxExempt ? 'checked' : '' %>>
-                                <label class="form-check-label" for="isExemptNo">No</label>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <hr class="my-8" />
+                        <h4 class="mb-0">Commision</h4>
+                        <p class="mb-0">Please enter your payment information.</p>
                       </div>
 
                       <!-- Payment Method Section -->
@@ -733,86 +582,15 @@
                         <h5 class="mb-2">Payment Method</h5>
                         <div class="card bg-label-secondary">
                           <div class="card-body text-center">
-                            <h6 class="mb-2">Add your Bank Account(s)</h6>
-                            <p class="mb-4">Your employer will deposit your wages into the bank account(s) you add.</p>
-                            <button type="button" id="addBankAccountBtn" class="btn btn-primary">
-                              <i class="ti ti-plus ti-xs me-sm-2 me-0"></i>
-                              <span>Add a Bank Account</span>
-                            </button>
+                            <h6 class="mb-2">Add your Bank Account</h6>
+                            <p class="mb-4">Your employer will deposit your wages into the bank account you add.</p>
                           </div>
                         </div>
 
-                        <!-- Container for Bank Account Forms -->
-                        <div id="bankAccountsContainer" class="mt-4">
-                          <% if (paymentMethods && paymentMethods.length> 0) { %>
-                            <% paymentMethods.forEach(function(account, i) { %>
-                              <div class="card bank-account-entry mb-4">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                  <h6 class="mb-0">Bank Account <%= i + 1 %>
-                                  </h6>
-                                  <button type="button" class="btn btn-label-danger btn-sm remove-account-btn">
-                                    <i class="ti ti-x ti-xs me-1"></i>Remove
-                                  </button>
-                                </div>
-                                <div class="card-body">
-                                  <div class="row g-6">
-                                    <div class="col-12">
-                                      <label class="form-label">Bank Account Type</label>
-                                      <div>
-                                        <div class="form-check form-check-inline">
-                                          <input class="form-check-input" type="radio"
-                                            name="paymentMethods[<%= i %>][bankAccountType]" value="checking"
-                                            <%=account.bankAccountType==='checking' ? 'checked' : '' %> required />
-                                          <label class="form-check-label">Checking</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                          <input class="form-check-input" type="radio"
-                                            name="paymentMethods[<%= i %>][bankAccountType]" value="savings"
-                                            <%=account.bankAccountType==='savings' ? 'checked' : '' %> required />
-                                          <label class="form-check-label">Savings</label>
-                                        </div>
-                                        <div class="form-text">Por favor seleccione una opción.</div>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                      <label class="form-label">Bank Account Number <span
-                                          class="text-danger">*</span></label>
-                                      <input type="number" name="paymentMethods[<%= i %>][accountNumber]"
-                                        class="form-control" autocomplete="off" value="<%= account.bankAccountNum %>" />
-                                    </div>
-                                    <div class="col-md-6">
-                                      <label class="form-label">Confirm Account Number <span
-                                          class="text-danger">*</span></label>
-                                      <input type="number" name="paymentMethods[<%= i %>][confirmAccountNumber]"
-                                        class="form-control" autocomplete="off" value="<%= account.bankAccountNum %>" />
-                                    </div>
-                                    <div class="col-md-6">
-                                      <label class="form-label">Bank Routing Number <span
-                                          class="text-danger">*</span></label>
-                                      <input type="text" name="paymentMethods[<%= i %>][routingNumber]"
-                                        class="form-control" value="<%= account.bankRoutingNum %>" />
-                                    </div>
-                                    <div class="col-md-6">
-                                      <label class="form-label">Account Nickname <span
-                                          class="text-danger">*</span></label>
-                                      <input type="text" name="paymentMethods[<%= i %>][accountNickname]"
-                                        class="form-control" placeholder="e.g., My Primary Checking"
-                                        value="<%= account.accountNickname %>" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <% }); %>
-                                <% } %>
-                        </div>
-
-                        <!-- Template for a single bank account form (hidden) -->
-                        <div id="bankAccountTemplate" class="card bank-account-entry mb-4" style="display: none;">
+                        <!-- Single Bank Account Form -->
+                        <div class="card bank-account-entry mb-4 mt-4">
                           <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">New Bank Account</h6>
-                            <button type="button" class="btn btn-label-danger btn-sm remove-account-btn">
-                              <i class="ti ti-x ti-xs me-1"></i>Remove
-                            </button>
+                            <h6 class="mb-0">Bank Account</h6>
                           </div>
                           <div class="card-body">
                             <div class="row g-6">
@@ -820,38 +598,46 @@
                                 <label class="form-label">Bank Account Type</label>
                                 <div>
                                   <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="bankAccountType" value="checking"
-                                      checked>
+                                    <input class="form-check-input" type="radio" name="paymentMethod[bankAccountType]"
+                                      value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
+                                      ? 'checked' : '' %> required />
                                     <label class="form-check-label">Checking</label>
                                   </div>
                                   <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="bankAccountType" value="savings">
+                                    <input class="form-check-input" type="radio" name="paymentMethod[bankAccountType]"
+                                      value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
+                                      ? 'checked' : '' %> required />
                                     <label class="form-check-label">Savings</label>
                                   </div>
+                                  <div class="form-text">Por favor seleccione una opción.</div>
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <label class="form-label">Bank Account Number <span class="text-danger">*</span></label>
-                                <input type="number" name="accountNumber" class="form-control" autocomplete="off" />
+                                <input type="number" name="paymentMethod[accountNumber]" class="form-control"
+                                  autocomplete="off" value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                               </div>
                               <div class="col-md-6">
                                 <label class="form-label">Confirm Account Number <span
                                     class="text-danger">*</span></label>
-                                <input type="number" name="confirmAccountNumber" class="form-control"
-                                  autocomplete="off" />
+                                <input type="number" name="paymentMethod[confirmAccountNumber]" class="form-control"
+                                  autocomplete="off" value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                               </div>
                               <div class="col-md-6">
                                 <label class="form-label">Bank Routing Number <span class="text-danger">*</span></label>
-                                <input type="text" name="routingNumber" class="form-control" />
+                                <input type="text" name="paymentMethod[routingNumber]" class="form-control"
+                                  value="<%= paymentMethod ? paymentMethod.bankRoutingNum : '' %>" />
                               </div>
                               <div class="col-md-6">
                                 <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
-                                <input type="text" name="accountNickname" class="form-control"
-                                  placeholder="e.g., My Primary Checking" />
+                                <input type="text" name="paymentMethod[accountNickname]" class="form-control"
+                                  placeholder="e.g., My Primary Checking"
+                                  value="<%= paymentMethod ? paymentMethod.accountNickname : '' %>" />
                               </div>
                             </div>
                           </div>
                         </div>
+                        <!-- End Single Bank Account Form -->
                       </div>
                       <div class="col-12 d-flex justify-content-between mt-6">
                         <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
@@ -876,8 +662,10 @@
                           key: "gaLicense" , label: "GA License" , inputId: "gaLicenseUpload" }, {
                           key: "gaCertification" , label: "GA Certification" , inputId: "gaCertificationUpload" }, {
                           key: "sunbiz" , label: "Sunbiz" , inputId: "sunbizUpload" }, { key: "corporationLicense" ,
-                          label: "Corporation License" , inputId: "corporationLicenseUpload" } ]; const
-                          hasRequiredDocs=docFields.some(doc=> requiredDocs[doc.key]);
+                          label: "Corporation License" , inputId: "corporationLicenseUpload" },
+                          {key: "taxIdentificationW9" , label: "Tax Identification W9" ,
+                          inputId: "taxIdentificationW9Upload" } ]; const hasRequiredDocs=docFields.some(doc=>
+                          requiredDocs[doc.key]);
                           %>
                           <% if (!hasRequiredDocs) { %>
                             <div class="col-12">
@@ -1038,6 +826,7 @@
       const einGroup = document.getElementById("einGroup");
       const businessName = document.getElementById("businessName");
       const ein = document.getElementById("ein");
+      const prefFirstName = document.getElementById("preferredFirstName");
 
       function toggleBusinessFields() {
         if (contactType.value === "business") {
@@ -1045,6 +834,7 @@
           einGroup.style.display = "";
           businessName.required = true;
           ein.required = true;
+          prefFirstName.style.display = "none";
         } else {
           businessNameGroup.style.display = "none";
           einGroup.style.display = "none";
@@ -1159,9 +949,7 @@
 
     async function saveContactInfo() {
       const personalEmail = document.getElementById("personalEmail")?.value || "";
-      const emailVisible = document.getElementById("emailVisibleYes")?.checked;
       const personalPhone = document.getElementById("personalPhone")?.value || "";
-      const phoneVisible = document.getElementById("phoneVisibleYes")?.checked;
       const country = document.getElementById("country")?.value || "";
       const addressLine1 = document.getElementById("addressLine1")?.value || "";
       const addressLine2 = document.getElementById("addressLine2")?.value || "";
@@ -1174,9 +962,7 @@
 
       const contactInfo = {
         personalEmail: personalEmail,
-        isPersonalEmailVisible: !!emailVisible,
         personalPhone: personalPhone,
-        isPersonalPhoneVisible: !!phoneVisible,
         country: country,
         addressLine1: addressLine1,
         addressLine2: addressLine2 || null,
@@ -1197,80 +983,6 @@
       });
 
       if (!response.ok) throw new Error("Error uploading contact info");
-      return await response.json();
-    }
-
-    async function saveEmergencyContacts() {
-      const contacts = [];
-      document.querySelectorAll('#emergencyContactsContainer .emergency-contact-entry')
-        .forEach((entry) => {
-          if (entry.style.display === 'none') return;
-
-          const fullName = entry.querySelector('input[name*="[fullName]"]')?.value.trim() || "";
-          const phone = entry.querySelector('input[name*="[phone]"]')?.value.trim() || "";
-          const secondaryPhone = entry.querySelector('input[name*="[secondaryPhone]"]')?.value.trim() || "";
-
-          if (fullName || phone || secondaryPhone) {
-            contacts.push({
-              fullname: fullName,
-              phone: phone,
-              secondaryPhone,
-              userId: currentUserId
-            });
-          }
-        });
-
-      if (contacts.length === 0) return [];
-
-      const contactsJSON = JSON.stringify(contacts)
-
-      const response = await fetch(`${url}/steps/emergency-contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: contactsJSON
-      });
-
-      if (!response.ok) throw new Error("Error uploading emergency contacts");
-      return await response.json();
-    }
-
-    async function saveTaxInfo() {
-      // Tax Identification (W-9) section
-      const taxReturnName = document.getElementById("taxReturnName")?.value || "";
-      const businessName = document.getElementById("businessName")?.value || "";
-      const taxClassification = document.getElementById("taxClassification")?.value || "";
-
-      // Tax Identification Number Type
-      const tinType = document.querySelector('input[name="tinType"]:checked')?.value || "";
-      const employerIdNumber = document.getElementById("employerIdNumber")?.value || "";
-      const llcClassification = document.getElementById("llcClassification")?.value || "";
-      const otherClassification = document.getElementById("otherClassification")?.value || "";
-
-      // Tax Exemptions
-      const isExempt = document.querySelector('input[name="isExempt"]:checked')?.value || "no";
-      // const w9Acknowledgement = document.getElementById("w9Acknowledgement")?.checked || false;
-
-      const taxInfo = {
-        nameOnTaxReturn: taxReturnName,
-        bussinesName: businessName,
-        taxClassification,
-        taxIdNumType: tinType,
-        employerIdNum: employerIdNumber,
-        llcClassification,
-        otherClassification,
-        taxExempt: isExempt === "yes",
-        signatureTaxDoc: "",
-        userId: currentUserId
-      };
-      const taxInfoJSON = JSON.stringify(taxInfo)
-
-      const response = await fetch(`${url}/steps/tax-info`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: taxInfoJSON
-      });
-
-      if (!response.ok) throw new Error("Error guardando información fiscal");
       return await response.json();
     }
 
@@ -1323,7 +1035,7 @@
         EINconfirmation: "einConfirmationUpload",
         eANDo: "eoUpload",
         proLicense: "professionalLicenseUpload",
-        socialSecurityCard: "ssnCardUpload",
+        taxIdentificationW9: "taxIdentificationW9Upload",
         ffmCertification: "ffmCertificationUpload",
         gaLicense: "gaLicenseUpload",
         gaCertification: "gaCertificationUpload",
@@ -1379,8 +1091,6 @@
 
         await savePersonalInfo();
         await saveContactInfo();
-        // await saveEmergencyContacts();
-        await saveTaxInfo();
         await savePaymentMethods()
         await saveDocuments();
 

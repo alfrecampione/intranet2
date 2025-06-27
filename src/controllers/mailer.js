@@ -3,6 +3,7 @@ import Mailgen from "mailgen";
 import dotenv from "dotenv";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
+import { decrypt } from "./crypto.js";
 
 dotenv.config();
 
@@ -141,7 +142,9 @@ const sendMail = async (email, subject, body) => {
 };
 
 const email_sender = async (req, res) => {
-  const { email, subject, body } = req.body;
+  const { subject, body } = req.body;
+
+  const email = req.params.email;
 
   try {
     await sendMail(email, subject, body);

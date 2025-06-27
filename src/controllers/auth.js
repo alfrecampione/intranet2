@@ -2,13 +2,27 @@ import { pool, prisma } from "../config/dbConfig.js";
 import { decrypt } from "./crypto.js";
 import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
+import { decryptEmail } from "./cryptUtils.js";
 
 const login = (req, res) => {
   res.render("login");
 };
 
-const signUp = (req, res) => {
-  res.render("signUp");
+const signUp = async (req, res) => {
+  const encrypted = req.params.email;
+  if (!encrypted) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  const emailResult = await decryptEmail({ params: { encrypted_email: encrypted } }, {
+    status: () => ({
+      json: (data) => data,
+    })
+  });
+  if (!emailResult || !emailResult.data || !emailResult.data.email) {
+    return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+  }
+  res.render("signUp", emailResult.data.email);
 };
 
 const createAccount = async (req, res) => {
@@ -135,62 +149,61 @@ const renderResetPassword = (req, res) => {
   res.render("reset-password", { encrypted: encrypted });
 };
 
-const resetPassword = (req, res) => {
+const resetPassword = async (req, res) => {
   const encrypted = req.params.email;
   const { password } = req.body;
-  pool.query(
-    `SELECT * FROM admin.crypto WHERE encrypted_data = $1`,
-    [encrypted],
-    async (err, result) => {
-      if (err) {
-        console.log(`resetPassword function error`, err);
-        return res.status(500).redirect("/login");
-      }
-      if (result.rows.length == 0) {
-        return res.redirect("/login");
-      }
-      const email = decrypt(encrypted, result.rows[0].key, result.rows[0].iv);
-      const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Actualiza en Postgres
-      pool.query(
-        `UPDATE entra.users SET password=$1 WHERE mail=$2`,
-        [hashedPassword, email],
-        async (err, result) => {
-          if (err) {
-            console.log(`resetPassword function error`, err);
-          }
+  try {
+    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted } }, {
+      status: () => ({
+        json: (data) => data,
+      })
+    });
 
-          // Actualiza en Prisma si existe el usuario
-          try {
-            const prismaUser = await prisma.user.findUnique({
+    if (!emailResult || !emailResult.data || !emailResult.data.email) {
+      return res.redirect("/login");
+    }
+
+    const email = emailResult.data.email;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    pool.query(
+      `UPDATE entra.users SET password=$1 WHERE mail=$2`,
+      [hashedPassword, email],
+      async (err, result) => {
+        if (err) {
+          console.log(`resetPassword function error`, err);
+        }
+
+        try {
+          const prismaUser = await prisma.user.findUnique({
+            where: { email: email },
+          });
+          if (prismaUser) {
+            await prisma.user.update({
               where: { email: email },
+              data: { password: hashedPassword },
             });
-            if (prismaUser) {
-              await prisma.user.update({
-                where: { email: email },
-                data: { password: hashedPassword },
-              });
-            }
-          } catch (prismaErr) {
-            console.log(`resetPassword Prisma error`, prismaErr);
           }
+        } catch (prismaErr) {
+          console.log(`resetPassword Prisma error`, prismaErr);
+        }
 
-          // Borra el registro de crypto
-          pool.query(
-            `DELETE FROM admin.crypto WHERE encrypted_data = $1`,
-            [encrypted],
-            async (err, result) => {
-              if (err) {
-                console.log(`resetPassword function error`, err);
-              }
-            },
-          );
-          res.redirect("/login");
-        },
-      );
-    },
-  );
+        pool.query(
+          `DELETE FROM admin.crypto WHERE encrypted_data = $1`,
+          [encrypted],
+          async (err, result) => {
+            if (err) {
+              console.log(`resetPassword function error`, err);
+            }
+          },
+        );
+        res.redirect("/login");
+      },
+    );
+  } catch (error) {
+    console.log(`resetPassword function error`, error);
+    return res.status(500).redirect("/login");
+  }
 };
 
 const logout = (req, res) => {
