@@ -3,33 +3,39 @@ import { prisma } from "../config/dbConfig.js";
 async function getRegistrationData(userId, isEdit = false, reqUser) {
   const user = reqUser;
 
-  // Fetch all related data
   const [
     personalInfo,
     contactInfo,
-    taxInfo,
     paymentMethod,
     documents,
-    existingUser
   ] = await Promise.all([
     prisma.personalInfo.findUnique({ where: { userId } }),
     prisma.contactInfo.findUnique({ where: { userId } }),
-    prisma.taxInfo.findUnique({ where: { userId } }),
     prisma.paymentMethod.findUnique({ where: { userId } }),
     prisma.documents.findUnique({ where: { userId } }),
-    prisma.user.findUnique({ where: { user_id: userId } })
   ]);
 
-  const necesaryDocuments = await prisma.necesaryDocuments.findUnique({
-    where: { email: existingUser.email },
-  });
+  let necesaryDocuments;
+
+  if (isEdit) {
+    const existingUser = prisma.user.findUnique({ where: { user_id: userId } })
+
+    necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+      where: { email: existingUser.email },
+    });
+  }
+  else {
+    necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+      where: { email: user.email },
+    });
+  }
+
 
   return {
     user,
     userId,
     personalInfo,
     contactInfo,
-    taxInfo,
     paymentMethod,
     documents,
     necesaryDocuments,

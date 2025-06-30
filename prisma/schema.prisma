@@ -115,3 +115,9 @@ model NecesaryDocuments {
   corporationLicense  Boolean @default(false)
   taxIdentificationW9 Boolean @default(true)
 }
+
+model NewUserAlerts {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  insertedAt DateTime @default(now())
+}

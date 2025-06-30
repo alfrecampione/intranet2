@@ -199,7 +199,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li>
-                    <a class="dropdown-item" href="pages-account-settings-account.html">
+                    <a class="dropdown-item">
                       <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                           <div class="avatar avatar-online">
@@ -273,7 +273,7 @@
                     <div class="step" data-target="#commisionValidation">
                       <button type="button" class="step-trigger">
                         <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
-                        <span class="bs-stepper-label"><span class="bs-stepper-title">Commisions</span></span>
+                        <span class="bs-stepper-label"><span class="bs-stepper-title">Commision</span></span>
                       </button>
                     </div>
                     <div class="line"><i class="ti ti-chevron-right"></i></div>
@@ -338,7 +338,7 @@
                         </div>
 
                         <!-- Preferred First Name -->
-                        <div class="col-sm-6">
+                        <div class="col-sm-6" id="preferredFirstNameGroup">
                           <label class="form-label" for="preferredFirstName">Preferred First Name</label>
                           <input type="text" name="preferredFirstName" id="preferredFirstName" class="form-control"
                             placeholder="John" value="<%= personalInfo?.preferredName || '' %>" />
@@ -571,22 +571,8 @@
                     </div>
                     <!-- Contenido 4 -->
                     <div id="commisionValidation" class="content">
-                      <!-- Main Header -->
-                      <div class="content-header mb-6">
-                        <h4 class="mb-0">Commision</h4>
-                        <p class="mb-0">Please enter your payment information.</p>
-                      </div>
-
                       <!-- Payment Method Section -->
                       <div class="payment-method-section mt-5">
-                        <h5 class="mb-2">Payment Method</h5>
-                        <div class="card bg-label-secondary">
-                          <div class="card-body text-center">
-                            <h6 class="mb-2">Add your Bank Account</h6>
-                            <p class="mb-4">Your employer will deposit your wages into the bank account you add.</p>
-                          </div>
-                        </div>
-
                         <!-- Single Bank Account Form -->
                         <div class="card bank-account-entry mb-4 mt-4">
                           <div class="card-header d-flex justify-content-between align-items-center">
@@ -798,7 +784,7 @@
   <!-- <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> -->
 
   <!-- Funcionality of the payroll -->
-  <script src="/js/function-of-payroll.js"></script>
+  <!-- <script src="/js/function-of-payroll.js"></script> -->
   <!-- <script src="/js/signature.js"></script> -->
 
   <!-- Funcionality of the formulary -->
@@ -826,7 +812,7 @@
       const einGroup = document.getElementById("einGroup");
       const businessName = document.getElementById("businessName");
       const ein = document.getElementById("ein");
-      const prefFirstName = document.getElementById("preferredFirstName");
+      const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
 
       function toggleBusinessFields() {
         if (contactType.value === "business") {
@@ -834,7 +820,7 @@
           einGroup.style.display = "";
           businessName.required = true;
           ein.required = true;
-          prefFirstName.style.display = "none";
+          prefFirstNameGroup.style.display = "none";
         } else {
           businessNameGroup.style.display = "none";
           einGroup.style.display = "none";
@@ -842,6 +828,7 @@
           ein.required = false;
           businessName.classList.remove("is-invalid");
           ein.classList.remove("is-invalid");
+          prefFirstNameGroup.style.display = "";
         }
       }
 
@@ -871,12 +858,17 @@
     });
   </script>
 
+  <script>
+    "<%= JSON.stringify(paymentMethod) %>"
+  </script>
+
 
   <!-- Push the info -->
   <script>
     // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
     const currentUserId = "<%= userId %>";
     const isEdit = "<%= isEdit %>";
+    let user_email;
 
     const uploadFile = async (file) => {
       if (file) {
@@ -976,6 +968,8 @@
       };
       const contactInfoJSON = JSON.stringify(contactInfo)
 
+      user_email = personalEmail;
+
       const response = await fetch(`${url}/steps/contact-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -986,45 +980,42 @@
       return await response.json();
     }
 
-    async function savePaymentMethods() {
-      const bankAccounts = [];
-      const accountEntries = document.querySelectorAll("#bankAccountsContainer .bank-account-entry");
+    async function savePaymentMethod() {
+      const entry = document.querySelector(".bank-account-entry");
 
-      accountEntries.forEach((entry) => {
-        if (entry.style.display === "none") return;
+      if (!entry || entry.style.display === "none") return;
 
-        const bankAccountType = entry.querySelector('input[type="radio"][name$="[bankAccountType]"]:checked')?.value || "";
+      const bankAccountType = entry.querySelector('input[type="radio"][name$="[bankAccountType]"]:checked')?.value || "";
+      const bankAccountNum = entry.querySelector('input[name$="[accountNumber]"]')?.value || "";
+      const confirmAccountNum = entry.querySelector('input[name$="[confirmAccountNumber]"]')?.value || "";
+      const bankRoutingNum = entry.querySelector('input[name$="[routingNumber]"]')?.value || "";
+      const accountNickname = entry.querySelector('input[name$="[accountNickname]"]')?.value || "";
 
-        const bankAccountNum = entry.querySelector('input[name$="[accountNumber]"]')?.value || "";
+      // Optional: add validation for required fields
+      if (!bankAccountType || !bankAccountNum || !confirmAccountNum || !bankRoutingNum || !accountNickname) {
+        throw new Error("Por favor complete todos los campos obligatorios.");
+      }
 
-        const confirmAccountNum = entry.querySelector('input[name$="[confirmAccountNumber]"]')?.value || "";
+      // Optional: check if account number and confirmation match
+      if (bankAccountNum !== confirmAccountNum) {
+        throw new Error("Los números de cuenta no coinciden.");
+      }
 
-        const bankRoutingNum = entry.querySelector('input[name$="[routingNumber]"]')?.value || "";
-
-        const accountNickname = entry.querySelector('input[name$="[accountNickname]"]')?.value || "";
-
-        if (bankAccountType || bankAccountNum || bankRoutingNum) {
-          bankAccounts.push({
-            bankAccountType,
-            bankAccountNum,
-            bankRoutingNum,
-            accountNickname,
-            userId: currentUserId
-          });
-        }
-      });
-
-      if (bankAccounts.length === 0) return [];
-
-      const bankAccountsJSON = JSON.stringify(bankAccounts)
+      const bankAccount = {
+        bankAccountType,
+        bankAccountNum,
+        bankRoutingNum,
+        accountNickname,
+        userId: currentUserId
+      };
 
       const response = await fetch(`${url}/steps/payment-method`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: bankAccountsJSON
+        body: JSON.stringify(bankAccount)
       });
 
-      if (!response.ok) throw new Error("Error guardando métodos de pago");
+      if (!response.ok) throw new Error("Error guardando método de pago");
       return await response.json();
     }
 
@@ -1091,8 +1082,14 @@
 
         await savePersonalInfo();
         await saveContactInfo();
-        await savePaymentMethods()
+        await savePaymentMethod()
         await saveDocuments();
+
+        const response = await fetch(`${url}/email/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(user_email)
+        });
 
         if (isEdit == "false")
           window.location.href = `${url}/users/dashboard`;

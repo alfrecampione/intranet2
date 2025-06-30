@@ -1,12 +1,13 @@
 <!doctype html>
 
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
-    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template">
+    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template" data-style="light">
 
 <head>
     <script>
         const url = `${window.location.protocol}//${window.location.host}`;
     </script>
+
     <meta charset="utf-8" />
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
@@ -28,9 +29,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
     <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
 
-    <title>Dashboard | GTI</title>
+    <title>Configuration</title>
 
-    <meta name="description" content="" />
+    <meta name="description" content="" />+
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,6 +39,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
         rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Icons -->
     <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
@@ -67,8 +71,10 @@
 </head>
 
 <body>
+    <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
+            <!-- Menu -->
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo">
                     <a href="/users/dashboard" class="app-brand-link">
@@ -92,7 +98,7 @@
                         </a>
                     </li>
                     <% if (user && user.agency) { %>
-                        <li class="menu-item active">
+                        <li class="menu-item">
                             <a href="/users/agents" class="menu-link">
                                 <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
                                 <div data-i18n="Agents">Agents</div>
@@ -101,7 +107,7 @@
                         <li class="menu-header small text-uppercase">
                             <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
                         </li>
-                        <li class="menu-item">
+                        <li class="menu-item active">
                             <a href="/users/config_emails" class="menu-link">
                                 <i class="menu-icon tf-icons ti ti-settings-check"></i>
                                 <div data-i18n="Config">Config</div>
@@ -110,7 +116,12 @@
                         <% } %>
                 </ul>
             </aside>
+            <!-- / Menu -->
+
+            <!-- Layout container -->
             <div class="layout-page">
+                <!-- Navbar -->
+
                 <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
                     id="layout-navbar">
                     <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
@@ -244,7 +255,13 @@
                         <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
                     </div>
                 </nav>
+
+                <!-- / Navbar -->
+
+                <!-- Content wrapper -->
                 <div class="content-wrapper">
+                    <!-- Content -->
+
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <!-- DataTable with Buttons -->
                         <div class="card">
@@ -252,7 +269,7 @@
                                 <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
                                     <div class="card-header flex-column flex-md-row">
                                         <div class="head-label text-center">
-                                            <h5 class="card-title mb-0">Users</h5>
+                                            <h5 class="card-title mb-0">Emails</h5>
                                         </div>
                                         <div class="dt-action-buttons text-end pt-6 pt-md-0">
                                             <div class="dt-buttons btn-group flex-wrap">
@@ -262,7 +279,7 @@
                                                     data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
                                                     <span>
                                                         <i class="ti ti-plus me-sm-1"></i>
-                                                        <span class="d-none d-sm-inline-block">Send New Email</span>
+                                                        <span class="d-none d-sm-inline-block">Add New Email</span>
                                                     </span>
                                                 </button>
                                             </div>
@@ -297,15 +314,6 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
-                                                <th class="sorting_disabled dtr-hidden" tabindex="0"
-                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                    style="width: 10px" aria-label=""></th>
-                                                </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 144px"
-                                                    aria-label="Name: activate to sort column ascending">
-                                                    Name
-                                                </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 147px"
                                                     aria-label="Email: activate to sort column ascending">
@@ -314,7 +322,7 @@
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 130px"
                                                     aria-label="Created_at: activate to sort column ascending">
-                                                    Created at
+                                                    Inserted at
                                                 </th>
                                                 <th class="sorting_disabled" rowspan="1" colspan="1"
                                                     style="width: 174px" aria-label="Actions">
@@ -323,11 +331,26 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr class="odd">
-                                                <td valign="top" colspan="7" class="dataTables_empty">
-                                                    Loading...
-                                                </td>
-                                            </tr>
+                                            <% if (emails && emails.length> 0) { %>
+                                                <% emails.forEach(function(email) { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= email.email %>
+                                                        </td>
+                                                        <td>
+                                                            <%= email.insertedAt %>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-danger btn-sm delete-email-btn"
+                                                                data-email="<%= email.email %>">Delete</button>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                                        <% } else { %>
+                                                            <tr>
+                                                                <td colspan="2">No emails found.</td>
+                                                            </tr>
+                                                            <% } %>
                                         </tbody>
                                     </table>
                                     <div class="row">
@@ -362,436 +385,282 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Modal to add new record -->
+                        <!-- Modal to select emails -->
                         <div class="offcanvas offcanvas-end" id="add-new-record">
                             <div class="offcanvas-header border-bottom">
-                                <h5 class="offcanvas-title" id="exampleModalLabel">
-                                    Send Email
-                                </h5>
+                                <h5 class="offcanvas-title" id="exampleModalLabel">Select Emails</h5>
                                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body flex-grow-1">
-                                <form class="add-new-record pt-0 row g-2" id="form-send-email" onsubmit="return false">
-                                    <div class="col-sm-12">
-                                        <label class="form-label" for="email">Email</label>
-                                        <div class="input-group input-group-merge">
-                                            <span id="basicFullname2" class="input-group-text"><i
-                                                    class="ti ti-user"></i></span>
-                                            <input type="email" id="email" class="form-control dt-full-name"
-                                                name="email" placeholder="example@mail.com"
-                                                aria-label="example@mail.com" aria-describedby="email" />
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <label class="form-label">Required Documents</label>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        id="directDepositForm" name="directDepositForm">
-                                                    <label class="form-check-label" for="directDepositForm">Direct
-                                                        Deposit Form</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="driverLicense"
-                                                        name="driverLicense">
-                                                    <label class="form-check-label" for="driverLicense">Driver
-                                                        License</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="EINconfirmation"
-                                                        name="EINconfirmation">
-                                                    <label class="form-check-label" for="EINconfirmation">EIN
-                                                        Confirmation</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="eANDo"
-                                                        name="eANDo">
-                                                    <label class="form-check-label" for="eANDo">E&O</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="proLicense"
-                                                        name="proLicense">
-                                                    <label class="form-check-label" for="proLicense">Professional
-                                                        License</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        id="taxIdentificationW9" name="taxIdentificationW9" checked
-                                                        disabled>
-                                                    <label class="form-check-label" for="taxIdentificationW9">
-                                                        Tax Identification W9
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        id="ffmCertification" name="ffmCertification">
-                                                    <label class="form-check-label" for="ffmCertification">FFM
-                                                        Certification</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="gaLicense"
-                                                        name="gaLicense">
-                                                    <label class="form-check-label" for="gaLicense">GA License</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="gaCertification"
-                                                        name="gaCertification">
-                                                    <label class="form-check-label" for="gaCertification">GA
-                                                        Certification</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="sunbiz"
-                                                        name="sunbiz">
-                                                    <label class="form-check-label" for="sunbiz">Sunbiz</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        id="corporationLicense" name="corporationLicense">
-                                                    <label class="form-check-label" for="corporationLicense">Corporation
-                                                        License</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1">
-                                            Send
-                                        </button>
-                                        <button type="reset" class="btn btn-outline-secondary"
-                                            data-bs-dismiss="offcanvas">
-                                            Cancel
-                                        </button>
+                                <form id="email-selection-form" onsubmit="return false">
+                                    <div class="mb-3">
+                                        <label for="emailDropdown" class="form-label">Emails</label>
+                                        <select id="emailDropdown" name="email" class="form-select" style="width: 100%">
+                                            <option value="">-- Select an email --</option>
+                                            <% if (admins && admins.length> 0) { %>
+                                                <% admins.forEach(function(admin) { %>
+                                                    <option value="<%= admin.mail %>">
+                                                        <%= admin.mail %>
+                                                    </option>
+                                                    <% }); %>
+                                                        <% } %>
+                                        </select>
                                     </div>
                                 </form>
+                                <div class="col-sm-12">
+                                    <button type="submit" form="email-selection-form"
+                                        class="btn btn-primary data-submit me-sm-4 me-1" id="addEmailBtn">
+                                        Add
+                                    </button>
+                                    <button type="reset" form="email-selection-form" class="btn btn-outline-secondary"
+                                        data-bs-dismiss="offcanvas">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <!--/ DataTable with Buttons -->
+                        <div class="content-backdrop fade"></div>
                     </div>
-                    <div class="content-backdrop fade"></div>
                 </div>
             </div>
+
+            <!-- Overlay -->
+            <div class="layout-overlay layout-menu-toggle"></div>
+
+            <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+            <div class="drag-target"></div>
         </div>
-        <div class="layout-overlay layout-menu-toggle"></div>
+        <!-- / Layout wrapper -->
 
-        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-        <div class="drag-target"></div>
-    </div>
+        <script src="/vendor/libs/jquery/jquery.js"></script>
+        <script src="/vendor/libs/popper/popper.js"></script>
+        <script src="/vendor/js/bootstrap.js"></script>
+        <script src="/vendor/libs/node-waves/node-waves.js"></script>
+        <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+        <script src="/vendor/libs/hammer/hammer.js"></script>
+        <script src="/vendor/libs/i18n/i18n.js"></script>
+        <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+        <script src="/vendor/js/menu.js"></script>
 
-    <!-- Overlay Spinner -->
-    <div id="email-overlay"
-        style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
-        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
-            <span class="visually-hidden">Sending...</span>
-        </div>
-    </div>
+        <!-- endbuild -->
 
-    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
-        aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-        <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
-            <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Create password</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body text-primary"> You should receive an email, please check it. </div>
-    </div>
+        <!-- Vendors JS -->
+        <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+        <!-- Flat Picker -->
+        <script src="/vendor/libs/moment/moment.js"></script>
+        <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+        <!-- Form Validation -->
+        <script src="/vendor/libs/@form-validation/popular.js"></script>
+        <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+        <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
 
-    <script src="/vendor/libs/jquery/jquery.js"></script>
-    <script src="/vendor/libs/popper/popper.js"></script>
-    <script src="/vendor/js/bootstrap.js"></script>
-    <script src="/vendor/libs/node-waves/node-waves.js"></script>
-    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/vendor/libs/hammer/hammer.js"></script>
-    <script src="/vendor/libs/i18n/i18n.js"></script>
-    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
-    <script src="/vendor/js/menu.js"></script>
+        <!-- Main JS -->
+        <script src="/js/main.js"></script>
 
-    <!-- endbuild -->
+        <script>
+            function renderTable(users, page, pageSize, searchTerm = "") {
+                const table = document.querySelector(".datatables-basic");
+                const tbody = table.querySelector("tbody");
+                tbody.innerHTML = "";
 
-    <!-- Vendors JS -->
-    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-    <!-- Flat Picker -->
-    <script src="/vendor/libs/moment/moment.js"></script>
-    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
-    <!-- Form Validation -->
-    <script src="/vendor/libs/@form-validation/popular.js"></script>
-    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
-    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+                const filtered = users.filter(u =>
+                    (u.legalName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
+                );
 
-    <!-- Main JS -->
-    <script src="/js/main.js"></script>
+                const start = (page - 1) * pageSize;
+                const end = start + pageSize;
+                const pageUsers = filtered.slice(start, end);
 
-    <script id="users-data" type="application/json">
-      <%- JSON.stringify(registeredUsers) %>
-    </script>
-
-    <script>
-        function renderTable(users, page, pageSize, searchTerm = "") {
-            const table = document.querySelector(".datatables-basic");
-            const tbody = table.querySelector("tbody");
-            tbody.innerHTML = "";
-
-            const filtered = users.filter(u =>
-                (u.legalName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            const start = (page - 1) * pageSize;
-            const end = start + pageSize;
-            const pageUsers = filtered.slice(start, end);
-
-            if (pageUsers.length === 0) {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td valign="top" colspan="7" class="dataTables_empty">No users found.</td>`;
-                tbody.appendChild(tr);
-            } else {
-                pageUsers.forEach((user) => {
+                if (pageUsers.length === 0) {
                     const tr = document.createElement("tr");
-                    const tdAvatar = document.createElement("td");
-                    tdAvatar.className = "sorting_disabled dtr-hidden";
-                    tdAvatar.innerHTML = user.photoPath
-                        ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                        : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
-                    tr.appendChild(tdAvatar);
-
-
-                    const tdName = document.createElement("td");
-                    tdName.textContent = user.legalName || "";
-                    tr.appendChild(tdName);
-
-                    const tdEmail = document.createElement("td");
-                    tdEmail.textContent = user.email;
-                    tr.appendChild(tdEmail);
-
-                    const tdCreated = document.createElement("td");
-                    tdCreated.textContent = user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "";
-                    tr.appendChild(tdCreated);
-
-                    const tdAction = document.createElement("td");
-                    tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
-                    tr.appendChild(tdAction);
-
+                    tr.innerHTML = `<td valign="top" colspan="7" class="dataTables_empty">No users found.</td>`;
                     tbody.appendChild(tr);
-                });
+                } else {
+                    pageUsers.forEach((user) => {
+                        const tr = document.createElement("tr");
+                        const tdAvatar = document.createElement("td");
+                        tdAvatar.className = "sorting_disabled dtr-hidden";
+                        tdAvatar.innerHTML = user.photoPath
+                            ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
+                            : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
+                        tr.appendChild(tdAvatar);
+
+
+                        const tdName = document.createElement("td");
+                        tdName.textContent = user.legalName || "";
+                        tr.appendChild(tdName);
+
+                        const tdEmail = document.createElement("td");
+                        tdEmail.textContent = user.email;
+                        tr.appendChild(tdEmail);
+
+                        const tdCreated = document.createElement("td");
+                        tdCreated.textContent = user.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString()
+                            : "";
+                        tr.appendChild(tdCreated);
+
+                        const tdAction = document.createElement("td");
+                        tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
+                        tr.appendChild(tdAction);
+
+                        tbody.appendChild(tr);
+                    });
+                }
+                const info = document.getElementById("DataTables_Table_0_info");
+                const showingStart = filtered.length === 0 ? 0 : start + 1;
+                const showingEnd = Math.min(end, filtered.length);
+                info.textContent = `Showing ${showingStart} to ${showingEnd} of ${filtered.length} entries`;
+
+                renderPagination(filtered.length, page, pageSize);
             }
-            const info = document.getElementById("DataTables_Table_0_info");
-            const showingStart = filtered.length === 0 ? 0 : start + 1;
-            const showingEnd = Math.min(end, filtered.length);
-            info.textContent = `Showing ${showingStart} to ${showingEnd} of ${filtered.length} entries`;
 
-            renderPagination(filtered.length, page, pageSize);
-        }
+            function renderPagination(total, page, pageSize) {
+                const ul = document.querySelector("#DataTables_Table_0_paginate ul.pagination");
+                ul.innerHTML = "";
 
-        function renderPagination(total, page, pageSize) {
-            const ul = document.querySelector("#DataTables_Table_0_paginate ul.pagination");
-            ul.innerHTML = "";
+                const totalPages = Math.ceil(total / pageSize);
 
-            const totalPages = Math.ceil(total / pageSize);
-
-            // Prev
-            const prevLi = document.createElement("li");
-            prevLi.className = `paginate_button page-item previous${page === 1 ? " disabled" : ""}`;
-            prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1"><i class="ti ti-chevron-left ti-sm"></i></a>`;
-            prevLi.onclick = (e) => {
-                e.preventDefault();
-                if (page > 1) setPage(page - 1);
-            };
-            ul.appendChild(prevLi);
-
-            // Números de página (máximo 5)
-            let startPage = Math.max(1, page - 2);
-            let endPage = Math.min(totalPages, startPage + 4);
-            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-            for (let i = startPage; i <= endPage; i++) {
-                const li = document.createElement("li");
-                li.className = `paginate_button page-item${i === page ? " active" : ""}`;
-                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                li.onclick = (e) => {
+                // Prev
+                const prevLi = document.createElement("li");
+                prevLi.className = `paginate_button page-item previous${page === 1 ? " disabled" : ""}`;
+                prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1"><i class="ti ti-chevron-left ti-sm"></i></a>`;
+                prevLi.onclick = (e) => {
                     e.preventDefault();
-                    setPage(i);
+                    if (page > 1) setPage(page - 1);
                 };
-                ul.appendChild(li);
+                ul.appendChild(prevLi);
+
+                // Números de página (máximo 5)
+                let startPage = Math.max(1, page - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const li = document.createElement("li");
+                    li.className = `paginate_button page-item${i === page ? " active" : ""}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.onclick = (e) => {
+                        e.preventDefault();
+                        setPage(i);
+                    };
+                    ul.appendChild(li);
+                }
+
+                // Next
+                const nextLi = document.createElement("li");
+                nextLi.className = `paginate_button page-item next${page === totalPages || totalPages === 0 ? " disabled" : ""}`;
+                nextLi.innerHTML = `<a class="page-link" href="#"><i class="ti ti-chevron-right ti-sm"></i></a>`;
+                nextLi.onclick = (e) => {
+                    e.preventDefault();
+                    if (page < totalPages) setPage(page + 1);
+                };
+                ul.appendChild(nextLi);
             }
 
-            // Next
-            const nextLi = document.createElement("li");
-            nextLi.className = `paginate_button page-item next${page === totalPages || totalPages === 0 ? " disabled" : ""}`;
-            nextLi.innerHTML = `<a class="page-link" href="#"><i class="ti ti-chevron-right ti-sm"></i></a>`;
-            nextLi.onclick = (e) => {
-                e.preventDefault();
-                if (page < totalPages) setPage(page + 1);
-            };
-            ul.appendChild(nextLi);
-        }
+            // Estado global de paginado y búsqueda
+            let users = [];
+            let currentPage = 1;
+            let pageSize = 7;
+            let searchTerm = "";
 
-        // Estado global de paginado y búsqueda
-        let users = [];
-        let currentPage = 1;
-        let pageSize = 7;
-        let searchTerm = "";
+            function setPage(page) {
+                currentPage = page;
+                renderTable(users, currentPage, pageSize, searchTerm);
+            }
 
-        function setPage(page) {
-            currentPage = page;
-            renderTable(users, currentPage, pageSize, searchTerm);
-        }
+            function setPageSize(size) {
+                pageSize = size;
+                currentPage = 1;
+                renderTable(users, currentPage, pageSize, searchTerm);
+            }
 
-        function setPageSize(size) {
-            pageSize = size;
-            currentPage = 1;
-            renderTable(users, currentPage, pageSize, searchTerm);
-        }
+            function setSearch(term) {
+                searchTerm = term;
+                currentPage = 1;
+                renderTable(users, currentPage, pageSize, searchTerm);
+            }
 
-        function setSearch(term) {
-            searchTerm = term;
-            currentPage = 1;
-            renderTable(users, currentPage, pageSize, searchTerm);
-        }
+            document.addEventListener("DOMContentLoaded", () => {
+                users = JSON.parse(document.getElementById("users-data").textContent);
 
-        document.addEventListener("DOMContentLoaded", () => {
-            users = JSON.parse(document.getElementById("users-data").textContent);
+                // Inicializar tabla
+                renderTable(users, currentPage, pageSize);
 
-            // Inicializar tabla
-            renderTable(users, currentPage, pageSize);
+                // Selector de cantidad
+                document.querySelector('select[name="DataTables_Table_0_length"]').addEventListener("change", function () {
+                    setPageSize(Number(this.value));
+                });
 
-            // Selector de cantidad
-            document.querySelector('select[name="DataTables_Table_0_length"]').addEventListener("change", function () {
-                setPageSize(Number(this.value));
+                // Barra de búsqueda
+                document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
+                    setSearch(this.value);
+                });
             });
+        </script>
 
-            // Barra de búsqueda
-            document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
-                setSearch(this.value);
-            });
-        });
-    </script>
-
-    <script>
-
-        function showToast(headerText, bodyText) {
-            const toast = document.querySelector('.toast-ex1');
-            toast.querySelector('.toast-header small').textContent = headerText;
-            toast.querySelector('.toast-body').textContent = bodyText;
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-
-            const toastAnimation1 = document.querySelector('.toast-ex1');
-            const toastAnimation2 = document.querySelector('.toast-ex2');
-
-            // Email form submit
-            document
-                .getElementById("form-send-email")
-                .addEventListener("submit", async function (e) {
-                    e.preventDefault();
-                    const emailInput = document.getElementById("email");
-                    const email = emailInput.value.trim();
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("addEmailBtn").addEventListener("click", async function () {
+                    const select = document.getElementById("emailDropdown");
+                    const email = select.value;
 
                     if (!email) {
-                        showToast("Error", "Please enter an email address.");
+                        alert("Please select an email.");
                         return;
                     }
 
-                    const docFields = [
-                        "directDepositForm",
-                        "driverLicense",
-                        "EINconfirmation",
-                        "eANDo",
-                        "proLicense",
-                        "taxIdentificationW9",
-                        "ffmCertification",
-                        "gaLicense",
-                        "gaCertification",
-                        "sunbiz",
-                        "corporationLicense"
-                    ];
-                    const requiredDocuments = {};
-                    docFields.forEach(field => {
-                        requiredDocuments[field] = document.getElementById(field).checked;
-                    });
-
-                    const subject = "Create your account on GoldenTrust Insurance";
-
-                    const overlay = document.getElementById("email-overlay");
-                    overlay.style.display = "flex";
-
                     try {
-                        const docsResponse = await fetch(`${url}/necesaryDocs`, {
+                        const response = await fetch(`${url}/users/config_emails`, {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                email,
-                                ...requiredDocuments
-                            }),
-                        });
-
-                        const encryptEmail = await fetch(`${url}/email/encrypt/${email}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                        });
-
-                        console.log("Base call: ", encryptEmail)
-
-                        const encryptedEmail = await encryptEmail.json();
-
-                        if (!docsResponse.ok) throw new Error("Error uploading documents");
-                        if (!encryptEmail.ok) throw new Error("Error encrypting email");
-
-                        console.log("Encrypted: ", encryptedEmail.data.encryptedData)
-
-                        const body = {
-                            name: email,
-                            intro: "Welcome! Please follow the instructions below.",
-                            action: {
-                                instructions: "To create your account, please click here:",
-                                button: {
-                                    color: "#27388B",
-                                    text: "Create your account",
-                                    link: `${url}/signUp/${encryptedEmail.data.encryptedData}`
-                                }
+                            headers: {
+                                "Content-Type": "application/json"
                             },
-                            outro: "If you have questions, you can reply to this email."
-                        };
-
-                        const response = await fetch(`${url}/sendEmail/${email}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                email,
-                                subject,
-                                body
-                            }),
+                            body: JSON.stringify({ email })
                         });
 
-                        const responseData = await response.json();
-
-                        if (response.ok) {
-                            showToast("Success", "Email sent successfully!");
-
-                            emailInput.value = "";
-                            docFields.forEach(field => {
-                                document.getElementById(field).checked = false;
-                            });
-                            const offcanvas = document.getElementById("add-new-record");
-                            const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
-                            if (bsOffcanvas) bsOffcanvas.hide();
-                        } else {
-                            showToast("Error", responseData.message || "Error sending email.");
+                        if (!response.ok) {
+                            throw new Error("Error adding email");
                         }
+
+                        // Opcional: cerrar el offcanvas y recargar la página o actualizar la tabla
+                        location.reload();
                     } catch (err) {
-                        showToast("Error", "Error sending email.")
-                    } finally {
-                        overlay.style.display = "none";
+                        alert("Error adding email: " + err.message);
                     }
                 });
-        });
-    </script>
+
+                document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
+                    btn.addEventListener("click", async function () {
+                        const email = this.getAttribute("data-email");
+                        if (!email) return;
+
+                        if (!confirm("Are you sure you want to delete this email?")) return;
+
+                        try {
+                            const response = await fetch(`${url}/users/config_emails`, {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ email })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error("Error deleting email");
+                            }
+
+                            location.reload();
+                        } catch (err) {
+                            alert("Error deleting email: " + err.message);
+                        }
+                    });
+                });
+            });
+        </script>
 </body>
 
 </html>

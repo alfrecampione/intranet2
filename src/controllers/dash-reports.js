@@ -1,4 +1,5 @@
 import { pool, prisma } from "../config/dbConfig.js";
+import { register } from "./registration.js";
 
 const redirect_dashboard = (req, res) => {
   res.redirect("/users/dashboard");
@@ -8,17 +9,16 @@ const dashboard = async (req, res) => {
   if (!req.user) {
     return res.redirect("/login");
   }
-
-  let displayName = null;
-
-  if ("display_name" in req.user) {
-    displayName = req.user.display_name;
-  } else {
-    const personalInfo = await prisma.personalInfo.findUnique({
-      where: { userId: req.user.user_id },
-    });
-    displayName = personalInfo.legalName;
+  const registrationDone = await prisma.user.findUnique({
+    where: { user_id: req.user.user_id },
+    select: { registrationCompleted: true },
+  });
+  if (registrationDone && !registrationDone.registrationCompleted) {
+    register(req, res);
+    return;
   }
+
+  let displayName = req.user.display_name;
 
   res.render("dashboard", { user: req.user, displayName });
 };

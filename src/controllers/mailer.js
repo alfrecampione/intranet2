@@ -155,4 +155,40 @@ const email_sender = async (req, res) => {
   }
 };
 
-export { passwordMail, sendMail, email_sender };
+const new_user_notification = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required." });
+  }
+
+  try {
+    // Get all notification emails from NewUserAlerts table
+    const alerts = await prisma.newUserAlerts.findMany({});
+    if (!alerts || alerts.length === 0) {
+      return res.status(200).json({ message: "No notification emails configured." });
+    }
+
+    // Prepare email content
+    const subject = "New user created";
+    const body = {
+      intro: `The user with the email <b>${email}</b> has been created in the system.`,
+      outro: "This is an automated message from the GoldenTrust Insurance's Intranet."
+    };
+
+    // Send email to each alert email
+    for (const alert of alerts) {
+      try {
+        await sendMail(alert.email, subject, body);
+      } catch (err) {
+        console.error(`Error sending notification to ${alert.email}:`, err);
+      }
+    }
+
+    return res.status(200).json({ message: "Notifications sent." });
+  } catch (error) {
+    console.error("Error sending new user notifications:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export { passwordMail, sendMail, email_sender, new_user_notification };

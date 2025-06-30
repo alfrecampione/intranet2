@@ -41,9 +41,9 @@ const decryptEmail = async (req, res) => {
             return res.status(404).json({ success: false, message: "Email not found" });
         }
 
-        const { encryptedData, key, iv } = result.rows[0];
+        const { encrypted_data, key, iv } = result.rows[0];
 
-        const email = decrypt(encryptedData, key, iv);
+        const email = decrypt(encrypted_data, key, iv);
 
         return res.status(200).json({ success: true, message: "Email decrypted successfully", data: { email } });
     } catch (error) {
@@ -52,4 +52,16 @@ const decryptEmail = async (req, res) => {
     }
 }
 
-export { encryptEmail, decryptEmail };
+const deleteEncryptedEmail = async (encryptedEmail) => {
+    try {
+        await pool.query(
+            `DELETE FROM admin.crypto WHERE encrypted_data = $1;`,
+            [encryptedEmail]
+        );
+        console.log(`Encrypted email ${encryptedEmail} deleted from database.`);
+    } catch (error) {
+        console.error("Error deleting encrypted email:", error);
+    }
+};
+
+export { encryptEmail, decryptEmail, deleteEncryptedEmail };

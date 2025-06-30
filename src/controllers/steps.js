@@ -113,113 +113,33 @@ export const getContactInfoById = async (req, res) => {
   res.json(contactInfo);
 };
 
-// Step 3: Emergency Contact
-export const createEmergencyContacts = async (req, res) => {
-  try {
-    const contacts = req.body;
 
-    if (!Array.isArray(contacts)) {
+export const createPaymentMethod = async (req, res) => {
+  try {
+    const paymentMethod = req.body;
+
+    if (!paymentMethod || !paymentMethod.userId
+    ) {
       return res
         .status(400)
-        .json({ error: "Se esperaba un arreglo de contactos." });
+        .json({ error: "Invalid payment method or missing userId." });
     }
 
-    // Group contacts by userId
-    const userIds = [...new Set(contacts.map((contact) => contact.userId))];
-
-    // Delete existing contacts for the affected users
-    await prisma.emergencyContact.deleteMany({
-      where: {
-        userId: {
-          in: userIds,
-        },
-      },
-    });
-
-    // Create new contacts
-    await prisma.emergencyContact.createMany({
-      data: contacts.map((contact) => ({
-        Fullname: contact.Fullname,
-        Phone: contact.Phone,
-        secondaryPhone: contact.secondaryPhone ?? null,
-        userId: contact.userId,
-      })),
-    });
-
-    res
-      .status(201)
-      .json({ message: "Contactos de emergencia reemplazados exitosamente" });
-  } catch (err) {
-    console.error("Error al reemplazar contactos de emergencia:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
-export const getEmergencyContactById = async (req, res) => {
-  try {
-    const emergencyContacts =
-      (await prisma.emergencyContact.findMany({
-        where: { userId: req.params.id },
-      })) || [];
-    res.json(emergencyContacts);
-  } catch (error) {
-    res.status(500).json({ error: "Error retrieving emergency contacts" });
-  }
-};
-// Step 4: Tax Info
-export const createTaxInfo = async (req, res) => {
-  try {
-    const taxInfo = await prisma.taxInfo.upsert({
-      where: { userId: req.body.userId },
-      update: req.body,
-      create: req.body,
-    });
-
-    res.status(201).json(taxInfo);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-export const getTaxInfoById = async (req, res) => {
-  const taxInfo = await prisma.taxInfo.findUnique({
-    where: { userId: req.params.id },
-  });
-  res.json(taxInfo);
-};
-
-// Step 5: Payment Method
-export const createPaymentMethods = async (req, res) => {
-  try {
-    const paymentMethods = req.body;
-
-    if (!Array.isArray(paymentMethods)) {
-      return res
-        .status(400)
-        .json({ error: "Expected an array of payment methods." });
-    }
-
-    // Extract unique user IDs from incoming data
-    const userIds = [...new Set(paymentMethods.map((method) => method.userId))];
-
-    // Delete existing payment methods for those users
     await prisma.paymentMethod.deleteMany({
-      where: {
-        userId: {
-          in: userIds,
-        },
-      },
+      where: { userId: paymentMethod.userId },
     });
 
-    // Create new payment methods
-    await prisma.paymentMethod.createMany({
-      data: paymentMethods,
+    await prisma.paymentMethod.create({
+      data: paymentMethod,
     });
 
-    res.status(201).json({ message: "Payment methods replaced successfully" });
+    res.status(201).json({ message: "Payment method replaced successfully" });
   } catch (err) {
-    console.error("Error replacing payment methods:", err);
+    console.error("Error replacing payment method:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 export const getPaymentMethodById = async (req, res) => {
   try {

@@ -74,14 +74,10 @@
             <p class="mb-6">Please sign-up to create a new account</p>
 
             <form id="formAuthentication" class="mb-4" method="POST">
-              <div class="mb-6">
-                <label for="email" class="form-label">Email</label>
-                <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email"
-                  value="<%= typeof email !== 'undefined' && email ? email : '' %>" <%=typeof email !=='undefined' &&
-                  email ? 'readonly' : '' %>
-                autofocus
-                />
-              </div>
+              <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email"
+                value="<%= email ? email : '' %>" <%=email ? 'readonly' : '' %>
+              autofocus
+              />
               <div class="mb-6 form-password-toggle">
                 <label class="form-label" for="password">Password</label>
                 <div class="input-group input-group-merge">

@@ -24,7 +24,7 @@ import {
 } from "./controllers/dash-reports.js";
 import { agency } from "./controllers/agency-reports.js";
 import { dataSearch } from "./controllers/search.js";
-import { passwordMail, email_sender } from "./controllers/mailer.js";
+import { passwordMail, email_sender, new_user_notification } from "./controllers/mailer.js";
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
@@ -93,9 +93,11 @@ router.post("/email-validation", validateEmail);
 
 router.get("/users/agents", checkNotAuthenticated, renderAgents);
 
-router.post("/sendEmail/:email", checkNotAuthenticated, email_sender)
+router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 
 router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
+
+router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
 // STEPS ROUTES
 import {
@@ -103,17 +105,12 @@ import {
   getPersonalInfoById,
   createContactInfo,
   getContactInfoById,
-  createEmergencyContacts,
-  getEmergencyContactById,
-  createTaxInfo,
-  getTaxInfoById,
-  createPaymentMethods,
+  createPaymentMethod,
   getPaymentMethodById,
   createDocuments,
   getDocumentsById,
 } from "./controllers/steps.js";
 
-// Step 1: Personal Info
 router.post("/steps/personal-info", checkNotAuthenticated, createPersonalInfo);
 router.get(
   "/steps/personal-info/:id",
@@ -121,7 +118,6 @@ router.get(
   getPersonalInfoById,
 );
 
-// Step 2: Contact Info
 router.post("/steps/contact-info", checkNotAuthenticated, createContactInfo);
 router.get(
   "/steps/contact-info/:id",
@@ -129,27 +125,10 @@ router.get(
   getContactInfoById,
 );
 
-// Step 3: Emergency Contact
-router.post(
-  "/steps/emergency-contact",
-  checkNotAuthenticated,
-  createEmergencyContacts,
-);
-router.get(
-  "/steps/emergency-contact/:id",
-  checkNotAuthenticated,
-  getEmergencyContactById,
-);
-
-// Step 4: Tax Info
-router.post("/steps/tax-info", checkNotAuthenticated, createTaxInfo);
-router.get("/steps/tax-info/:id", checkNotAuthenticated, getTaxInfoById);
-
-// Step 5: Payment Method
 router.post(
   "/steps/payment-method",
   checkNotAuthenticated,
-  createPaymentMethods,
+  createPaymentMethod,
 );
 router.get(
   "/steps/payment-method/:id",
@@ -157,7 +136,6 @@ router.get(
   getPaymentMethodById,
 );
 
-// Step 6: Documents
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
 
@@ -169,7 +147,12 @@ router.get("/email/decrypt/:encrypted_email", checkNotAuthenticated, decryptEmai
 
 import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
-import { encrypt } from "./controllers/crypto.js";
 router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
+
+import { renderConfig, postEmailToAlert, deleteEmailToAlert } from "./controllers/config.js";
+router.get("/users/config_emails", checkNotAuthenticated, renderConfig)
+router.post("/users/config_emails", checkNotAuthenticated, postEmailToAlert);
+router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);
+
 
 export default router;

@@ -1,28 +1,31 @@
 import { pool, prisma } from "../config/dbConfig.js";
-import { decrypt } from "./crypto.js";
 import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
-import { decryptEmail } from "./cryptUtils.js";
+import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
 
 const login = (req, res) => {
   res.render("login");
 };
 
 const signUp = async (req, res) => {
-  const encrypted = req.params.email;
-  if (!encrypted) {
+  const { encrypted_email } = req.params;
+  if (!encrypted_email) {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
 
-  const emailResult = await decryptEmail({ params: { encrypted_email: encrypted } }, {
+  const emailResult = await decryptEmail({ params: { encrypted_email: encrypted_email } }, {
     status: () => ({
       json: (data) => data,
     })
   });
+
   if (!emailResult || !emailResult.data || !emailResult.data.email) {
     return res.status(400).json({ success: false, message: "Invalid encrypted email" });
   }
-  res.render("signUp", emailResult.data.email);
+
+  await deleteEncryptedEmail(encrypted_email);
+
+  res.render("signUp", { email: emailResult.data.email });
 };
 
 const createAccount = async (req, res) => {
@@ -141,6 +144,7 @@ const loginCheck = (req, res) => {
 }*/
 
 const index = (req, res) => {
+  console.log("index function called");
   res.redirect("/users/dashboard");
 };
 

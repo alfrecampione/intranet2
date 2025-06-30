@@ -1,4 +1,67 @@
-import { pool } from "../config/dbConfig.js";
+import { pool, prisma } from "../config/dbConfig.js";
+
+const renderConfig = async (req, res) => {
+  const emails = await getEmailsToAlert()
+  const admins = await getAdmins();
+
+  res.render("config_emails", { user: req.user, emails, admins });
+};
+
+async function getEmailsToAlert() {
+  const results = await prisma.newUserAlerts.findMany({});
+  return results || [];
+}
+
+const postEmailToAlert = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  try {
+    await prisma.newUserAlerts.create({
+      data: { email },
+    });
+    res.status(201).json({ message: "Email added successfully" });
+  } catch (error) {
+    console.error("Error adding email to alert:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+const deleteEmailToAlert = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  try {
+    await prisma.newUserAlerts.delete({
+      where: { email },
+    });
+    res.status(200).json({ message: "Email deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting email from alert:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function getAdmins() {
+  try {
+    const result = await pool.query(
+      `SELECT mail FROM entra.users WHERE location_id = $1 AND department = $2`,
+      [1, 'Health']
+    );
+    return result.rows;
+  } catch (error) {
+    console.error("Error fetching admins:", error);
+  }
+}
+
+
+
+
+
 
 const headcarrier = async (req, res) => {
   let data = {};
@@ -123,4 +186,8 @@ export {
   head_carrier_list,
   addCarrier,
   deleteCarrier,
+  getEmailsToAlert,
+  postEmailToAlert,
+  deleteEmailToAlert,
+  renderConfig
 };
