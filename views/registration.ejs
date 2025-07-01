@@ -1244,7 +1244,7 @@
         const response = await fetch(`${url}/email/config`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_email })
+          body: JSON.stringify({ email: user_email })
         });
 
         if (!response.ok) throw new Error("Error sending the email");
