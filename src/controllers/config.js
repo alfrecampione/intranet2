@@ -8,7 +8,9 @@ const renderConfigEmails = async (req, res) => {
 };
 
 async function getEmailsToAlert() {
-  const results = await prisma.newUserAlerts.findMany();
+  const results = await prisma.newUserAlerts.findMany({
+    orderBy: { email: 'asc' }
+  });
   return results || [];
 }
 
@@ -62,11 +64,71 @@ async function getAdmins() {
     console.error("Error fetching admins:", error);
   }
 }
+const renderConfigCarriers = async (req, res) => {
+  try {
+    const companies = await prisma.company.findMany({
+      orderBy: { name: 'asc' }
+    });
 
+    // Format states as comma-separated string for display
+    const formattedCompanies = companies.map(c => ({
+      name: c.name,
+      states: Array.isArray(c.States) ? c.States.join('| ') : ''
+    }));
 
+    res.render("config_carriers", {
+      user: req.user,
+      companies: formattedCompanies
+    });
+  } catch (error) {
+    console.error("Error rendering carriers config:", error);
+    res.render("config_carriers", {
+      user: req.user,
+      companies: [],
+      error: "Error loading companies"
+    });
+  }
+}
 
+const postCompany = async (req, res) => {
+  const { name, states } = req.body;
+  if (!name || !Array.isArray(states) || states.length === 0) {
+    return res.status(400).json({ message: "Company name and at least one state are required" });
+  }
 
+  try {
+    await prisma.company.create({
+      data: {
+        name,
+        States: states
+      }
+    });
+    res.status(201).json({ message: "Company added successfully" });
+  } catch (error) {
+    if (error.code === 'P2002') { // Unique constraint failed
+      return res.status(409).json({ message: "Company already exists" });
+    }
+    console.error("Error adding company:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
+const deleteCompany = async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: "Company name is required" });
+  }
+
+  try {
+    await prisma.company.delete({
+      where: { name }
+    });
+    res.status(200).json({ message: "Company deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting company:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 const headcarrier = async (req, res) => {
   let data = {};
@@ -194,5 +256,8 @@ export {
   getEmailsToAlert,
   postEmailToAlert,
   deleteEmailToAlert,
-  renderConfigEmails
+  renderConfigEmails,
+  renderConfigCarriers,
+  postCompany,
+  deleteCompany
 };

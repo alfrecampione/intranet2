@@ -154,10 +154,10 @@ router.get("/users/config_emails", checkNotAuthenticated, renderConfigEmails)
 router.post("/users/config_emails", checkNotAuthenticated, postEmailToAlert);
 router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);
 
-import { renderConfigCarriers, postCarrier, deleteCarrier } from "./controllers/config.js";
+import { renderConfigCarriers, postCompany, deleteCompany } from "./controllers/config.js";
 router.get("/users/config_carriers", checkNotAuthenticated, renderConfigCarriers);
-router.post("/users/config_carriers", checkNotAuthenticated, postCarrier);
-router.delete("/users/config_carriers", checkNotAuthenticated, deleteCarrier);
+router.post("/users/config_carriers", checkNotAuthenticated, postCompany);
+router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
 
 export default router;
