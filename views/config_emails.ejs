@@ -40,6 +40,8 @@
         href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
         rel="stylesheet" />
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -459,6 +461,10 @@
         <!-- Main JS -->
         <script src="/js/main.js"></script>
 
+        <script type="application/json" id="users-data">
+            <%- JSON.stringify(emails) %>
+        </script>
+
         <script>
             function renderTable(users, page, pageSize, searchTerm = "") {
                 const table = document.querySelector(".datatables-basic");
@@ -466,7 +472,6 @@
                 tbody.innerHTML = "";
 
                 const filtered = users.filter(u =>
-                    (u.legalName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
                     (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
                 );
 
@@ -476,40 +481,30 @@
 
                 if (pageUsers.length === 0) {
                     const tr = document.createElement("tr");
-                    tr.innerHTML = `<td valign="top" colspan="7" class="dataTables_empty">No users found.</td>`;
+                    tr.innerHTML = `<td colspan="3" class="dataTables_empty text-center">No emails found.</td>`;
                     tbody.appendChild(tr);
                 } else {
                     pageUsers.forEach((user) => {
                         const tr = document.createElement("tr");
-                        const tdAvatar = document.createElement("td");
-                        tdAvatar.className = "sorting_disabled dtr-hidden";
-                        tdAvatar.innerHTML = user.photoPath
-                            ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                            : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
-                        tr.appendChild(tdAvatar);
-
-
-                        const tdName = document.createElement("td");
-                        tdName.textContent = user.legalName || "";
-                        tr.appendChild(tdName);
 
                         const tdEmail = document.createElement("td");
-                        tdEmail.textContent = user.email;
+                        tdEmail.textContent = user.email || "";
                         tr.appendChild(tdEmail);
 
                         const tdCreated = document.createElement("td");
-                        tdCreated.textContent = user.createdAt
-                            ? new Date(user.createdAt).toLocaleDateString()
+                        tdCreated.textContent = user.insertedAt
+                            ? new Date(user.insertedAt).toLocaleDateString()
                             : "";
                         tr.appendChild(tdCreated);
 
                         const tdAction = document.createElement("td");
-                        tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary">View</a>`;
+                        tdAction.innerHTML = `<button class="btn btn-danger btn-sm delete-email-btn" data-email="${user.email}">Delete</button>`;
                         tr.appendChild(tdAction);
 
                         tbody.appendChild(tr);
                     });
                 }
+
                 const info = document.getElementById("DataTables_Table_0_info");
                 const showingStart = filtered.length === 0 ? 0 : start + 1;
                 const showingEnd = Math.min(end, filtered.length);
@@ -517,6 +512,7 @@
 
                 renderPagination(filtered.length, page, pageSize);
             }
+
 
             function renderPagination(total, page, pageSize) {
                 const ul = document.querySelector("#DataTables_Table_0_paginate ul.pagination");

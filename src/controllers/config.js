@@ -8,7 +8,7 @@ const renderConfig = async (req, res) => {
 };
 
 async function getEmailsToAlert() {
-  const results = await prisma.newUserAlerts.findMany({});
+  const results = await prisma.newUserAlerts.findMany();
   return results || [];
 }
 
