@@ -619,6 +619,8 @@
                     const select = document.getElementById("select2Primary");
                     const emails = Array.from(select.selectedOptions).map(option => option.value);
 
+                    console.log("emails: ", emails);
+
                     if (!emails.length) {
                         alert("Please select at least one email.");
                         return;
@@ -626,6 +628,8 @@
 
                     const existingEmails = Array.from(document.querySelectorAll("table .delete-email-btn"))
                         .map(btn => btn.getAttribute("data-email"));
+
+                    console.log("existingEmails: ", existingEmails);
 
                     const newEmails = emails.filter(email => !existingEmails.includes(email));
 
@@ -640,7 +644,7 @@
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ newEmails })
+                            body: JSON.stringify({ emails: newEmails })
                         });
 
                         if (!response.ok) {
