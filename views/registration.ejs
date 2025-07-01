@@ -1093,6 +1093,8 @@
 
       user_email = personalEmail;
 
+      console.log("contactInfo: ", contactInfoJSON)
+
       const response = await fetch(`${url}/steps/contact-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1214,8 +1216,6 @@
         });
       });
 
-      console.log("Selected carriers:", carriers);
-
       if (carriers.length === 0) throw new Error("Please select at least one company for one state.");
 
       const response = await fetch(`${url}/steps/states-carriers`, {
@@ -1244,8 +1244,10 @@
         const response = await fetch(`${url}/email/config`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user_email)
+          body: JSON.stringify({ user_email })
         });
+
+        if (!response.ok) throw new Error("Error sending the email");
 
         if (isEdit == "false")
           window.location.href = `${url}/users/dashboard`;
