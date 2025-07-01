@@ -1,6 +1,6 @@
 import { pool, prisma } from "../config/dbConfig.js";
 
-const renderConfig = async (req, res) => {
+const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
   const admins = await getAdmins();
 
@@ -194,5 +194,5 @@ export {
   getEmailsToAlert,
   postEmailToAlert,
   deleteEmailToAlert,
-  renderConfig
+  renderConfigEmails
 };

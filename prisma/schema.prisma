@@ -47,12 +47,12 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  id                       Int      @id @default(autoincrement())
-  userId                   String   @unique
+  id                       Int     @id @default(autoincrement())
+  userId                   String  @unique
   personalEmail            String
-  isPersonalEmailVisible   Boolean  @default(false)
+  isPersonalEmailVisible   Boolean @default(false)
   personalPhone            String?
-  isPersonalPhoneVisible   Boolean  @default(false)
+  isPersonalPhoneVisible   Boolean @default(false)
   country                  String
   addressLine1             String
   addressLine2             String?
@@ -62,20 +62,18 @@ model ContactInfo {
   workEmail                String?
   workPhone                String?
   preferredContactMethod   String?
-  sendMessagePersonalPhone Boolean  @default(false)
-  createdAt                DateTime @default(now())
+  sendMessagePersonalPhone Boolean @default(false)
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model PaymentMethod {
-  id              String   @id @default(uuid())
-  userId          String   @unique
+  id              String @id @default(uuid())
+  userId          String @unique
   bankAccountType String
   bankAccountNum  String
   bankRoutingNum  String
   accountNickname String
-  createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
@@ -94,8 +92,6 @@ model Documents {
   sunbiz              String?
   corporationLicense  String?
   taxIdentificationW9 String
-
-  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
@@ -116,8 +112,21 @@ model NecesaryDocuments {
   taxIdentificationW9 Boolean @default(true)
 }
 
+model StatesANDCarriers {
+  id        String   @id @default(uuid())
+  state     String
+  companies String[]
+}
+
 model NewUserAlerts {
   id         String   @id @default(uuid())
   email      String   @unique
   insertedAt DateTime @default(now())
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  States    String[]
+  createdAt DateTime @default(now())
 }

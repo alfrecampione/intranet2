@@ -149,10 +149,15 @@ import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
 router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
 
-import { renderConfig, postEmailToAlert, deleteEmailToAlert } from "./controllers/config.js";
-router.get("/users/config_emails", checkNotAuthenticated, renderConfig)
+import { renderConfigEmails, postEmailToAlert, deleteEmailToAlert } from "./controllers/config.js";
+router.get("/users/config_emails", checkNotAuthenticated, renderConfigEmails)
 router.post("/users/config_emails", checkNotAuthenticated, postEmailToAlert);
 router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);
+
+import { renderConfigCarriers, postCarrier, deleteCarrier } from "./controllers/config.js";
+router.get("/users/config_carriers", checkNotAuthenticated, renderConfigCarriers);
+router.post("/users/config_carriers", checkNotAuthenticated, postCarrier);
+router.delete("/users/config_carriers", checkNotAuthenticated, deleteCarrier);
 
 
 export default router;
