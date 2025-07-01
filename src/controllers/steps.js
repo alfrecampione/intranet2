@@ -178,3 +178,59 @@ export const getDocumentsById = async (req, res) => {
   });
   res.json(documents);
 };
+
+export const getStatesCarriers = async (req, res) => {
+  try {
+    const statesCarriers = await prisma.statesCarriers.findMany({
+      orderBy: { state: 'asc' },
+    });
+    res.json(statesCarriers);
+  } catch (error) {
+    console.error("Error fetching states and carriers:", error);
+    res.status(500).json({ error: "Failed to fetch states and carriers" });
+  }
+};
+
+export const saveStatesCarriers = async (req, res) => {
+  try {
+    const { userId, carriers } = req.body;
+
+    if (!userId || !Array.isArray(carriers) || carriers.length === 0) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Remove previous records for this user
+    await prisma.statesANDCarriers.deleteMany({
+      where: { userId },
+    });
+
+    // Insert new records: one per company per state
+    const createData = [];
+    carriers.forEach(carrier => {
+      if (carrier.name && Array.isArray(carrier.states)) {
+        carrier.states.forEach(state => {
+          createData.push({
+            userId,
+            company: carrier.name,
+            state,
+          });
+        });
+      }
+    });
+
+    if (createData.length === 0) {
+      return res.status(400).json({ error: "No valid carriers/states provided" });
+    }
+
+    const statesAndCarriers = await prisma.statesANDCarriers.createMany({
+      data: createData,
+      skipDuplicates: true
+    });
+
+    res.status(201).json(statesAndCarriers);
+  } catch (error) {
+    console.error("Error saving states and carriers:", error);
+    res.status(500).json({ error: "Failed to save states and carriers", details: error.message });
+  }
+};
+

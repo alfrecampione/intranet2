@@ -24,10 +24,11 @@ model User {
   registrationCompleted Boolean  @default(false)
   createdAt             DateTime @default(now())
 
-  personalInfo  PersonalInfo?
-  contactInfo   ContactInfo?
-  paymentMethod PaymentMethod?
-  documents     Documents?
+  personalInfo      PersonalInfo?
+  contactInfo       ContactInfo?
+  paymentMethod     PaymentMethod?
+  documents         Documents?
+  statesAndCarriers StatesANDCarriers[]
 }
 
 model PersonalInfo {
@@ -113,9 +114,14 @@ model NecesaryDocuments {
 }
 
 model StatesANDCarriers {
-  id        String   @id @default(uuid())
-  state     String
-  companies String[]
+  id      String @id @default(uuid())
+  userId  String
+  state   String
+  company String
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@unique([userId, state, company])
 }
 
 model NewUserAlerts {

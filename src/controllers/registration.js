@@ -8,18 +8,21 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     contactInfo,
     paymentMethod,
     documents,
+    statesAndCarriersbyUser,
+    allCompanies
   ] = await Promise.all([
     prisma.personalInfo.findUnique({ where: { userId } }),
     prisma.contactInfo.findUnique({ where: { userId } }),
     prisma.paymentMethod.findUnique({ where: { userId } }),
     prisma.documents.findUnique({ where: { userId } }),
+    prisma.statesANDCarriers.findMany({ where: { userId } }),
+    prisma.company.findMany()
   ]);
 
   let necesaryDocuments;
 
   if (isEdit) {
-    const existingUser = prisma.user.findUnique({ where: { user_id: userId } })
-
+    const existingUser = await prisma.user.findUnique({ where: { user_id: userId } })
     necesaryDocuments = await prisma.necesaryDocuments.findUnique({
       where: { email: existingUser.email },
     });
@@ -39,7 +42,9 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     paymentMethod,
     documents,
     necesaryDocuments,
-    isEdit
+    isEdit,
+    statesAndCarriersbyUser,
+    allCompanies
   };
 }
 

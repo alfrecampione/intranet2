@@ -109,6 +109,8 @@ import {
   getPaymentMethodById,
   createDocuments,
   getDocumentsById,
+  getStatesCarriers,
+  saveStatesCarriers,
 } from "./controllers/steps.js";
 
 router.post("/steps/personal-info", checkNotAuthenticated, createPersonalInfo);
@@ -138,6 +140,9 @@ router.get(
 
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
+
+router.get("/steps/states-carriers", checkNotAuthenticated, getStatesCarriers);
+router.post("/steps/states-carriers", checkNotAuthenticated, saveStatesCarriers);
 
 
 //Utils

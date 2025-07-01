@@ -45,20 +45,12 @@
   <!-- Vendor -->
   <link rel="stylesheet" href="/vendor/libs/bs-stepper/bs-stepper.css" />
   <link rel="stylesheet" href="/vendor/libs/bootstrap-select/bootstrap-select.css" />
-  <link rel="stylesheet" href="/vendor/libs/select2/select2.css" />
   <link rel="stylesheet" href="/vendor/libs/@form-validation/form-validation.css" />
 
   <!-- Page CSS -->
 
   <!-- Page -->
   <link rel="stylesheet" href="/vendor/css/pages/page-auth.css" />
-
-  <!-- Helpers -->
-  <script src="/vendor/js/helpers.js"></script>
-  <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-
-  <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
-  <script src="/vendor/js/template-customizer.js"></script>
 
   <!--? !!!!!!!!!!!!!!!!!!Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
   <script src="/js/config.js"></script>
@@ -102,7 +94,7 @@
         <div class="app-brand demo">
           <a href="/users/dashboard" class="app-brand-link">
             <span class="app-brand-text">
-              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo">
+              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
             </span>
           </a>
           <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
@@ -110,8 +102,36 @@
             <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
           </a>
         </div>
+
         <div class="menu-inner-shadow"></div>
+
         <ul class="menu-inner py-1">
+          <% if (isEdit) { %>
+            <li class="menu-item">
+              <a href="/users/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+            <% if (user && user.agency) { %>
+              <li class="menu-item active">
+                <a href="/users/agents" class="menu-link">
+                  <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                  <div data-i18n="Agents">Agents</div>
+                </a>
+              </li>
+              <li class="menu-header small text-uppercase">
+                <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+              </li>
+              <li class="menu-item">
+                <a href="/users/config_emails" class="menu-link">
+                  <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                  <div data-i18n="Config">Config</div>
+                </a>
+              </li>
+              <% } %>
+                <% } %>
+        </ul>
       </aside>
 
       <div class="layout-page">
@@ -692,12 +712,8 @@
                       </div>
                       <div class="mb-4"></div>
                       <div class="col-12 d-flex justify-content-between mt-6">
-                        <button type="button" class="btn btn-label-secondary btn-prev">
-                          <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
-                        </button>
-                        <button type="submit" class="btn btn-success btn-submit">
-                          Review & Submit
-                        </button>
+                        <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                        <button type="button" class="btn btn-primary btn-next">Next</button>
                       </div>
                     </div>
                     <!-- Contenido 6 -->
@@ -708,12 +724,13 @@
                           each.</p>
                       </div>
                       <div id="carriers-list"></div>
-                      <button type="button" class="btn btn-outline-primary mb-3" id="add-carrier-btn">
-                        <i class="ti ti-plus"></i> Add Carrier
-                      </button>
                       <div class="col-12 d-flex justify-content-between mt-6">
-                        <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                        <button type="button" class="btn btn-primary btn-next">Next</button>
+                        <button type="button" class="btn btn-label-secondary btn-prev">
+                          <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
+                        </button>
+                        <button type="submit" class="btn btn-success btn-submit">
+                          Review & Submit
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -734,6 +751,44 @@
     </div>
     <div class="toast-body text-primary"> You should receive an email, please check it. </div>
   </div>
+
+  <script src="/vendor/libs/jquery/jquery.js"></script>
+  <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
+  <script src="/vendor/libs/select2/select2.js"></script>
+
+  <script src="/vendor/libs/popper/popper.js"></script>
+  <script src="/vendor/js/bootstrap.js"></script>
+  <script src="/vendor/libs/node-waves/node-waves.js"></script>
+  <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="/vendor/libs/hammer/hammer.js"></script>
+  <script src="/vendor/libs/i18n/i18n.js"></script>
+  <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+  <script src="/vendor/js/menu.js"></script>
+
+  <script src="/vendor/libs/cleavejs/cleave.js"></script>
+  <script src="/vendor/libs/cleavejs/cleave-phone.js"></script>
+  <script src="/vendor/libs/bs-stepper/bs-stepper.js"></script>
+  <script src="/vendor/libs/@form-validation/popular.js"></script>
+  <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+  <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+  <script src="/vendor/js/helpers.js"></script>
+
+  <!-- Main JS -->
+  <script src="/js/main.js"></script>
+
+  <!-- Page JS -->
+  <script src="/js/pages-auth-multisteps.js"></script>
+
+  <!-- Funcionality of the formulary -->
+  <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
+  <script src="/js/funcionality-of-form.js"></script>
+
+
+  <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+  <!-- Flat Picker -->
+  <script src="/vendor/libs/moment/moment.js"></script>
+  <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
 
   <!-- Overlay Spinner -->
   <div id="email-overlay"
@@ -776,50 +831,6 @@
       });
     });
   </script>
-  <script>
-    window.Helpers.initCustomOptionCheck();
-  </script>
-
-  <script src="/vendor/libs/jquery/jquery.js"></script>
-  <script src="/vendor/libs/popper/popper.js"></script>
-  <script src="/vendor/js/bootstrap.js"></script>
-  <script src="/vendor/libs/node-waves/node-waves.js"></script>
-  <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-  <script src="/vendor/libs/hammer/hammer.js"></script>
-  <script src="/vendor/libs/i18n/i18n.js"></script>
-  <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
-  <script src="/vendor/js/menu.js"></script>
-
-  <script src="/vendor/libs/cleavejs/cleave.js"></script>
-  <script src="/vendor/libs/cleavejs/cleave-phone.js"></script>
-  <script src="/vendor/libs/bs-stepper/bs-stepper.js"></script>
-  <script src="/vendor/libs/select2/select2.js"></script>
-  <script src="/vendor/libs/@form-validation/popular.js"></script>
-  <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
-  <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
-
-  <!-- Main JS -->
-  <script src="/js/main.js"></script>
-
-  <!-- Page JS -->
-  <script src="/js/pages-auth-multisteps.js"></script>
-
-  <!-- Signature -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> -->
-
-  <!-- Funcionality of the payroll -->
-  <!-- <script src="/js/function-of-payroll.js"></script> -->
-  <!-- <script src="/js/signature.js"></script> -->
-
-  <!-- Funcionality of the formulary -->
-  <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
-  <script src="/js/funcionality-of-form.js"></script>
-
-
-  <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-  <!-- Flat Picker -->
-  <script src="/vendor/libs/moment/moment.js"></script>
-  <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
 
   <script>
     function showToast(headerText, bodyText) {
@@ -883,12 +894,18 @@
   </script>
 
   <script type="application/json" id="companies-data">
-    <%- JSON.stringify(companies || []) %>
+    <%- JSON.stringify(allCompanies || []) %>
+  </script>
+
+  <script type="application/json" id="companiesbyUser-data">
+    <%- JSON.stringify(statesAndCarriersbyUser || []) %>
   </script>
 
   <script>
     (function () {
       const companies = JSON.parse(document.getElementById('companies-data').textContent);
+      const userSelections = JSON.parse(document.getElementById('companiesbyUser-data').textContent);
+
       const US_STATES = [
         { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
         { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
@@ -909,61 +926,62 @@
         { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
       ];
 
+      // Build a map: stateAbbr -> [companyName, ...] for user's previous selections
+      const userStateCompanies = {};
+      userSelections.forEach(sel => {
+        if (!sel.state || !sel.company) return;
+        if (!userStateCompanies[sel.state]) userStateCompanies[sel.state] = [];
+        userStateCompanies[sel.state].push(sel.company);
+      });
+
       function renderCarriersList() {
         const container = document.getElementById('carriers-list');
         container.innerHTML = '';
-        if (!companies || !companies.length) return;
 
-        companies.forEach(function (carrier, idx) {
-          const CARRIER_STATES = (carrier.states || '').trim().split('|');
-          // Card wrapper
+        US_STATES.forEach(state => {
+          const availableCompanies = companies
+            .filter(company => Array.isArray(company.States) && company.States.includes(state.abbr))
+            .map(c => c.name);
+
+          if (availableCompanies.length === 0) return;
+
+          const selectedCompanies = userStateCompanies[state.abbr] || [];
+
+          // Card wrapper for each state
           const card = document.createElement('div');
           card.className = 'card mb-3 carrier-card';
 
-          // Card body
           const cardBody = document.createElement('div');
           cardBody.className = 'card-body';
 
-          // Header row
           const header = document.createElement('div');
-          header.className = 'd-flex justify-content-between align-items-center mb-2';
-          header.innerHTML = `
-          <h6 class="mb-0">Carrier #${idx + 1}</h6>
-          <button type="button" class="btn btn-sm btn-outline-danger remove-carrier-btn" title="Remove Carrier">
-            <i class="ti ti-x"></i>
-          </button>
-        `;
+          header.className = 'mb-2';
+          header.innerHTML = `<h6 class="mb-0">${state.name} (${state.abbr})</h6>`;
 
-          // Carrier Name
-          const nameDiv = document.createElement('div');
-          nameDiv.className = 'mb-3';
-          nameDiv.innerHTML = `
-          <label class="form-label">Carrier Name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control carrier-name" placeholder="Carrier Name" value="${carrier.name || ''}" required>
-        `;
+          const selectId = `select-${state.abbr}`;
 
-          // States select
-          const statesDiv = document.createElement('div');
-          statesDiv.innerHTML = `
-          <label class="form-label">States <span class="text-danger">*</span></label>
-          <select class="form-select carrier-states" multiple required>
-            ${US_STATES.map(state =>
-            `<option value="${state.abbr}"${CARRIER_STATES.includes(state.abbr) ? ' selected' : ''}>
-                ${state.name} (${state.abbr})
-              </option>`
+          const selectDiv = document.createElement('div');
+          selectDiv.innerHTML = `
+      <label class="form-label">Select Companies for this State <span class="text-danger">*</span></label>
+      <select id="${selectId}" class="form-select state-companies-select select2" multiple data-state="${state.abbr}">
+        ${availableCompanies.map(companyName =>
+            `<option value="${companyName}"${selectedCompanies.includes(companyName) ? ' selected' : ''}>${companyName}</option>`
           ).join('')}
-          </select>
-          <div class="form-text">Hold Ctrl (Windows) or Cmd (Mac) to select multiple states.</div>
-        `;
+      </select>
+    `;
 
           cardBody.appendChild(header);
-          cardBody.appendChild(nameDiv);
-          cardBody.appendChild(statesDiv);
+          cardBody.appendChild(selectDiv);
           card.appendChild(cardBody);
           container.appendChild(card);
         });
-      }
 
+        $('.select2').select2({
+          placeholder: "Select company(ies)",
+          width: '100%',
+          dropdownParent: $('#statesCarriersValidation')
+        });
+      }
       document.addEventListener('DOMContentLoaded', renderCarriersList);
     })();
   </script>
@@ -1180,23 +1198,25 @@
 
     async function saveStatesCarriers() {
       const carriers = [];
-      const carrierCards = document.querySelectorAll(".carrier-card");
+      const selects = document.querySelectorAll(".state-companies-select");
 
-      carrierCards.forEach(card => {
-        const nameInput = card.querySelector(".carrier-name");
-        const statesSelect = card.querySelector(".carrier-states");
+      selects.forEach(select => {
+        const state = select.getAttribute("data-state");
+        const selectedCompanies = Array.from(select.selectedOptions).map(option => option.value);
 
-        if (nameInput && statesSelect) {
-          const name = nameInput.value.trim();
-          const states = Array.from(statesSelect.selectedOptions).map(option => option.value);
-
-          if (name && states.length > 0) {
-            carriers.push({ name, states });
+        selectedCompanies.forEach(company => {
+          let carrier = carriers.find(c => c.name === company);
+          if (!carrier) {
+            carrier = { name: company, states: [] };
+            carriers.push(carrier);
           }
-        }
+          carrier.states.push(state);
+        });
       });
 
-      if (carriers.length === 0) throw new Error("Please add at least one carrier with states.");
+      console.log("Selected carriers:", carriers);
+
+      if (carriers.length === 0) throw new Error("Please select at least one company for one state.");
 
       const response = await fetch(`${url}/steps/states-carriers`, {
         method: "POST",
