@@ -285,6 +285,14 @@
                         <span class="bs-stepper-label"><span class="bs-stepper-title">Documents</span></span>
                       </button>
                     </div>
+
+                    <!-- Paso : States & Carriers -->
+                    <div class="step" data-target="#statesCarriersValidation">
+                      <button type="button" class="step-trigger">
+                        <span class="bs-stepper-circle"><i class="ti ti-building ti-md"></i></span>
+                        <span class="bs-stepper-label"><span class="bs-stepper-title">States & Carriers</span></span>
+                      </button>
+                    </div>
                   </div>
                   <div class="bs-stepper-content">
                     <!-- Contenido 1 -->
@@ -692,6 +700,22 @@
                         </button>
                       </div>
                     </div>
+                    <!-- Contenido 6 -->
+                    <div id="statesCarriersValidation" class="content">
+                      <div class="content-header mb-6">
+                        <h4 class="mb-0">States & Carriers</h4>
+                        <p class="mb-0">Add all the carriers you work with and the states where you are licensed for
+                          each.</p>
+                      </div>
+                      <div id="carriers-list"></div>
+                      <button type="button" class="btn btn-outline-primary mb-3" id="add-carrier-btn">
+                        <i class="ti ti-plus"></i> Add Carrier
+                      </button>
+                      <div class="col-12 d-flex justify-content-between mt-6">
+                        <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                        <button type="button" class="btn btn-primary btn-next">Next</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -858,10 +882,91 @@
     });
   </script>
 
-  <script>
-    "<%= JSON.stringify(paymentMethod) %>"
+  <script type="application/json" id="companies-data">
+    <%- JSON.stringify(companies || []) %>
   </script>
 
+  <script>
+    (function () {
+      const companies = JSON.parse(document.getElementById('companies-data').textContent);
+      const US_STATES = [
+        { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
+        { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
+        { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
+        { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
+        { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
+        { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
+        { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
+        { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
+        { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
+        { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
+        { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
+        { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
+        { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
+        { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
+        { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
+        { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
+        { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
+      ];
+
+      function renderCarriersList() {
+        const container = document.getElementById('carriers-list');
+        container.innerHTML = '';
+        if (!companies || !companies.length) return;
+
+        companies.forEach(function (carrier, idx) {
+          const CARRIER_STATES = (carrier.states || '').trim().split('|');
+          // Card wrapper
+          const card = document.createElement('div');
+          card.className = 'card mb-3 carrier-card';
+
+          // Card body
+          const cardBody = document.createElement('div');
+          cardBody.className = 'card-body';
+
+          // Header row
+          const header = document.createElement('div');
+          header.className = 'd-flex justify-content-between align-items-center mb-2';
+          header.innerHTML = `
+          <h6 class="mb-0">Carrier #${idx + 1}</h6>
+          <button type="button" class="btn btn-sm btn-outline-danger remove-carrier-btn" title="Remove Carrier">
+            <i class="ti ti-x"></i>
+          </button>
+        `;
+
+          // Carrier Name
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'mb-3';
+          nameDiv.innerHTML = `
+          <label class="form-label">Carrier Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control carrier-name" placeholder="Carrier Name" value="${carrier.name || ''}" required>
+        `;
+
+          // States select
+          const statesDiv = document.createElement('div');
+          statesDiv.innerHTML = `
+          <label class="form-label">States <span class="text-danger">*</span></label>
+          <select class="form-select carrier-states" multiple required>
+            ${US_STATES.map(state =>
+            `<option value="${state.abbr}"${CARRIER_STATES.includes(state.abbr) ? ' selected' : ''}>
+                ${state.name} (${state.abbr})
+              </option>`
+          ).join('')}
+          </select>
+          <div class="form-text">Hold Ctrl (Windows) or Cmd (Mac) to select multiple states.</div>
+        `;
+
+          cardBody.appendChild(header);
+          cardBody.appendChild(nameDiv);
+          cardBody.appendChild(statesDiv);
+          card.appendChild(cardBody);
+          container.appendChild(card);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', renderCarriersList);
+    })();
+  </script>
 
   <!-- Push the info -->
   <script>
@@ -1073,6 +1178,36 @@
       return await response.json();
     }
 
+    async function saveStatesCarriers() {
+      const carriers = [];
+      const carrierCards = document.querySelectorAll(".carrier-card");
+
+      carrierCards.forEach(card => {
+        const nameInput = card.querySelector(".carrier-name");
+        const statesSelect = card.querySelector(".carrier-states");
+
+        if (nameInput && statesSelect) {
+          const name = nameInput.value.trim();
+          const states = Array.from(statesSelect.selectedOptions).map(option => option.value);
+
+          if (name && states.length > 0) {
+            carriers.push({ name, states });
+          }
+        }
+      });
+
+      if (carriers.length === 0) throw new Error("Please add at least one carrier with states.");
+
+      const response = await fetch(`${url}/steps/states-carriers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: currentUserId, carriers })
+      });
+
+      if (!response.ok) throw new Error("Error saving states and carriers");
+      return await response.json();
+    }
+
 
     document.querySelector(".btn-submit").addEventListener("click", async function (e) {
       e.preventDefault();
@@ -1084,6 +1219,7 @@
         await saveContactInfo();
         await savePaymentMethod()
         await saveDocuments();
+        await saveStatesCarriers();
 
         const response = await fetch(`${url}/email/config`, {
           method: "POST",
