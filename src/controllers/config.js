@@ -13,21 +13,26 @@ async function getEmailsToAlert() {
 }
 
 const postEmailToAlert = async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
+  const { emails } = req.body;
+  if (!emails || !Array.isArray(emails) || emails.length === 0) {
+    return res.status(400).json({ message: "At least one email is required" });
   }
 
   try {
-    await prisma.newUserAlerts.create({
-      data: { email },
-    });
-    res.status(201).json({ message: "Email added successfully" });
+    await prisma.$transaction(
+      emails.map(email =>
+        prisma.newUserAlerts.create({
+          data: { email }
+        })
+      )
+    );
+
+    res.status(201).json({ message: "Emails added successfully" });
   } catch (error) {
-    console.error("Error adding email to alert:", error);
+    console.error("Error adding emails to alert:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 const deleteEmailToAlert = async (req, res) => {
   const { email } = req.body;

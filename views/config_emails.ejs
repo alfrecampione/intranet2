@@ -40,11 +40,6 @@
         href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
         rel="stylesheet" />
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <!-- Icons -->
     <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
     <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
@@ -395,28 +390,22 @@
                                     aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body flex-grow-1">
-                                <form id="email-selection-form" onsubmit="return false">
-                                    <div class="mb-3">
-                                        <label for="emailDropdown" class="form-label">Emails</label>
-                                        <select id="emailDropdown" name="email" class="form-select" style="width: 100%">
-                                            <option value="">-- Select an email --</option>
-                                            <% if (admins && admins.length> 0) { %>
-                                                <% admins.forEach(function(admin) { %>
-                                                    <option value="<%= admin.mail %>">
-                                                        <%= admin.mail %>
-                                                    </option>
-                                                    <% }); %>
-                                                        <% } %>
-                                        </select>
-                                    </div>
-                                </form>
+                                <select id="select2Primary" class="select2 form-select" multiple>
+                                    <% if (admins && admins.length> 0) { %>
+                                        <% admins.forEach(function(admin) { %>
+                                            <option value="<%= admin.mail %>">
+                                                <%= admin.mail %>
+                                            </option>
+                                            <% }); %>
+                                                <% } %>
+                                </select>
                                 <div class="col-sm-12">
-                                    <button type="submit" form="email-selection-form"
-                                        class="btn btn-primary data-submit me-sm-4 me-1" id="addEmailBtn">
+                                    <br>
+                                    <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1"
+                                        id="addEmailBtn">
                                         Add
                                     </button>
-                                    <button type="reset" form="email-selection-form" class="btn btn-outline-secondary"
-                                        data-bs-dismiss="offcanvas">
+                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
                                         Cancel
                                     </button>
                                 </div>
@@ -437,6 +426,9 @@
         <!-- / Layout wrapper -->
 
         <script src="/vendor/libs/jquery/jquery.js"></script>
+        <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
+        <script src="/vendor/libs/select2/select2.js"></script>
+
         <script src="/vendor/libs/popper/popper.js"></script>
         <script src="/vendor/js/bootstrap.js"></script>
         <script src="/vendor/libs/node-waves/node-waves.js"></script>
@@ -463,6 +455,16 @@
 
         <script type="application/json" id="users-data">
             <%- JSON.stringify(emails) %>
+        </script>
+
+        <script>
+            $(document).ready(function () {
+                $('#select2Primary').select2({
+                    placeholder: "Select email(s)",
+                    width: '100%',
+                    dropdownParent: $('#add-new-record')
+                });
+            });
         </script>
 
         <script>
@@ -601,11 +603,21 @@
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("addEmailBtn").addEventListener("click", async function () {
-                    const select = document.getElementById("emailDropdown");
-                    const email = select.value;
+                    const select = document.getElementById("select2Primary");
+                    const emails = Array.from(select.selectedOptions).map(option => option.value);
 
-                    if (!email) {
-                        alert("Please select an email.");
+                    if (!emails.length) {
+                        alert("Please select at least one email.");
+                        return;
+                    }
+
+                    const existingEmails = Array.from(document.querySelectorAll("table .delete-email-btn"))
+                        .map(btn => btn.getAttribute("data-email"));
+
+                    const newEmails = emails.filter(email => !existingEmails.includes(email));
+
+                    if (!newEmails.length) {
+                        alert("Selected email(s) already exist in the list.");
                         return;
                     }
 
@@ -615,17 +627,16 @@
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ email })
+                            body: JSON.stringify({ newEmails })
                         });
 
                         if (!response.ok) {
-                            throw new Error("Error adding email");
+                            throw new Error("Error adding email(s)");
                         }
 
-                        // Opcional: cerrar el offcanvas y recargar la página o actualizar la tabla
                         location.reload();
                     } catch (err) {
-                        alert("Error adding email: " + err.message);
+                        alert("Error adding email(s): " + err.message);
                     }
                 });
 
