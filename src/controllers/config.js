@@ -14,24 +14,25 @@ async function getEmailsToAlert() {
   return results || [];
 }
 
-const postEmailToAlert = async (req, res) => {
-  const { emails } = req.body;
-  if (!emails || !Array.isArray(emails) || emails.length === 0) {
-    return res.status(400).json({ message: "At least one email is required" });
+const postAdminToAlert = async (req, res) => {
+  const { admins } = req.body;
+
+  if (!admins || !Array.isArray(admins) || admins.length === 0) {
+    return res.status(400).json({ message: "At least one admin is required" });
   }
 
   try {
     await prisma.$transaction(
-      emails.map(email =>
+      admins.map(admin =>
         prisma.newUserAlerts.create({
-          data: { email }
+          data: { email: admin.mail, display_name: admin.display_name }
         })
       )
     );
 
-    res.status(201).json({ message: "Emails added successfully" });
+    res.status(201).json({ message: "Admins added successfully" });
   } catch (error) {
-    console.error("Error adding emails to alert:", error);
+    console.error("Error adding Admins to alert:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -56,7 +57,7 @@ const deleteEmailToAlert = async (req, res) => {
 async function getAdmins() {
   try {
     const result = await pool.query(
-      `SELECT mail FROM entra.users WHERE location_id = $1 AND department = $2`,
+      `SELECT display_name, mail FROM entra.users WHERE location_id = $1 AND department = $2`,
       [1, 'Health']
     );
     return result.rows;
@@ -73,7 +74,9 @@ const renderConfigCarriers = async (req, res) => {
     // Format states as comma-separated string for display
     const formattedCompanies = companies.map(c => ({
       name: c.name,
-      states: Array.isArray(c.States) ? c.States.join('| ') : ''
+      states: Array.isArray(c.States) ? c.States.join('| ') : '',
+      phone: c.phone,
+      email: c.email
     }));
 
     res.render("config_carriers", {
@@ -91,7 +94,7 @@ const renderConfigCarriers = async (req, res) => {
 }
 
 const postCompany = async (req, res) => {
-  const { name, states } = req.body;
+  const { name, phone, email, states } = req.body;
   if (!name || !Array.isArray(states) || states.length === 0) {
     return res.status(400).json({ message: "Company name and at least one state are required" });
   }
@@ -100,7 +103,9 @@ const postCompany = async (req, res) => {
     await prisma.company.create({
       data: {
         name,
-        States: states
+        States: states,
+        phone,
+        email
       }
     });
     res.status(201).json({ message: "Company added successfully" });
@@ -109,6 +114,33 @@ const postCompany = async (req, res) => {
       return res.status(409).json({ message: "Company already exists" });
     }
     console.error("Error adding company:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateCompany = async (req, res) => {
+  const { originalName, name, phone, email, states } = req.body;
+
+  if (!originalName || !name || !Array.isArray(states) || states.length === 0) {
+    return res.status(400).json({ message: "Original name, new name, and at least one state are required" });
+  }
+
+  try {
+    await prisma.company.update({
+      where: { name: originalName },
+      data: {
+        name,
+        States: states,
+        phone,
+        email
+      }
+    });
+    res.status(200).json({ message: "Company updated successfully" });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ message: "Company with this name already exists" });
+    }
+    console.error("Error updating company:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -254,10 +286,11 @@ export {
   addCarrier,
   deleteCarrier,
   getEmailsToAlert,
-  postEmailToAlert,
+  postAdminToAlert,
   deleteEmailToAlert,
   renderConfigEmails,
   renderConfigCarriers,
   postCompany,
+  updateCompany,
   deleteCompany
 };

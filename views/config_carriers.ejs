@@ -264,7 +264,7 @@
                             <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-2 gap-lg-0">
                                 <li class="nav-item">
                                     <a class="nav-link" href="/users/config_emails"><i
-                                            class="ti-sm ti ti-mail me-1_5"></i> Emails</a>
+                                            class="ti-sm ti ti-mail me-1_5"></i> Notification Emails</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link active" href="javascript:void(0);"><i
@@ -289,7 +289,7 @@
                                                     data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
                                                     <span>
                                                         <i class="ti ti-plus me-sm-1"></i>
-                                                        <span class="d-none d-sm-inline-block">Add New Company</span>
+                                                        <span class="d-none d-sm-inline-block">Add New Carrier</span>
                                                     </span>
                                                 </button>
                                             </div>
@@ -309,10 +309,21 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
+                                                <th style="width: 40px;">#</th>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                    aria-label="Carrier: activate to sort column ascending">
+                                                    Carrier
+                                                </th>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                    aria-label="Phone: activate to sort column ascending">
+                                                    Phone
+                                                </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 147px"
                                                     aria-label="Email: activate to sort column ascending">
-                                                    Company
+                                                    Email
                                                 </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 130px"
@@ -327,15 +338,31 @@
                                         </thead>
                                         <tbody>
                                             <% if (companies && companies.length> 0) { %>
-                                                <% companies.forEach(function(company) { %>
+                                                <% companies.forEach(function(company, idx) { %>
                                                     <tr>
                                                         <td>
+                                                            <%= idx + 1 %>
+                                                        </td>
+                                                        <td>
                                                             <%= company.name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= company.phone %>
+                                                        </td>
+                                                        <td>
+                                                            <%= company.email %>
                                                         </td>
                                                         <td>
                                                             <%= company.states %>
                                                         </td>
                                                         <td>
+                                                            <button class="btn btn-warning btn-sm edit-company-btn"
+                                                                data-company="<%= company.name %>"
+                                                                data-phone="<%= company.phone %>"
+                                                                data-email="<%= company.email %>"
+                                                                data-states='<%= JSON.stringify(company.states) %>'>
+                                                                Edit
+                                                            </button>
                                                             <button class="btn btn-danger btn-sm delete-email-btn"
                                                                 data-company="<%= company.name %>">Delete</button>
                                                         </td>
@@ -343,7 +370,7 @@
                                                     <% }); %>
                                                         <% } else { %>
                                                             <tr>
-                                                                <td colspan="2">No companies found.</td>
+                                                                <td colspan="6">No carriers found.</td>
                                                             </tr>
                                                             <% } %>
                                         </tbody>
@@ -354,17 +381,26 @@
                         <!-- Modal to insert companies -->
                         <div class="offcanvas offcanvas-end" id="add-new-record">
                             <div class="offcanvas-header border-bottom">
-                                <h5 class="offcanvas-title" id="exampleModalLabel">Insert a Company</h5>
+                                <h5 class="offcanvas-title" id="exampleModalLabel">Insert a Carrier</h5>
                                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body flex-grow-1">
                                 <div class="mb-3">
-                                    <label for="companyNameInput" class="form-label">Company Name</label>
+                                    <label for="companyNameInput" class="form-label">Carrier Name</label>
                                     <input type="text" id="companyNameInput" class="form-control"
                                         placeholder="Enter company name">
                                 </div>
-
+                                <div class="mb-3">
+                                    <label for="companyNameInput" class="form-label">Carrier Phone</label>
+                                    <input type="text" id="companyPhoneInput" class="form-control"
+                                        placeholder="Enter company name">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="companyNameInput" class="form-label">Carrier Email</label>
+                                    <input type="text" id="companyEmailInput" class="form-control"
+                                        placeholder="Enter company name">
+                                </div>
                                 <div class="mb-3">
                                     <label for="select2Primary" class="form-label">States</label>
                                     <select id="select2Primary" class="select2 form-select" multiple>
@@ -489,61 +525,76 @@
         </script>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Obtener los datos de las compañías desde el elemento JSON
-                const companies = JSON.parse(document.getElementById("companies-data").textContent);
-
-                function renderCarriersTable(companies, searchTerm = "") {
-                    const table = document.querySelector(".datatables-basic");
-                    const tbody = table.querySelector("tbody");
-                    tbody.innerHTML = "";
-
-                    const filtered = companies.filter(c =>
-                        (c.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-
-                    if (filtered.length === 0) {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `<td colspan="3" class="dataTables_empty text-center">No companies found.</td>`;
-                        tbody.appendChild(tr);
-                    } else {
-                        filtered.forEach((company) => {
-                            const tr = document.createElement("tr");
-
-                            const tdName = document.createElement("td");
-                            tdName.textContent = company.name || "";
-                            tr.appendChild(tdName);
-
-                            const tdStates = document.createElement("td");
-                            tdStates.textContent = company.states || "";
-                            tr.appendChild(tdStates);
-
-                            const tdAction = document.createElement("td");
-                            tdAction.innerHTML = `<button class="btn btn-danger btn-sm delete-email-btn" data-company="${company.name}">Delete</button>`;
-                            tr.appendChild(tdAction);
-
-                            tbody.appendChild(tr);
-                        });
-                    }
+            function formatUSPhone(value) {
+                let digits = value.replace(/\D/g, "");
+                digits = digits.substring(0, 10);
+                if (digits.length > 6) {
+                    return `(${digits.substring(0, 3)}) ${digits.substring(3, 6)}-${digits.substring(6)}`;
+                } else if (digits.length > 3) {
+                    return `(${digits.substring(0, 3)}) ${digits.substring(3)}`;
+                } else if (digits.length > 0) {
+                    return `(${digits}`;
                 }
+                return "";
+            }
 
-                // Inicializar tabla
-                renderCarriersTable(companies);
+            function isValidUSPhone(phone) {
+                return /^\([2-9][0-9]{2}\) [0-9]{3}-[0-9]{4}$/.test(phone);
+            }
 
-                // Barra de búsqueda
-                document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
-                    renderCarriersTable(companies, this.value);
-                });
-            });
-        </script>
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
 
-        <script>
+            let editingCompany = null;
+
             document.addEventListener("DOMContentLoaded", function () {
+                const phoneInput = document.getElementById("companyPhoneInput");
+                phoneInput.addEventListener("input", function (e) {
+                    const formatted = formatUSPhone(this.value);
+                    this.value = formatted;
+                });
+
+                // Edit
+                document.querySelectorAll(".edit-company-btn").forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        editingCompany = btn.getAttribute("data-company");
+                        document.getElementById("companyNameInput").value = btn.getAttribute("data-company");
+                        document.getElementById("companyPhoneInput").value = btn.getAttribute("data-phone");
+                        document.getElementById("companyEmailInput").value = btn.getAttribute("data-email");
+
+                        const states = JSON.parse(btn.getAttribute("data-states") || "[]");
+                        const select = document.getElementById("select2Primary");
+                        Array.from(select.options).forEach(opt => {
+                            opt.selected = states.includes(opt.value);
+                        });
+
+                        if ($(select).data('select2')) {
+                            $(select).trigger('change');
+                        }
+                        const submitBtn = document.getElementById("addCompanyBtn");
+                        submitBtn.textContent = "Edit";
+                        submitBtn.classList.add("btn-warning");
+                        submitBtn.classList.remove("btn-primary");
+
+                        const offcanvas = document.getElementById("add-new-record");
+                        if (offcanvas) {
+                            const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvas);
+                            bsOffcanvas.show();
+                        }
+                    });
+                });
+
+                // Handler Add/Edit
                 document.getElementById("addCompanyBtn").addEventListener("click", async function (e) {
                     e.preventDefault();
 
                     const companyNameInput = document.getElementById("companyNameInput");
                     const companyName = companyNameInput.value.trim();
+                    const companyPhoneInput = document.getElementById("companyPhoneInput");
+                    const companyPhone = companyPhoneInput.value.trim();
+                    const companyEmailInput = document.getElementById("companyEmailInput");
+                    const companyEmail = companyEmailInput.value.trim();
                     const select = document.getElementById("select2Primary");
                     const states = Array.from(select.selectedOptions).map(option => option.value);
 
@@ -552,39 +603,100 @@
                         return;
                     }
 
+                    if (!isValidUSPhone(companyPhone)) {
+                        alert("Please enter a valid US phone number (e.g. (555) 123-4567).");
+                        companyPhoneInput.focus();
+                        return;
+                    }
+
+                    if (!isValidEmail(companyEmail)) {
+                        alert("Please enter a valid email address.");
+                        companyEmailInput.focus();
+                        return;
+                    }
+
                     if (!states.length) {
                         alert("Please select at least one state.");
                         return;
                     }
 
-                    // Check if company already exists
-                    const existingCompanies = Array.from(document.querySelectorAll("table .delete-email-btn"))
-                        .map(btn => btn.getAttribute("data-company"));
+                    // Edit
+                    if (editingCompany) {
+                        try {
+                            const response = await fetch(`${url}/users/config_carriers`, {
+                                method: "PUT",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    originalName: editingCompany,
+                                    name: companyName,
+                                    phone: companyPhone,
+                                    email: companyEmail,
+                                    states
+                                })
+                            });
 
-                    if (existingCompanies.includes(companyName)) {
-                        alert("This company already exists in the list.");
+                            if (!response.ok) {
+                                throw new Error("Error updating company");
+                            }
+
+                            location.reload();
+                        } catch (err) {
+                            alert("Error updating company: " + err.message);
+                        }
                         return;
                     }
+                    else {
+                        // ADD
+                        const existingCompanies = Array.from(document.querySelectorAll("table .delete-email-btn"))
+                            .map(btn => btn.getAttribute("data-company"));
 
-                    try {
-                        const response = await fetch(`${url}/users/config_carriers`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ name: companyName, states })
-                        });
-
-                        if (!response.ok) {
-                            throw new Error("Error adding company");
+                        if (existingCompanies.includes(companyName)) {
+                            alert("This company already exists in the list.");
+                            return;
                         }
 
-                        location.reload();
-                    } catch (err) {
-                        alert("Error adding company: " + err.message);
+                        try {
+                            const response = await fetch(`${url}/users/config_carriers`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ name: companyName, phone: companyPhone, email: companyEmail, states })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error("Error adding company");
+                            }
+
+                            location.reload();
+                        } catch (err) {
+                            alert("Error adding company: " + err.message);
+                        }
                     }
                 });
 
+                // Reset
+                document.querySelectorAll('[data-bs-dismiss="offcanvas"]').forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        editingCompany = null;
+                        const submitBtn = document.getElementById("addCompanyBtn");
+                        submitBtn.textContent = "Add";
+                        submitBtn.classList.remove("btn-warning");
+                        submitBtn.classList.add("btn-primary");
+                        document.getElementById("companyNameInput").value = "";
+                        document.getElementById("companyPhoneInput").value = "";
+                        document.getElementById("companyEmailInput").value = "";
+                        const select = document.getElementById("select2Primary");
+                        Array.from(select.options).forEach(opt => opt.selected = false);
+                        if ($(select).data('select2')) {
+                            $(select).trigger('change');
+                        }
+                    });
+                });
+
+                // Handler Delete
                 document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
                     btn.addEventListener("click", async function () {
                         const companyName = this.getAttribute("data-company");

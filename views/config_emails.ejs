@@ -264,7 +264,7 @@
                             <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-2 gap-lg-0">
                                 <li class="nav-item">
                                     <a class="nav-link active" href="javascript:void(0);"><i
-                                            class="ti-sm ti ti-mail me-1_5"></i> Emails</a>
+                                            class="ti-sm ti ti-mail me-1_5"></i> Notification Emails</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="/users/config_carriers"><i
@@ -296,21 +296,6 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-sm-12 col-md-6">
-                                            <div class="dataTables_length" id="DataTables_Table_0_length">
-                                                <label>Show
-                                                    <select name="DataTables_Table_0_length"
-                                                        aria-controls="DataTables_Table_0" class="form-select">
-                                                        <option value="7">7</option>
-                                                        <option value="10">10</option>
-                                                        <option value="25">25</option>
-                                                        <option value="50">50</option>
-                                                        <option value="75">75</option>
-                                                        <option value="100">100</option>
-                                                    </select>
-                                                    entries</label>
-                                            </div>
-                                        </div>
                                         <div
                                             class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
                                             <div id="DataTables_Table_0_filter" class="dataTables_filter">
@@ -324,6 +309,11 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
+                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                    aria-label="Email: activate to sort column ascending">
+                                                    Name
+                                                </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 147px"
                                                     aria-label="Email: activate to sort column ascending">
@@ -345,6 +335,9 @@
                                                 <% emails.forEach(function(email) { %>
                                                     <tr>
                                                         <td>
+                                                            <%= email.display_name %>
+                                                        </td>
+                                                        <td>
                                                             <%= email.email %>
                                                         </td>
                                                         <td>
@@ -358,40 +351,11 @@
                                                     <% }); %>
                                                         <% } else { %>
                                                             <tr>
-                                                                <td colspan="2">No emails found.</td>
+                                                                <td colspan="4">No emails found.</td>
                                                             </tr>
                                                             <% } %>
                                         </tbody>
                                     </table>
-                                    <div class="row">
-                                        <div class="col-sm-12 col-md-6">
-                                            <div class="dataTables_info" id="DataTables_Table_0_info" role="status"
-                                                aria-live="polite">
-                                                Showing 0 to 0 of 0 entries
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-6">
-                                            <div class="dataTables_paginate paging_simple_numbers"
-                                                id="DataTables_Table_0_paginate">
-                                                <ul class="pagination">
-                                                    <li class="paginate_button page-item previous disabled"
-                                                        id="DataTables_Table_0_previous">
-                                                        <a aria-controls="DataTables_Table_0" aria-disabled="true"
-                                                            role="link" data-dt-idx="previous" tabindex="-1"
-                                                            class="page-link"><i
-                                                                class="ti ti-chevron-left ti-sm"></i></a>
-                                                    </li>
-                                                    <li class="paginate_button page-item next disabled"
-                                                        id="DataTables_Table_0_next">
-                                                        <a aria-controls="DataTables_Table_0" aria-disabled="true"
-                                                            role="link" data-dt-idx="next" tabindex="-1"
-                                                            class="page-link"><i
-                                                                class="ti ti-chevron-right ti-sm"></i></a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -406,7 +370,7 @@
                                 <select id="select2Primary" class="select2 form-select" multiple>
                                     <% if (admins && admins.length> 0) { %>
                                         <% admins.forEach(function(admin) { %>
-                                            <option value="<%= admin.mail %>">
+                                            <option value="<%=admin.mail %>">
                                                 <%= admin.mail %>
                                             </option>
                                             <% }); %>
@@ -469,6 +433,9 @@
         <script type="application/json" id="users-data">
             <%- JSON.stringify(emails) %>
         </script>
+        <script type="application/json" id="admins-data">
+            <%- JSON.stringify(admins) %>
+        </script>
 
         <script>
             $(document).ready(function () {
@@ -481,159 +448,30 @@
         </script>
 
         <script>
-            function renderTable(users, page, pageSize, searchTerm = "") {
-                const table = document.querySelector(".datatables-basic");
-                const tbody = table.querySelector("tbody");
-                tbody.innerHTML = "";
-
-                const filtered = users.filter(u =>
-                    (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
-                );
-
-                const start = (page - 1) * pageSize;
-                const end = start + pageSize;
-                const pageUsers = filtered.slice(start, end);
-
-                if (pageUsers.length === 0) {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `<td colspan="3" class="dataTables_empty text-center">No emails found.</td>`;
-                    tbody.appendChild(tr);
-                } else {
-                    pageUsers.forEach((user) => {
-                        const tr = document.createElement("tr");
-
-                        const tdEmail = document.createElement("td");
-                        tdEmail.textContent = user.email || "";
-                        tr.appendChild(tdEmail);
-
-                        const tdCreated = document.createElement("td");
-                        tdCreated.textContent = user.insertedAt
-                            ? new Date(user.insertedAt).toLocaleDateString()
-                            : "";
-                        tr.appendChild(tdCreated);
-
-                        const tdAction = document.createElement("td");
-                        tdAction.innerHTML = `<button class="btn btn-danger btn-sm delete-email-btn" data-email="${user.email}">Delete</button>`;
-                        tr.appendChild(tdAction);
-
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                const info = document.getElementById("DataTables_Table_0_info");
-                const showingStart = filtered.length === 0 ? 0 : start + 1;
-                const showingEnd = Math.min(end, filtered.length);
-                info.textContent = `Showing ${showingStart} to ${showingEnd} of ${filtered.length} entries`;
-
-                renderPagination(filtered.length, page, pageSize);
-            }
-
-
-            function renderPagination(total, page, pageSize) {
-                const ul = document.querySelector("#DataTables_Table_0_paginate ul.pagination");
-                ul.innerHTML = "";
-
-                const totalPages = Math.ceil(total / pageSize);
-
-                // Prev
-                const prevLi = document.createElement("li");
-                prevLi.className = `paginate_button page-item previous${page === 1 ? " disabled" : ""}`;
-                prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1"><i class="ti ti-chevron-left ti-sm"></i></a>`;
-                prevLi.onclick = (e) => {
-                    e.preventDefault();
-                    if (page > 1) setPage(page - 1);
-                };
-                ul.appendChild(prevLi);
-
-                // Números de página (máximo 5)
-                let startPage = Math.max(1, page - 2);
-                let endPage = Math.min(totalPages, startPage + 4);
-                if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-                for (let i = startPage; i <= endPage; i++) {
-                    const li = document.createElement("li");
-                    li.className = `paginate_button page-item${i === page ? " active" : ""}`;
-                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                    li.onclick = (e) => {
-                        e.preventDefault();
-                        setPage(i);
-                    };
-                    ul.appendChild(li);
-                }
-
-                // Next
-                const nextLi = document.createElement("li");
-                nextLi.className = `paginate_button page-item next${page === totalPages || totalPages === 0 ? " disabled" : ""}`;
-                nextLi.innerHTML = `<a class="page-link" href="#"><i class="ti ti-chevron-right ti-sm"></i></a>`;
-                nextLi.onclick = (e) => {
-                    e.preventDefault();
-                    if (page < totalPages) setPage(page + 1);
-                };
-                ul.appendChild(nextLi);
-            }
-
-            // Estado global de paginado y búsqueda
-            let users = [];
-            let currentPage = 1;
-            let pageSize = 7;
-            let searchTerm = "";
-
-            function setPage(page) {
-                currentPage = page;
-                renderTable(users, currentPage, pageSize, searchTerm);
-            }
-
-            function setPageSize(size) {
-                pageSize = size;
-                currentPage = 1;
-                renderTable(users, currentPage, pageSize, searchTerm);
-            }
-
-            function setSearch(term) {
-                searchTerm = term;
-                currentPage = 1;
-                renderTable(users, currentPage, pageSize, searchTerm);
-            }
-
-            document.addEventListener("DOMContentLoaded", () => {
-                users = JSON.parse(document.getElementById("users-data").textContent);
-
-                // Inicializar tabla
-                renderTable(users, currentPage, pageSize);
-
-                // Selector de cantidad
-                document.querySelector('select[name="DataTables_Table_0_length"]').addEventListener("change", function () {
-                    setPageSize(Number(this.value));
-                });
-
-                // Barra de búsqueda
-                document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
-                    setSearch(this.value);
-                });
-            });
-        </script>
-
-        <script>
             document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("addEmailBtn").addEventListener("click", async function () {
                     const select = document.getElementById("select2Primary");
                     const emails = Array.from(select.selectedOptions).map(option => option.value);
 
-                    console.log("emails: ", emails);
-
                     if (!emails.length) {
                         alert("Please select at least one email.");
                         return;
                     }
+                    const admins = emails.map(email => {
+                        const admin = JSON.parse(document.getElementById("admins-data").textContent)
+                            .find(admin => admin.mail === email);
+                        return {
+                            mail: email,
+                            display_name: admin ? admin.display_name : email
+                        };
+                    });
 
-                    const existingEmails = Array.from(document.querySelectorAll("table .delete-email-btn"))
+                    const existingAdmins = Array.from(document.querySelectorAll("table .delete-email-btn"))
                         .map(btn => btn.getAttribute("data-email"));
 
-                    console.log("existingEmails: ", existingEmails);
+                    const newAdmins = admins.filter(admin => !existingAdmins.includes(admin));
 
-                    const newEmails = emails.filter(email => !existingEmails.includes(email));
-
-                    if (!newEmails.length) {
+                    if (!newAdmins.length) {
                         alert("Selected email(s) already exist in the list.");
                         return;
                     }
@@ -644,7 +482,7 @@
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ emails: newEmails })
+                            body: JSON.stringify({ admins: newAdmins })
                         });
 
                         if (!response.ok) {

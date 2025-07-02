@@ -297,10 +297,12 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
+                                                <th class="sorting_disabled" tabindex="0"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 30px" aria-label="#">#</th>
                                                 <th class="sorting_disabled dtr-hidden" tabindex="0"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                     style="width: 10px" aria-label=""></th>
-                                                </th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 144px"
                                                     aria-label="Name: activate to sort column ascending">
@@ -324,7 +326,7 @@
                                         </thead>
                                         <tbody>
                                             <tr class="odd">
-                                                <td valign="top" colspan="7" class="dataTables_empty">
+                                                <td valign="top" colspan="8" class="dataTables_empty">
                                                     Loading...
                                                 </td>
                                             </tr>
@@ -372,8 +374,9 @@
                                     aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body flex-grow-1">
-                                <form class="add-new-record pt-0 row g-2" id="form-send-email" onsubmit="return false">
-                                    <div class="col-sm-12">
+                                <form class="add-new-record pt-2 pb-2 px-1 row g-3" id="form-send-email"
+                                    onsubmit="return false">
+                                    <div class="col-12 mb-3">
                                         <label class="form-label" for="email">Email</label>
                                         <div class="input-group input-group-merge">
                                             <span id="basicFullname2" class="input-group-text"><i
@@ -383,40 +386,40 @@
                                                 aria-label="example@mail.com" aria-describedby="email" />
                                         </div>
                                     </div>
-                                    <div class="col-sm-12">
-                                        <label class="form-label">Required Documents</label>
-                                        <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label mb-2">Required Documents</label>
+                                        <div class="row g-2">
                                             <div class="col-6">
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox"
                                                         id="directDepositForm" name="directDepositForm">
                                                     <label class="form-check-label" for="directDepositForm">Direct
                                                         Deposit Form</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="driverLicense"
                                                         name="driverLicense">
                                                     <label class="form-check-label" for="driverLicense">Driver
                                                         License</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="EINconfirmation"
                                                         name="EINconfirmation">
                                                     <label class="form-check-label" for="EINconfirmation">EIN
                                                         Confirmation</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="eANDo"
                                                         name="eANDo">
                                                     <label class="form-check-label" for="eANDo">E&O</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="proLicense"
                                                         name="proLicense">
                                                     <label class="form-check-label" for="proLicense">Professional
                                                         License</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox"
                                                         id="taxIdentificationW9" name="taxIdentificationW9" checked
                                                         disabled>
@@ -426,29 +429,29 @@
                                                 </div>
                                             </div>
                                             <div class="col-6">
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox"
                                                         id="ffmCertification" name="ffmCertification">
                                                     <label class="form-check-label" for="ffmCertification">FFM
                                                         Certification</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="gaLicense"
                                                         name="gaLicense">
                                                     <label class="form-check-label" for="gaLicense">GA License</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="gaCertification"
                                                         name="gaCertification">
                                                     <label class="form-check-label" for="gaCertification">GA
                                                         Certification</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" id="sunbiz"
                                                         name="sunbiz">
                                                     <label class="form-check-label" for="sunbiz">Sunbiz</label>
                                                 </div>
-                                                <div class="form-check">
+                                                <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox"
                                                         id="corporationLicense" name="corporationLicense">
                                                     <label class="form-check-label" for="corporationLicense">Corporation
@@ -457,7 +460,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-sm-12">
+                                    <div class="col-12 d-flex justify-content-start gap-2 mt-3">
                                         <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1">
                                             Send
                                         </button>
@@ -547,8 +550,14 @@
                 tr.innerHTML = `<td valign="top" colspan="7" class="dataTables_empty">No users found.</td>`;
                 tbody.appendChild(tr);
             } else {
-                pageUsers.forEach((user) => {
+                pageUsers.forEach((user, idx) => {
                     const tr = document.createElement("tr");
+
+                    // Enumeración
+                    const tdIndex = document.createElement("td");
+                    tdIndex.textContent = start + idx + 1;
+                    tr.appendChild(tdIndex);
+
                     const tdAvatar = document.createElement("td");
                     tdAvatar.className = "sorting_disabled dtr-hidden";
                     tdAvatar.innerHTML = user.photoPath
@@ -742,8 +751,6 @@
 
                         if (!docsResponse.ok) throw new Error("Error uploading documents");
                         if (!encryptEmail.ok) throw new Error("Error encrypting email");
-
-                        console.log("Encrypted: ", encryptedEmail.data.encryptedData)
 
                         const body = {
                             name: email,

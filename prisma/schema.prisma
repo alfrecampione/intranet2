@@ -125,14 +125,17 @@ model StatesANDCarriers {
 }
 
 model NewUserAlerts {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  insertedAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  display_name String
+  email        String   @unique
+  insertedAt   DateTime @default(now())
 }
 
 model Company {
   id        String   @id @default(uuid())
   name      String   @unique
+  phone     String
+  email     String
   States    String[]
   createdAt DateTime @default(now())
 }
