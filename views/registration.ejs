@@ -897,7 +897,7 @@
 
         cardBody.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <label class="form-label mb-0">State & Companies <span class="text-danger">*</span></label>
+          <label class="form-label mb-0">State & Carriers <span class="text-danger">*</span></label>
           <button type="button" class="btn btn-sm btn-outline-danger remove-card">Remove</button>
         </div>
         <div class="mb-2">
@@ -917,7 +917,7 @@
         container.appendChild(card);
 
         $(`#${companySelectId}`).select2({
-          placeholder: "Select company(ies)",
+          placeholder: "Select carrier",
           width: '100%',
           dropdownParent: $('#statesCarriersValidation')
         });
