@@ -724,24 +724,25 @@
                   <div id="statesCarriersValidation" class="content">
                     <div class="content-header mb-6">
                       <h4 class="mb-0">States & Carriers</h4>
-                      <p class="mb-0">Add all the carriers you work with and the states where you are licensed for
-                        each.</p>
+                      <p class="mb-0">Add all the carriers you work with and the states where you are licensed to sell.
+                      </p>
                     </div>
                     <div class="mb-3">
                       <button type="button" id="add-state-btn" class="btn btn-primary">Add State</button>
                     </div>
-                    <div id="carriers-list" class="mx-auto" style="width: 70%;"></div>
-                    <div class="col-12 d-flex justify-content-between mt-6">
-                      <button type="button" class="btn btn-label-secondary btn-prev">
-                        <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
-                      </button>
-                      <button type="submit" class="btn btn-success btn-submit">
-                        Review & Submit
-                      </button>
+                    <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
+                    <div class="d-flex align-items-center gap-2 flex-nowrap">
+                      <div class="col-12 d-flex justify-content-between mt-6">
+                        <button type="button" class="btn btn-label-secondary btn-prev">
+                          <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
+                        </button>
+                        <button type="submit" class="btn btn-success btn-submit">
+                          Review & Submit
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
             </form>
           </div>
         </div>
@@ -821,6 +822,26 @@
     <%- JSON.stringify(statesAndCarriersbyUser || []) %>
   </script>
 
+  <style>
+    #carriers-list .select2-container {
+      flex: 0 0 55% !important;
+      max-width: 55% !important;
+    }
+
+    #carriers-list .state-dropdown {
+      flex: 0 0 35% !important;
+      max-width: 35% !important;
+    }
+
+    #carriers-list .position-relative {
+      width: 60% !important;
+    }
+
+    #carriers-list .remove-card {
+      width: 5% !important;
+    }
+  </style>
+
   <script>
     (function () {
       const companies = JSON.parse(document.getElementById('companies-data').textContent);
@@ -875,7 +896,12 @@
         const container = document.getElementById('carriers-list');
 
         const card = document.createElement('div');
-        card.className = 'card mb-3 carrier-card';
+        card.className = 'card mb-2 carrier-card';
+        card.style.display = 'inline-block';
+        card.style.width = '45%';
+        card.style.minWidth = '300px';
+        card.style.marginRight = '1%';
+        card.style.verticalAlign = 'top';
 
         const cardBody = document.createElement('div');
         cardBody.className = 'card-body';
@@ -896,30 +922,27 @@
         ).join('');
 
         cardBody.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <label class="form-label mb-0">State & Carriers <span class="text-danger">*</span></label>
-          <button type="button" class="btn btn-sm btn-outline-danger remove-card">Remove</button>
-        </div>
-        <div class="mb-2">
-          <select class="form-select state-dropdown" id="${stateSelectId}" data-company-select="${companySelectId}">
-            <option value="">-- Select a state --</option>
-            ${stateOptions}
-          </select>
-        </div>
-        <div>
-          <select class="form-select company-select select2" id="${companySelectId}" multiple>
-            ${companyOptions}
-          </select>
-        </div>
-      `;
+  <div class="d-flex align-items-center gap-2">
+    <select class="form-select state-dropdown" id="${stateSelectId}" data-company-select="${companySelectId}">
+      <option value="">-- Select a state --</option>
+      ${stateOptions}
+    </select>
+    <select class="form-select company-select select2" id="${companySelectId}" multiple>
+      ${companyOptions}
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-danger remove-card ms-1" title="Remove">
+      <i class="ti ti-trash"></i>
+    </button>
+  </div>
+`;
 
         card.appendChild(cardBody);
         container.appendChild(card);
 
         $(`#${companySelectId}`).select2({
-          placeholder: "Select carrier",
-          width: '100%',
-          dropdownParent: $('#statesCarriersValidation')
+          placeholder: "Select a carrier",
+          dropdownParent: $('#statesCarriersValidation'),
+          width: 'resolve',
         });
 
         const stateDropdown = document.getElementById(stateSelectId);
@@ -1251,6 +1274,8 @@
         }
       }
 
+      console.log("valid inputs: ", validInputs)
+
       for (const { input } of validInputs) {
         const parent = input.closest(".d-flex");
         if (parent && parent.classList.contains("border-danger")) {
@@ -1265,16 +1290,11 @@
         payload[key] = file ? await uploadFile(file) : existingLink?.getAttribute("href") || null;
       }
 
-      const overlay = document.getElementById("email-overlay");
-      overlay.style.display = "flex";
-
       const response = await fetch(`${url}/steps/documents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
-      overlay.style.display = "none";
 
       if (!response.ok) throw new Error("Error uploading documents");
       return await response.json();
@@ -1324,9 +1344,6 @@
 
         if (currentUserId === null) throw new Error("Se requiere ID de usuario");
 
-        const overlay = document.getElementById("email-overlay");
-        overlay.style.display = "flex";
-
         await savePersonalInfo();
         await saveContactInfo();
         await savePaymentMethod()
@@ -1340,8 +1357,6 @@
         });
 
         if (!response.ok) throw new Error("Error sending the email");
-
-        overlay.style.display = "none";
 
         if (isEdit == "false")
           window.location.href = `${url}/users/dashboard`;
