@@ -294,7 +294,14 @@
                                         </thead>
                                         <tbody>
                                             <% const allStates=Array.from(new Set(companies.flatMap(c=>
-                                                c.States))).sort(); %>
+                                                c.States))).sort();
+                                                // Build a lookup for commissions: { [companyName]: { [state]: amount }}
+                                                const commissionMap = {};
+                                                commisions.forEach(c => {
+                                                if (!commissionMap[c.company]) commissionMap[c.company] = {};
+                                                commissionMap[c.company][c.state] = c.amount;
+                                                });
+                                                %>
                                                 <% allStates.forEach(state=> { %>
                                                     <tr>
                                                         <th>
@@ -303,6 +310,11 @@
                                                         <% companies.forEach(company=> {
                                                             const hasState = Array.isArray(company.States) &&
                                                             company.States.includes(state);
+                                                            let value = "";
+                                                            if (hasState && commissionMap[company.name] &&
+                                                            commissionMap[company.name][state] != null) {
+                                                            value = commissionMap[company.name][state];
+                                                            }
                                                             %>
                                                             <td>
                                                                 <% if (hasState) { %>
@@ -310,7 +322,8 @@
                                                                         class="form-control form-control-sm text-center commission-input"
                                                                         name="commission[<%= company.name %>][<%= state %>]"
                                                                         placeholder="%" min="0" max="100"
-                                                                        style="width: 70px; display: inline-block;" />
+                                                                        style="width: 70px; display: inline-block;"
+                                                                        value="<%= value %>" />
                                                                     <% } else { %>
                                                                         <span class="text-muted">N/A</span>
                                                                         <% } %>
@@ -454,13 +467,17 @@
                         commissions: commissions
                     };
 
+                    const dataJSON = JSON.stringify(data)
+
+                    console.log("Data to send:", dataJSON);
+
                     try {
                         const res = await fetch(`${url}/users/config_commisions`, {
-                            method: "POST",
+                            method: "PUT",
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify(data)
+                            body: dataJSON
                         });
 
                         if (!res.ok) throw new Error("Request failed");

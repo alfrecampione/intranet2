@@ -95,12 +95,13 @@ const renderConfigCarriers = async (req, res) => {
 
 const postCompany = async (req, res) => {
   const { name, phone, email, states } = req.body;
+
   if (!name || !Array.isArray(states) || states.length === 0) {
     return res.status(400).json({ message: "Company name and at least one state are required" });
   }
 
   try {
-    await prisma.company.create({
+    const company = await prisma.company.create({
       data: {
         name,
         States: states,
@@ -108,9 +109,22 @@ const postCompany = async (req, res) => {
         email
       }
     });
+
+    // Create 0-value commissions for each state
+    const commissionData = states.map(state => ({
+      companyId: company.id,
+      state,
+      amount: 0
+    }));
+
+    await prisma.commisions.createMany({
+      data: commissionData,
+      skipDuplicates: true
+    });
+
     res.status(201).json({ message: "Company added successfully" });
   } catch (error) {
-    if (error.code === 'P2002') { // Unique constraint failed
+    if (error.code === 'P2002') {
       return res.status(409).json({ message: "Company already exists" });
     }
     console.error("Error adding company:", error);
@@ -126,7 +140,16 @@ const updateCompany = async (req, res) => {
   }
 
   try {
-    await prisma.company.update({
+    const existingCompany = await prisma.company.findUnique({
+      where: { name: originalName },
+      include: { Commisions: true }
+    });
+
+    if (!existingCompany) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    const updatedCompany = await prisma.company.update({
       where: { name: originalName },
       data: {
         name,
@@ -135,6 +158,38 @@ const updateCompany = async (req, res) => {
         email
       }
     });
+
+    // Add new commissions with amount 0
+    const existingStatesWithCommissions = new Set(existingCompany.Commisions.map(c => c.state));
+    const newStates = states.filter(state => !existingStatesWithCommissions.has(state));
+
+    const newCommissionData = newStates.map(state => ({
+      companyId: existingCompany.id,
+      state,
+      amount: 0
+    }));
+
+    if (newCommissionData.length > 0) {
+      await prisma.commisions.createMany({
+        data: newCommissionData,
+        skipDuplicates: true
+      });
+    }
+
+    // Remove commissions for deleted states
+    const removedStates = existingCompany.States.filter(
+      prevState => !states.includes(prevState)
+    );
+
+    if (removedStates.length > 0) {
+      await prisma.commisions.deleteMany({
+        where: {
+          companyId: existingCompany.id,
+          state: { in: removedStates }
+        }
+      });
+    }
+
     res.status(200).json({ message: "Company updated successfully" });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -163,7 +218,7 @@ const deleteCompany = async (req, res) => {
 };
 
 const renderConfigCommisions = async (req, res) => {
-  const companies = await prisma.company.findMany({});
+  const companies = await prisma.company.findMany({ orderBy: { name: 'asc' } });
   const commisionsRaw = await prisma.commisions.findMany({
     include: { company: { select: { name: true } } }
   });
@@ -173,11 +228,12 @@ const renderConfigCommisions = async (req, res) => {
     amount: c.amount
   }));
 
+
   res.render("config_commisions", { user: req.user, companies, commisions });
 };
 
-const postCommisions = async (req, res) => {
-  const commissions = req.body; // expects array of {company, state, commission}
+const updateCommisions = async (req, res) => {
+  const { commissions } = req.body; // expects array of {company, state, commission}
 
   if (!Array.isArray(commissions) || commissions.length === 0) {
     return res.status(400).json({ message: "No commissions provided" });
@@ -356,5 +412,5 @@ export {
   updateCompany,
   deleteCompany,
   renderConfigCommisions,
-  postCommisions,
+  updateCommisions,
 };
