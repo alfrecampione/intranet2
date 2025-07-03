@@ -132,19 +132,7 @@ const validateEmail = async (req, res, next) => {
   }
 };
 
-/*
-const loginCheck = (req, res) => {
-    const {email, password} = req.body;
-    pool.query(`SELECT * FROM entra.users WHERE mail = $1`, [email], (err, result) => {
-        if(err) {
-            console.log(`loginCheck function error`, err);
-            res.redirect('/login');
-        }
-    })
-}*/
-
 const index = (req, res) => {
-  console.log("index function called");
   res.redirect("/users/dashboard");
 };
 

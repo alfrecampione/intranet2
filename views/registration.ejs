@@ -621,15 +621,15 @@
                               <label class="form-label">Bank Account Type</label>
                               <div>
                                 <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" name="paymentMethod[bankAccountType]"
-                                    value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
-                                    ? 'checked' : '' %> required />
+                                  <input class="form-check-input" type="radio" name="bankAccountType" value="checking"
+                                    <%=paymentMethod && paymentMethod.bankAccountType==='checking' ? 'checked' : '' %>
+                                  required />
                                   <label class="form-check-label">Checking</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" name="paymentMethod[bankAccountType]"
-                                    value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
-                                    ? 'checked' : '' %> required />
+                                  <input class="form-check-input" type="radio" name="bankAccountType" value="savings"
+                                    <%=paymentMethod && paymentMethod.bankAccountType==='savings' ? 'checked' : '' %>
+                                  required />
                                   <label class="form-check-label">Savings</label>
                                 </div>
                                 <div class="form-text">Por favor seleccione una opción.</div>
@@ -637,24 +637,24 @@
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Bank Account Number <span class="text-danger">*</span></label>
-                              <input type="number" name="paymentMethod[accountNumber]" class="form-control"
-                                autocomplete="off" value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
+                              <input type="number" name="accountNumber" class="form-control" autocomplete="off" required
+                                value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Confirm Account Number <span
                                   class="text-danger">*</span></label>
-                              <input type="number" name="paymentMethod[confirmAccountNumber]" class="form-control"
-                                autocomplete="off" value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
+                              <input type="number" name="confirmAccountNumber" class="form-control" autocomplete="off"
+                                required value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Bank Routing Number <span class="text-danger">*</span></label>
-                              <input type="text" name="paymentMethod[routingNumber]" class="form-control"
+                              <input type="number" name="routingNumber" class="form-control" required
                                 value="<%= paymentMethod ? paymentMethod.bankRoutingNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
-                              <input type="text" name="paymentMethod[accountNickname]" class="form-control"
-                                placeholder="e.g., My Primary Checking"
+                              <input type="text" name="accountNickname" class="form-control"
+                                placeholder="e.g., My Primary Checking" required
                                 value="<%= paymentMethod ? paymentMethod.accountNickname : '' %>" />
                             </div>
                           </div>
@@ -814,6 +814,66 @@
       <span class="visually-hidden">Sending...</span>
     </div>
   </div>
+
+  <script>
+    function showToast(headerText, bodyText) {
+      const toast = document.querySelector('.toast-ex1');
+      toast.querySelector('.toast-header small').textContent = headerText;
+      toast.querySelector('.toast-body').textContent = bodyText;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".btn-next").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+          const stepContent = btn.closest(".content");
+          if (!stepContent) return;
+
+          const requiredFields = stepContent.querySelectorAll(
+            "input[required]:not([type='hidden']), select[required], textarea[required]"
+          );
+
+          let valid = true;
+
+          requiredFields.forEach(function (field) {
+            const style = window.getComputedStyle(field);
+            if (style.display === "none" || field.offsetParent === null) return;
+
+            field.classList.remove("is-invalid");
+
+            if (!field.value || (field.type === "checkbox" && !field.checked)) {
+              field.classList.add("is-invalid");
+              valid = false;
+            }
+          });
+
+          const accountNumber = stepContent.querySelector('input[name="accountNumber"]');
+          const confirmAccountNumber = stepContent.querySelector('input[name="confirmAccountNumber"]');
+
+          if (accountNumber && confirmAccountNumber) {
+            console.log("accountNumber:", accountNumber.value);
+            console.log("confirmAccountNumber:", confirmAccountNumber.value);
+            const mismatch = accountNumber.value !== confirmAccountNumber.value;
+            confirmAccountNumber.classList.remove("is-invalid");
+
+            if (mismatch) {
+              confirmAccountNumber.classList.add("is-invalid");
+              valid = false;
+              showToast("Error", "Account numbers do not match.");
+            }
+          }
+
+          if (!valid) {
+            e.preventDefault();
+            showToast("Error", "Please fill out all required fields.");
+          }
+        });
+      });
+    });
+  </script>
 
   <script type="application/json" id="companies-data">
     <%- JSON.stringify(allCompanies || []) %>
@@ -1006,21 +1066,32 @@
 
       function updateStatusVisual(input) {
         const parent = input.closest(".d-flex");
-        const fileUploaded = input.files.length > 0;
-        const hasExistingLink = parent ? parent.querySelector("a[href]:not([href=''])") : null;
+        if (!parent) return;
 
-        if (!parent.querySelector(".check-icon")) {
-          const check = document.createElement("i");
-          check.className = "ti ti-check text-success ms-2 check-icon";
-          const span = parent.querySelector("span");
-          if (span) {
-            span.appendChild(check);
+        const fileUploaded = input.files.length > 0;
+
+        // Special case for profile photo
+        if (input.id === "profilePhotoInput") {
+          const hasExistingPhoto = !!input.dataset.existingUrl;
+          parent.classList.remove("border-success", "border-danger");
+          if (fileUploaded || hasExistingPhoto) {
+            parent.classList.add("border-success");
+          } else {
+            parent.classList.remove("border-success", "border-danger");
           }
+          return;
+        }
+
+        // For documents
+        const link = parent.querySelector("a[href]");
+        const hasExistingFile = link && link.getAttribute("href").trim() !== "";
+
+        parent.classList.remove("border-success", "border-danger");
+
+        if (fileUploaded || hasExistingFile) {
+          parent.classList.add("border-success");
         } else {
-          parent.classList.remove("border-success");
           parent.classList.add("border-danger");
-          const check = parent.querySelector(".check-icon");
-          if (check) check.remove();
         }
       }
 
@@ -1034,14 +1105,6 @@
   </script>
 
   <script>
-    function showToast(headerText, bodyText) {
-      const toast = document.querySelector('.toast-ex1');
-      toast.querySelector('.toast-header small').textContent = headerText;
-      toast.querySelector('.toast-body').textContent = bodyText;
-      const bsToast = new bootstrap.Toast(toast);
-      bsToast.show();
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
@@ -1210,20 +1273,18 @@
 
       if (!entry || entry.style.display === "none") return;
 
-      const bankAccountType = entry.querySelector('input[type="radio"][name$="[bankAccountType]"]:checked')?.value || "";
-      const bankAccountNum = entry.querySelector('input[name$="[accountNumber]"]')?.value || "";
-      const confirmAccountNum = entry.querySelector('input[name$="[confirmAccountNumber]"]')?.value || "";
-      const bankRoutingNum = entry.querySelector('input[name$="[routingNumber]"]')?.value || "";
-      const accountNickname = entry.querySelector('input[name$="[accountNickname]"]')?.value || "";
+      const bankAccountType = entry.querySelector('input[type="radio"][name="bankAccountType"]:checked')?.value || "";
+      const bankAccountNum = entry.querySelector('input[name="accountNumber"]')?.value || "";
+      const confirmAccountNum = entry.querySelector('input[name="confirmAccountNumber"]')?.value || "";
+      const bankRoutingNum = entry.querySelector('input[name="routingNumber"]')?.value || "";
+      const accountNickname = entry.querySelector('input[name="accountNickname"]')?.value || "";
 
-      // Optional: add validation for required fields
       if (!bankAccountType || !bankAccountNum || !confirmAccountNum || !bankRoutingNum || !accountNickname) {
-        throw new Error("Por favor complete todos los campos obligatorios.");
+        throw new Error("Please fill in all required fields.");
       }
 
-      // Optional: check if account number and confirmation match
       if (bankAccountNum !== confirmAccountNum) {
-        throw new Error("Los números de cuenta no coinciden.");
+        throw new Error("Account number and confirmation do not match.");
       }
 
       const bankAccount = {
@@ -1240,7 +1301,7 @@
         body: JSON.stringify(bankAccount)
       });
 
-      if (!response.ok) throw new Error("Error guardando método de pago");
+      if (!response.ok) throw new Error("Error saving payment method");
       return await response.json();
     }
 
@@ -1268,8 +1329,6 @@
           validInputs.push({ key, input });
         }
       }
-
-      console.log("valid inputs: ", validInputs)
 
       for (const { input } of validInputs) {
         const parent = input.closest(".d-flex");

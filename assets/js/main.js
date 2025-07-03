@@ -474,10 +474,6 @@ if (typeof $ !== 'undefined') {
       });
     }, 10);
 
-    searchInput.on('input', (e) => {
-      console.log(e.target.value, 'Hola')
-    })
-
     if (searchInput.length) {
       // Filter config
       var filterConfig = function (data) {

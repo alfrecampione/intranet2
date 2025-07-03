@@ -150,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
       toastAnimationBtn.addEventListener('click', () => {
         const email = document.getElementById('email').value;
         const data = { url }
-        console.log(email, data);
 
         if (email) {
           fetch(`${url}/users/auth/send/${email}`, {

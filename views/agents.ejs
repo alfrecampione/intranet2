@@ -745,8 +745,6 @@
                             headers: { "Content-Type": "application/json" },
                         });
 
-                        console.log("Base call: ", encryptEmail)
-
                         const encryptedEmail = await encryptEmail.json();
 
                         if (!docsResponse.ok) throw new Error("Error uploading documents");
