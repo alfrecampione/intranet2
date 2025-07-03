@@ -343,6 +343,22 @@
             </div>
         </div>
 
+        <div id="email-overlay"
+            style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+            <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+                <span class="visually-hidden">Sending...</span>
+            </div>
+        </div>
+
+        <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+            aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+                <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Commisions</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+        </div>
+
         <script src="/vendor/libs/jquery/jquery.js"></script>
         <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
         <script src="/vendor/libs/select2/select2.js"></script>
@@ -368,6 +384,16 @@
 
 
         <script src="/js/main.js"></script>
+
+        <script>
+            function showToast(headerText, bodyText) {
+                const toast = document.querySelector('.toast-ex1');
+                toast.querySelector('.toast-header small').textContent = headerText;
+                toast.querySelector('.toast-body').textContent = bodyText;
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+            }
+        </script>
 
         <script>
             const stateAbbreviationMap = {
@@ -469,7 +495,8 @@
 
                     const dataJSON = JSON.stringify(data)
 
-                    console.log("Data to send:", dataJSON);
+                    const overlay = document.getElementById("email-overlay");
+                    overlay.style.display = "flex";
 
                     try {
                         const res = await fetch(`${url}/users/config_commisions`, {
@@ -483,9 +510,13 @@
                         if (!res.ok) throw new Error("Request failed");
 
                         const result = await res.json();
-                        console.log("Response:", result);
+
+                        showToast("Success", "Commisions saved successfully")
                     } catch (err) {
                         console.error("Error:", err);
+                    }
+                    finally {
+                        overlay.style.display = "none";
                     }
                 });
             });
