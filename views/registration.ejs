@@ -1031,11 +1031,23 @@
         });
 
         // Load pre-existing selections
-        userSelections.forEach(sel => {
-          if (sel.state && sel.company) {
-            const selectedCompanies = Array.isArray(sel.company) ? sel.company : [sel.company];
-            createCard(sel.state, selectedCompanies);
+        const groupedSelections = userSelections.reduce((acc, sel) => {
+          if (!sel.state || !sel.company) return acc;
+
+          const state = sel.state;
+          const companyList = Array.isArray(sel.company) ? sel.company : [sel.company];
+
+          if (!acc[state]) {
+            acc[state] = new Set();
           }
+
+          companyList.forEach(company => acc[state].add(company));
+          return acc;
+        }, {});
+
+        Object.entries(groupedSelections).forEach(([state, companiesSet]) => {
+          const companies = Array.from(companiesSet);
+          createCard(state, companies);
         });
       }
 
