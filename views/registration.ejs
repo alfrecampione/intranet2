@@ -664,7 +664,7 @@
                     </div>
                     <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                      <button type="submit" class="btn btn-primary btn-next">Next</button>
+                      <button type="button" class="btn btn-primary btn-next">Next</button>
                     </div>
                   </div>
                   <!-- Contenido -->
@@ -794,9 +794,6 @@
   <!-- Main JS -->
   <script src="/js/main.js"></script>
 
-  <!-- Page JS -->
-  <script src="/js/pages-auth-multisteps.js"></script>
-
   <!-- Funcionality of the formulary -->
   <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
   <script src="/js/funcionality-of-form.js"></script>
@@ -816,6 +813,7 @@
   </div>
 
   <script>
+
     function showToast(headerText, bodyText) {
       const toast = document.querySelector('.toast-ex1');
       toast.querySelector('.toast-header small').textContent = headerText;
@@ -823,55 +821,35 @@
       const bsToast = new bootstrap.Toast(toast);
       bsToast.show();
     }
-  </script>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      document.querySelectorAll(".btn-next").forEach(function (btn) {
-        btn.addEventListener("click", function (e) {
-          const stepContent = btn.closest(".content");
-          if (!stepContent) return;
+    // Mostrar/ocultar campos de negocio según tipo de contacto
+    document.addEventListener('DOMContentLoaded', function () {
+      const contactType = document.getElementById("contactType");
+      const businessNameGroup = document.getElementById("businessNameGroup");
+      const einGroup = document.getElementById("einGroup");
+      const businessName = document.getElementById("businessName");
+      const ein = document.getElementById("ein");
+      const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
 
-          const requiredFields = stepContent.querySelectorAll(
-            "input[required]:not([type='hidden']), select[required], textarea[required]"
-          );
-
-          let valid = true;
-
-          requiredFields.forEach(function (field) {
-            const style = window.getComputedStyle(field);
-            if (style.display === "none" || field.offsetParent === null) return;
-
-            field.classList.remove("is-invalid");
-
-            if (!field.value || (field.type === "checkbox" && !field.checked)) {
-              field.classList.add("is-invalid");
-              valid = false;
-            }
-          });
-
-          const accountNumber = stepContent.querySelector('input[name="accountNumber"]');
-          const confirmAccountNumber = stepContent.querySelector('input[name="confirmAccountNumber"]');
-
-          if (accountNumber && confirmAccountNumber) {
-            console.log("accountNumber:", accountNumber.value);
-            console.log("confirmAccountNumber:", confirmAccountNumber.value);
-            const mismatch = accountNumber.value !== confirmAccountNumber.value;
-            confirmAccountNumber.classList.remove("is-invalid");
-
-            if (mismatch) {
-              confirmAccountNumber.classList.add("is-invalid");
-              valid = false;
-              showToast("Error", "Account numbers do not match.");
-            }
-          }
-
-          if (!valid) {
-            e.preventDefault();
-            showToast("Error", "Please fill out all required fields.");
-          }
-        });
-      });
+      function toggleBusinessFields() {
+        if (contactType.value === "business") {
+          businessNameGroup.style.display = "";
+          einGroup.style.display = "";
+          businessName.required = true;
+          ein.required = true;
+          prefFirstNameGroup.style.display = "none";
+        } else {
+          businessNameGroup.style.display = "none";
+          einGroup.style.display = "none";
+          businessName.required = false;
+          ein.required = false;
+          prefFirstNameGroup.style.display = "";
+        }
+      }
+      if (contactType) {
+        contactType.addEventListener("change", toggleBusinessFields);
+        toggleBusinessFields();
+      }
     });
   </script>
 
@@ -1100,59 +1078,6 @@
         input.addEventListener("change", function () {
           updateStatusVisual(this);
         });
-      });
-    });
-  </script>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const contactType = document.getElementById("contactType");
-      const businessNameGroup = document.getElementById("businessNameGroup");
-      const einGroup = document.getElementById("einGroup");
-      const businessName = document.getElementById("businessName");
-      const ein = document.getElementById("ein");
-      const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
-
-      function toggleBusinessFields() {
-        if (contactType.value === "business") {
-          businessNameGroup.style.display = "";
-          einGroup.style.display = "";
-          businessName.required = true;
-          ein.required = true;
-          prefFirstNameGroup.style.display = "none";
-        } else {
-          businessNameGroup.style.display = "none";
-          einGroup.style.display = "none";
-          businessName.required = false;
-          ein.required = false;
-          businessName.classList.remove("is-invalid");
-          ein.classList.remove("is-invalid");
-          prefFirstNameGroup.style.display = "";
-        }
-      }
-
-      contactType.addEventListener("change", toggleBusinessFields);
-      toggleBusinessFields();
-      document.querySelector(".btn-next").addEventListener("click", function (e) {
-        if (contactType.value === "business") {
-          let valid = true;
-          if (!businessName.value.trim()) {
-            businessName.classList.add("is-invalid");
-            valid = false;
-          } else {
-            businessName.classList.remove("is-invalid");
-          }
-          if (!ein.value.trim()) {
-            ein.classList.add("is-invalid");
-            valid = false;
-          } else {
-            ein.classList.remove("is-invalid");
-          }
-          if (!valid) {
-            e.preventDefault();
-            showToast("Error", "Business Name and EIN are required for Business type.");
-          }
-        }
       });
     });
   </script>
