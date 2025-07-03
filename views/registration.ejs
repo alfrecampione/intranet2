@@ -736,6 +736,11 @@
                       <button type="button" id="add-state-btn" class="btn btn-primary">Add State</button>
                     </div>
                     <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
+                    <div class="mt-4 w-100">
+                      <label for="carrier-recommendation" class="form-label fw-semibold">Optional Recommendation</label>
+                      <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control" rows="4"
+                        placeholder="Add any comments or recommendations about the carriers..."></textarea>
+                    </div>
                     <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
                       <button type="submit" class="btn btn-success btn-submit">
@@ -1279,9 +1284,12 @@
       return await response.json();
     }
 
+    let recommendation = "";
+
     async function saveStatesCarriers() {
       const carriers = [];
       const cards = document.querySelectorAll(".carrier-card");
+      recommendation = document.getElementById("carrier-recommendation")?.value || "";
 
       cards.forEach(card => {
         const stateSelect = card.querySelector(".state-dropdown");
@@ -1329,16 +1337,15 @@
         await saveDocuments();
         await saveStatesCarriers();
 
-        const response = await fetch(`${url}/email/config`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user_email })
-        });
-
-        if (!response.ok) throw new Error("Error sending the email");
-
-        if (isEdit == "false")
+        if (isEdit == "false") {
+          const response = await fetch(`${url}/email/config`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: user_email, recommendation: recommendation })
+          });
+          if (!response.ok) throw new Error("Error sending the email");
           window.location.href = `${url}/users/dashboard`;
+        }
         else
           window.location.href = `${url}/users/agents`;
 

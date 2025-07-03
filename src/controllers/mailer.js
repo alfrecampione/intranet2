@@ -156,7 +156,8 @@ const email_sender = async (req, res) => {
 };
 
 const new_user_notification = async (req, res) => {
-  const { email } = req.body;
+  const { email, recomendation } = req.body;
+
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
@@ -172,6 +173,17 @@ const new_user_notification = async (req, res) => {
     const subject = "New user created";
     const body = {
       intro: `The user with the email <b>${email}</b> has been created in the system.`,
+      ...(recomendation?.trim() && {
+        table: {
+          data: [
+            { "User Recommendation": recomendation }
+          ],
+          columns: {
+            customWidth: { "User Recommendation": "100%" },
+            customAlignment: { "User Recommendation": "left" }
+          }
+        }
+      }),
       outro: "This is an automated message from the GoldenTrust Insurance's Intranet."
     };
 
@@ -190,5 +202,6 @@ const new_user_notification = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 export { passwordMail, sendMail, email_sender, new_user_notification };
