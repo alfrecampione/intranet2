@@ -165,5 +165,9 @@ router.post("/users/config_carriers", checkNotAuthenticated, postCompany);
 router.put("/users/config_carriers", checkNotAuthenticated, updateCompany);
 router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
+import { renderConfigCommisions, postCommisions } from "./controllers/config.js";
+router.get("/users/config_commisions", checkNotAuthenticated, renderConfigCommisions);
+router.post("/users/config_commisions", checkNotAuthenticated, postCommisions);
+
 
 export default router;

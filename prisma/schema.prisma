@@ -128,10 +128,23 @@ model NewUserAlerts {
 }
 
 model Company {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  phone      String
+  email      String
+  States     String[]
+  createdAt  DateTime     @default(now())
+  Commisions Commisions[]
+}
+
+model Commisions {
   id        String   @id @default(uuid())
-  name      String   @unique
-  phone     String
-  email     String
-  States    String[]
+  companyId String
+  state     String
+  amount    Float
   createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, state])
 }

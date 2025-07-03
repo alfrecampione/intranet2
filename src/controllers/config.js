@@ -162,6 +162,68 @@ const deleteCompany = async (req, res) => {
   }
 };
 
+const renderConfigCommisions = async (req, res) => {
+  const companies = await prisma.company.findMany({});
+  const commisionsRaw = await prisma.commisions.findMany({
+    include: { company: { select: { name: true } } }
+  });
+  const commisions = commisionsRaw.map(c => ({
+    company: c.company.name,
+    state: c.state,
+    amount: c.amount
+  }));
+
+  res.render("config_commisions", { user: req.user, companies, commisions });
+};
+
+const postCommisions = async (req, res) => {
+  const commissions = req.body; // expects array of {company, state, commission}
+
+  if (!Array.isArray(commissions) || commissions.length === 0) {
+    return res.status(400).json({ message: "No commissions provided" });
+  }
+
+  try {
+    // Get all companies in one query to avoid repeated DB calls
+    const companyNames = [...new Set(commissions.map(c => c.company))];
+    const companies = await prisma.company.findMany({
+      where: { name: { in: companyNames } }
+    });
+
+    const nameToId = {};
+    companies.forEach(c => { nameToId[c.name] = c.id; });
+
+    // Start transaction: clear table, then bulk insert
+    await prisma.$transaction(async (tx) => {
+      await tx.commisions.deleteMany({});
+
+      const data = commissions.map(c => {
+        const companyId = nameToId[c.company];
+        if (!companyId) {
+          throw new Error(`Company not found: ${c.company}`);
+        }
+        return {
+          companyId,
+          state: c.state,
+          amount: c.commission
+        };
+      });
+
+      // Bulk insert all commissions
+      await tx.commisions.createMany({
+        data,
+        skipDuplicates: true
+      });
+    });
+
+    res.status(200).json({ message: "Commissions replaced successfully" });
+  } catch (error) {
+    console.error("Error replacing commissions:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 const headcarrier = async (req, res) => {
   let data = {};
   data.user = req.user;
@@ -292,5 +354,7 @@ export {
   renderConfigCarriers,
   postCompany,
   updateCompany,
-  deleteCompany
+  deleteCompany,
+  renderConfigCommisions,
+  postCommisions,
 };

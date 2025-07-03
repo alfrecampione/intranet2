@@ -263,7 +263,7 @@
                         <div class="nav-align-top mb-3">
                             <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-2 gap-lg-0">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="javascript:void(0);"><i
+                                    <a class="nav-link" href="/users/config_emails"><i
                                             class="ti-sm ti ti-mail me-1_5"></i> Notification Emails</a>
                                 </li>
                                 <li class="nav-item">
@@ -272,140 +272,63 @@
                                         Carriers</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="/users/config_commisions"><i
+                                    <a class="nav-link active" href="javascript:void(0);"><i
                                             class="ti-sm ti ti-table me-1_5"></i>
                                         Commisions</a>
                                 </li>
                             </ul>
                         </div>
-                        <!-- DataTable with Buttons -->
                         <div class="card">
-                            <div class="card-datatable table-responsive pt-0">
-                                <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                    <div class="card-header flex-column flex-md-row">
-                                        <div class="head-label text-center">
-                                            <h5 class="card-title mb-0">Emails</h5>
-                                        </div>
-                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                            <div class="dt-buttons btn-group flex-wrap">
-                                                <button
-                                                    class="btn btn-secondary create-new btn-primary waves-effect waves-light"
-                                                    tabindex="0" aria-controls="DataTables_Table_0" type="button"
-                                                    data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
-                                                    <span>
-                                                        <i class="ti ti-plus me-sm-1"></i>
-                                                        <span class="d-none d-sm-inline-block">Add New Email</span>
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div
-                                            class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
-                                            <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                                                <label>Search:<input type="search" class="form-control" placeholder=""
-                                                        aria-controls="DataTables_Table_0" /></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <table class="datatables-basic table dataTable no-footer dtr-column"
-                                        id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                        style="width: 1396px">
+                            <div class="card-body">
+                                <div class="table-responsive text-nowrap">
+                                    <table class="table table-bordered align-middle text-center">
                                         <thead>
                                             <tr>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 147px"
-                                                    aria-label="Email: activate to sort column ascending">
-                                                    Name
-                                                </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 147px"
-                                                    aria-label="Email: activate to sort column ascending">
-                                                    Email
-                                                </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 130px"
-                                                    aria-label="Created_at: activate to sort column ascending">
-                                                    Inserted at
-                                                </th>
-                                                <th class="sorting_disabled" rowspan="1" colspan="1"
-                                                    style="width: 174px" aria-label="Actions">
-                                                    Actions
-                                                </th>
+                                                <th>State \ Carrier</th>
+                                                <% companies.forEach(company=> { %>
+                                                    <th>
+                                                        <%= company.name %>
+                                                    </th>
+                                                    <% }); %>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <% if (emails && emails.length> 0) { %>
-                                                <% emails.forEach(function(email) { %>
+                                            <% const allStates=Array.from(new Set(companies.flatMap(c=>
+                                                c.States))).sort(); %>
+                                                <% allStates.forEach(state=> { %>
                                                     <tr>
-                                                        <td>
-                                                            <%= email.display_name %>
-                                                        </td>
-                                                        <td>
-                                                            <%= email.email %>
-                                                        </td>
-                                                        <td>
-                                                            <%= email.insertedAt %>
-                                                        </td>
-                                                        <td>
-                                                            <button class="btn btn-danger btn-sm delete-email-btn"
-                                                                data-email="<%= email.email %>">Delete</button>
-                                                        </td>
+                                                        <th>
+                                                            <%= state %>
+                                                        </th>
+                                                        <% companies.forEach(company=> {
+                                                            const hasState = Array.isArray(company.States) &&
+                                                            company.States.includes(state);
+                                                            %>
+                                                            <td>
+                                                                <% if (hasState) { %>
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm text-center commission-input"
+                                                                        name="commission[<%= company.name %>][<%= state %>]"
+                                                                        placeholder="%" min="0" max="100"
+                                                                        style="width: 70px; display: inline-block;" />
+                                                                    <% } else { %>
+                                                                        <span class="text-muted">N/A</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <% }); %>
                                                     </tr>
                                                     <% }); %>
-                                                        <% } else { %>
-                                                            <tr>
-                                                                <td colspan="4">No emails found.</td>
-                                                            </tr>
-                                                            <% } %>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        <!-- Modal to select emails -->
-                        <div class="offcanvas offcanvas-end" id="add-new-record">
-                            <div class="offcanvas-header border-bottom">
-                                <h5 class="offcanvas-title" id="exampleModalLabel">Select Emails</h5>
-                                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="offcanvas-body flex-grow-1">
-                                <select id="select2Primary" class="select2 form-select" multiple>
-                                    <% if (admins && admins.length> 0) { %>
-                                        <% admins.forEach(function(admin) { %>
-                                            <option value="<%=admin.mail %>">
-                                                <%= admin.mail %>
-                                            </option>
-                                            <% }); %>
-                                                <% } %>
-                                </select>
-                                <div class="col-sm-12">
-                                    <br>
-                                    <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1"
-                                        id="addEmailBtn">
-                                        Add
-                                    </button>
-                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!--/ DataTable with Buttons -->
                         <div class="content-backdrop fade"></div>
+                        <button id="submitBtn" class="btn btn-primary mt-3">Save Commisions</button>
                     </div>
                 </div>
             </div>
-
-            <!-- Overlay -->
-            <div class="layout-overlay layout-menu-toggle"></div>
-
-            <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-            <div class="drag-target"></div>
         </div>
-        <!-- / Layout wrapper -->
 
         <script src="/vendor/libs/jquery/jquery.js"></script>
         <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
@@ -420,111 +343,133 @@
         <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
         <script src="/vendor/js/menu.js"></script>
 
-        <!-- endbuild -->
 
-        <!-- Vendors JS -->
         <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-        <!-- Flat Picker -->
+
         <script src="/vendor/libs/moment/moment.js"></script>
         <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
-        <!-- Form Validation -->
+
         <script src="/vendor/libs/@form-validation/popular.js"></script>
         <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
         <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
 
-        <!-- Main JS -->
+
         <script src="/js/main.js"></script>
 
-        <script type="application/json" id="users-data">
-            <%- JSON.stringify(emails) %>
-        </script>
-        <script type="application/json" id="admins-data">
-            <%- JSON.stringify(admins) %>
-        </script>
-
         <script>
-            $(document).ready(function () {
-                $('#select2Primary').select2({
-                    placeholder: "Select email(s)",
-                    width: '100%',
-                    dropdownParent: $('#add-new-record')
+            const stateAbbreviationMap = {
+                "AL": "Alabama",
+                "AK": "Alaska",
+                "AZ": "Arizona",
+                "AR": "Arkansas",
+                "CA": "California",
+                "CO": "Colorado",
+                "CT": "Connecticut",
+                "DE": "Delaware",
+                "FL": "Florida",
+                "GA": "Georgia",
+                "HI": "Hawaii",
+                "ID": "Idaho",
+                "IL": "Illinois",
+                "IN": "Indiana",
+                "IA": "Iowa",
+                "KS": "Kansas",
+                "KY": "Kentucky",
+                "LA": "Louisiana",
+                "ME": "Maine",
+                "MD": "Maryland",
+                "MA": "Massachusetts",
+                "MI": "Michigan",
+                "MN": "Minnesota",
+                "MS": "Mississippi",
+                "MO": "Missouri",
+                "MT": "Montana",
+                "NE": "Nebraska",
+                "NV": "Nevada",
+                "NH": "New Hampshire",
+                "NJ": "New Jersey",
+                "NM": "New Mexico",
+                "NY": "New York",
+                "NC": "North Carolina",
+                "ND": "North Dakota",
+                "OH": "Ohio",
+                "OK": "Oklahoma",
+                "OR": "Oregon",
+                "PA": "Pennsylvania",
+                "RI": "Rhode Island",
+                "SC": "South Carolina",
+                "SD": "South Dakota",
+                "TN": "Tennessee",
+                "TX": "Texas",
+                "UT": "Utah",
+                "VT": "Vermont",
+                "VA": "Virginia",
+                "WA": "Washington",
+                "WV": "West Virginia",
+                "WI": "Wisconsin",
+                "WY": "Wyoming"
+            };
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const stateHeaders = document.querySelectorAll("table tbody th");
+                stateHeaders.forEach(header => {
+                    const abbr = header.textContent.trim();
+                    if (stateAbbreviationMap[abbr]) {
+                        header.textContent = stateAbbreviationMap[abbr];
+                    }
                 });
             });
         </script>
-
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                document.getElementById("addEmailBtn").addEventListener("click", async function () {
-                    const select = document.getElementById("select2Primary");
-                    const emails = Array.from(select.selectedOptions).map(option => option.value);
+            document.addEventListener("DOMContentLoaded", () => {
+                const getCommissionsData = () => {
+                    const inputs = document.querySelectorAll(".commission-input");
+                    const data = [];
 
-                    if (!emails.length) {
-                        alert("Please select at least one email.");
-                        return;
-                    }
-                    const admins = emails.map(email => {
-                        const admin = JSON.parse(document.getElementById("admins-data").textContent)
-                            .find(admin => admin.mail === email);
-                        return {
-                            mail: email,
-                            display_name: admin ? admin.display_name : email
-                        };
+                    inputs.forEach(input => {
+                        const nameAttr = input.name; // e.g., commission[Company A][CA]
+                        const match = nameAttr.match(/^commission\[(.+?)\]\[(.+?)\]$/);
+                        if (match) {
+                            const company = match[1];
+                            const state = match[2];
+                            const value = input.value.trim();
+
+                            if (value !== "") {
+                                data.push({
+                                    company: company,
+                                    state: state,
+                                    commission: parseFloat(value)
+                                });
+                            }
+                        }
                     });
 
-                    const existingAdmins = Array.from(document.querySelectorAll("table .delete-email-btn"))
-                        .map(btn => btn.getAttribute("data-email"));
+                    return data;
+                };
 
-                    const newAdmins = admins.filter(admin => !existingAdmins.includes(admin));
+                document.getElementById("submitBtn")?.addEventListener("click", async () => {
+                    const commissions = getCommissionsData();
 
-                    if (!newAdmins.length) {
-                        alert("Selected email(s) already exist in the list.");
-                        return;
-                    }
+                    const data = {
+                        commissions: commissions
+                    };
 
                     try {
-                        const response = await fetch(`${url}/users/config_emails`, {
+                        const res = await fetch(`${url}/users/config_commisions`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ admins: newAdmins })
+                            body: JSON.stringify(data)
                         });
 
-                        if (!response.ok) {
-                            throw new Error("Error adding email(s)");
-                        }
+                        if (!res.ok) throw new Error("Request failed");
 
-                        location.reload();
+                        const result = await res.json();
+                        console.log("Response:", result);
                     } catch (err) {
-                        alert("Error adding email(s): " + err.message);
+                        console.error("Error:", err);
                     }
-                });
-
-                document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
-                    btn.addEventListener("click", async function () {
-                        const email = this.getAttribute("data-email");
-                        if (!email) return;
-
-                        if (!confirm("Are you sure you want to delete this email?")) return;
-
-                        try {
-                            const response = await fetch(`${url}/users/config_emails`, {
-                                method: "DELETE",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({ email })
-                            });
-
-                            if (!response.ok) {
-                                throw new Error("Error deleting email");
-                            }
-
-                            location.reload();
-                        } catch (err) {
-                            alert("Error deleting email: " + err.message);
-                        }
-                    });
                 });
             });
         </script>
