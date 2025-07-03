@@ -70,9 +70,6 @@ export const createContactInfo = async (req, res) => {
       city,
       state,
       zipCode,
-      workEmail,
-      workPhone,
-      preferredContactMethod,
       userId,
     } = req.body;
     const data = {
@@ -84,9 +81,6 @@ export const createContactInfo = async (req, res) => {
       city,
       state,
       zipCode,
-      workEmail: workEmail || null,
-      workPhone: workPhone || null,
-      preferredContactMethod: preferredContactMethod || null,
       userId,
     };
 

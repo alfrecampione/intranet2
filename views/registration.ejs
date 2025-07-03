@@ -84,6 +84,20 @@
       display: block;
     }
   </style>
+
+  <style>
+    .content {
+      position: relative;
+    }
+
+    .content .sticky-bottom {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      z-index: 2;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
@@ -363,9 +377,31 @@
                           EIN<span class="text-danger">*</span>
                         </label>
                         <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
-                          maxlength="10" value="<%= personalInfo?.companyEIN || '' %>" required>
+                          value="<%= personalInfo?.companyEIN || '' %>" required>
                       </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                          const einInput = document.getElementById('ein');
 
+                          einInput.addEventListener('input', function (e) {
+                            let value = einInput.value.replace(/\D/g, '').slice(0, 9); // Solo dígitos, máx 9
+
+                            if (value.length > 2) {
+                              value = value.slice(0, 2) + '-' + value.slice(2);
+                            }
+
+                            einInput.value = value;
+                          });
+
+                          einInput.addEventListener('blur', function () {
+                            // En blur, validación estricta opcional
+                            if (!/^\d{2}-\d{7}$/.test(einInput.value)) {
+                              alert('EIN must be in the format XX-XXXXXXX');
+                              einInput.focus();
+                            }
+                          });
+                        });
+                      </script>
                       <!-- Preferred First Name -->
                       <div class="col-sm-6" id="preferredFirstNameGroup">
                         <label class="form-label" for="preferredFirstName">Preferred First Name</label>
@@ -462,7 +498,7 @@
                           <% } %>
                       </div>
                     </div>
-                    <div class="col-12 d-flex justify-content-between mt-4">
+                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button class="btn btn-label-secondary btn-prev" disabled>Previous</button>
                       <button type="button" class="btn btn-primary btn-next">Next</button>
                     </div>
@@ -561,39 +597,8 @@
                           maxlength="5" minlength="5" required value="<%= contactInfo?.zipCode || '' %>" />
                         <div class="invalid-feedback"></div>
                       </div>
-
-                      <!-- 9. Work Email -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="workEmail">Work Email</label>
-                        <input type="email" id="workEmail" name="workEmail" class="form-control"
-                          placeholder="j.doe@company.com" value="<%= contactInfo?.workEmail || '' %>" />
-                      </div>
-
-                      <!-- 10. Work Phone -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="workPhone">Work Phone</label>
-                        <input type="number" id="workPhone" name="workPhone" class="form-control"
-                          placeholder="212 555 0123" value="<%= contactInfo?.workPhone || '' %>" />
-                      </div>
-
-                      <!-- 11. Preferred Contact Method -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="preferredContact">Preferred Contact Method</label>
-                        <select id="preferredContact" name="preferredContact" class="form-select">
-                          <option value="" <%=!contactInfo?.preferredContactMethod ? 'selected' : '' %>>Select a
-                            method</option>
-                          <option value="personal_email" <%=contactInfo?.preferredContactMethod==='personal_email'
-                            ? 'selected' : '' %>>Personal Email</option>
-                          <option value="work_email" <%=contactInfo?.preferredContactMethod==='work_email' ? 'selected'
-                            : '' %>>Work Email</option>
-                          <option value="personal_phone" <%=contactInfo?.preferredContactMethod==='personal_phone'
-                            ? 'selected' : '' %>>Personal Phone</option>
-                          <option value="work_phone" <%=contactInfo?.preferredContactMethod==='work_phone' ? 'selected'
-                            : '' %>>Work Phone</option>
-                        </select>
-                      </div>
                     </div>
-                    <div class="col-12 d-flex justify-content-between mt-6">
+                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
                       <button type="button" class="btn btn-primary btn-next">Next</button>
                     </div>
@@ -657,7 +662,7 @@
                       </div>
                       <!-- End Single Bank Account Form -->
                     </div>
-                    <div class="col-12 d-flex justify-content-between mt-6">
+                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
                       <button type="submit" class="btn btn-primary btn-next">Next</button>
                     </div>
@@ -715,7 +720,7 @@
                                   <% }); %>
                     </div>
                     <div class="mb-4"></div>
-                    <div class="col-12 d-flex justify-content-between mt-6">
+                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
                       <button type="button" class="btn btn-primary btn-next">Next</button>
                     </div>
@@ -731,15 +736,11 @@
                       <button type="button" id="add-state-btn" class="btn btn-primary">Add State</button>
                     </div>
                     <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
-                    <div class="d-flex align-items-center gap-2 flex-nowrap">
-                      <div class="col-12 d-flex justify-content-between mt-6">
-                        <button type="button" class="btn btn-label-secondary btn-prev">
-                          <i class="ti ti-arrow-left ti-xs me-sm-2 me-0"></i> Previous
-                        </button>
-                        <button type="submit" class="btn btn-success btn-submit">
-                          Review & Submit
-                        </button>
-                      </div>
+                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                      <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                      <button type="submit" class="btn btn-success btn-submit">
+                        Review & Submit
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1178,9 +1179,6 @@
       const city = document.getElementById("city")?.value || "";
       const state = document.getElementById("state")?.value || "";
       const zipCode = document.getElementById("zipCode")?.value || "";
-      const workEmail = document.getElementById("workEmail")?.value || "";
-      const workPhone = document.getElementById("workPhone")?.value || "";
-      const preferredContact = document.getElementById("preferredContact")?.value || "";
 
       const contactInfo = {
         personalEmail: personalEmail,
@@ -1191,9 +1189,6 @@
         city: city,
         state: state,
         zipCode: zipCode,
-        workEmail: workEmail || null,
-        workPhone: workPhone || null,
-        preferredContactMethod: preferredContact || null,
         userId: currentUserId
       };
       const contactInfoJSON = JSON.stringify(contactInfo)
