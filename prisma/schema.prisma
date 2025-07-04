@@ -29,6 +29,7 @@ model User {
   paymentMethod     PaymentMethod?
   documents         Documents?
   statesAndCarriers StatesANDCarriers[]
+  Recommendation    Recommendation[]
 }
 
 model PersonalInfo {
@@ -118,6 +119,16 @@ model StatesANDCarriers {
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@unique([userId, state, company])
+}
+
+model Recommendation {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  recommendation String
+  isDone         Boolean  @default(false)
+  insertedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }
 
 model NewUserAlerts {

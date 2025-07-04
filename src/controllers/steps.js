@@ -187,7 +187,7 @@ export const getStatesCarriers = async (req, res) => {
 
 export const saveStatesCarriers = async (req, res) => {
   try {
-    const { userId, carriers } = req.body;
+    const { userId, carriers, recommendation, isDone } = req.body;
 
     if (!userId || !Array.isArray(carriers) || carriers.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -221,7 +221,21 @@ export const saveStatesCarriers = async (req, res) => {
       skipDuplicates: true
     });
 
-    res.status(201).json(statesAndCarriers);
+    // Save or update recommendation
+    await prisma.recommendation.upsert({
+      where: { userId },
+      update: {
+        recommendation: recommendation || "",
+        isDone: isDone ?? false,
+      },
+      create: {
+        userId,
+        recommendation: recommendation || "",
+        isDone: isDone ?? false,
+      }
+    });
+
+    res.status(201).json({ statesAndCarriers });
   } catch (error) {
     console.error("Error saving states and carriers:", error);
     res.status(500).json({ error: "Failed to save states and carriers", details: error.message });

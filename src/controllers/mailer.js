@@ -156,7 +156,7 @@ const email_sender = async (req, res) => {
 };
 
 const new_user_notification = async (req, res) => {
-  const { email, recomendation } = req.body;
+  const { email, recommendation } = req.body;
 
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
@@ -173,10 +173,10 @@ const new_user_notification = async (req, res) => {
     const subject = "New user created";
     const body = {
       intro: `The user with the email <b>${email}</b> has been created in the system.`,
-      ...(recomendation?.trim() && {
+      ...(recommendation?.trim() && {
         table: {
           data: [
-            { "User Recommendation": recomendation }
+            { "User Recommendation": recommendation }
           ],
           columns: {
             customWidth: { "User Recommendation": "100%" },

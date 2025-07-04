@@ -738,8 +738,21 @@
                     <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
                     <div class="mt-4 w-100">
                       <label for="carrier-recommendation" class="form-label fw-semibold">Optional Recommendation</label>
-                      <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control" rows="4"
-                        placeholder="Add any comments or recommendations about the carriers..."></textarea>
+                      <div class="mb-2">
+                        <label for="carrier-recommendation" class="form-label">Carrier Recommendation</label>
+                        <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control"
+                          rows="4"
+                          placeholder="Add any comments or recommendations about the carriers..."><%= recommendation?.recommendation || '' %></textarea>
+                      </div>
+                      <% if (isEdit) { %>
+                        <div class="form-check mb-2">
+                          <input class="form-check-input" type="checkbox" id="recommendation-done" name="isDone"
+                            value="true" <%=recommendation?.isDone ? 'checked' : '' %>>
+                          <label class="form-check-label" for="recommendation-done">
+                            Is recommendation completed
+                          </label>
+                        </div>
+                        <% } %>
                     </div>
                     <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
                       <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
@@ -1302,6 +1315,7 @@
       const carriers = [];
       const cards = document.querySelectorAll(".carrier-card");
       recommendation = document.getElementById("carrier-recommendation")?.value || "";
+      const isDone = document.getElementById("recommendation-done")?.checked || false;
 
       cards.forEach(card => {
         const stateSelect = card.querySelector(".state-dropdown");
@@ -1329,7 +1343,7 @@
       const response = await fetch(`${url}/steps/states-carriers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: currentUserId, carriers })
+        body: JSON.stringify({ userId: currentUserId, carriers, recommendation, isDone })
       });
 
       if (!response.ok) throw new Error("Error saving states and carriers");
