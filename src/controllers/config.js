@@ -76,7 +76,6 @@ const renderConfigCarriers = async (req, res) => {
       name: c.name,
       states: Array.isArray(c.States) ? c.States.join('| ') : '',
       phone: c.phone,
-      email: c.email
     }));
 
     res.render("config_carriers", {
@@ -94,7 +93,7 @@ const renderConfigCarriers = async (req, res) => {
 }
 
 const postCompany = async (req, res) => {
-  const { name, phone, email, states } = req.body;
+  const { name, phone, states } = req.body;
 
   if (!name || !Array.isArray(states) || states.length === 0) {
     return res.status(400).json({ message: "Company name and at least one state are required" });
@@ -106,7 +105,6 @@ const postCompany = async (req, res) => {
         name,
         States: states,
         phone,
-        email
       }
     });
 
@@ -133,7 +131,7 @@ const postCompany = async (req, res) => {
 };
 
 const updateCompany = async (req, res) => {
-  const { originalName, name, phone, email, states } = req.body;
+  const { originalName, name, phone, states } = req.body;
 
   if (!originalName || !name || !Array.isArray(states) || states.length === 0) {
     return res.status(400).json({ message: "Original name, new name, and at least one state are required" });
@@ -155,7 +153,6 @@ const updateCompany = async (req, res) => {
         name,
         States: states,
         phone,
-        email
       }
     });
 

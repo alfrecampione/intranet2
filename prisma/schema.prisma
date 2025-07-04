@@ -131,7 +131,6 @@ model Company {
   id         String       @id @default(uuid())
   name       String       @unique
   phone      String
-  email      String
   States     String[]
   createdAt  DateTime     @default(now())
   Commisions Commisions[]
