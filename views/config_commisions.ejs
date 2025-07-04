@@ -280,13 +280,14 @@
                         </div>
                         <div class="card">
                             <div class="card-body">
-                                <div class="table-responsive text-nowrap">
-                                    <table class="table table-bordered align-middle text-center">
+                                <div class="table-responsive" style="overflow-x: auto;">
+                                    <table class="table table-bordered align-middle text-center"
+                                        style="min-width: 1000px; table-layout: fixed;">
                                         <thead>
                                             <tr>
-                                                <th>State \ Carrier</th>
+                                                <th style="width: 150px;">State \ Carrier</th>
                                                 <% companies.forEach(company=> { %>
-                                                    <th>
+                                                    <th style="width: 120px;">
                                                         <%= company.name %>
                                                     </th>
                                                     <% }); %>
@@ -295,7 +296,6 @@
                                         <tbody>
                                             <% const allStates=Array.from(new Set(companies.flatMap(c=>
                                                 c.States))).sort();
-                                                // Build a lookup for commissions: { [companyName]: { [state]: amount }}
                                                 const commissionMap = {};
                                                 commisions.forEach(c => {
                                                 if (!commissionMap[c.company]) commissionMap[c.company] = {};
@@ -304,7 +304,7 @@
                                                 %>
                                                 <% allStates.forEach(state=> { %>
                                                     <tr>
-                                                        <th>
+                                                        <th style="width: 150px;">
                                                             <%= state %>
                                                         </th>
                                                         <% companies.forEach(company=> {
@@ -316,7 +316,7 @@
                                                             value = commissionMap[company.name][state];
                                                             }
                                                             %>
-                                                            <td>
+                                                            <td style="width: 120px;">
                                                                 <% if (hasState) { %>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm text-center commission-input"

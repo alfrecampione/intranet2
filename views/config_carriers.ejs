@@ -598,8 +598,6 @@
                     const companyName = companyNameInput.value.trim();
                     const companyPhoneInput = document.getElementById("companyPhoneInput");
                     const companyPhone = companyPhoneInput.value.trim();
-                    const companyEmailInput = document.getElementById("companyEmailInput");
-                    const companyEmail = companyEmailInput.value.trim();
                     const select = document.getElementById("select2Primary");
                     const states = Array.from(select.selectedOptions).map(option => option.value);
 
@@ -685,7 +683,6 @@
                         submitBtn.classList.add("btn-primary");
                         document.getElementById("companyNameInput").value = "";
                         document.getElementById("companyPhoneInput").value = "";
-                        document.getElementById("companyEmailInput").value = "";
                         const select = document.getElementById("select2Primary");
                         Array.from(select.options).forEach(opt => opt.selected = false);
                         if ($(select).data('select2')) {
