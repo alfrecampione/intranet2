@@ -297,10 +297,9 @@
                                         style="width: 1396px">
                                         <thead>
                                             <tr>
-                                                <th class="sorting_disabled" tabindex="0"
-                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                    style="width: 30px" aria-label="#">#</th>
-                                                <th class="sorting_disabled dtr-hidden" tabindex="0"
+                                                <th class="sorting_disabled" aria-controls="DataTables_Table_0"
+                                                    rowspan="1" colspan="1" style="width: 30px" aria-label="#">#</th>
+                                                <th class="sorting_disabled dtr-hidden"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                     style="width: 10px" aria-label=""></th>
                                                 <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
@@ -308,12 +307,12 @@
                                                     aria-label="Name: activate to sort column ascending">
                                                     Name
                                                 </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                <th class="sorting" tabindex="1" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 147px"
                                                     aria-label="Email: activate to sort column ascending">
                                                     Email
                                                 </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
+                                                <th class="sorting" tabindex="2" aria-controls="DataTables_Table_0"
                                                     rowspan="1" colspan="1" style="width: 130px"
                                                     aria-label="Created_at: activate to sort column ascending">
                                                     Created at
@@ -326,7 +325,7 @@
                                         </thead>
                                         <tbody>
                                             <tr class="odd">
-                                                <td valign="top" colspan="8" class="dataTables_empty">
+                                                <td valign="top" colspan="6" class="dataTables_empty">
                                                     Loading...
                                                 </td>
                                             </tr>
@@ -581,7 +580,7 @@
                     tr.appendChild(tdCreated);
 
                     const tdAction = document.createElement("td");
-                    tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="btn btn-sm btn-primary ti ti-search"></a>`;
+                    tdAction.innerHTML = `<a href="/users/registration/${user.user_id}" class="ti ti-search"></a>`;
                     tr.appendChild(tdAction);
 
                     tbody.appendChild(tr);

@@ -374,16 +374,16 @@
                                                                             <% } %>
                                                         </td>
                                                         <td>
-                                                            <button
-                                                                class="btn btn-warning btn-sm edit-company-btn ti ti-edit"
+                                                            <a href="javascript:void(0)"
+                                                                class="btn-outline-warning edit-company-btn ti ti-edit"
                                                                 data-company="<%= company.name %>"
                                                                 data-phone="<%= company.phone %>"
                                                                 data-email="<%= company.email %>"
                                                                 data-states='<%= JSON.stringify(company.states) %>'>
-                                                            </button>
-                                                            <button
-                                                                class="btn btn-danger btn-sm delete-email-btn ti ti-trash"
-                                                                data-company="<%= company.name %>"></button>
+                                                            </a>
+                                                            <a href="javascript:void(0)"
+                                                                class="btn-outline-danger delete-email-btn ti ti-trash"
+                                                                data-company="<%= company.name %>"></a>
                                                         </td>
                                                     </tr>
                                                     <% }); %>

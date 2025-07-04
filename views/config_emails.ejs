@@ -349,8 +349,9 @@
                                                             <%= email.insertedAt %>
                                                         </td>
                                                         <td>
-                                                            <button class="btn btn-danger btn-sm delete-email-btn"
-                                                                data-email="<%= email.email %>"></button>
+                                                            <a href="javascript:void(0);"
+                                                                class="ti ti-trash btn-outline-danger delete-email-btn"
+                                                                data-email="<%= email.email %>"></a>
                                                         </td>
                                                     </tr>
                                                     <% }); %>
