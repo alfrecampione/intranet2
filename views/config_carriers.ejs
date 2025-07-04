@@ -315,18 +315,21 @@
                                         <thead>
                                             <tr>
                                                 <th style="width: 40px;">#</th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                <th class="sorting_disabled" tabindex="0"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 147px"
                                                     aria-label="Carrier: activate to sort column ascending">
                                                     Carrier
                                                 </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 147px"
+                                                <th class="sorting_disabled" tabindex="0"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 147px"
                                                     aria-label="Phone: activate to sort column ascending">
                                                     Phone
                                                 </th>
-                                                <th class="sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                                    rowspan="1" colspan="1" style="width: 130px"
+                                                <th class="sorting_disabled" tabindex="0"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 130px"
                                                     aria-label="Created_at: activate to sort column ascending">
                                                     States
                                                 </th>
@@ -532,6 +535,25 @@
         <script>
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             tooltipTriggerList.map(el => new bootstrap.Tooltip(el))
+        </script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchInput = document.querySelector('#DataTables_Table_0_filter input[type="search"]');
+                const table = document.getElementById("DataTables_Table_0");
+                const rows = table.querySelectorAll("tbody tr");
+
+                searchInput.addEventListener("input", function () {
+                    const query = this.value.toLowerCase();
+
+                    rows.forEach(row => {
+                        const cells = Array.from(row.querySelectorAll("td"));
+                        const text = cells.map(cell => cell.textContent.toLowerCase()).join(" ");
+                        const matches = text.includes(query);
+                        row.style.display = matches ? "" : "none";
+                    });
+                });
+            });
         </script>
 
         <script>

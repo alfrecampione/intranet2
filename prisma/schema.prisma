@@ -111,10 +111,11 @@ model NecesaryDocuments {
 }
 
 model StatesANDCarriers {
-  id      String @id @default(uuid())
+  id      String  @id @default(uuid())
   userId  String
   state   String
   company String
+  status  String?
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 

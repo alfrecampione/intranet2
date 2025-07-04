@@ -99,6 +99,9 @@ router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
 router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
+import { renderCarrierStatus } from "./controllers/carrier_status.js";
+router.get("/users/carrrier_status/:id", checkNotAuthenticated, renderCarrierStatus);
+
 // STEPS ROUTES
 import {
   createPersonalInfo,
@@ -109,7 +112,7 @@ import {
   getPaymentMethodById,
   createDocuments,
   getDocumentsById,
-  getStatesCarriers,
+  getStateCarriers,
   saveStatesCarriers,
 } from "./controllers/steps.js";
 
@@ -141,7 +144,7 @@ router.get(
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
 
-router.get("/steps/states-carriers", checkNotAuthenticated, getStatesCarriers);
+router.get("/steps/states-carriers", checkNotAuthenticated, getStateCarriers);
 router.post("/steps/states-carriers", checkNotAuthenticated, saveStatesCarriers);
 
 
@@ -166,6 +169,7 @@ router.put("/users/config_carriers", checkNotAuthenticated, updateCompany);
 router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
 import { renderConfigCommisions, updateCommisions } from "./controllers/config.js";
+import { render } from "ejs";
 router.get("/users/config_commisions", checkNotAuthenticated, renderConfigCommisions);
 router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
 

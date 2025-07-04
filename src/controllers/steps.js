@@ -173,7 +173,7 @@ export const getDocumentsById = async (req, res) => {
   res.json(documents);
 };
 
-export const getStatesCarriers = async (req, res) => {
+export const getStateCarriers = async (req, res) => {
   try {
     const statesCarriers = await prisma.statesCarriers.findMany({
       orderBy: { state: 'asc' },
