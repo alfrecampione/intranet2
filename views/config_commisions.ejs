@@ -281,58 +281,63 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive" style="overflow-x: auto;">
-                                    <table class="table table-bordered align-middle text-center"
-                                        style="min-width: 1000px; table-layout: fixed;">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 150px;">State \ Carrier</th>
-                                                <% companies.forEach(company=> { %>
-                                                    <th style="width: 150px;">
-                                                        <%= company.name %>
-                                                    </th>
-                                                    <% }); %>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% const allStates=Array.from(new Set(companies.flatMap(c=>
-                                                c.States))).sort();
-                                                const commissionMap = {};
-                                                commisions.forEach(c => {
-                                                if (!commissionMap[c.company]) commissionMap[c.company] = {};
-                                                commissionMap[c.company][c.state] = c.amount;
-                                                });
-                                                %>
-                                                <% allStates.forEach(state=> { %>
-                                                    <tr>
+                                    <div style="position: relative; max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-bordered align-middle text-center"
+                                            style="min-width: 1000px; table-layout: fixed;">
+                                            <thead style="position: sticky; top: 0; background: white; z-index: 1;">
+                                                <tr>
+                                                    <th
+                                                        style="width: 150px; position: sticky; left: 0; background: white; z-index: 2;">
+                                                        State \ Carrier</th>
+                                                    <% companies.forEach(company=> { %>
                                                         <th style="width: 150px;">
-                                                            <%= state %>
+                                                            <%= company.name %>
                                                         </th>
-                                                        <% companies.forEach(company=> {
-                                                            const hasState = Array.isArray(company.States) &&
-                                                            company.States.includes(state);
-                                                            let value = "";
-                                                            if (hasState && commissionMap[company.name] &&
-                                                            commissionMap[company.name][state] != null) {
-                                                            value = commissionMap[company.name][state];
-                                                            }
-                                                            %>
-                                                            <td style="width: 150px;">
-                                                                <% if (hasState) { %>
-                                                                    <input type="number"
-                                                                        class="form-control form-control-sm text-center commission-input"
-                                                                        name="commission[<%= company.name %>][<%= state %>]"
-                                                                        placeholder="%" min="0" max="100"
-                                                                        style="width: 70px; display: inline-block;"
-                                                                        value="<%= value %>" />
-                                                                    <% } else { %>
-                                                                        <span class="text-muted">N/A</span>
-                                                                        <% } %>
-                                                            </td>
-                                                            <% }); %>
-                                                    </tr>
-                                                    <% }); %>
-                                        </tbody>
-                                    </table>
+                                                        <% }); %>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% const allStates=Array.from(new Set(companies.flatMap(c=>
+                                                    c.States))).sort();
+                                                    const commissionMap = {};
+                                                    commisions.forEach(c => {
+                                                    if (!commissionMap[c.company]) commissionMap[c.company] = {};
+                                                    commissionMap[c.company][c.state] = c.amount;
+                                                    });
+                                                    %>
+                                                    <% allStates.forEach(state=> { %>
+                                                        <tr>
+                                                            <th
+                                                                style="width: 150px; position: sticky; left: 0; background: white; z-index: 1;">
+                                                                <%= state %>
+                                                            </th>
+                                                            <% companies.forEach(company=> {
+                                                                const hasState = Array.isArray(company.States) &&
+                                                                company.States.includes(state);
+                                                                let value = "";
+                                                                if (hasState && commissionMap[company.name] &&
+                                                                commissionMap[company.name][state] != null) {
+                                                                value = commissionMap[company.name][state];
+                                                                }
+                                                                %>
+                                                                <td style="width: 150px;">
+                                                                    <% if (hasState) { %>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm text-center commission-input"
+                                                                            name="commission[<%= company.name %>][<%= state %>]"
+                                                                            placeholder="%" min="0" max="100"
+                                                                            style="width: 70px; display: inline-block;"
+                                                                            value="<%= value %>" />
+                                                                        <% } else { %>
+                                                                            <span class="text-muted">N/A</span>
+                                                                            <% } %>
+                                                                </td>
+                                                                <% }); %>
+                                                        </tr>
+                                                        <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
