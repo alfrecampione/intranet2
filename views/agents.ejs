@@ -584,10 +584,8 @@
 
                     const tdAction = document.createElement("td");
                     tdAction.innerHTML = `
-    <a href="/users/registration/${user.user_id}" class="ti ti-search me-2" title="View"></a>
-    <button onclick="window.location.href='${url}/users/carrrier_status/${user.user_id}'" class="btn btn-sm btn-primary" title="Change Status">
-        Status
-    </button>
+    <a href="/users/registration/${user.user_id}" class="ti ti-search me-2" title="View Data"></a>
+    <a href="/users/carrrier_status/${user.user_id}" class="ti ti-list-details me-2" title="Change Status"></a>
 `;
                     tr.appendChild(tdAction);
 
