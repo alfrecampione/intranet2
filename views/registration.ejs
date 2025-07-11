@@ -392,14 +392,6 @@
 
                             einInput.value = value;
                           });
-
-                          einInput.addEventListener('blur', function () {
-                            // En blur, validación estricta opcional
-                            if (!/^\d{2}-\d{7}$/.test(einInput.value)) {
-                              alert('EIN must be in the format XX-XXXXXXX');
-                              einInput.focus();
-                            }
-                          });
                         });
                       </script>
                       <!-- Preferred First Name -->
@@ -438,21 +430,31 @@
                         <div class="invalid-feedback"></div>
                       </div>
 
-                      <!-- SSN (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="ssn">
-                          SSN <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
-                          aria-label="Social Security Number" required pattern="\d{3}-\d{2}-\d{4}" maxlength="11"
-                          value="<%= personalInfo?.ssn || '' %>" />
+                      <!-- SSN y NPM (Required) -->
+                      <div class="row g-3">
+                        <!-- SSN -->
+                        <div class="col-sm-6">
+                          <label class="form-label" for="ssn">
+                            SSN <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
+                            aria-label="Social Security Number" required maxlength="9"
+                            value="<%= personalInfo?.ssn || '' %>" />
+                        </div>
+
+                        <!-- NPM -->
+                        <div class="col-sm-6">
+                          <label class="form-label" for="npm">
+                            NPM <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" name="npm" id="npm" class="form-control" placeholder="XXXXXXXX"
+                            aria-label="NPM" required pattern="\d{8}" maxlength="8"
+                            value="<%= personalInfo?.npm || '' %>" />
+                        </div>
                       </div>
                       <script>
                         document.getElementById("ssn").addEventListener("input", function (e) {
-                          // Eliminar todo excepto dígitos
                           let value = e.target.value.replace(/\D/g, "");
-
-                          // Aplicar formato solo si hay dígitos suficientes
                           if (value.length > 5) {
                             e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}-${value.slice(5, 9)}`;
                           } else if (value.length > 3) {
@@ -461,8 +463,6 @@
                             e.target.value = value.slice(0, 9); // Limitar a 9 dígitos máx
                           }
                         });
-
-                        // Validación adicional al enviar el formulario
                         document.querySelector("form").addEventListener("submit", function (e) {
                           const ssnInput = document.getElementById("ssn");
                           if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
@@ -470,10 +470,58 @@
                             e.preventDefault();
                           }
                         });
+
+                        document.getElementById("npm").addEventListener("input", function (e) {
+                          let value = e.target.value.replace(/\D/g, ""); // solo números
+                          e.target.value = value.slice(0, 8); // máximo 8 dígitos
+                        });
+                        document.querySelector("form").addEventListener("submit", function (e) {
+                          const npmInput = document.getElementById("npm");
+                          if (!/^\d{8}$/.test(npmInput.value)) {
+                            npmInput.classList.add("is-invalid");
+                            e.preventDefault();
+                          }
+                        });
                       </script>
 
+
+                      <div class="col-sm-6" id="directHireGroup" style="display: none;">
+                        <label class="form-label d-block">
+                          Do you want to be hired directly to the company? <span class="text-danger">*</span>
+                        </label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredYes" value="yes"
+                            required />
+                          <label class="form-check-label" for="hiredYes">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredNo" value="no"
+                            required />
+                          <label class="form-check-label" for="hiredNo">No</label>
+                        </div>
+
+                        <!-- Selects que aparecen debajo según la selección -->
+                        <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
+                          <label class="form-label" for="companySelect">Seleccione la Empresa</label>
+                          <select id="companySelect" name="company" class="form-select" required>
+                            <option value="">Seleccione una empresa...</option>
+                            <option value="company1">GoldenTrust</option>
+                            <option value="company2">Trust Financial</option>
+                          </select>
+                        </div>
+
+                        <div id="referralSelectGroup" style="display: none; margin-top: 1rem;">
+                          <label class="form-label" for="referralSelect">Seleccione el Referral Partner</label>
+                          <select id="referralSelect" name="referralPartner" class="form-select" required>
+                            <option value="">Seleccione un referral partner...</option>
+                            <option value="referral1">Agent Connect</option>
+                            <option value="referral2">Smart Leads</option>
+                          </select>
+                        </div>
+                      </div>
+
                       <!-- 7. Photo -->
-                      <div class="col-md-12">
+                      <div class="col-md-12" style="padding-bottom: 5%;">
                         <label class="form-label" for="profilePhotoInput">Profile Photo</label>
                         <div class="d-flex align-items-center border rounded p-3 mb-3">
                           <% if (personalInfo?.photoPath) { %>
@@ -606,7 +654,19 @@
                   <!-- Contenido -->
                   <div id="commisionValidation" class="content">
                     <div class="content-header mb-6">
-                      <h4 class="mb-0">Commision Validation</h4>
+                      <h4 class="mb-0">Would you like to assign your commissions to GoldenTrust?</h4>
+                      <div class="mt-2">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="yes" required
+                            <%=paymentMethod && paymentMethod.assignToGTI===true ? 'checked' : '' %> />
+                          <label class="form-check-label">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="no" required
+                            <%=paymentMethod && paymentMethod.assignToGTI===false ? 'checked' : '' %> />
+                          <label class="form-check-label">No</label>
+                        </div>
+                      </div>
                     </div>
                     <!-- Payment Method Section -->
                     <div class="row g-6">
@@ -729,7 +789,8 @@
                   <div id="statesCarriersValidation" class="content">
                     <div class="content-header mb-6">
                       <h4 class="mb-0">States & Carriers</h4>
-                      <p class="mb-0">Add all the carriers you work with and the states where you are licensed to sell.
+                      <p class="mb-0">Add all the carriers you work with and the states where you are licensed to
+                        sell.
                       </p>
                     </div>
                     <div class="mb-3">
@@ -737,7 +798,8 @@
                     </div>
                     <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
                     <div class="mt-4 w-100">
-                      <label for="carrier-recommendation" class="form-label fw-semibold">Optional Recommendation</label>
+                      <label for="carrier-recommendation" class="form-label fw-semibold">Optional
+                        Recommendation</label>
                       <div class="mb-2">
                         <label for="carrier-recommendation" class="form-label">Carrier Recommendation</label>
                         <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control"
@@ -813,7 +875,6 @@
   <script src="/js/main.js"></script>
 
   <!-- Funcionality of the formulary -->
-  <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
   <script src="/js/funcionality-of-form.js"></script>
 
 
@@ -1112,12 +1173,84 @@
     });
   </script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const radios = document.querySelectorAll('input[name="assignToGoldenTrust"]');
+      const bankAccountCard = document.querySelector('.bank-account-entry');
+
+      function toggleBankAccountCard() {
+        const selectedValue = document.querySelector('input[name="assignToGoldenTrust"]:checked')?.value;
+        if (selectedValue === 'yes') {
+          bankAccountCard.style.display = 'block';
+        } else {
+          bankAccountCard.style.display = 'none';
+        }
+      }
+
+      // Inicialmente ocultar o mostrar según el radio seleccionado al cargar
+      toggleBankAccountCard();
+
+      // Escuchar cambios
+      radios.forEach(radio => {
+        radio.addEventListener('change', toggleBankAccountCard);
+      });
+    });
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const contactType = document.getElementById('contactType');
+      const directHireGroup = document.getElementById('directHireGroup');
+      const hiredYes = document.getElementById('hiredYes');
+      const hiredNo = document.getElementById('hiredNo');
+      const companySelectGroup = document.getElementById('companySelectGroup');
+      const referralSelectGroup = document.getElementById('referralSelectGroup');
+
+      function toggleHireOptions() {
+        const isIndividual = contactType.value === 'individual';
+        directHireGroup.style.display = isIndividual ? 'block' : 'none';
+
+        if (!isIndividual) {
+          companySelectGroup.style.display = 'none';
+          referralSelectGroup.style.display = 'none';
+        }
+      }
+
+      function toggleSelects() {
+        if (hiredYes.checked) {
+          companySelectGroup.style.display = 'block';
+          referralSelectGroup.style.display = 'none';
+        } else if (hiredNo.checked) {
+          referralSelectGroup.style.display = 'block';
+          companySelectGroup.style.display = 'none';
+        }
+      }
+
+      contactType.addEventListener('change', toggleHireOptions);
+      hiredYes.addEventListener('change', toggleSelects);
+      hiredNo.addEventListener('change', toggleSelects);
+
+      // Inicialización por si hay datos precargados
+      toggleHireOptions();
+      toggleSelects();
+    });
+  </script>
+
   <!-- Push the info -->
   <script>
     // Variable global para almacenar el userId (deberías obtenerlo de tu sistema de autenticación)
     const currentUserId = "<%= userId %>";
     const isEdit = "<%= isEdit %>";
     let user_email;
+
+    if (isEdit == "false") {
+      document.addEventListener('DOMContentLoaded', () => {
+        const stepButtons = document.querySelectorAll('.step-trigger');
+        stepButtons.forEach(btn => {
+          btn.setAttribute('disabled', 'disabled');
+        });
+      });
+    }
 
     const uploadFile = async (file) => {
       if (file) {

@@ -30,6 +30,7 @@ model User {
   documents         Documents?
   statesAndCarriers StatesANDCarriers[]
   Recommendation    Recommendation[]
+  Agency            Agency?
 }
 
 model PersonalInfo {
@@ -41,6 +42,7 @@ model PersonalInfo {
   legalSex      String
   dateOfBirth   DateTime
   ssn           String
+  npm           String?
   photoPath     String?
   businessName  String?
   companyEIN    String?
@@ -66,8 +68,9 @@ model ContactInfo {
 }
 
 model PaymentMethod {
-  id              String @id @default(uuid())
-  userId          String @unique
+  id              String  @id @default(uuid())
+  userId          String  @unique
+  assignToGTI     Boolean @default(true)
   bankAccountType String
   bankAccountNum  String
   bankRoutingNum  String
@@ -158,4 +161,12 @@ model Commisions {
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, state])
+}
+
+model Agency {
+  id    String @id @default(uuid())
+  owner String @unique
+  name  String
+
+  user User @relation(fields: [owner], references: [user_id], onDelete: Cascade)
 }

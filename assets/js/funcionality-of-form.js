@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!stepperElement) return;
 
     const stepper = new Stepper(stepperElement, {
-        linear: true
+        linear: false
     });
 
     // --- FUNCIÓN PARA VALIDAR UN PASO COMPLETO ---
@@ -60,6 +60,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        const directHireRadios = stepContent.querySelectorAll('input[name="isDirectlyHired"]');
+        const anyChecked = Array.from(directHireRadios).some(radio => radio.checked);
+        if (directHireRadios.length > 0 && !anyChecked) {
+            directHireRadios.forEach(radio => radio.classList.add("is-invalid"));
+            valid = false;
+            message = "Please fill out all required fields.";
+        } else {
+            directHireRadios.forEach(radio => radio.classList.remove("is-invalid"));
+        }
 
         // Validación especial para campos de negocio
         const contactType = document.getElementById("contactType");
@@ -81,6 +90,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return [valid, message];
     };
+
+    const stepperHeader = stepperElement.querySelector('.bs-stepper-header');
+
+    stepperHeader.addEventListener('click', function (e) {
+        const trigger = e.target.closest('.step-trigger');
+        if (!trigger) return;
+
+        const stepElement = trigger.closest('.step');
+        const allSteps = Array.from(stepperHeader.querySelectorAll('.step'));
+        const stepIndex = allSteps.indexOf(stepElement);
+
+        if (stepIndex === -1) return;
+
+        const currentStepIndex = stepper._currentIndex;
+        const stepContents = stepperElement.querySelectorAll('.bs-stepper-content > .content');
+        const currentStepContent = stepContents[currentStepIndex];
+
+        const [valid, message] = validateStep(currentStepContent);
+
+        if (!valid) {
+            stepper.to(currentStepIndex)
+            showToast("Error", message);
+        }
+        else
+            stepper.to(stepIndex + 1);
+    });
 
     // --- LÓGICA DE BOTONES "NEXT" ---
     const btnNextList = document.querySelectorAll('.btn-next');

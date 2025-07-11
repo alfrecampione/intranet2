@@ -264,7 +264,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <table class="datatables-basic table dataTable no-footer dtr-column"
+                                    <table class="datatables-basic table dataTable no-footer dtr-column table-bordered"
                                         id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
                                         style="width: 1396px">
                                         <thead>
@@ -361,7 +361,6 @@
     </script>
 
     <script>
-
         function renderTable(carriers) {
             const table = document.querySelector(".datatables-basic");
             const tbody = table.querySelector("tbody");
@@ -369,58 +368,132 @@
 
             if (carriers.length === 0) {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td valign="top" colspan="3" class="dataTables_empty">No carriers found.</td>`;
+                tr.innerHTML = `<td valign="top" colspan="4" class="dataTables_empty">No carriers found.</td>`;
                 tbody.appendChild(tr);
                 return;
             }
 
-            carriers.forEach((carrier, idx) => {
-                const tr = document.createElement("tr");
+            const grouped = carriers.reduce((acc, carrier) => {
+                const key = carrier.state;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(carrier);
+                return acc;
+            }, {});
 
-                // #
-                const tdIndex = document.createElement("td");
-                tdIndex.textContent = idx + 1;
-                tr.appendChild(tdIndex);
+            let rowIndex = 1;
 
-                // Carrier Name
-                const tdName = document.createElement("td");
-                tdName.textContent = carrier.company;
-                tr.appendChild(tdName);
+            Object.entries(grouped).forEach(([stateName, carriersInState]) => {
+                carriersInState.forEach((carrier, i) => {
+                    const tr = document.createElement("tr");
 
-                // Carrier State
-                const tdState = document.createElement("td");
-                tdState.textContent = carrier.state;
-                tr.appendChild(tdState);
+                    if (i === 0) {
+                        const tdIndex = document.createElement("td");
+                        tdIndex.textContent = rowIndex++;
+                        tdIndex.rowSpan = carriersInState.length;
+                        tr.appendChild(tdIndex);
 
-                // Status
-                const tdStatus = document.createElement("td");
+                        const tdState = document.createElement("td");
+                        tdState.textContent = stateName;
+                        tdState.rowSpan = carriersInState.length;
+                        tr.appendChild(tdState);
+                    }
 
-                const statusOptions = ["Pending", "Approved", "Rejected", "In Review", "On Hold"];
-                const currentStatus = carrier.status || "Pending";
+                    const tdName = document.createElement("td");
+                    tdName.textContent = carrier.company;
+                    tr.appendChild(tdName);
 
-                const optionsHTML = statusOptions.map(status => {
-                    const selected = status === currentStatus ? "selected" : "";
-                    return `<option value="${status}" ${selected}>${status}</option>`;
-                }).join("");
-                tdStatus.innerHTML = `
-    <select name="${carrier.name}-${carrier.state}" class="form-select form-select-sm">
-        ${optionsHTML}
-    </select>
-`;
+                    const tdStatus = document.createElement("td");
+                    const statusOptions = ["Pending", "Approved", "Rejected", "In Review", "On Hold"];
+                    const currentStatus = carrier.status || "Pending";
 
-                tr.appendChild(tdStatus);
+                    const optionsHTML = statusOptions.map(status => {
+                        const selected = status === currentStatus ? "selected" : "";
+                        return `<option value="${status}" ${selected}>${status}</option>`;
+                    }).join("");
 
-                tbody.appendChild(tr);
+                    tdStatus.innerHTML = `
+                    <select name="${carrier.company}-${carrier.state}" class="form-select form-select-sm">
+                        ${optionsHTML}
+                    </select>
+                `;
+
+                    tr.appendChild(tdStatus);
+                    tbody.appendChild(tr);
+                });
             });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             const carriers = JSON.parse(document.getElementById("carriers-data").textContent);
-            // const userId = document.getElementById("userID-data").textContent;
-
             renderTable(carriers);
         });
     </script>
+
+    <script>
+        const stateAbbreviationMap = {
+            "AL": "Alabama",
+            "AK": "Alaska",
+            "AZ": "Arizona",
+            "AR": "Arkansas",
+            "CA": "California",
+            "CO": "Colorado",
+            "CT": "Connecticut",
+            "DE": "Delaware",
+            "FL": "Florida",
+            "GA": "Georgia",
+            "HI": "Hawaii",
+            "ID": "Idaho",
+            "IL": "Illinois",
+            "IN": "Indiana",
+            "IA": "Iowa",
+            "KS": "Kansas",
+            "KY": "Kentucky",
+            "LA": "Louisiana",
+            "ME": "Maine",
+            "MD": "Maryland",
+            "MA": "Massachusetts",
+            "MI": "Michigan",
+            "MN": "Minnesota",
+            "MS": "Mississippi",
+            "MO": "Missouri",
+            "MT": "Montana",
+            "NE": "Nebraska",
+            "NV": "Nevada",
+            "NH": "New Hampshire",
+            "NJ": "New Jersey",
+            "NM": "New Mexico",
+            "NY": "New York",
+            "NC": "North Carolina",
+            "ND": "North Dakota",
+            "OH": "Ohio",
+            "OK": "Oklahoma",
+            "OR": "Oregon",
+            "PA": "Pennsylvania",
+            "RI": "Rhode Island",
+            "SC": "South Carolina",
+            "SD": "South Dakota",
+            "TN": "Tennessee",
+            "TX": "Texas",
+            "UT": "Utah",
+            "VT": "Vermont",
+            "VA": "Virginia",
+            "WA": "Washington",
+            "WV": "West Virginia",
+            "WI": "Wisconsin",
+            "WY": "Wyoming"
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const stateHeaders = document.querySelectorAll("table tbody td");
+            stateHeaders.forEach(header => {
+                const abbr = header.textContent.trim();
+                if (stateAbbreviationMap[abbr]) {
+                    header.textContent = stateAbbreviationMap[abbr];
+                }
+            });
+        });
+    </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const searchInput = document.querySelector('#DataTables_Table_0_filter input[type="search"]');
