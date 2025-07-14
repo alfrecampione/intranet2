@@ -539,7 +539,7 @@
             tbody.innerHTML = "";
 
             const filtered = users.filter(u =>
-                (u.legalName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (u.display_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
             );
 
@@ -555,13 +555,12 @@
                 pageUsers.forEach((user, idx) => {
                     const tr = document.createElement("tr");
 
-                    // Enumeración
                     const tdIndex = document.createElement("td");
                     tdIndex.textContent = start + idx + 1;
                     tr.appendChild(tdIndex);
 
                     const tdAvatar = document.createElement("td");
-                    tdAvatar.className = "sorting_disabled dtr-hidden";
+                    tdAvatar.className = "dtr-hidden";
                     tdAvatar.innerHTML = user.photoPath
                         ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
                         : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
