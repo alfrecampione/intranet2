@@ -563,12 +563,12 @@
                     tdAvatar.className = "dtr-hidden";
                     tdAvatar.innerHTML = user.photoPath
                         ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                        : `<span class="avatar-initial rounded-circle bg-label-primary">${user.legalName?.[0] || user.email[0]}</span>`;
+                        : `<span class="avatar-initial rounded-circle bg-label-primary">${user.display_name?.[0] || user.email[0]}</span>`;
                     tr.appendChild(tdAvatar);
 
 
                     const tdName = document.createElement("td");
-                    tdName.textContent = user.legalName || "";
+                    tdName.textContent = user.display_name || "";
                     tr.appendChild(tdName);
 
                     const tdEmail = document.createElement("td");
