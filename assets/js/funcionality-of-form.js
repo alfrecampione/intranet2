@@ -17,13 +17,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- FUNCIÓN PARA VALIDAR UN PASO COMPLETO ---
     const validateStep = (stepContent) => {
-        const requiredFields = stepContent.querySelectorAll(
-            "input[required]:not([type='hidden']), select[required], textarea[required]"
+        const requiredElements = stepContent.querySelectorAll(
+            "[required]:not([type='hidden'])"
         );
         let valid = true;
         let message = "";
 
-        requiredFields.forEach(function (field) {
+        // Agrupar radios por name
+        const radioGroups = {};
+
+        requiredElements.forEach((field) => {
             const style = window.getComputedStyle(field);
             if (
                 style.display === "none" ||
@@ -31,38 +34,59 @@ document.addEventListener('DOMContentLoaded', function () {
                 field.offsetParent === null
             ) return;
 
+            const type = field.type;
+
+            // Agrupar radios
+            if (type === "radio") {
+                if (!radioGroups[field.name]) {
+                    radioGroups[field.name] = [];
+                }
+                radioGroups[field.name].push(field);
+                return;
+            }
+
             field.classList.remove("is-invalid");
-            if (!field.value || (field.type === "checkbox" && !field.checked)) {
+
+            if (type === "checkbox" && !field.checked) {
+                field.classList.add("is-invalid");
+                valid = false;
+            } else if (type === "file") {
+                const parent = field.closest('.d-flex');
+                const hasExistingFile = parent && parent.querySelector('a[href].ms-2');
+                const label = stepContent.querySelector(`label[for="${field.id}"]`);
+
+                if (!field.files?.length && !hasExistingFile) {
+                    if (label) label.classList.add("is-invalid");
+                    field.classList.add("is-invalid");
+                    valid = false;
+                    message ||= "Please upload all required documents.";
+                } else {
+                    if (label) label.classList.remove("is-invalid");
+                    field.classList.remove("is-invalid");
+                }
+            } else if (!field.value?.trim()) {
                 field.classList.add("is-invalid");
                 valid = false;
             }
         });
-        if (!valid) {
-            message = "Please fill out all required fields.";
-        }
 
-        const requiredFileInputs = stepContent.querySelectorAll('input[type="file"][required]');
-        requiredFileInputs.forEach(input => {
-            const label = stepContent.querySelector(`label[for="${input.id}"]`);
-            const parent = input.closest('.d-flex');
-            const hasExistingFile = parent && parent.querySelector('a[href].ms-2');
+        // Validar grupos de radio
+        Object.entries(radioGroups).forEach(([name, radios]) => {
+            const visibleRadios = radios.filter(r => r.offsetParent !== null);
+            const anyChecked = visibleRadios.some(r => r.checked);
 
-            if (
-                label &&
-                label.offsetParent !== null &&
-                (!input.files || input.files.length === 0) &&
-                !hasExistingFile
-            ) {
-                label.classList.add("is-invalid");
+            visibleRadios.forEach(r => r.classList.remove("is-invalid"));
+
+            if (!anyChecked) {
+                visibleRadios.forEach(r => r.classList.add("is-invalid"));
                 valid = false;
-                message = "Please upload all required documents.";
-            } else if (label) {
-                label.classList.remove("is-invalid");
+                message ||= "Please fill out all required fields.";
             }
         });
 
-        const accountNumber = stepContent.querySelector('input[name="accountNumber"]');
-        const confirmAccountNumber = stepContent.querySelector('input[name="confirmAccountNumber"]');
+        // Validación específica: account number
+        const accountNumber = stepContent.querySelector('#accountNumber');
+        const confirmAccountNumber = stepContent.querySelector('#confirmAccountNumber');
 
         if (
             accountNumber && confirmAccountNumber &&
@@ -83,41 +107,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmAccountNumber.focus();
                 confirmAccountNumber.classList.add("is-invalid");
                 valid = false;
-                message = "Account numbers do not match."
-            }
-        }
-
-        const directHireRadios = Array.from(stepContent.querySelectorAll('input[name="isDirectlyHired"]'))
-            .filter(radio => radio.offsetParent !== null);
-        const anyChecked = directHireRadios.some(radio => radio.checked);
-        if (directHireRadios.length > 0 && !anyChecked) {
-            directHireRadios.forEach(radio => radio.classList.add("is-invalid"));
-            valid = false;
-            message = "Please fill out all required fields.";
-        } else {
-            directHireRadios.forEach(radio => radio.classList.remove("is-invalid"));
-        }
-
-        const contactType = stepContent.querySelector("#contactType");
-        if (contactType && contactType.offsetParent !== null && contactType.value === "business") {
-            const businessName = stepContent.querySelector("#businessName");
-            const ein = stepContent.querySelector("#ein");
-
-            if (businessName && businessName.offsetParent !== null && !businessName.value) {
-                businessName.classList.add("is-invalid");
-                valid = false;
-            }
-            if (ein && ein.offsetParent !== null && !ein.value) {
-                ein.classList.add("is-invalid");
-                valid = false;
-            }
-            if (!valid) {
-                message = "Business Name and EIN are required for Business type.";
+                message = "Account numbers do not match.";
             }
         }
 
         return [valid, message];
     };
+
 
     const stepperHeader = stepperElement.querySelector('.bs-stepper-header');
 

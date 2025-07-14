@@ -1305,18 +1305,19 @@
       const isMale = document.getElementById("legalSexMale")?.checked;
       const legalSex = isMale ? "male" : "female";
 
-      const wantFranchise = document.getElementById("wantFranchise")?.checked;
+      const isDirectlyHiredValue = document.querySelector('input[name="isDirectlyHired"]:checked')?.value;
+      const wantFranchise = isDirectlyHiredValue === "yes";
+
       let agency;
 
       if (wantFranchise) {
         const franchiseSelect = document.getElementById("franchiseSelect");
-        if (agencySelect) {
-          agency = agencySelect.value || "";
+        if (franchiseSelect) {
+          agency = franchiseSelect.value || "";
         } else {
           throw new Error("Franchise selection is required.");
         }
-      }
-      else {
+      } else {
         const referralSelect = document.getElementById("referralSelect");
         if (referralSelect) {
           agency = referralSelect.value || "";
