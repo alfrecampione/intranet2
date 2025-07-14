@@ -28,7 +28,7 @@ import { passwordMail, email_sender, new_user_notification } from "./controllers
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents, markDocsAsNecessary } from "./controllers/agents.js";
+import { renderAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
 
 const router = express.Router();
 
@@ -78,6 +78,7 @@ router.post(
   cnSalesStatistics,
 );
 router.get("/users/agency", checkNotAuthenticated, agency);
+router.delete("/users/agency/:id", checkNotAuthenticated, deleteAgent);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);
 

@@ -34,7 +34,7 @@ model User {
 }
 
 model PersonalInfo {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   userId        String   @unique
   contactType   String
   legalName     String
@@ -43,6 +43,8 @@ model PersonalInfo {
   dateOfBirth   DateTime
   ssn           String
   npm           String?
+  franchise     Boolean?
+  agency        String?
   photoPath     String?
   businessName  String?
   companyEIN    String?
@@ -51,7 +53,7 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  id                     Int     @id @default(autoincrement())
+  id                     String  @id @default(uuid())
   userId                 String  @unique
   personalEmail          String
   isPersonalEmailVisible Boolean @default(false)
@@ -71,10 +73,10 @@ model PaymentMethod {
   id              String  @id @default(uuid())
   userId          String  @unique
   assignToGTI     Boolean @default(true)
-  bankAccountType String
-  bankAccountNum  String
-  bankRoutingNum  String
-  accountNickname String
+  bankAccountType String?
+  bankAccountNum  String?
+  bankRoutingNum  String?
+  accountNickname String?
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 }

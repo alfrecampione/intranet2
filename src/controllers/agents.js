@@ -14,6 +14,24 @@ const renderAgents = async (req, res) => {
   res.render("agents", { user, registeredUsers });
 };
 
+const deleteAgent = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ message: "Agent ID is required." });
+  }
+
+  try {
+    await prisma.user.delete({
+      where: { user_id: id }
+    });
+
+    res.status(200).json({ message: "Agent deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting agent.", error: error.message });
+  }
+};
+
 const markDocsAsNecessary = async (req, res) => {
   const { email, ...requiredDocuments } = req.body;
 
@@ -40,4 +58,4 @@ const markDocsAsNecessary = async (req, res) => {
 
 
 
-export { renderAgents, markDocsAsNecessary };
+export { renderAgents, markDocsAsNecessary, deleteAgent };

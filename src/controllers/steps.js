@@ -13,7 +13,10 @@ export const createPersonalInfo = async (req, res) => {
       userId,
       photoPath,
       businessName,
-      companyEIN
+      companyEIN,
+      npm,
+      wantFranchise,
+      agency
     } = req.body;
 
     const data = {
@@ -27,7 +30,23 @@ export const createPersonalInfo = async (req, res) => {
       photoPath: photoPath || null,
       businessName: businessName || null,
       companyEIN: companyEIN || null,
+      npm,
+      franchise: contactType === "business" ? false : wantFranchise || false,
+      agency: contactType === "business" ? null : agency || null
     };
+
+
+    if (contactType === "business" && businessName) {
+      const agencyData = {
+        owner: userId,
+        name: businessName,
+      };
+      const newAgency = await prisma.agency.upsert({
+        where: { owner: userId },
+        update: agencyData,
+        create: agencyData,
+      });
+    }
 
     const personalInfo = await prisma.personalInfo.upsert({
       where: { userId },
@@ -35,7 +54,6 @@ export const createPersonalInfo = async (req, res) => {
       create: data,
     });
 
-    // Update the registrationCompleted field in the user table
     await prisma.user.update({
       where: { user_id: userId },
       data: { registrationCompleted: true, display_name: legalName },
@@ -110,7 +128,23 @@ export const getContactInfoById = async (req, res) => {
 
 export const createPaymentMethod = async (req, res) => {
   try {
-    const paymentMethod = req.body;
+    const {
+      userId,
+      assignToGTI,
+      bankAccountType,
+      bankAccountNum,
+      bankRoutingNum,
+      accountNickname,
+    } = req.body;
+
+    const paymentMethod = {
+      userId,
+      assignToGTI,
+      bankAccountType: assignToGTI ? bankAccountType : null,
+      bankAccountNum: assignToGTI ? bankAccountNum : null,
+      bankRoutingNum: assignToGTI ? bankRoutingNum : null,
+      accountNickname: assignToGTI ? accountNickname : null,
+    };
 
     if (!paymentMethod || !paymentMethod.userId
     ) {
@@ -119,12 +153,10 @@ export const createPaymentMethod = async (req, res) => {
         .json({ error: "Invalid payment method or missing userId." });
     }
 
-    await prisma.paymentMethod.deleteMany({
+    await prisma.paymentMethod.upsert({
       where: { userId: paymentMethod.userId },
-    });
-
-    await prisma.paymentMethod.create({
-      data: paymentMethod,
+      update: paymentMethod,
+      create: paymentMethod,
     });
 
     res.status(201).json({ message: "Payment method replaced successfully" });

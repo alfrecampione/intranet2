@@ -491,31 +491,40 @@
                         </label>
                         <div class="form-check form-check-inline">
                           <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredYes" value="yes"
-                            required />
+                            required <%=personalInfo?.franchise===true ? 'checked' : '' %> />
                           <label class="form-check-label" for="hiredYes">Yes</label>
                         </div>
                         <div class="form-check form-check-inline">
                           <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredNo" value="no"
-                            required />
+                            required <%=personalInfo?.franchise===false ? 'checked' : '' %> />
                           <label class="form-check-label" for="hiredNo">No</label>
                         </div>
 
-                        <!-- Selects que aparecen debajo según la selección -->
                         <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
-                          <label class="form-label" for="companySelect">Seleccione la Empresa</label>
-                          <select id="companySelect" name="company" class="form-select" required>
-                            <option value="">Seleccione una empresa...</option>
-                            <option value="company1">GoldenTrust</option>
-                            <option value="company2">Trust Financial</option>
+                          <label class="form-label" for="companySelect">Select a Franchise</label>
+                          <select id="franchiseSelect" name="company" class="form-select" required>
+                            <option value="">Select a Franchise...</option>
+                            <% if (company && company.length) { %>
+                              <% company.forEach(c=> { %>
+                                <option value="<%= c.alias %>" <%=personalInfo?.agency===c.alias ? 'selected' : '' %>>
+                                  <%= c.alias %>
+                                </option>
+                                <% }); %>
+                                  <% } %>
                           </select>
                         </div>
 
                         <div id="referralSelectGroup" style="display: none; margin-top: 1rem;">
-                          <label class="form-label" for="referralSelect">Seleccione el Referral Partner</label>
+                          <label class="form-label" for="referralSelect">Select an Agency</label>
                           <select id="referralSelect" name="referralPartner" class="form-select" required>
-                            <option value="">Seleccione un referral partner...</option>
-                            <option value="referral1">Agent Connect</option>
-                            <option value="referral2">Smart Leads</option>
+                            <option value="">Select an Agency...</option>
+                            <% if (external && external.length) { %>
+                              <% external.forEach(a=> { %>
+                                <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
+                                  <%= a.name %>
+                                </option>
+                                <% }); %>
+                                  <% } %>
                           </select>
                         </div>
                       </div>
@@ -658,7 +667,8 @@
                       <div class="mt-2">
                         <div class="form-check form-check-inline">
                           <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="yes" required
-                            <%=paymentMethod && paymentMethod.assignToGTI===true ? 'checked' : '' %> />
+                            <%=(paymentMethod && paymentMethod.assignToGTI===true) || !paymentMethod ? 'checked' : '' %>
+                          />
                           <label class="form-check-label">Yes</label>
                         </div>
                         <div class="form-check form-check-inline">
@@ -681,39 +691,41 @@
                               <label class="form-label">Bank Account Type</label>
                               <div>
                                 <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" name="bankAccountType" value="checking"
-                                    <%=paymentMethod && paymentMethod.bankAccountType==='checking' ? 'checked' : '' %>
+                                  <input class="form-check-input" type="radio" id="bankAccountTypeCheking"
+                                    value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
+                                    ? 'checked' : '' %>
                                   required />
                                   <label class="form-check-label">Checking</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" name="bankAccountType" value="savings"
-                                    <%=paymentMethod && paymentMethod.bankAccountType==='savings' ? 'checked' : '' %>
+                                  <input class="form-check-input" type="radio" id="bankAccountTypeSavings"
+                                    value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
+                                    ? 'checked' : '' %>
                                   required />
                                   <label class="form-check-label">Savings</label>
                                 </div>
-                                <div class="form-text">Por favor seleccione una opción.</div>
+                                <div class="form-text">Select an option.</div>
                               </div>
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Bank Account Number <span class="text-danger">*</span></label>
-                              <input type="number" name="accountNumber" class="form-control" autocomplete="off" required
+                              <input type="number" id="accountNumber" class="form-control" autocomplete="off" required
                                 value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Confirm Account Number <span
                                   class="text-danger">*</span></label>
-                              <input type="number" name="confirmAccountNumber" class="form-control" autocomplete="off"
+                              <input type="number" id="confirmAccountNumber" class="form-control" autocomplete="off"
                                 required value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Bank Routing Number <span class="text-danger">*</span></label>
-                              <input type="number" name="routingNumber" class="form-control" required
+                              <input type="number" id="routingNumber" class="form-control" required
                                 value="<%= paymentMethod ? paymentMethod.bankRoutingNum : '' %>" />
                             </div>
                             <div class="col-md-6">
                               <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
-                              <input type="text" name="accountNickname" class="form-control"
+                              <input type="text" id="accountNickname" class="form-control"
                                 placeholder="e.g., My Primary Checking" required
                                 value="<%= paymentMethod ? paymentMethod.accountNickname : '' %>" />
                             </div>
@@ -767,7 +779,7 @@
                                     </span>
                                     <div>
                                       <input type="file" id="<%= doc.inputId %>" name="<%= doc.inputId %>"
-                                        class="d-none" />
+                                        class="d-none" required />
                                       <label for="<%= doc.inputId %>"
                                         class="btn btn-sm btn-outline-primary">Upload</label>
                                       <% if (docs[doc.key]) { %>
@@ -1281,6 +1293,7 @@
       const preferredFirstName = document.getElementById("preferredFirstName")?.value || "";
       const dateOfBirth = document.getElementById("dateOfBirth")?.value || "";
       const ssn = document.getElementById("ssn")?.value || "";
+      const npm = document.getElementById("npm")?.value || "";
       const photoInput = document.getElementById("profilePhotoInput");
 
       const businessName = document.getElementById("businessName")?.value || "";
@@ -1291,6 +1304,26 @@
 
       const isMale = document.getElementById("legalSexMale")?.checked;
       const legalSex = isMale ? "male" : "female";
+
+      const wantFranchise = document.getElementById("wantFranchise")?.checked;
+      let agency;
+
+      if (wantFranchise) {
+        const franchiseSelect = document.getElementById("franchiseSelect");
+        if (agencySelect) {
+          agency = agencySelect.value || "";
+        } else {
+          throw new Error("Franchise selection is required.");
+        }
+      }
+      else {
+        const referralSelect = document.getElementById("referralSelect");
+        if (referralSelect) {
+          agency = referralSelect.value || "";
+        } else {
+          throw new Error("Referral selection is required.");
+        }
+      }
 
       let uploadedPhoto = existingPhotoURL;
 
@@ -1304,12 +1337,17 @@
         preferredName: preferredFirstName,
         dateOfBirth: dateOfBirth,
         ssn: ssn,
+        npm,
         legalSex: legalSex,
         userId: currentUserId,
         photoPath: uploadedPhoto,
         businessName: businessName || null,
-        companyEIN: companyEIN || null
+        companyEIN: companyEIN || null,
+        wantFranchise: wantFranchise,
+        agency: agency || null
       };
+
+      console.log("Personal Info to save:", personalInfo);
 
       const response = await fetch(`${url}/steps/personal-info`, {
         method: "POST",
@@ -1357,31 +1395,53 @@
     }
 
     async function savePaymentMethod() {
-      const entry = document.querySelector(".bank-account-entry");
+      const entry = document.querySelector('.bank-account-entry');
 
-      if (!entry || entry.style.display === "none") return;
-
-      const bankAccountType = entry.querySelector('input[type="radio"][name="bankAccountType"]:checked')?.value || "";
-      const bankAccountNum = entry.querySelector('input[name="accountNumber"]')?.value || "";
-      const confirmAccountNum = entry.querySelector('input[name="confirmAccountNumber"]')?.value || "";
-      const bankRoutingNum = entry.querySelector('input[name="routingNumber"]')?.value || "";
-      const accountNickname = entry.querySelector('input[name="accountNickname"]')?.value || "";
-
-      if (!bankAccountType || !bankAccountNum || !confirmAccountNum || !bankRoutingNum || !accountNickname) {
-        throw new Error("Please fill in all required fields.");
+      const assignToGTI = document.querySelector('input[name="assignToGoldenTrust"]:checked');
+      if (!assignToGTI) {
+        throw new Error("Please select if you want to assign your commissions to GoldenTrust.");
       }
 
-      if (bankAccountNum !== confirmAccountNum) {
-        throw new Error("Account number and confirmation do not match.");
-      }
+      let bankAccount;
 
-      const bankAccount = {
-        bankAccountType,
-        bankAccountNum,
-        bankRoutingNum,
-        accountNickname,
-        userId: currentUserId
-      };
+      if (assignToGTI.value !== "yes") {
+        bankAccount = {
+          assignToGTI: false,
+          bankAccountType: null,
+          bankAccountNum: null,
+          bankRoutingNum: null,
+          accountNickname: null,
+          userId: currentUserId
+        };
+      } else {
+        const bankAccountTypeRadio = document.querySelector('input[id="bankAccountTypeCheking"]:checked')
+          ? "checking"
+          : document.querySelector('input[id="bankAccountTypeSavings"]:checked')
+            ? "savings"
+            : null;
+
+        const bankAccountNum = document.getElementById("accountNumber")?.value || "";
+        const confirmAccountNum = document.getElementById("confirmAccountNumber")?.value || "";
+        const bankRoutingNum = document.getElementById("routingNumber")?.value || "";
+        const accountNickname = document.getElementById("accountNickname")?.value || "";
+
+        if (!bankAccountTypeRadio || !bankAccountNum || !confirmAccountNum || !bankRoutingNum || !accountNickname) {
+          throw new Error("Please fill in all required fields.");
+        }
+
+        if (bankAccountNum !== confirmAccountNum) {
+          throw new Error("Account number and confirmation do not match.");
+        }
+
+        bankAccount = {
+          assignToGTI: true,
+          bankAccountType: bankAccountTypeRadio,
+          bankAccountNum,
+          bankRoutingNum,
+          accountNickname,
+          userId: currentUserId
+        };
+      }
 
       const response = await fetch(`${url}/steps/payment-method`, {
         method: "POST",

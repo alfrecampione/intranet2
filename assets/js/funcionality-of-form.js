@@ -25,7 +25,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         requiredFields.forEach(function (field) {
             const style = window.getComputedStyle(field);
-            if (style.display === "none" || field.offsetParent === null) return;
+            if (
+                style.display === "none" ||
+                style.visibility === "hidden" ||
+                field.offsetParent === null
+            ) return;
+
             field.classList.remove("is-invalid");
             if (!field.value || (field.type === "checkbox" && !field.checked)) {
                 field.classList.add("is-invalid");
@@ -36,11 +41,33 @@ document.addEventListener('DOMContentLoaded', function () {
             message = "Please fill out all required fields.";
         }
 
-        // Validación especial para cuenta bancaria
+        const requiredFileInputs = stepContent.querySelectorAll('input[type="file"][required]');
+        requiredFileInputs.forEach(input => {
+            const label = stepContent.querySelector(`label[for="${input.id}"]`);
+            const parent = input.closest('.d-flex');
+            const hasExistingFile = parent && parent.querySelector('a[href].ms-2');
+
+            if (
+                label &&
+                label.offsetParent !== null &&
+                (!input.files || input.files.length === 0) &&
+                !hasExistingFile
+            ) {
+                label.classList.add("is-invalid");
+                valid = false;
+                message = "Please upload all required documents.";
+            } else if (label) {
+                label.classList.remove("is-invalid");
+            }
+        });
+
         const accountNumber = stepContent.querySelector('input[name="accountNumber"]');
         const confirmAccountNumber = stepContent.querySelector('input[name="confirmAccountNumber"]');
 
-        if (accountNumber && confirmAccountNumber) {
+        if (
+            accountNumber && confirmAccountNumber &&
+            accountNumber.offsetParent !== null && confirmAccountNumber.offsetParent !== null
+        ) {
             accountNumber.classList.remove("is-invalid");
             confirmAccountNumber.classList.remove("is-invalid");
 
@@ -60,8 +87,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        const directHireRadios = stepContent.querySelectorAll('input[name="isDirectlyHired"]');
-        const anyChecked = Array.from(directHireRadios).some(radio => radio.checked);
+        const directHireRadios = Array.from(stepContent.querySelectorAll('input[name="isDirectlyHired"]'))
+            .filter(radio => radio.offsetParent !== null);
+        const anyChecked = directHireRadios.some(radio => radio.checked);
         if (directHireRadios.length > 0 && !anyChecked) {
             directHireRadios.forEach(radio => radio.classList.add("is-invalid"));
             valid = false;
@@ -70,16 +98,16 @@ document.addEventListener('DOMContentLoaded', function () {
             directHireRadios.forEach(radio => radio.classList.remove("is-invalid"));
         }
 
-        // Validación especial para campos de negocio
-        const contactType = document.getElementById("contactType");
-        if (contactType && contactType.value === "business") {
-            const businessName = document.getElementById("businessName");
-            const ein = document.getElementById("ein");
-            if (businessName && !businessName.value.trim()) {
+        const contactType = stepContent.querySelector("#contactType");
+        if (contactType && contactType.offsetParent !== null && contactType.value === "business") {
+            const businessName = stepContent.querySelector("#businessName");
+            const ein = stepContent.querySelector("#ein");
+
+            if (businessName && businessName.offsetParent !== null && !businessName.value) {
                 businessName.classList.add("is-invalid");
                 valid = false;
             }
-            if (ein && !ein.value.trim()) {
+            if (ein && ein.offsetParent !== null && !ein.value) {
                 ein.classList.add("is-invalid");
                 valid = false;
             }
