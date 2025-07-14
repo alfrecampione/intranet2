@@ -64,7 +64,7 @@ const passwordMail = async (req, res) => {
 
   const body = {
     name: email,
-    intro: `Welcome to GoldenTrust Insurance! We're very excited to have you on board.`,
+    intro: `Welcome to GoldenHealth! We're very excited to have you on board.`,
     action: {
       instructions: "To get started, please click here:",
       button: {
