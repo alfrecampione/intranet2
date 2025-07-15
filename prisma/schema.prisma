@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["health"]
 }
 
 model session {
@@ -13,90 +15,96 @@ model session {
   expire DateTime @db.Timestamp(6)
 
   @@index([expire], map: "IDX_session_expire")
+  @@schema("health")
 }
 
 model User {
-  user_id               String   @id @default(uuid())
-  email                 String   @unique
+  email                 String              @unique
   password              String
-  display_name          String?
   confirmationCode      String?
-  registrationCompleted Boolean  @default(false)
-  createdAt             DateTime @default(now())
+  user_id               String              @id @default(uuid())
+  createdAt             DateTime            @default(now())
+  registrationCompleted Boolean             @default(false)
+  display_name          String?
+  Agency                Agency?
+  contactInfo           ContactInfo?
+  documents             Documents?
+  paymentMethod         PaymentMethod?
+  personalInfo          PersonalInfo?
+  Recommendation        Recommendation?
+  statesAndCarriers     StatesANDCarriers[]
 
-  personalInfo      PersonalInfo?
-  contactInfo       ContactInfo?
-  paymentMethod     PaymentMethod?
-  documents         Documents?
-  statesAndCarriers StatesANDCarriers[]
-  Recommendation    Recommendation[]
-  Agency            Agency?
+  @@schema("health")
 }
 
 model PersonalInfo {
   id            String   @id @default(uuid())
   userId        String   @unique
-  contactType   String
-  legalName     String
-  preferredName String?
-  legalSex      String
-  dateOfBirth   DateTime
-  ssn           String
-  npm           String?
-  franchise     Boolean?
-  agency        String?
-  photoPath     String?
   businessName  String?
   companyEIN    String?
+  contactType   String
+  dateOfBirth   DateTime
+  legalName     String
+  legalSex      String
+  photoPath     String?
+  preferredName String?
+  ssn           String
+  agency        String?
+  franchise     Boolean?
+  npm           String?
+  user          User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
 
 model ContactInfo {
-  id                     String  @id @default(uuid())
-  userId                 String  @unique
   personalEmail          String
   isPersonalEmailVisible Boolean @default(false)
   personalPhone          String?
   isPersonalPhoneVisible Boolean @default(false)
   country                String
-  addressLine1           String
-  addressLine2           String?
   city                   String
   state                  String
   zipCode                String
+  id                     String  @id @default(uuid())
+  userId                 String  @unique
+  addressLine1           String
+  addressLine2           String?
+  user                   User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
 
 model PaymentMethod {
   id              String  @id @default(uuid())
-  userId          String  @unique
-  assignToGTI     Boolean @default(true)
   bankAccountType String?
   bankAccountNum  String?
   bankRoutingNum  String?
   accountNickname String?
+  userId          String  @unique
+  assignToGTI     Boolean @default(true)
+  user            User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
 
 model Documents {
   id                  String  @id @default(uuid())
-  userId              String  @unique
   directDepositForm   String?
   driverLicense       String?
   EINconfirmation     String?
   eANDo               String?
   proLicense          String?
-  ffmCertification    String?
-  gaLicense           String?
-  gaCertification     String?
-  sunbiz              String?
+  userId              String  @unique
   corporationLicense  String?
+  ffmCertification    String?
+  gaCertification     String?
+  gaLicense           String?
+  sunbiz              String?
   taxIdentificationW9 String
+  user                User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
 
 model NecesaryDocuments {
@@ -113,18 +121,20 @@ model NecesaryDocuments {
   sunbiz              Boolean @default(false)
   corporationLicense  Boolean @default(false)
   taxIdentificationW9 Boolean @default(true)
+
+  @@schema("health")
 }
 
 model StatesANDCarriers {
   id      String  @id @default(uuid())
-  userId  String
   state   String
+  userId  String
   company String
   status  String?
-
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@unique([userId, state, company])
+  @@schema("health")
 }
 
 model Recommendation {
@@ -133,24 +143,29 @@ model Recommendation {
   recommendation String
   isDone         Boolean  @default(false)
   insertedAt     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
 
 model NewUserAlerts {
   id           String   @id @default(uuid())
-  display_name String
   email        String   @unique
   insertedAt   DateTime @default(now())
+  display_name String
+
+  @@schema("health")
 }
 
 model Company {
   id         String       @id @default(uuid())
   name       String       @unique
-  phone      String
   States     String[]
   createdAt  DateTime     @default(now())
+  phone      String
   Commisions Commisions[]
+
+  @@schema("health")
 }
 
 model Commisions {
@@ -159,16 +174,17 @@ model Commisions {
   state     String
   amount    Float
   createdAt DateTime @default(now())
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, state])
+  @@schema("health")
 }
 
 model Agency {
   id    String @id @default(uuid())
   owner String @unique
   name  String
+  user  User   @relation(fields: [owner], references: [user_id], onDelete: Cascade)
 
-  user User @relation(fields: [owner], references: [user_id], onDelete: Cascade)
+  @@schema("health")
 }
