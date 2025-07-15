@@ -430,7 +430,7 @@
                         <div class="invalid-feedback"></div>
                       </div>
 
-                      <!-- SSN y NPM (Required) -->
+                      <!-- SSN y NPN (Required) -->
                       <div class="row g-3">
                         <!-- SSN -->
                         <div class="col-sm-6">
@@ -442,14 +442,14 @@
                             value="<%= personalInfo?.ssn || '' %>" />
                         </div>
 
-                        <!-- NPM -->
+                        <!-- NPN -->
                         <div class="col-sm-6">
-                          <label class="form-label" for="npm">
-                            NPM <span class="text-danger">*</span>
+                          <label class="form-label" for="npn">
+                            NPN <span class="text-danger">*</span>
                           </label>
-                          <input type="text" name="npm" id="npm" class="form-control" placeholder="XXXXXXXX"
-                            aria-label="NPM" required pattern="\d{8}" maxlength="8"
-                            value="<%= personalInfo?.npm || '' %>" />
+                          <input type="text" name="npn" id="npn" class="form-control" placeholder="XXXXXXXX"
+                            aria-label="NPN" required pattern="\d{8}" maxlength="8"
+                            value="<%= personalInfo?.npn || '' %>" />
                         </div>
                       </div>
                       <script>
@@ -471,14 +471,14 @@
                           }
                         });
 
-                        document.getElementById("npm").addEventListener("input", function (e) {
+                        document.getElementById("npn").addEventListener("input", function (e) {
                           let value = e.target.value.replace(/\D/g, ""); // solo números
                           e.target.value = value.slice(0, 8); // máximo 8 dígitos
                         });
                         document.querySelector("form").addEventListener("submit", function (e) {
-                          const npmInput = document.getElementById("npm");
-                          if (!/^\d{8}$/.test(npmInput.value)) {
-                            npmInput.classList.add("is-invalid");
+                          const npnInput = document.getElementById("npn");
+                          if (!/^\d{8}$/.test(npnInput.value)) {
+                            npnInput.classList.add("is-invalid");
                             e.preventDefault();
                           }
                         });
@@ -1293,7 +1293,7 @@
       const preferredFirstName = document.getElementById("preferredFirstName")?.value || "";
       const dateOfBirth = document.getElementById("dateOfBirth")?.value || "";
       const ssn = document.getElementById("ssn")?.value || "";
-      const npm = document.getElementById("npm")?.value || "";
+      const npn = document.getElementById("npn")?.value || "";
       const photoInput = document.getElementById("profilePhotoInput");
 
       const businessName = document.getElementById("businessName")?.value || "";
@@ -1338,7 +1338,7 @@
         preferredName: preferredFirstName,
         dateOfBirth: dateOfBirth,
         ssn: ssn,
-        npm,
+        npn,
         legalSex: legalSex,
         userId: currentUserId,
         photoPath: uploadedPhoto,

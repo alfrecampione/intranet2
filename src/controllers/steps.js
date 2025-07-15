@@ -14,7 +14,7 @@ export const createPersonalInfo = async (req, res) => {
       photoPath,
       businessName,
       companyEIN,
-      npm,
+      npn,
       wantFranchise,
       agency
     } = req.body;
@@ -30,7 +30,7 @@ export const createPersonalInfo = async (req, res) => {
       photoPath: photoPath || null,
       businessName: businessName || null,
       companyEIN: companyEIN || null,
-      npm,
+      npn,
       franchise: contactType === "business" ? false : wantFranchise || false,
       agency: contactType === "business" ? null : agency || null
     };
@@ -41,7 +41,7 @@ export const createPersonalInfo = async (req, res) => {
         owner: userId,
         name: businessName,
       };
-      const newAgency = await prisma.agency.upsert({
+      await prisma.agency.upsert({
         where: { owner: userId },
         update: agencyData,
         create: agencyData,

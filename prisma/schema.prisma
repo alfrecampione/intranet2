@@ -51,7 +51,7 @@ model PersonalInfo {
   ssn           String
   agency        String?
   franchise     Boolean?
-  npm           String?
+  npn           String?
   user          User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
