@@ -16,6 +16,7 @@ const initialize = (passport) => {
         if (isMatch) {
           return done(null, user);
         } else {
+          console.log(`Login failed for ${email}: Password is not correct(PostgreSQL)`);
           return done(null, false, { msg: "Password is not correct" });
         }
       }
@@ -23,13 +24,15 @@ const initialize = (passport) => {
       const prismaUser = await prisma.user.findUnique({ where: { email } });
       if (prismaUser) {
         const isMatch = await bcrypt.compare(password, prismaUser.password);
+
         if (isMatch) {
           return done(null, prismaUser);
         } else {
+          console.log(`Login failed for ${email}: Password is not correct (Prisma)`);
           return done(null, false, { msg: "Password is not correct" });
         }
       }
-
+      console.log(`Login failed for ${email}: Email is not registered`);
       return done(null, false, { msg: "Email is not registered" });
     } catch (err) {
       return done(err);

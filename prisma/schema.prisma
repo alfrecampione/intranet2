@@ -19,12 +19,12 @@ model session {
 }
 
 model User {
-  email                 String              @unique
-  password              String
+  email                 String?             @unique
+  password              String?
   confirmationCode      String?
   user_id               String              @id @default(uuid())
-  createdAt             DateTime            @default(now())
-  registrationCompleted Boolean             @default(false)
+  createdAt             DateTime?           @default(now())
+  registrationCompleted Boolean?            @default(false)
   display_name          String?
   Agency                Agency?
   contactInfo           ContactInfo?
@@ -38,37 +38,37 @@ model User {
 }
 
 model PersonalInfo {
-  id            String   @id @default(uuid())
-  userId        String   @unique
+  id            String    @id @default(uuid())
+  userId        String    @unique
   businessName  String?
   companyEIN    String?
-  contactType   String
-  dateOfBirth   DateTime
-  legalName     String
-  legalSex      String
+  contactType   String?
+  dateOfBirth   DateTime?
+  legalName     String?
+  legalSex      String?
   photoPath     String?
   preferredName String?
-  ssn           String
+  ssn           String?
   agency        String?
   franchise     Boolean?
   npn           String?
-  user          User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
 }
 
 model ContactInfo {
-  personalEmail          String
+  personalEmail          String?
   isPersonalEmailVisible Boolean @default(false)
   personalPhone          String?
   isPersonalPhoneVisible Boolean @default(false)
-  country                String
-  city                   String
-  state                  String
-  zipCode                String
+  country                String?
+  city                   String?
+  state                  String?
+  zipCode                String?
   id                     String  @id @default(uuid())
   userId                 String  @unique
-  addressLine1           String
+  addressLine1           String?
   addressLine2           String?
   user                   User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
@@ -101,7 +101,7 @@ model Documents {
   gaCertification     String?
   gaLicense           String?
   sunbiz              String?
-  taxIdentificationW9 String
+  taxIdentificationW9 String?
   user                User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
@@ -127,20 +127,19 @@ model NecesaryDocuments {
 
 model StatesANDCarriers {
   id      String  @id @default(uuid())
-  state   String
+  state   String?
   userId  String
-  company String
+  company String?
   status  String?
   user    User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
-  @@unique([userId, state, company])
   @@schema("health")
 }
 
 model Recommendation {
   id             String   @id @default(uuid())
   userId         String   @unique
-  recommendation String
+  recommendation String?
   isDone         Boolean  @default(false)
   insertedAt     DateTime @default(now())
   user           User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)

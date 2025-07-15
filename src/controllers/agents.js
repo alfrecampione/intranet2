@@ -55,6 +55,106 @@ const markDocsAsNecessary = async (req, res) => {
   }
 };
 
+import bcrypt from "bcrypt";
+
+const massiveCreateAgents = async (req, res) => {
+  const agents = req.body.agents;
+  if (!Array.isArray(agents) || agents.length === 0) {
+    return res.status(400).json({ message: "Agents array is required." });
+  }
+
+  const results = [];
+  for (const agent of agents) {
+    try {
+      const {
+        email,
+        password = "12345678",
+        display_name,
+        firstName,
+        lastName,
+        birthDate,
+        ssn,
+        npn,
+        cellPhone,
+        residentAddress,
+        city,
+        state,
+        zip,
+        franchise,
+        agency,
+        companyEIN,
+        contactType = "individual",
+        legalName = `${firstName} ${lastName}`
+      } = agent;
+
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        results.push({ email, status: "skipped", reason: "User already exists" });
+        continue;
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          display_name: display_name || legalName,
+          registrationCompleted: false
+        }
+      });
+
+      await prisma.user.update({
+        where: { email },
+        data: {
+          display_name: display_name || legalName,
+          registrationCompleted: false
+        }
+      });
+
+      await prisma.personalInfo.create({
+        data: {
+          userId: user.user_id,
+          legalName,
+          preferredName: firstName,
+          legalSex: null,
+          dateOfBirth: birthDate ? new Date(birthDate) : null,
+          ssn: ssn || null,
+          npn: npn || null,
+          businessName: agency || null,
+          companyEIN: companyEIN || null,
+          contactType,
+          franchise: !!franchise,
+          agency: agency || null
+        }
+      });
+
+      await prisma.contactInfo.create({
+        data: {
+          userId: user.user_id,
+          personalEmail: email,
+          isPersonalEmailVisible: false,
+          personalPhone: cellPhone || null,
+          isPersonalPhoneVisible: false,
+          country: "USA",
+          city: city || "",
+          state: state || "",
+          zipCode: zip || "",
+          addressLine1: residentAddress || "",
+          addressLine2: null
+        }
+      });
+
+      results.push({ email, status: "created" });
+    } catch (error) {
+      console.log(`Error processing agent with email ${agent.email}:`, error);
+      results.push({ email: agent.email, status: "error", error: error.message });
+    }
+  }
+
+  res.status(200).json({ results });
+};
 
 
-export { renderAgents, markDocsAsNecessary, deleteAgent };
+
+export { renderAgents, markDocsAsNecessary, deleteAgent, massiveCreateAgents };

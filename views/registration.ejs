@@ -1186,30 +1186,6 @@
   </script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const radios = document.querySelectorAll('input[name="assignToGoldenTrust"]');
-      const bankAccountCard = document.querySelector('.bank-account-entry');
-
-      function toggleBankAccountCard() {
-        const selectedValue = document.querySelector('input[name="assignToGoldenTrust"]:checked')?.value;
-        if (selectedValue === 'yes') {
-          bankAccountCard.style.display = 'block';
-        } else {
-          bankAccountCard.style.display = 'none';
-        }
-      }
-
-      // Inicialmente ocultar o mostrar según el radio seleccionado al cargar
-      toggleBankAccountCard();
-
-      // Escuchar cambios
-      radios.forEach(radio => {
-        radio.addEventListener('change', toggleBankAccountCard);
-      });
-    });
-  </script>
-
-  <script>
     document.addEventListener('DOMContentLoaded', function () {
       const contactType = document.getElementById('contactType');
       const directHireGroup = document.getElementById('directHireGroup');

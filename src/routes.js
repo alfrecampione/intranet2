@@ -174,5 +174,8 @@ import { render } from "ejs";
 router.get("/users/config_commisions", checkNotAuthenticated, renderConfigCommisions);
 router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
 
+import { massiveCreateAgents } from "./controllers/agents.js";
+router.post("/agents/massiveCreate", massiveCreateAgents);
+
 
 export default router;
