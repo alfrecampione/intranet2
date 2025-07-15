@@ -12,7 +12,7 @@
   "author": "Wilfredo Valle",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.8.2",
     "adm-zip": "^0.5.16",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
@@ -40,11 +40,11 @@
     "pino-http": "^10.5.0",
     "prettier": "^3.5.3",
     "prettier-plugin-ejs": "^1.0.3",
-    "prisma": "^6.9.0",
     "url": "^0.11.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "prisma": "^6.8.2"
   }
 }
