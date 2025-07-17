@@ -300,6 +300,8 @@
                             </div>
                         </div>
                         <!--/ DataTable with Buttons -->
+                        <div class="content-backdrop fade"></div>
+                        <button id="submitBtn" class="btn btn-primary mt-3">Save status</button>
                     </div>
                     <div class="content-backdrop fade"></div>
                 </div>
@@ -521,6 +523,49 @@
             const bsToast = new bootstrap.Toast(toast);
             bsToast.show();
         }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("submitBtn")?.addEventListener("click", async function () {
+                document.getElementById("email-overlay").style.display = "flex";
+
+                const table = document.getElementById("DataTables_Table_0");
+                const rows = table.querySelectorAll("tbody tr");
+                const updates = [];
+
+                rows.forEach(row => {
+                    const select = row.querySelector("select");
+                    if (select) {
+                        const [company, state] = select.name.split("-");
+                        const status = select.value;
+                        updates.push({ company, state, status });
+                    }
+                });
+
+                const userId = JSON.parse(document.getElementById("userID-data").textContent);
+
+                try {
+                    const response = await fetch("/users/carrrier_status", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ userId, updates })
+                    });
+
+                    if (response.ok) {
+                        showToast("Success", "Carrier statuses updated successfully.");
+                    } else {
+                        showToast("Error", "Failed to update carrier statuses.");
+                    }
+                } catch (err) {
+                    showToast("Error", "Network error while updating statuses.");
+                } finally {
+                    document.getElementById("email-overlay").style.display = "none";
+                }
+            });
+        });
     </script>
 </body>
 

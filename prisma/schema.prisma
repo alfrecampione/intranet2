@@ -133,6 +133,7 @@ model StatesANDCarriers {
   status  String?
   user    User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
+  @@unique([userId, company, state])
   @@schema("health")
 }
 

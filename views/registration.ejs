@@ -1523,13 +1523,16 @@
 
     document.querySelector(".btn-submit").addEventListener("click", async function (e) {
       e.preventDefault();
-      try {
+      const submitBtn = this;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Sending...`;
 
+      try {
         if (currentUserId === null) throw new Error("Se requiere ID de usuario");
 
         await savePersonalInfo();
         await saveContactInfo();
-        await savePaymentMethod()
+        await savePaymentMethod();
         await saveDocuments();
         await saveStatesCarriers();
 
@@ -1541,12 +1544,13 @@
           });
           if (!response.ok) throw new Error("Error sending the email");
           window.location.href = `${url}/users/dashboard`;
-        }
-        else
+        } else {
           window.location.href = `${url}/users/agents`;
-
+        }
       } catch (error) {
         showToast("Error", error.message || "An unexpected error occurred. Please try again later.");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `Review & Submit`;
       }
     });
   </script>

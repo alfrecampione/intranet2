@@ -100,8 +100,9 @@ router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
 router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
-import { renderCarrierStatus } from "./controllers/carrier_status.js";
+import { renderCarrierStatus, updateCarrierStatus } from "./controllers/carrier_status.js";
 router.get("/users/carrrier_status/:id", checkNotAuthenticated, renderCarrierStatus);
+router.post("/users/carrrier_status", checkNotAuthenticated, updateCarrierStatus);
 
 // STEPS ROUTES
 import {

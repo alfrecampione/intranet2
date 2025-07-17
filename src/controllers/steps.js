@@ -224,36 +224,31 @@ export const saveStatesCarriers = async (req, res) => {
     if (!userId || !Array.isArray(carriers) || carriers.length === 0) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-
-    // Remove previous records for this user
-    await prisma.statesANDCarriers.deleteMany({
-      where: { userId },
-    });
-
-    // Insert new records: one per company per state
-    const createData = [];
-    carriers.forEach(carrier => {
+    const results = [];
+    for (const carrier of carriers) {
       if (carrier.name && Array.isArray(carrier.states)) {
-        carrier.states.forEach(state => {
-          createData.push({
-            userId,
-            company: carrier.name,
-            state,
+        for (const state of carrier.states) {
+          const record = await prisma.statesANDCarriers.upsert({
+            where: {
+              userId_company_state: {
+                userId,
+                company: carrier.name,
+                state
+              }
+            },
+            update: {},
+            create: {
+              userId,
+              company: carrier.name,
+              state,
+              status: "Pending"
+            }
           });
-        });
+          results.push(record);
+        }
       }
-    });
-
-    if (createData.length === 0) {
-      return res.status(400).json({ error: "No valid carriers/states provided" });
     }
 
-    const statesAndCarriers = await prisma.statesANDCarriers.createMany({
-      data: createData,
-      skipDuplicates: true
-    });
-
-    // Save or update recommendation
     await prisma.recommendation.upsert({
       where: { userId },
       update: {
@@ -267,7 +262,7 @@ export const saveStatesCarriers = async (req, res) => {
       }
     });
 
-    res.status(201).json({ statesAndCarriers });
+    res.status(201).json({ statesAndCarriers: results });
   } catch (error) {
     console.error("Error saving states and carriers:", error);
     res.status(500).json({ error: "Failed to save states and carriers", details: error.message });
