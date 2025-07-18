@@ -189,3 +189,13 @@ model Agency {
 
   @@schema("health")
 }
+
+model Logs {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@schema("health")
+}

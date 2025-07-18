@@ -38,4 +38,43 @@ try {
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
+prisma.$use(async (params, next) => {
+  const result = await next(params);
+
+  const writeActions = ['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'];
+
+  if (writeActions.includes(params.action)) {
+    // Try to extract userId from args
+    let userId = null;
+    if (params.args) {
+      // Check common locations for userId
+      if (params.args.userId) userId = params.args.userId;
+      else if (params.args.data && params.args.data.userId) userId = params.args.data.userId;
+      else if (params.args.create && params.args.create.userId) userId = params.args.create.userId;
+      else if (params.args.where && params.args.where.userId) userId = params.args.where.userId;
+      // For updateMany/deleteMany/createMany, userId might be in 'where' or 'data'
+    }
+
+    const log = {
+      userId: userId || "unknown",
+      action: params.action,
+      description: `[${params.model}] ${params.action}`,
+      // Optionally, you can add more details here
+    };
+
+    // Save log in the Logs table if userId is found
+    if (userId) {
+      try {
+        await prisma.logs.create({ data: log });
+      } catch (err) {
+        console.warn("Failed to save log:", err.message);
+      }
+    }
+
+    console.log('[DB LOG]', JSON.stringify({ ...log, args: params.args, timestamp: new Date() }, null, 2));
+  }
+
+  return result;
+});
+
 export { pool, prisma, sessionStore };
