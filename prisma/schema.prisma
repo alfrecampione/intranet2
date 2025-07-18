@@ -26,7 +26,6 @@ model User {
   createdAt             DateTime?           @default(now())
   registrationCompleted Boolean?            @default(false)
   display_name          String?
-  isAgent               Boolean?            @default(true)
   Agency                Agency?
   contactInfo           ContactInfo?
   documents             Documents?

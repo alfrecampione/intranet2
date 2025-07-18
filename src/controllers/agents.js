@@ -63,13 +63,7 @@ const massiveCreateAgents = async (req, res) => {
     return res.status(400).json({ message: "Agents array is required." });
   }
 
-  const carrierFields = [
-    "AMBETTER", "OSCAR", "MOLINA", "CIGNA N-R", "UHC N-R",
-    "AETNA", "WELLPOINT", "BCBS-Texas", "BCBS-Illinois"
-  ];
-
   const results = [];
-
   for (const agent of agents) {
     try {
       const {
@@ -90,8 +84,7 @@ const massiveCreateAgents = async (req, res) => {
         agency,
         companyEIN,
         contactType = "individual",
-        legalName = `${firstName} ${lastName}`,
-        commisions
+        legalName = `${firstName} ${lastName}`
       } = agent;
 
       const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -102,16 +95,18 @@ const massiveCreateAgents = async (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      await prisma.necesaryDocuments.create({
-        data: {
-          email: user.email
-        }
-      });
-
       const user = await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
+          display_name: display_name || legalName,
+          registrationCompleted: false
+        }
+      });
+
+      await prisma.user.update({
+        where: { email },
+        data: {
           display_name: display_name || legalName,
           registrationCompleted: false
         }
@@ -130,7 +125,7 @@ const massiveCreateAgents = async (req, res) => {
           companyEIN: companyEIN || null,
           contactType,
           franchise: !!franchise,
-          agency: (!!franchise) ? agency : null
+          agency: agency || null
         }
       });
 
@@ -150,39 +145,6 @@ const massiveCreateAgents = async (req, res) => {
         }
       });
 
-      await prisma.paymentMethod.create({
-        data: {
-          userId: user.user_id,
-          bankAccountType: null,
-          bankAccountNum: null,
-          bankRoutingNum: null,
-          accountNickname: null,
-          assignToGTI: !!commisions,
-        }
-      });
-
-      for (const field of carrierFields) {
-        const rawStates = agent[field];
-        if (rawStates) {
-          const states = rawStates.split(",").map(s => s.trim().toUpperCase());
-          for (const carrierState of states) {
-            if (!carrierState) continue;
-            try {
-              await prisma.statesANDCarriers.create({
-                data: {
-                  userId: user.user_id,
-                  state: carrierState,
-                  company: field,
-                  status: "Pending"
-                }
-              });
-            } catch (error) {
-              console.warn(`Failed to add ${field} in ${carrierState} for ${email}:`, error.message);
-            }
-          }
-        }
-      }
-
       results.push({ email, status: "created" });
     } catch (error) {
       console.log(`Error processing agent with email ${agent.email}:`, error);
@@ -192,7 +154,6 @@ const massiveCreateAgents = async (req, res) => {
 
   res.status(200).json({ results });
 };
-
 
 
 
