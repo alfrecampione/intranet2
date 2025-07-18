@@ -15,20 +15,15 @@ const passwordMail = async (req, res) => {
   console.log("baseUrl", baseUrl);
 
   const { encryptedData, key, iv } = encrypt(email);
-  let result, result1, prismaUser;
+  let result, prismaUser;
 
   try {
-    // Search in Postgres
-    result = await pool.query(
-      `SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
-      [email],
-    );
     // Search in Prisma
     prismaUser = await prisma.user.findUnique({
       where: { email: email },
     });
     // Insert encrypted data
-    result1 = await pool.query(
+    result = await pool.query(
       `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
       [encryptedData, key, iv],
     );
@@ -37,8 +32,7 @@ const passwordMail = async (req, res) => {
     return res.status(500).json({ msg: "Data Access Error" });
   }
 
-  // If not found in either source
-  if ((result.rows.length === 0) && !prismaUser) {
+  if (!prismaUser) {
     return res
       .status(401)
       .json({ msg: `Please enter an existing email` });
