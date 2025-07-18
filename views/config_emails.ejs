@@ -94,7 +94,7 @@
                             <div data-i18n="Dashboard">Dashboard</div>
                         </a>
                     </li>
-                    <% if (user && user.agency) { %>
+                    <% if (user && (user.agency || !user.isAgent)) { %>
                         <li class="menu-item">
                             <a href="/users/agents" class="menu-link">
                                 <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
