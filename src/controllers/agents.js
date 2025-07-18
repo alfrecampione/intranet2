@@ -102,6 +102,12 @@ const massiveCreateAgents = async (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      await prisma.necesaryDocuments.create({
+        data: {
+          email: user.email
+        }
+      });
+
       const user = await prisma.user.create({
         data: {
           email,
