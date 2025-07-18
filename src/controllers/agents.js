@@ -104,6 +104,12 @@ const massiveCreateAgents = async (req, res) => {
         }
       });
 
+      await prisma.necesaryDocuments.create({
+        data: {
+          email: user.email
+        }
+      });
+
       await prisma.user.update({
         where: { email },
         data: {
