@@ -1,9 +1,9 @@
 import { prisma } from "../config/dbConfig.js";
 
 const renderProfile = async (req, res) => {
-    const user_id = req.params.id;
+    const user = req.user;
 
-    const user = await prisma.user.findUnique({
+    const profile = await prisma.user.findUnique({
         where: {
             user_id: user_id
         }
@@ -15,7 +15,7 @@ const renderProfile = async (req, res) => {
         }
     });
 
-    res.render("profile", { user: user, personalInfo: personalInfo });
+    res.render("profile", { user: user, profile: profile, personalInfo: personalInfo });
 }
 
 

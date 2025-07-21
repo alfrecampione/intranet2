@@ -6,12 +6,22 @@ import bcrypt from "bcrypt";
 const renderAgents = async (req, res) => {
   const user = req.user;
 
-  const registeredUsers = await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     orderBy: [
       { display_name: 'asc' },
       { email: 'asc' }
-    ]
+    ],
+    include: {
+      personalInfo: {
+        select: { photoPath: true }
+      }
+    }
   });
+
+  const registeredUsers = users.map(u => ({
+    ...u,
+    photoPath: u.personalInfo?.photoPath || null
+  }));
 
   res.render("agents", { user, registeredUsers });
 };
