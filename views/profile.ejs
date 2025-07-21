@@ -256,9 +256,9 @@
                                     <div class="card-body pt-12">
                                         <div class="user-avatar-section">
                                             <div class="d-flex align-items-center flex-column">
-                                                <% if (user.photoPath) { %>
+                                                <% if (personalInfo.photoPath) { %>
                                                     <img class="img-fluid rounded mb-4"
-                                                        src="<%= url %>/<%= user.photoPath %>" height="120" width="120"
+                                                        src="/<%= personalInfo.photoPath %>" height="120" width="120"
                                                         alt="User avatar" />
                                                     <% } else { %>
                                                         <span class="avatar-initial rounded-circle bg-label-primary"
@@ -268,7 +268,10 @@
                                                         </span>
                                                         <% } %>
                                                             <div class="user-info text-center">
-                                                                <h5>Violet Mendoza</h5>
+                                                                <h5>
+                                                                    <%= user.display_name ? user.display_name :
+                                                                        (user.email ? user.email : "" ) %>
+                                                                </h5>
                                                                 <span class="badge bg-label-secondary">Author</span>
                                                             </div>
                                             </div>
