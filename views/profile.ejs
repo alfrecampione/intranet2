@@ -1,0 +1,604 @@
+<!doctype html>
+
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
+    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template">
+
+<head>
+    <script>
+        const url = `${window.location.protocol}//${window.location.host}`;
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicon/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/favicon/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicon/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon/apple-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicon/apple-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicon/apple-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicon/apple-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicon/apple-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-icon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon/android-icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
+    <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
+
+    <title>Agents | GTI</title>
+
+    <meta name="description" content="" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+        rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <script src="/vendor/js/helpers.js"></script>
+    <script src="/vendor/js/template-customizer.js"></script>
+    <script src="/js/config.js"></script>
+</head>
+
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="/users/dashboard" class="app-brand-link">
+                        <span class="app-brand-text">
+                            <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
+                        </span>
+                    </a>
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                        <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+                        <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+                    </a>
+                </div>
+
+                <div class="menu-inner-shadow"></div>
+
+                <ul class="menu-inner py-1">
+                    <li class="menu-item">
+                        <a href="/users/dashboard" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                            <div data-i18n="Dashboard">Dashboard</div>
+                        </a>
+                    </li>
+                    <% if (user && (user.agency || !user.isAgent)) { %>
+                        <li class="menu-item active">
+                            <a href="/users/agents" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                                <div data-i18n="Agents">Agents</div>
+                            </a>
+                        </li>
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/users/config_emails" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                                <div data-i18n="Config">Config</div>
+                            </a>
+                        </li>
+                        <% } %>
+                </ul>
+            </aside>
+            <div class="layout-page">
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+                    id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="ti ti-menu-2 ti-sm"></i>
+                        </a>
+                    </div>
+
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Search -->
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item navbar-search-wrapper mb-0">
+                                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
+                                    href="javascript:void(0);">
+                                    <i class="ti ti-search ti-md me-2"></i>
+                                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- /Search -->
+
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- Style Switcher -->
+                            <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <i class="ti ti-md"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                                            <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                                            <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                                            <span class="align-middle"><i
+                                                    class="ti ti-device-desktop me-2"></i>System</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Notification -->
+                            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <i class="ti ti-bell ti-md"></i>
+                                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end py-0">
+                                    <li class="dropdown-menu-header border-bottom">
+                                        <div class="dropdown-header d-flex align-items-center py-3">
+                                            <h5 class="text-body mb-0 me-auto">Notification</h5>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-all text-body"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-menu-footer border-top">
+                                        <a href="javascript:void(0);"
+                                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                                            View all notifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ Notification -->
+
+                            <!-- User -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0]
+                                                : "" ) %>
+                                        </span>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                                            <%= user.display_name ? user.display_name[0] : (user.email ?
+                                                                user.email[0] : "" ) %>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-medium d-block">
+                                                        <%= user.display_name %>
+                                                    </span>
+                                                    <% if (user.job_title) { %>
+                                                        <small class="text-muted">
+                                                            <%= user.job_title %>
+                                                        </small>
+                                                        <% } %>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/users/logout">
+                                            <i class="ti ti-logout me-2 ti-sm"></i>
+                                            <span class="align-middle">Log Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ User -->
+                        </ul>
+                    </div>
+
+                    <!-- Search Small Screens -->
+                    <div class="navbar-search-wrapper search-input-wrapper d-none">
+                        <input type="text" class="form-control search-input container-xxl border-0"
+                            placeholder="Search..." aria-label="Search..." />
+                        <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+                    </div>
+                </nav>
+                <div class="content-wrapper">
+                    <!-- Content -->
+
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        <div class="row">
+                            <!-- User Sidebar -->
+                            <div class="col-xl-4 col-lg-5 order-1 order-md-0">
+                                <!-- User Card -->
+                                <div class="card mb-6">
+                                    <div class="card-body pt-12">
+                                        <div class="user-avatar-section">
+                                            <div class="d-flex align-items-center flex-column">
+                                                <% if (user.photoPath) { %>
+                                                    <img class="img-fluid rounded mb-4"
+                                                        src="<%= url %>/<%= user.photoPath %>" height="120" width="120"
+                                                        alt="User avatar" />
+                                                    <% } else { %>
+                                                        <span class="avatar-initial rounded-circle bg-label-primary"
+                                                            style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
+                                                            <%= user.display_name ? user.display_name[0] : (user.email ?
+                                                                user.email[0] : "" ) %>
+                                                        </span>
+                                                        <% } %>
+                                                            <div class="user-info text-center">
+                                                                <h5>Violet Mendoza</h5>
+                                                                <span class="badge bg-label-secondary">Author</span>
+                                                            </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="d-flex justify-content-around flex-wrap my-6 gap-0 gap-md-3 gap-lg-4">
+                                            <div class="d-flex align-items-center me-5 gap-4">
+                                                <div class="avatar">
+                                                    <div class="avatar-initial bg-label-primary rounded">
+                                                        <i class="ti ti-checkbox ti-lg"></i>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-0">1.23k</h5>
+                                                    <span>Task Done</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-4">
+                                                <div class="avatar">
+                                                    <div class="avatar-initial bg-label-primary rounded">
+                                                        <i class="ti ti-briefcase ti-lg"></i>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-0">568</h5>
+                                                    <span>Project Done</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h5 class="pb-4 border-bottom mb-4">Details</h5>
+                                        <div class="info-container">
+                                            <ul class="list-unstyled mb-6">
+                                                <li class="mb-2">
+                                                    <span class="h6">Username:</span>
+                                                    <span>@violet.dev</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Email:</span>
+                                                    <span>vafgot@vultukir.org</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Status:</span>
+                                                    <span>Active</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Role:</span>
+                                                    <span>Author</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Tax id:</span>
+                                                    <span>Tax-8965</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Contact:</span>
+                                                    <span>(123) 456-7890</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Languages:</span>
+                                                    <span>French</span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Country:</span>
+                                                    <span>England</span>
+                                                </li>
+                                            </ul>
+                                            <div class="d-flex justify-content-center">
+                                                <a href="javascript:;" class="btn btn-primary me-4"
+                                                    data-bs-target="#editUser" data-bs-toggle="modal">Edit</a>
+                                                <a href="javascript:;"
+                                                    class="btn btn-label-danger suspend-user">Suspend</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /User Card -->
+                                <!-- Plan Card -->
+                                <div class="card mb-6 border border-2 border-primary rounded primary-shadow">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <span class="badge bg-label-primary">Standard</span>
+                                            <div class="d-flex justify-content-center">
+                                                <sub class="h5 pricing-currency mb-auto mt-1 text-primary">$</sub>
+                                                <h1 class="mb-0 text-primary">99</h1>
+                                                <sub class="h6 pricing-duration mt-auto mb-3 fw-normal">month</sub>
+                                            </div>
+                                        </div>
+                                        <ul class="list-unstyled g-2 my-6">
+                                            <li class="mb-2 d-flex align-items-center">
+                                                <i class="ti ti-circle-filled ti-10px text-secondary me-2"></i><span>10
+                                                    Users</span>
+                                            </li>
+                                            <li class="mb-2 d-flex align-items-center">
+                                                <i class="ti ti-circle-filled ti-10px text-secondary me-2"></i><span>Up
+                                                    to 10 GB storage</span>
+                                            </li>
+                                            <li class="mb-2 d-flex align-items-center">
+                                                <i class="ti ti-circle-filled ti-10px text-secondary me-2"></i><span>Basic
+                                                    Support</span>
+                                            </li>
+                                        </ul>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="h6 mb-0">Days</span>
+                                            <span class="h6 mb-0">26 of 30 Days</span>
+                                        </div>
+                                        <div class="progress mb-1 bg-label-primary" style="height: 6px">
+                                            <div class="progress-bar" role="progressbar" style="width: 65%"
+                                                aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small>4 days remaining</small>
+                                        <div class="d-grid w-100 mt-6">
+                                            <button class="btn btn-primary" data-bs-target="#upgradePlanModal"
+                                                data-bs-toggle="modal">
+                                                Upgrade Plan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /Plan Card -->
+                            </div>
+                            <!--/ User Sidebar -->
+
+                            <!-- User Content -->
+                            <div class="col-xl-8 col-lg-7 order-0 order-md-1">
+                                <!-- User Pills -->
+                                <div class="nav-align-top">
+                                    <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" href="javascript:void(0);"><i
+                                                    class="ti ti-user-check ti-sm me-1_5"></i>Account</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!--/ User Pills -->
+
+                                <!-- Project table -->
+                                <div class="card mb-6">
+                                    <div class="card-datatable table-responsive">
+                                        <table class="datatables-projects table border-top">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th>Project</th>
+                                                    <th>Leader</th>
+                                                    <th>Team</th>
+                                                    <th class="w-px-200">Progress</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- /Project table -->
+
+                                <!-- Activity Timeline -->
+                                <div class="card mb-6">
+                                    <h5 class="card-header">User Activity Timeline</h5>
+                                    <div class="card-body pt-1">
+                                        <ul class="timeline mb-0">
+                                            <li class="timeline-item timeline-item-transparent">
+                                                <span class="timeline-point timeline-point-primary"></span>
+                                                <div class="timeline-event">
+                                                    <div class="timeline-header mb-3">
+                                                        <h6 class="mb-0">12 Invoices have been paid</h6>
+                                                        <small class="text-muted">12 min ago</small>
+                                                    </div>
+                                                    <p class="mb-2">Invoices have been paid to the company</p>
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <div class="badge bg-lighter rounded d-flex align-items-center">
+                                                            <img src="../../assets//img/icons/misc/pdf.png" alt="img"
+                                                                width="15" class="me-2" />
+                                                            <span class="h6 mb-0 text-body">invoices.pdf</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="timeline-item timeline-item-transparent">
+                                                <span class="timeline-point timeline-point-success"></span>
+                                                <div class="timeline-event">
+                                                    <div class="timeline-header mb-3">
+                                                        <h6 class="mb-0">Client Meeting</h6>
+                                                        <small class="text-muted">45 min ago</small>
+                                                    </div>
+                                                    <p class="mb-2">Project meeting with john @10:15am</p>
+                                                    <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+                                                        <div class="d-flex flex-wrap align-items-center mb-50">
+                                                            <div class="avatar avatar-sm me-2">
+                                                                <img src="../../assets/img/avatars/1.png" alt="Avatar"
+                                                                    class="rounded-circle" />
+                                                            </div>
+                                                            <div>
+                                                                <p class="mb-0 small fw-medium">Lester McCarthy (Client)
+                                                                </p>
+                                                                <small>CEO of Pixinvent</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="timeline-item timeline-item-transparent">
+                                                <span class="timeline-point timeline-point-info"></span>
+                                                <div class="timeline-event">
+                                                    <div class="timeline-header mb-3">
+                                                        <h6 class="mb-0">Create a new project for client</h6>
+                                                        <small class="text-muted">2 Day Ago</small>
+                                                    </div>
+                                                    <p class="mb-2">6 team members in a project</p>
+                                                    <ul class="list-group list-group-flush">
+                                                        <li
+                                                            class="list-group-item d-flex justify-content-between align-items-center flex-wrap border-top-0 p-0">
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <ul
+                                                                    class="list-unstyled users-list d-flex align-items-center avatar-group m-0 me-2">
+                                                                    <li data-bs-toggle="tooltip"
+                                                                        data-popup="tooltip-custom"
+                                                                        data-bs-placement="top" title="Vinnie Mostowy"
+                                                                        class="avatar pull-up">
+                                                                        <img class="rounded-circle"
+                                                                            src="../../assets/img/avatars/5.png"
+                                                                            alt="Avatar" />
+                                                                    </li>
+                                                                    <li data-bs-toggle="tooltip"
+                                                                        data-popup="tooltip-custom"
+                                                                        data-bs-placement="top" title="Allen Rieske"
+                                                                        class="avatar pull-up">
+                                                                        <img class="rounded-circle"
+                                                                            src="../../assets/img/avatars/12.png"
+                                                                            alt="Avatar" />
+                                                                    </li>
+                                                                    <li data-bs-toggle="tooltip"
+                                                                        data-popup="tooltip-custom"
+                                                                        data-bs-placement="top" title="Julee Rossignol"
+                                                                        class="avatar pull-up">
+                                                                        <img class="rounded-circle"
+                                                                            src="../../assets/img/avatars/6.png"
+                                                                            alt="Avatar" />
+                                                                    </li>
+                                                                    <li class="avatar">
+                                                                        <span
+                                                                            class="avatar-initial rounded-circle pull-up text-heading"
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="bottom"
+                                                                            title="3 more">+3</span>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <!-- /Activity Timeline -->
+
+                                <!-- Invoice table -->
+                                <div class="card mb-4">
+                                    <div class="card-datatable table-responsive">
+                                        <table class="table datatable-invoice">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>#</th>
+                                                    <th>Status</th>
+                                                    <th>Total</th>
+                                                    <th>Issued Date</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- /Invoice table -->
+                            </div>
+                            <!--/ User Content -->
+                        </div>
+                    </div>
+                    <!-- / Content -->
+
+                    <div class="content-backdrop fade"></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
+
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+
+    <!-- Overlay Spinner -->
+    <div id="email-overlay"
+        style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Sending...</span>
+        </div>
+    </div>
+
+    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+        aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+            <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Agents</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+    </div>
+
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <!-- Flat Picker -->
+    <script src="/vendor/libs/moment/moment.js"></script>
+    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+    <!-- Form Validation -->
+    <script src="/vendor/libs/@form-validation/popular.js"></script>
+    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+</body>
+
+</html>
