@@ -191,11 +191,14 @@ model Agency {
 }
 
 model Logs {
-  id          String   @id @default(uuid())
-  userId      String
-  action      String
-  description String?
-  createdAt   DateTime @default(now())
+  id       String  @id @default(uuid())
+  userId   String
+  action   String
+  table    String
+  oldValue String?
+  newValue String?
+
+  createdAt DateTime @default(now())
 
   @@schema("health")
 }

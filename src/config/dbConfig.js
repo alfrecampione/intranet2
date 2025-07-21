@@ -3,6 +3,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pkg from "pg";
 import { PrismaClient } from "@prisma/client";
+import { prismaContext } from "./prismaContext.js";
 
 const { Pool } = pkg;
 
@@ -39,36 +40,88 @@ try {
 const prisma = new PrismaClient();
 
 prisma.$use(async (params, next) => {
-  // Evitar recursion infinita al loggear el modelo Logs
   if (params.model === 'Logs') return next(params);
+
+  const writeActions = [
+    'create',
+    'update',
+    'delete',
+    'upsert',
+    'createMany',
+    'updateMany',
+    'deleteMany'
+  ];
+
+  if (!writeActions.includes(params.action)) return next(params);
+
+  const store = prismaContext.getStore();
+  const actorUserId = store?.userId || "unknown";
+
+  let oldValue = null;
+  let newValue = null;
+  let actionType = params.action;
+
+  // Handle upsert separately
+  if (params.action === 'upsert') {
+    try {
+      oldValue = await prisma[params.model].findUnique({
+        where: params.args.where,
+      });
+      actionType = oldValue ? 'update' : 'create';
+    } catch (err) {
+      console.warn("Failed to determine upsert type:", err.message);
+    }
+  }
+
+  // For other write actions, fetch old values
+  if (['update', 'delete', 'updateMany', 'deleteMany'].includes(params.action)) {
+    try {
+      if (params.action.endsWith('Many') && params.args.where) {
+        oldValue = await prisma[params.model].findMany({
+          where: params.args.where,
+        });
+      } else if (params.args.where) {
+        oldValue = await prisma[params.model].findUnique({
+          where: params.args.where,
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to fetch oldValue:", err.message);
+    }
+  }
 
   const result = await next(params);
 
-  const writeActions = ['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'];
-
-  if (writeActions.includes(params.action)) {
-    let userId = null;
-    if (params.args) {
-      if (params.args.userId) userId = params.args.userId;
-      else if (params.args.data?.userId) userId = params.args.data.userId;
-      else if (params.args.create?.userId) userId = params.args.create.userId;
-      else if (params.args.where?.userId) userId = params.args.where.userId;
-    }
-
-    const log = {
-      userId: userId || "unknown",
-      action: params.action,
-      description: `[${params.model}] ${params.action}`,
-    };
-
-    // Guardar log solo si hay userId válido
-    if (userId) {
-      try {
-        await prisma.logs.create({ data: log });
-      } catch (err) {
-        console.warn("Failed to save log:", err.message);
+  // After execution, fetch new value(s)
+  try {
+    if (['create', 'update'].includes(actionType)) {
+      if (params.action.endsWith('Many') && params.args.where) {
+        newValue = await prisma[params.model].findMany({
+          where: params.args.where,
+        });
+      } else if (params.args.where) {
+        newValue = await prisma[params.model].findUnique({
+          where: params.args.where,
+        });
       }
     }
+  } catch (err) {
+    console.warn("Failed to fetch newValue:", err.message);
+  }
+
+  // Log the action
+  try {
+    await prisma.logs.create({
+      data: {
+        userId: actorUserId,
+        action: `[${params.model}] ${actionType}`,
+        table: params.model,
+        oldValue: oldValue ? JSON.stringify(oldValue) : null,
+        newValue: newValue ? JSON.stringify(newValue) : null,
+      },
+    });
+  } catch (err) {
+    console.warn("Failed to save log:", err.message);
   }
 
   return result;

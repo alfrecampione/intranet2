@@ -1,5 +1,5 @@
 import { pool, prisma } from "../config/dbConfig.js";
-
+import { prismaContext } from "../config/prismaContext.js";
 const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
   const admins = await getAdmins();
@@ -22,13 +22,15 @@ const postAdminToAlert = async (req, res) => {
   }
 
   try {
-    await prisma.$transaction(
-      admins.map(admin =>
-        prisma.newUserAlerts.create({
-          data: { email: admin.mail, display_name: admin.display_name }
-        })
-      )
-    );
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.$transaction(
+        admins.map(admin =>
+          prisma.newUserAlerts.create({
+            data: { email: admin.mail, display_name: admin.display_name }
+          })
+        )
+      );
+    });
 
     res.status(201).json({ message: "Admins added successfully" });
   } catch (error) {
@@ -44,8 +46,10 @@ const deleteEmailToAlert = async (req, res) => {
   }
 
   try {
-    await prisma.newUserAlerts.delete({
-      where: { email },
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.newUserAlerts.delete({
+        where: { email },
+      });
     });
     res.status(200).json({ message: "Email deleted successfully" });
   } catch (error) {
@@ -100,26 +104,26 @@ const postCompany = async (req, res) => {
   }
 
   try {
-    const company = await prisma.company.create({
-      data: {
-        name,
-        States: states,
-        phone,
-      }
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      const company = await prisma.company.create({
+        data: {
+          name,
+          States: states,
+          phone,
+        }
+      });
+
+      const commissionData = states.map(state => ({
+        companyId: company.id,
+        state,
+        amount: 0
+      }));
+
+      await prisma.commisions.createMany({
+        data: commissionData,
+        skipDuplicates: true
+      });
     });
-
-    // Create 0-value commissions for each state
-    const commissionData = states.map(state => ({
-      companyId: company.id,
-      state,
-      amount: 0
-    }));
-
-    await prisma.commisions.createMany({
-      data: commissionData,
-      skipDuplicates: true
-    });
-
     res.status(201).json({ message: "Company added successfully" });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -138,54 +142,56 @@ const updateCompany = async (req, res) => {
   }
 
   try {
-    const existingCompany = await prisma.company.findUnique({
-      where: { name: originalName },
-      include: { Commisions: true }
-    });
-
-    if (!existingCompany) {
-      return res.status(404).json({ message: "Company not found" });
-    }
-
-    const updatedCompany = await prisma.company.update({
-      where: { name: originalName },
-      data: {
-        name,
-        States: states,
-        phone,
-      }
-    });
-
-    // Add new commissions with amount 0
-    const existingStatesWithCommissions = new Set(existingCompany.Commisions.map(c => c.state));
-    const newStates = states.filter(state => !existingStatesWithCommissions.has(state));
-
-    const newCommissionData = newStates.map(state => ({
-      companyId: existingCompany.id,
-      state,
-      amount: 0
-    }));
-
-    if (newCommissionData.length > 0) {
-      await prisma.commisions.createMany({
-        data: newCommissionData,
-        skipDuplicates: true
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      const existingCompany = await prisma.company.findUnique({
+        where: { name: originalName },
+        include: { Commisions: true }
       });
-    }
 
-    // Remove commissions for deleted states
-    const removedStates = existingCompany.States.filter(
-      prevState => !states.includes(prevState)
-    );
+      if (!existingCompany) {
+        return res.status(404).json({ message: "Company not found" });
+      }
 
-    if (removedStates.length > 0) {
-      await prisma.commisions.deleteMany({
-        where: {
-          companyId: existingCompany.id,
-          state: { in: removedStates }
+      const updatedCompany = await prisma.company.update({
+        where: { name: originalName },
+        data: {
+          name,
+          States: states,
+          phone,
         }
       });
-    }
+
+      // Add new commissions with amount 0
+      const existingStatesWithCommissions = new Set(existingCompany.Commisions.map(c => c.state));
+      const newStates = states.filter(state => !existingStatesWithCommissions.has(state));
+
+      const newCommissionData = newStates.map(state => ({
+        companyId: existingCompany.id,
+        state,
+        amount: 0
+      }));
+
+      if (newCommissionData.length > 0) {
+        await prisma.commisions.createMany({
+          data: newCommissionData,
+          skipDuplicates: true
+        });
+      }
+
+      // Remove commissions for deleted states
+      const removedStates = existingCompany.States.filter(
+        prevState => !states.includes(prevState)
+      );
+
+      if (removedStates.length > 0) {
+        await prisma.commisions.deleteMany({
+          where: {
+            companyId: existingCompany.id,
+            state: { in: removedStates }
+          }
+        });
+      }
+    });
 
     res.status(200).json({ message: "Company updated successfully" });
   } catch (error) {
@@ -204,8 +210,10 @@ const deleteCompany = async (req, res) => {
   }
 
   try {
-    await prisma.company.delete({
-      where: { name }
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.company.delete({
+        where: { name }
+      });
     });
     res.status(200).json({ message: "Company deleted successfully" });
   } catch (error) {
@@ -246,26 +254,14 @@ const updateCommisions = async (req, res) => {
     const nameToId = {};
     companies.forEach(c => { nameToId[c.name] = c.id; });
 
-    // Start transaction: clear table, then bulk insert
-    await prisma.$transaction(async (tx) => {
-      await tx.commisions.deleteMany({});
-
-      const data = commissions.map(c => {
-        const companyId = nameToId[c.company];
-        if (!companyId) {
-          throw new Error(`Company not found: ${c.company}`);
-        }
-        return {
-          companyId,
-          state: c.state,
-          amount: c.commission
-        };
-      });
-
-      // Bulk insert all commissions
-      await tx.commisions.createMany({
-        data,
-        skipDuplicates: true
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.$transaction(async (tx) => {
+        await tx.commisions.deleteMany({});
+        const data = commissions.map(c => {
+          const companyId = nameToId[c.company];
+          return { companyId, state: c.state, amount: c.commission };
+        });
+        await tx.commisions.createMany({ data, skipDuplicates: true });
       });
     });
 
