@@ -274,12 +274,12 @@
                                                 <th class="sorting_disabled" tabindex="0"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                     style="width: 144px">
-                                                    Carrier Name
+                                                    State
                                                 </th>
                                                 <th class="sorting_disabled" tabindex="0"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                     style="width: 144px">
-                                                    State
+                                                    Carrier Name
                                                 </th>
                                                 <th class="sorting_disabled" tabindex="2"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
@@ -405,8 +405,8 @@
                     tr.appendChild(tdName);
 
                     const tdStatus = document.createElement("td");
-                    const statusOptions = ["Pending", "Approved", "Rejected", "In Review", "On Hold"];
-                    const currentStatus = carrier.status || "Pending";
+                    const statusOptions = ["Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release"];
+                    const currentStatus = carrier.status || "Request Received from Agent";
 
                     const optionsHTML = statusOptions.map(status => {
                         const selected = status === currentStatus ? "selected" : "";

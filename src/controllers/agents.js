@@ -73,7 +73,41 @@ const markDocsAsNecessary = async (req, res) => {
   });
 };
 
-// Creates multiple agents (write-heavy – wrap all operations in context)
+function normalizeCarrierValue(value) {
+  if (!value || typeof value !== "string") return [];
+
+  const trimmed = value.trim();
+
+  if (trimmed.includes(",")) {
+    const VALID_STATES = new Set([
+      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
+      "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
+      "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
+      "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
+      "WI", "WY"
+    ]);
+
+    const parts = trimmed.split(",").map(s => s.trim().toUpperCase());
+    return parts
+      .filter(state => VALID_STATES.has(state))
+      .map(state => ({
+        state,
+        status: "Request Received from Agent"
+      }));
+  }
+
+  const VALID_STATUSES = ["Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release"];
+
+  if (VALID_STATUSES.find(status => trimmed.toLowerCase().includes(status.toLowerCase()))) {
+    const [statePart, statusPart] = trimmed.split("-").map(s => s.trim());
+    return [{
+      state: statePart.toUpperCase(),
+      status: statusPart || "Request Received from Agent"
+    }];
+  }
+  return [{ state: trimmed, status: "Request Received from Agent" }];
+}
+
 const massiveCreateAgents = async (req, res) => {
   const agents = req.body.agents;
   if (!Array.isArray(agents) || agents.length === 0) {
@@ -87,125 +121,121 @@ const massiveCreateAgents = async (req, res) => {
 
   const results = [];
 
-  await prismaContext.run({ userId: req.user.user_id }, async () => {
-    for (const agent of agents) {
-      try {
-        const {
-          email,
-          password = "12345678",
-          display_name,
-          firstName,
-          lastName,
-          birthDate,
-          ssn,
-          npn,
-          cellPhone,
-          residentAddress,
-          city,
-          state,
-          zip,
-          franchise,
-          agency,
-          companyEIN,
-          contactType = "individual",
-          legalName = `${firstName} ${lastName}`,
-          commisions
-        } = agent;
+  for (const agent of agents) {
+    try {
+      const {
+        email,
+        password = "12345678",
+        display_name,
+        firstName,
+        lastName,
+        birthDate,
+        ssn,
+        npn,
+        cellPhone,
+        residentAddress,
+        city,
+        state,
+        zip,
+        franchise,
+        agency,
+        companyEIN,
+        contactType = "individual",
+        legalName = `${firstName} ${lastName}`,
+        commisions
+      } = agent;
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-          results.push({ email, status: "skipped", reason: "User already exists" });
-          continue;
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await prisma.user.create({
-          data: {
-            email,
-            password: hashedPassword,
-            display_name: display_name || legalName,
-            registrationCompleted: false
-          }
-        });
-
-        await prisma.necesaryDocuments.create({
-          data: { email: user.email }
-        });
-
-        await prisma.personalInfo.create({
-          data: {
-            userId: user.user_id,
-            legalName,
-            preferredName: firstName,
-            legalSex: null,
-            dateOfBirth: birthDate ? new Date(birthDate) : null,
-            ssn: ssn || null,
-            npn: npn || null,
-            businessName: agency || null,
-            companyEIN: companyEIN || null,
-            contactType,
-            franchise: !!franchise,
-            agency: (!!franchise) ? agency : null
-          }
-        });
-
-        await prisma.contactInfo.create({
-          data: {
-            userId: user.user_id,
-            personalEmail: email,
-            isPersonalEmailVisible: false,
-            personalPhone: cellPhone || null,
-            isPersonalPhoneVisible: false,
-            country: "USA",
-            city: city || "",
-            state: state || "",
-            zipCode: zip || "",
-            addressLine1: residentAddress || "",
-            addressLine2: null
-          }
-        });
-
-        await prisma.paymentMethod.create({
-          data: {
-            userId: user.user_id,
-            bankAccountType: null,
-            bankAccountNum: null,
-            bankRoutingNum: null,
-            accountNickname: null,
-            assignToGTI: !!commisions,
-          }
-        });
-
-        for (const field of carrierFields) {
-          const rawStates = agent[field];
-          if (rawStates) {
-            const states = rawStates.split(",").map(s => s.trim().toUpperCase());
-            for (const carrierState of states) {
-              if (!carrierState) continue;
-              try {
-                await prisma.statesANDCarriers.create({
-                  data: {
-                    userId: user.user_id,
-                    state: carrierState,
-                    company: field,
-                    status: "Pending"
-                  }
-                });
-              } catch (error) {
-                console.warn(`Failed to add ${field} in ${carrierState} for ${email}:`, error.message);
-              }
-            }
-          }
-        }
-
-        results.push({ email, status: "created" });
-      } catch (error) {
-        console.log(`Error processing agent with email ${agent.email}:`, error);
-        results.push({ email: agent.email, status: "error", error: error.message });
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        results.push({ email, status: "skipped", reason: "User already exists" });
+        continue;
       }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          display_name: display_name || legalName,
+          registrationCompleted: false
+        }
+      });
+
+      await prisma.necesaryDocuments.create({
+        data: { email: user.email }
+      });
+
+      await prisma.personalInfo.create({
+        data: {
+          userId: user.user_id,
+          legalName,
+          preferredName: firstName,
+          legalSex: null,
+          dateOfBirth: birthDate ? new Date(birthDate) : null,
+          ssn: ssn || null,
+          npn: npn || null,
+          businessName: agency || null,
+          companyEIN: companyEIN || null,
+          contactType,
+          franchise: !!franchise,
+          agency: (!!franchise) ? agency : null
+        }
+      });
+
+      await prisma.contactInfo.create({
+        data: {
+          userId: user.user_id,
+          personalEmail: email,
+          isPersonalEmailVisible: false,
+          personalPhone: cellPhone || null,
+          isPersonalPhoneVisible: false,
+          country: "USA",
+          city: city || "",
+          state: state || "",
+          zipCode: zip || "",
+          addressLine1: residentAddress || "",
+          addressLine2: null
+        }
+      });
+
+      await prisma.paymentMethod.create({
+        data: {
+          userId: user.user_id,
+          bankAccountType: null,
+          bankAccountNum: null,
+          bankRoutingNum: null,
+          accountNickname: null,
+          assignToGTI: !!commisions,
+        }
+      });
+
+      for (const field of carrierFields) {
+        const rawValue = agent[field];
+        const entries = normalizeCarrierValue(rawValue);
+
+        for (const entry of entries) {
+          try {
+            await prisma.statesANDCarriers.create({
+              data: {
+                userId: user.user_id,
+                state: entry.state,
+                company: field,
+                status: entry.status
+              }
+            });
+          } catch (error) {
+            console.warn(`Failed to add ${field} in ${entry.state} for ${email}:`, error.message);
+          }
+        }
+      }
+
+      results.push({ email, status: "created" });
+    } catch (error) {
+      console.log(`Error processing agent with email ${agent.email}:`, error);
+      results.push({ email: agent.email, status: "error", error: error.message });
     }
-  });
+  }
 
   res.status(200).json({ results });
 };
