@@ -186,7 +186,7 @@
                             </li>
                             <!--/ Notification -->
 
-                            <!-- User -->
+                            <!-- Agent -->
                             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
                                     data-bs-toggle="dropdown">
@@ -233,7 +233,7 @@
                                     </li>
                                 </ul>
                             </li>
-                            <!--/ User -->
+                            <!--/ Agent -->
                         </ul>
                     </div>
 
@@ -249,9 +249,9 @@
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="row">
-                            <!-- User Sidebar -->
+                            <!-- Agent Sidebar -->
                             <div class="col-xl-4 col-lg-5 order-1 order-md-0">
-                                <!-- User Card -->
+                                <!-- Agent Card -->
                                 <div class="card mb-6">
                                     <div class="card-body pt-12">
                                         <div class="user-avatar-section">
@@ -259,7 +259,7 @@
                                                 <% if (personalInfo && personalInfo.photoPath) { %>
                                                     <img class="img-fluid rounded mb-4"
                                                         src="/<%= personalInfo.photoPath %>" height="120" width="120"
-                                                        alt="User avatar" />
+                                                        alt="Agent avatar" />
                                                     <% } else { %>
                                                         <span class="avatar-initial rounded-circle bg-label-primary"
                                                             style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
@@ -330,13 +330,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- /User Card -->
+                                <!-- /Agent Card -->
                             </div>
-                            <!--/ User Sidebar -->
+                            <!--/ Agent Sidebar -->
 
-                            <!-- User Content -->
+                            <!-- Agent Content -->
                             <div class="col-xl-8 col-lg-7 order-0 order-md-1">
-                                <!-- User Pills -->
+                                <!-- Agent Pills -->
                                 <div class="nav-align-top">
                                     <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
                                         <li class="nav-item">
@@ -345,125 +345,63 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <!--/ User Pills -->
+                                <!--/ Agent Pills -->
 
                                 <!-- Project table -->
-                                <div class="card mb-6">
-                                    <div class="card-datatable table-responsive">
-                                        <table class="datatables-projects table border-top">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>Project</th>
-                                                    <th>Leader</th>
-                                                    <th>Team</th>
-                                                    <th class="w-px-200">Progress</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
+                                <!-- Carrier Status -->
+                                <div class="card">
+                                    <div class="card-datatable table-responsive pt-0">
+                                        <div id="DataTables_Table_0_wrapper"
+                                            class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                            <div class="card-header flex-column flex-md-row">
+                                                <div class="head-label text-center">
+                                                    <h5 class="card-title mb-0">Agent's Carrier Status</h5>
+                                                </div>
+                                            </div>
+                                            <table
+                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
+                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                                style="width: 1396px">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="sorting_disabled" aria-controls="DataTables_Table_0"
+                                                            rowspan="1" colspan="1" style="width: 30px" aria-label="#">#
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="0"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 144px">
+                                                            State
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="0"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 144px">
+                                                            Carrier Name
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="2"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 130px">
+                                                            Status Progress
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr class="odd">
+                                                        <td valign="top" colspan="4" class="dataTables_empty">
+                                                            Loading...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- /Project table -->
+                                <!-- /Carrier Status -->
 
                                 <!-- Activity Timeline -->
                                 <div class="card mb-6">
-                                    <h5 class="card-header">User Activity Timeline</h5>
+                                    <h5 class="card-header">Agent Activity Timeline</h5>
                                     <div class="card-body pt-1">
-                                        <ul class="timeline mb-0">
-                                            <li class="timeline-item timeline-item-transparent">
-                                                <span class="timeline-point timeline-point-primary"></span>
-                                                <div class="timeline-event">
-                                                    <div class="timeline-header mb-3">
-                                                        <h6 class="mb-0">12 Invoices have been paid</h6>
-                                                        <small class="text-muted">12 min ago</small>
-                                                    </div>
-                                                    <p class="mb-2">Invoices have been paid to the company</p>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <div class="badge bg-lighter rounded d-flex align-items-center">
-                                                            <img src="../../assets//img/icons/misc/pdf.png" alt="img"
-                                                                width="15" class="me-2" />
-                                                            <span class="h6 mb-0 text-body">invoices.pdf</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="timeline-item timeline-item-transparent">
-                                                <span class="timeline-point timeline-point-success"></span>
-                                                <div class="timeline-event">
-                                                    <div class="timeline-header mb-3">
-                                                        <h6 class="mb-0">Client Meeting</h6>
-                                                        <small class="text-muted">45 min ago</small>
-                                                    </div>
-                                                    <p class="mb-2">Project meeting with john @10:15am</p>
-                                                    <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
-                                                        <div class="d-flex flex-wrap align-items-center mb-50">
-                                                            <div class="avatar avatar-sm me-2">
-                                                                <img src="../../assets/img/avatars/1.png" alt="Avatar"
-                                                                    class="rounded-circle" />
-                                                            </div>
-                                                            <div>
-                                                                <p class="mb-0 small fw-medium">Lester McCarthy (Client)
-                                                                </p>
-                                                                <small>CEO of Pixinvent</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="timeline-item timeline-item-transparent">
-                                                <span class="timeline-point timeline-point-info"></span>
-                                                <div class="timeline-event">
-                                                    <div class="timeline-header mb-3">
-                                                        <h6 class="mb-0">Create a new project for client</h6>
-                                                        <small class="text-muted">2 Day Ago</small>
-                                                    </div>
-                                                    <p class="mb-2">6 team members in a project</p>
-                                                    <ul class="list-group list-group-flush">
-                                                        <li
-                                                            class="list-group-item d-flex justify-content-between align-items-center flex-wrap border-top-0 p-0">
-                                                            <div class="d-flex flex-wrap align-items-center">
-                                                                <ul
-                                                                    class="list-unstyled users-list d-flex align-items-center avatar-group m-0 me-2">
-                                                                    <li data-bs-toggle="tooltip"
-                                                                        data-popup="tooltip-custom"
-                                                                        data-bs-placement="top" title="Vinnie Mostowy"
-                                                                        class="avatar pull-up">
-                                                                        <img class="rounded-circle"
-                                                                            src="../../assets/img/avatars/5.png"
-                                                                            alt="Avatar" />
-                                                                    </li>
-                                                                    <li data-bs-toggle="tooltip"
-                                                                        data-popup="tooltip-custom"
-                                                                        data-bs-placement="top" title="Allen Rieske"
-                                                                        class="avatar pull-up">
-                                                                        <img class="rounded-circle"
-                                                                            src="../../assets/img/avatars/12.png"
-                                                                            alt="Avatar" />
-                                                                    </li>
-                                                                    <li data-bs-toggle="tooltip"
-                                                                        data-popup="tooltip-custom"
-                                                                        data-bs-placement="top" title="Julee Rossignol"
-                                                                        class="avatar pull-up">
-                                                                        <img class="rounded-circle"
-                                                                            src="../../assets/img/avatars/6.png"
-                                                                            alt="Avatar" />
-                                                                    </li>
-                                                                    <li class="avatar">
-                                                                        <span
-                                                                            class="avatar-initial rounded-circle pull-up text-heading"
-                                                                            data-bs-toggle="tooltip"
-                                                                            data-bs-placement="bottom"
-                                                                            title="3 more">+3</span>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </li>
-                                        </ul>
+                                        <ul class="timeline mb-0" id="user-activity-timeline"></ul>
                                     </div>
                                 </div>
                                 <!-- /Activity Timeline -->
@@ -487,7 +425,7 @@
                                 </div>
                                 <!-- /Invoice table -->
                             </div>
-                            <!--/ User Content -->
+                            <!--/ Agent Content -->
                         </div>
                     </div>
                     <!-- / Content -->
@@ -543,6 +481,224 @@
 
     <!-- Main JS -->
     <script src="/js/main.js"></script>
+
+
+    <!-- Carrier Status JS -->
+    <script id="carriers-data" type="application/json">
+      <%- JSON.stringify(carriers) %>
+    </script>
+
+    <script>
+        const statusOptions = [
+            "Request Received from Agent",
+            "Pending Submission",
+            "Submitted to Carrier",
+            "Carrier In Review",
+            "Carrier Sent Contract to Agent",
+            "Ready to Sell"
+        ];
+
+        function renderCarrierTable(carriers) {
+            const table = document.querySelector(".datatables-basic");
+            const tbody = table.querySelector("tbody");
+            tbody.innerHTML = "";
+
+            if (carriers.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td valign="top" colspan="4" class="dataTables_empty">No carriers found.</td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+
+            const grouped = carriers.reduce((acc, carrier) => {
+                const key = carrier.state;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(carrier);
+                return acc;
+            }, {});
+
+            let rowIndex = 1;
+
+            Object.entries(grouped).forEach(([stateName, carriersInState]) => {
+                carriersInState.forEach((carrier, i) => {
+                    const tr = document.createElement("tr");
+
+                    if (i === 0) {
+                        const tdIndex = document.createElement("td");
+                        tdIndex.textContent = rowIndex++;
+                        tdIndex.rowSpan = carriersInState.length;
+                        tr.appendChild(tdIndex);
+
+                        const tdState = document.createElement("td");
+                        tdState.textContent = stateName;
+                        tdState.rowSpan = carriersInState.length;
+                        tr.appendChild(tdState);
+                    }
+
+                    const tdName = document.createElement("td");
+                    tdName.textContent = carrier.company;
+                    tr.appendChild(tdName);
+
+                    const tdStatusProgress = document.createElement("td");
+
+                    const idx = statusOptions.indexOf(carrier.status);
+                    const currentStep = (idx === -1 ? 0 : idx + 1);
+                    const totalSteps = statusOptions.length;
+                    const percent = (currentStep / totalSteps) * 100;
+
+                    tdStatusProgress.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 8px;">
+                        <div class="progress-bar ${percent === 100 ? 'bg-success' : ''}"
+                             role="progressbar"
+                             style="width: ${percent}%;"
+                             aria-valuenow="${percent}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                      <small class="text-nowrap">${currentStep}/${totalSteps}</small>
+                    </div>
+                    <small class="text-muted">${carrier.status || 'Unknown status'}</small>
+                  `;
+
+                    tr.appendChild(tdStatusProgress);
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const carriers = JSON.parse(document.getElementById("carriers-data").textContent);
+            renderCarrierTable(carriers);
+        });
+    </script>
+
+    <script>
+        const stateAbbreviationMap = {
+            "AL": "Alabama",
+            "AK": "Alaska",
+            "AZ": "Arizona",
+            "AR": "Arkansas",
+            "CA": "California",
+            "CO": "Colorado",
+            "CT": "Connecticut",
+            "DE": "Delaware",
+            "FL": "Florida",
+            "GA": "Georgia",
+            "HI": "Hawaii",
+            "ID": "Idaho",
+            "IL": "Illinois",
+            "IN": "Indiana",
+            "IA": "Iowa",
+            "KS": "Kansas",
+            "KY": "Kentucky",
+            "LA": "Louisiana",
+            "ME": "Maine",
+            "MD": "Maryland",
+            "MA": "Massachusetts",
+            "MI": "Michigan",
+            "MN": "Minnesota",
+            "MS": "Mississippi",
+            "MO": "Missouri",
+            "MT": "Montana",
+            "NE": "Nebraska",
+            "NV": "Nevada",
+            "NH": "New Hampshire",
+            "NJ": "New Jersey",
+            "NM": "New Mexico",
+            "NY": "New York",
+            "NC": "North Carolina",
+            "ND": "North Dakota",
+            "OH": "Ohio",
+            "OK": "Oklahoma",
+            "OR": "Oregon",
+            "PA": "Pennsylvania",
+            "RI": "Rhode Island",
+            "SC": "South Carolina",
+            "SD": "South Dakota",
+            "TN": "Tennessee",
+            "TX": "Texas",
+            "UT": "Utah",
+            "VT": "Vermont",
+            "VA": "Virginia",
+            "WA": "Washington",
+            "WV": "West Virginia",
+            "WI": "Wisconsin",
+            "WY": "Wyoming"
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const stateHeaders = document.querySelectorAll("table tbody td");
+            stateHeaders.forEach(header => {
+                const abbr = header.textContent.trim();
+                if (stateAbbreviationMap[abbr]) {
+                    header.textContent = stateAbbreviationMap[abbr];
+                }
+            });
+        });
+    </script>
+    <!-- / Carrier Status -->
+
+    <!-- Timeline-->
+    <script id="activity-data" type="application/json">
+      <%- JSON.stringify(activity) %>
+    </script>
+
+    <script>
+        function renderTimeLine(timelineItems) {
+            const ul = document.querySelector('#user-activity-timeline');
+
+            if (!ul) return;
+
+            ul.innerHTML = '';
+
+            timelineItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'timeline-item timeline-item-transparent';
+
+                // point
+                const point = document.createElement('span');
+                point.className = `timeline-point timeline-point-${item.variant || 'primary'}`;
+                li.appendChild(point);
+
+                // event wrapper
+                const event = document.createElement('div');
+                event.className = 'timeline-event';
+                li.appendChild(event);
+
+                // header
+                const header = document.createElement('div');
+                header.className = 'timeline-header mb-3';
+
+                const h6 = document.createElement('h6');
+                h6.className = 'mb-0';
+                h6.textContent = item.title;
+
+                const small = document.createElement('small');
+                small.className = 'text-muted';
+                small.textContent = item.timeAgo;
+
+                header.appendChild(h6);
+                header.appendChild(small);
+                event.appendChild(header);
+
+                // description
+                if (item.description) {
+                    const p = document.createElement('p');
+                    p.className = 'mb-2';
+                    p.textContent = item.description;
+                    event.appendChild(p);
+                }
+
+                ul.appendChild(li);
+            });
+        }
+
+        const activityData = JSON.parse(document.getElementById("activity-data").textContent);
+        renderTimeLine(activityData);;
+    </script>
+    <!-- /Timeline-->
 </body>
 
 </html>

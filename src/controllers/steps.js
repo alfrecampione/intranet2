@@ -182,7 +182,6 @@ export const getPaymentMethodById = async (req, res) => {
   }
 };
 
-// Step 6: Documents
 export const createDocuments = async (req, res) => {
   prismaContext.run({ userId: req.user.user_id }, async () => {
     try {
