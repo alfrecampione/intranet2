@@ -61,7 +61,7 @@ prisma.$use(async (params, next) => {
   let newValue = null;
   let actionType = params.action;
 
-  // Handle upsert separately
+  // Handle UPSERT separately
   if (params.action === 'upsert') {
     try {
       oldValue = await prisma[params.model].findUnique({
@@ -73,12 +73,12 @@ prisma.$use(async (params, next) => {
     }
   }
 
-  // For other write actions, fetch old values
+  // Handle pre-fetching OLD VALUE for update/delete actions
   if (['update', 'delete', 'updateMany', 'deleteMany'].includes(params.action)) {
     try {
-      if (params.action.endsWith('Many') && params.args.where) {
+      if (params.action.endsWith('Many')) {
         oldValue = await prisma[params.model].findMany({
-          where: params.args.where,
+          where: params.args.where || {},
         });
       } else if (params.args.where) {
         oldValue = await prisma[params.model].findUnique({
@@ -90,42 +90,74 @@ prisma.$use(async (params, next) => {
     }
   }
 
+  // Execute the actual action
   const result = await next(params);
 
-  // After execution, fetch new value(s)
+  // If updateMany or deleteMany affected 0 rows, skip logging
+  if ((params.action === 'updateMany' || params.action === 'deleteMany') && result.count === 0) {
+    return result;
+  }
+
+  // Fetch NEW VALUE for create/update actions
   try {
-    if (['create', 'update'].includes(actionType)) {
-      if (params.action.endsWith('Many') && params.args.where) {
-        newValue = await prisma[params.model].findMany({
-          where: params.args.where,
-        });
-      } else if (params.args.where) {
+    if (params.action === 'create') {
+      newValue = result || params.args?.data || null;
+    }
+
+    if (params.action === 'createMany') {
+      newValue = params.args.data || [];
+    }
+
+    if (params.action === 'update') {
+      if (params.args.where) {
         newValue = await prisma[params.model].findUnique({
           where: params.args.where,
         });
       }
     }
+
+    if (params.action === 'updateMany') {
+      const updatedIds = oldValue?.map(item => item.id) || [];
+      if (updatedIds.length > 0) {
+        newValue = await prisma[params.model].findMany({
+          where: { id: { in: updatedIds } },
+        });
+      }
+    }
+
+    if (params.action === 'upsert') {
+      if (params.args.where) {
+        newValue = await prisma[params.model].findUnique({
+          where: params.args.where,
+        });
+      }
+    }
+    // For delete & deleteMany, newValue remains null
   } catch (err) {
     console.warn("Failed to fetch newValue:", err.message);
   }
 
-  // Log the action
-  try {
-    await prisma.logs.create({
-      data: {
-        userId: actorUserId,
-        action: `[${params.model}] ${actionType}`,
-        table: params.model,
-        oldValue: oldValue ? JSON.stringify(oldValue) : null,
-        newValue: newValue ? JSON.stringify(newValue) : null,
-      },
-    });
-  } catch (err) {
-    console.warn("Failed to save log:", err.message);
+  // Compare oldValue and newValue to avoid duplicate logs
+  const oldStr = oldValue ? JSON.stringify(oldValue) : null;
+  const newStr = newValue ? JSON.stringify(newValue) : null;
+
+  if (oldStr !== newStr) {
+    try {
+      await prisma.logs.create({
+        data: {
+          userId: actorUserId,
+          action: `[${params.model}] ${actionType}`,
+          table: params.model,
+          oldValue: oldStr,
+          newValue: newStr,
+        },
+      });
+    } catch (err) {
+      console.warn("Failed to save log:", err.message);
+    }
   }
 
   return result;
 });
-
 
 export { pool, prisma, sessionStore };

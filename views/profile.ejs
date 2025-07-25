@@ -633,7 +633,6 @@
     <script>
         function renderTimeLine(timelineItems) {
             const ul = document.querySelector('#user-activity-timeline');
-
             if (!ul) return;
 
             ul.innerHTML = '';
@@ -642,38 +641,37 @@
                 const li = document.createElement('li');
                 li.className = 'timeline-item timeline-item-transparent';
 
-                // point
                 const point = document.createElement('span');
                 point.className = `timeline-point timeline-point-${item.variant || 'primary'}`;
                 li.appendChild(point);
 
-                // event wrapper
                 const event = document.createElement('div');
                 event.className = 'timeline-event';
                 li.appendChild(event);
 
-                // header
                 const header = document.createElement('div');
                 header.className = 'timeline-header mb-3';
 
                 const h6 = document.createElement('h6');
                 h6.className = 'mb-0';
-                h6.textContent = item.title;
+                h6.textContent = item.title || '';
 
                 const small = document.createElement('small');
                 small.className = 'text-muted';
-                small.textContent = item.timeAgo;
+                small.textContent = item.timeAgo || '';
 
                 header.appendChild(h6);
                 header.appendChild(small);
                 event.appendChild(header);
 
-                // description
                 if (item.description) {
-                    const p = document.createElement('p');
-                    p.className = 'mb-2';
-                    p.textContent = item.description;
-                    event.appendChild(p);
+                    const pre = document.createElement('pre'); // preserves \n
+                    pre.className = 'mb-2';
+                    pre.style.whiteSpace = 'pre-wrap';
+                    pre.textContent = typeof item.description === 'string'
+                        ? item.description
+                        : JSON.stringify(item.description, null, 2);
+                    event.appendChild(pre);
                 }
 
                 ul.appendChild(li);

@@ -47,33 +47,86 @@ const renderProfile = async (req, res) => {
     });
 };
 
-function diffJson(oldValue, newValue) {
-    const oldObj = JSON.parse(oldValue || '{}');
-    const newObj = JSON.parse(newValue || '{}');
+function safeParse(json, fallback = null) {
+    try {
+        return json ? JSON.parse(json) : fallback;
+    } catch {
+        return fallback;
+    }
+}
 
-    const differences = [];
+function isObject(v) {
+    return v && typeof v === 'object' && !Array.isArray(v);
+}
 
-    for (const key of Object.keys(oldObj)) {
-        if (oldObj[key] !== newObj[key]) {
-            differences.push(`${key}: ${oldObj[key]} -> ${newObj[key]}`);
+function formatVal(v) {
+    if (v === null || v === undefined) return String(v);
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+    return JSON.stringify(v);
+}
+
+function diffJsonDeep(oldV, newV, prefix = '') {
+    const lines = [];
+
+    // both primitives
+    if (!isObject(oldV) && !Array.isArray(oldV) &&
+        !isObject(newV) && !Array.isArray(newV)) {
+        if (oldV !== newV) {
+            lines.push(`${prefix}: ${formatVal(oldV)} -> ${formatVal(newV)}`);
         }
+        return lines;
     }
 
-    return differences.join('\n');
+    // arrays
+    if (Array.isArray(oldV) || Array.isArray(newV)) {
+        const oldArr = Array.isArray(oldV) ? oldV : [];
+        const newArr = Array.isArray(newV) ? newV : [];
+        const max = Math.max(oldArr.length, newArr.length);
+        for (let i = 0; i < max; i++) {
+            const p = prefix ? `${prefix}[${i}]` : `[${i}]`;
+            if (i >= oldArr.length) {
+                lines.push(`${p}: <added> ${formatVal(newArr[i])}`);
+            } else if (i >= newArr.length) {
+                lines.push(`${p}: <removed> ${formatVal(oldArr[i])}`);
+            } else {
+                lines.push(...diffJsonDeep(oldArr[i], newArr[i], p));
+            }
+        }
+        return lines;
+    }
+
+    // objects
+    const oldObj = isObject(oldV) ? oldV : {};
+    const newObj = isObject(newV) ? newV : {};
+    const keys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
+    for (const key of keys) {
+        const p = prefix ? `${prefix}.${key}` : key;
+        if (!(key in newObj)) {
+            lines.push(`${p}: <removed> ${formatVal(oldObj[key])}`);
+        } else if (!(key in oldObj)) {
+            lines.push(`${p}: <added> ${formatVal(newObj[key])}`);
+        } else {
+            lines.push(...diffJsonDeep(oldObj[key], newObj[key], p));
+        }
+    }
+    return lines;
+}
+
+function diffJson(oldValue, newValue) {
+    const oldObj = safeParse(oldValue, null);
+    const newObj = safeParse(newValue, null);
+    const lines = diffJsonDeep(oldObj, newObj);
+    return lines.length ? lines.join('\n') : 'No visible changes';
 }
 
 function timeAgo(date) {
     const now = new Date();
     const seconds = Math.floor((now - date) / 1000);
-
     if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-
     const days = Math.floor(hours / 24);
     return `${days} day${days !== 1 ? 's' : ''} ago`;
 }
@@ -84,40 +137,66 @@ function createActivityEntry(log) {
     let title = '';
     let description = '';
 
-    if (log.table.toLowerCase().includes('user')) {
-        if (log.action.includes('create')) {
+    const oldObj = safeParse(log.oldValue, null);
+    const newObj = safeParse(log.newValue, null);
+
+    const table = (log.table || '').toLowerCase();
+    const action = (log.action || '').toLowerCase();
+
+    const isCreate = action.includes('create');
+    const isUpdate = action.includes('update');
+    const isDelete = action.includes('delete');
+
+    const variant = isCreate ? 'success' : isUpdate ? 'info' : 'warning';
+
+    if (table.includes('user')) {
+        if (isCreate) {
             title = 'User Created';
             description = 'The user was created.';
-        } else if (log.action.includes('update')) {
+        } else if (isUpdate) {
             title = 'User Updated';
             description = diffJson(log.oldValue, log.newValue);
+        } else if (isDelete) {
+            title = 'User Deleted';
+            description = formatVal(oldObj);
         }
-    } else if (log.table.toLowerCase().includes('carriers')) {
-        if (log.action.includes('update')) {
-            const carrier = JSON.parse(log.newValue || '{}');
-            title = `Carrier ${carrier.company} Updated`;
+    } else if (table.includes('carriers')) {
+        // handle objects or arrays
+        const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
+        const company = carrierObj?.company ?? '(unknown)';
+        const state = carrierObj?.state ?? '(unknown)';
+
+        if (isUpdate) {
+            title = `Carrier ${company} Updated`;
             description = diffJson(log.oldValue, log.newValue);
-        }
-        if (log.action.includes('create')) {
+        } else if (isCreate) {
             title = 'Carrier Created';
-            const carrier = JSON.parse(log.newValue || '{}');
-            description = `The carrier ${carrier.company} in state ${carrier.state} was created.`;
-        }
-        if (log.action.includes('delete')) {
+            description = `The carrier ${company} in state ${state} was created.`;
+        } else if (isDelete) {
+            const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
             title = 'Carrier Deleted';
-            const carrier = JSON.parse(log.oldValue || '{}');
-            description = `The carrier ${carrier.company} in state ${carrier.state} was deleted.`;
+            description = `The carrier ${oldCarrierObj.company ?? '(unknown)'} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
         }
     } else {
-        if (log.action.includes('update')) {
+        if (isUpdate) {
             title = `${log.table} Updated`;
             description = diffJson(log.oldValue, log.newValue);
+        } else if (isCreate) {
+            title = `${log.table} Created`;
+            description = formatVal(newObj);
+        } else if (isDelete) {
+            title = `${log.table} Deleted`;
+            description = formatVal(oldObj);
         }
     }
 
+    // Always ensure description is a string
+    if (typeof description !== 'string') {
+        description = formatVal(description);
+    }
+
     return {
-        variant: log.action.includes('create') ? 'success' :
-            log.action.includes('update') ? 'info' : 'warning',
+        variant,
         title,
         description,
         timeAgo: timeAgo(new Date(log.createdAt)),
