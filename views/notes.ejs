@@ -340,75 +340,88 @@
                                 <div class="nav-align-top mb-3">
                                     <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
                                         <li class="nav-item">
-                                            <a class="nav-link active" href="javascript:void(0);"><i
+                                            <a class="nav-link" href="/users/profile/<%= userId %>"><i
                                                     class="ti ti-user-check ti-sm me-1_5"></i>Account</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="/users/profile/<%= userId %>/notes/"><i
+                                            <a class="nav-link active" href="javascript:void(0);"><i
                                                     class="ti ti-user-check ti-sm me-1_5"></i>Notes</a>
                                         </li>
                                     </ul>
                                 </div>
                                 <!--/ Agent Pills -->
-
-                                <!-- Project table -->
-                                <!-- Carrier Status -->
+                                <!-- Notes Section -->
                                 <div class="card mb-3">
-                                    <div class="card-datatable table-responsive pt-0">
-                                        <div id="DataTables_Table_0_wrapper"
-                                            class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                            <div class="card-header flex-column flex-md-row">
-                                                <div class="head-label text-center">
-                                                    <h5 class="card-title mb-0">Agent's Carrier Status</h5>
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Agent Notes</h5>
+                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#addNoteModal">
+                                            <i class="ti ti-plus"></i> Add Note
+                                        </button>
+                                    </div>
+
+                                    <div class="card-body">
+                                        <div id="notesContainer" class="row g-3">
+                                            <!-- Notes will be rendered here -->
+                                        </div>
+                                        <p id="noNotesMsg" class="text-muted d-none mb-0">No notes available.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Add Note Modal -->
+                                <div class="modal fade" id="addNoteModal" tabindex="-1"
+                                    aria-labelledby="addNoteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="addNoteModalLabel">Add Note</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Note</label>
+                                                    <textarea class="form-control" id="newNoteText" rows="4"
+                                                        required></textarea>
                                                 </div>
                                             </div>
-                                            <table
-                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
-                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                style="width: 1396px">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="sorting_disabled" aria-controls="DataTables_Table_0"
-                                                            rowspan="1" colspan="1" style="width: 30px" aria-label="#">#
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="0"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 144px">
-                                                            State
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="0"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 144px">
-                                                            Carrier Name
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="2"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 130px">
-                                                            Status Progress
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr class="odd">
-                                                        <td valign="top" colspan="4" class="dataTables_empty">
-                                                            Loading...
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary" id="saveNoteBtn">Save
+                                                    Note</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <!--/ Carrier Status -->
 
-                                <!-- Activity Timeline -->
-                                <div class="card mb-3">
-                                    <h5 class="card-header">Agent Activity Timeline</h5>
-                                    <div class="card-body pt-1">
-                                        <ul class="timeline mb-0" id="user-activity-timeline"></ul>
+                                <!-- Edit Note Modal -->
+                                <div class="modal fade" id="editNoteModal" tabindex="-1"
+                                    aria-labelledby="editNoteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editNoteModalLabel">Edit Note</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Note</label>
+                                                    <textarea class="form-control" id="editNoteText" rows="4"
+                                                        required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-primary" id="updateNoteBtn">Save
+                                                    Changes</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <!--/ Activity Timeline -->
+                                <!--/ Notes Section -->
                             </div>
                             <!--/ Agent Content -->
                         </div>
@@ -468,222 +481,138 @@
     <script src="/js/main.js"></script>
 
 
-    <!-- Carrier Status JS -->
-    <script id="carriers-data" type="application/json">
-      <%- JSON.stringify(carriers) %>
+    <script id="notes-data" type="application/json">
+      <%- JSON.stringify(notes) %>
+    </script>
+    <script id="userId" type="application/json">
+      <%- JSON.stringify(userId) %>
     </script>
 
+    <!-- Client-side rendering -->
     <script>
-        const statusOptions = [
-            "Request Received from Agent",
-            "Pending Submission",
-            "Submitted to Carrier",
-            "Carrier In Review",
-            "Carrier Sent Contract to Agent",
-            "Ready to Sell"
-        ];
+        (function () {
+            const userId = JSON.parse(document.getElementById('userId').textContent);
+            let notes = JSON.parse(document.getElementById('notes-data').textContent) || [];
 
-        function renderCarrierTable(carriers) {
-            const table = document.querySelector(".datatables-basic");
-            const tbody = table.querySelector("tbody");
-            tbody.innerHTML = "";
+            let currentEditId = null;
 
-            if (carriers.length === 0) {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td valign="top" colspan="4" class="dataTables_empty">No carriers found.</td>`;
-                tbody.appendChild(tr);
-                return;
+            const notesContainer = document.getElementById('notesContainer');
+            const noNotesMsg = document.getElementById('noNotesMsg');
+            const newNoteText = document.getElementById('newNoteText');
+            const saveNoteBtn = document.getElementById('saveNoteBtn');
+            const editNoteText = document.getElementById('editNoteText');
+            const updateNoteBtn = document.getElementById('updateNoteBtn');
+
+            function formatDate(d) {
+                return new Date(d).toLocaleString();
             }
 
-            const grouped = carriers.reduce((acc, carrier) => {
-                const key = carrier.state;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(carrier);
-                return acc;
-            }, {});
+            function escapeHtml(str) {
+                return String(str).replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
 
-            let rowIndex = 1;
+            function render() {
+                notesContainer.innerHTML = '';
+                if (!notes.length) {
+                    noNotesMsg.classList.remove('d-none');
+                    return;
+                }
+                noNotesMsg.classList.add('d-none');
 
-            Object.entries(grouped).forEach(([stateName, carriersInState]) => {
-                carriersInState.forEach((carrier, i) => {
-                    const tr = document.createElement("tr");
-
-                    if (i === 0) {
-                        const tdIndex = document.createElement("td");
-                        tdIndex.textContent = rowIndex++;
-                        tdIndex.rowSpan = carriersInState.length;
-                        tr.appendChild(tdIndex);
-
-                        const tdState = document.createElement("td");
-                        tdState.textContent = stateName;
-                        tdState.rowSpan = carriersInState.length;
-                        tr.appendChild(tdState);
-                    }
-
-                    const tdName = document.createElement("td");
-                    tdName.textContent = carrier.company;
-                    tr.appendChild(tdName);
-
-                    const tdStatusProgress = document.createElement("td");
-
-                    const idx = statusOptions.indexOf(carrier.status);
-                    const currentStep = (idx === -1 ? 0 : idx + 1);
-                    const totalSteps = statusOptions.length;
-                    const percent = (currentStep / totalSteps) * 100;
-
-                    tdStatusProgress.innerHTML = `
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 8px;">
-                        <div class="progress-bar ${percent === 100 ? 'bg-success' : ''}"
-                             role="progressbar"
-                             style="width: ${percent}%;"
-                             aria-valuenow="${percent}"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
-                        </div>
-                      </div>
-                      <small class="text-nowrap">${currentStep}/${totalSteps}</small>
-                    </div>
-                    <small class="text-muted">${carrier.status || 'Unknown status'}</small>
-                  `;
-
-                    tr.appendChild(tdStatusProgress);
-                    tbody.appendChild(tr);
+                notes.forEach(note => {
+                    const col = document.createElement('div');
+                    col.className = "col-12";
+                    col.innerHTML = `
+          <div class="card shadow-sm">
+            <div class="card-body d-flex justify-content-between">
+              <div>
+                <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
+                <small class="text-muted">${formatDate(note.createdAt)}</small>
+              </div>
+              <div class="ms-3 d-flex flex-column align-items-end">
+                <a href="javascript:void(0);" class="ti ti-edit mb-2" title="Edit Note" data-id="${note.id}" data-action="edit"></a>
+                <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Note" data-id="${note.id}" data-action="delete"></a>
+              </div>
+            </div>
+          </div>`;
+                    notesContainer.appendChild(col);
                 });
-            });
-        }
+            }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const carriers = JSON.parse(document.getElementById("carriers-data").textContent);
-            renderCarrierTable(carriers);
-        });
-    </script>
+            // Add Note
+            saveNoteBtn.addEventListener('click', async () => {
+                const text = newNoteText.value.trim();
+                if (!text) return;
 
-    <script>
-        const stateAbbreviationMap = {
-            "AL": "Alabama",
-            "AK": "Alaska",
-            "AZ": "Arizona",
-            "AR": "Arkansas",
-            "CA": "California",
-            "CO": "Colorado",
-            "CT": "Connecticut",
-            "DE": "Delaware",
-            "FL": "Florida",
-            "GA": "Georgia",
-            "HI": "Hawaii",
-            "ID": "Idaho",
-            "IL": "Illinois",
-            "IN": "Indiana",
-            "IA": "Iowa",
-            "KS": "Kansas",
-            "KY": "Kentucky",
-            "LA": "Louisiana",
-            "ME": "Maine",
-            "MD": "Maryland",
-            "MA": "Massachusetts",
-            "MI": "Michigan",
-            "MN": "Minnesota",
-            "MS": "Mississippi",
-            "MO": "Missouri",
-            "MT": "Montana",
-            "NE": "Nebraska",
-            "NV": "Nevada",
-            "NH": "New Hampshire",
-            "NJ": "New Jersey",
-            "NM": "New Mexico",
-            "NY": "New York",
-            "NC": "North Carolina",
-            "ND": "North Dakota",
-            "OH": "Ohio",
-            "OK": "Oklahoma",
-            "OR": "Oregon",
-            "PA": "Pennsylvania",
-            "RI": "Rhode Island",
-            "SC": "South Carolina",
-            "SD": "South Dakota",
-            "TN": "Tennessee",
-            "TX": "Texas",
-            "UT": "Utah",
-            "VT": "Vermont",
-            "VA": "Virginia",
-            "WA": "Washington",
-            "WV": "West Virginia",
-            "WI": "Wisconsin",
-            "WY": "Wyoming"
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const stateHeaders = document.querySelectorAll("table tbody td");
-            stateHeaders.forEach(header => {
-                const abbr = header.textContent.trim();
-                if (stateAbbreviationMap[abbr]) {
-                    header.textContent = stateAbbreviationMap[abbr];
+                const res = await fetch(`/users/profile/${userId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if (res.ok) {
+                    const newNote = await res.json();
+                    notes.unshift(newNote);
+                    render();
+                    newNoteText.value = '';
+                    bootstrap.Modal.getInstance(document.getElementById('addNoteModal')).hide();
                 }
             });
-        });
-    </script>
-    <!-- / Carrier Status -->
 
-    <!-- Timeline-->
-    <script id="activity-data" type="application/json">
-      <%- JSON.stringify(activity) %>
-    </script>
+            // Edit/Delete
+            notesContainer.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+                const noteId = link.getAttribute('data-id');
+                const action = link.getAttribute('data-action');
+                const note = notes.find(n => n.id === noteId);
 
-    <script>
-        function renderTimeLine(timelineItems) {
-            const ul = document.querySelector('#user-activity-timeline');
-
-            if (!ul) return;
-
-            ul.innerHTML = '';
-
-            timelineItems.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'timeline-item timeline-item-transparent';
-
-                // point
-                const point = document.createElement('span');
-                point.className = `timeline-point timeline-point-${item.variant || 'primary'}`;
-                li.appendChild(point);
-
-                // event wrapper
-                const event = document.createElement('div');
-                event.className = 'timeline-event';
-                li.appendChild(event);
-
-                // header
-                const header = document.createElement('div');
-                header.className = 'timeline-header mb-3';
-
-                const h6 = document.createElement('h6');
-                h6.className = 'mb-0';
-                h6.textContent = item.title;
-
-                const small = document.createElement('small');
-                small.className = 'text-muted';
-                small.textContent = item.timeAgo;
-
-                header.appendChild(h6);
-                header.appendChild(small);
-                event.appendChild(header);
-
-                // description
-                if (item.description) {
-                    const p = document.createElement('p');
-                    p.className = 'mb-2';
-                    p.textContent = item.description;
-                    event.appendChild(p);
+                if (action === 'edit' && note) {
+                    currentEditId = noteId;
+                    editNoteText.value = note.text;
+                    new bootstrap.Modal(document.getElementById('editNoteModal')).show();
                 }
 
-                ul.appendChild(li);
+                if (action === 'delete' && noteId) {
+                    deleteNote(noteId);
+                }
             });
-        }
 
-        const activityData = JSON.parse(document.getElementById("activity-data").textContent);
-        renderTimeLine(activityData);
+            // Update Note
+            updateNoteBtn.addEventListener('click', async () => {
+                const text = editNoteText.value.trim();
+                if (!text || !currentEditId) return;
+
+                const res = await fetch(`/users/profile/${userId}/notes/${currentEditId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if (res.ok) {
+                    const updatedNote = await res.json();
+                    const index = notes.findIndex(n => n.id === currentEditId);
+                    if (index > -1) notes[index] = updatedNote;
+                    render();
+                    bootstrap.Modal.getInstance(document.getElementById('editNoteModal')).hide();
+                }
+            });
+
+            // Delete Note
+            async function deleteNote(noteId) {
+                const res = await fetch(`/users/profile/${userId}/notes/${noteId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    notes = notes.filter(n => n.id !== noteId);
+                    render();
+                }
+            }
+
+            render();
+        })();
     </script>
-    <!-- /Timeline-->
+
 </body>
 
 </html>

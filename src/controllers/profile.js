@@ -125,4 +125,85 @@ function createActivityEntry(log) {
     };
 }
 
-export { renderProfile };
+const renderNotes = async (req, res) => {
+    const user = req.user;
+    const userId = req.params.id ?? user.user_id;
+
+    const profile = await prisma.user.findUnique({
+        where: { user_id: userId }
+    });
+
+    const personalInfo = await prisma.personalInfo.findUnique({
+        where: { userId }
+    });
+
+    const contactInfo = await prisma.contactInfo.findUnique({
+        where: { userId }
+    });
+
+    const notes = await prisma.note.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' }
+    });
+
+
+    res.render("notes", { userId, user, profile, personalInfo, contactInfo, notes });
+}
+
+const postNote = async (req, res) => {
+    const { text } = req.body;
+    const userId = req.params.id ?? req.user.user_id;
+
+    if (!text) {
+        return res.status(400).json({ error: "Note text is required." });
+    }
+
+    try {
+        const note = await prisma.note.create({
+            data: {
+                userId,
+                text
+            }
+        });
+        res.status(201).json(note);
+    } catch (error) {
+        console.error("Error creating note:", error);
+        res.status(500).json({ error: "Failed to create note." });
+    }
+};
+
+const editNote = async (req, res) => {
+    const { noteId } = req.params;
+    const { text } = req.body;
+
+    if (!text) {
+        return res.status(400).json({ error: "Note text is required." });
+    }
+
+    try {
+        const note = await prisma.note.update({
+            where: { id: noteId },
+            data: { text }
+        });
+        res.status(200).json(note);
+    } catch (error) {
+        console.error("Error updating note:", error);
+        res.status(500).json({ error: "Failed to update note." });
+    }
+};
+
+const deleteNote = async (req, res) => {
+    const { noteId } = req.params;
+
+    try {
+        await prisma.note.delete({
+            where: { id: noteId }
+        });
+        res.status(200).json({ message: "Note deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting note:", error);
+        res.status(500).json({ error: "Failed to delete note." });
+    }
+};
+
+export { renderProfile, renderNotes, postNote, editNote, deleteNote };
