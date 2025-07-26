@@ -147,7 +147,7 @@ const massiveCreateAgents = async (req, res) => {
 
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
-        results.push({ email, status: "skipped", reason: "User already exists" });
+        results.push({ email, status: "skipped", reason: "Agent already exists" });
         continue;
       }
 
