@@ -426,20 +426,13 @@ if (document.getElementById('layout-menu')) {
 // ! Removed following code if you do't wish to use jQuery. Remember that navbar search functionality will stop working on removal.
 if (typeof $ !== 'undefined') {
   $(async function () {
-    // ! TODO: Required to load after DOM is ready, did this now with jQuery ready.
     window.Helpers.initSidebarToggle();
-    // Toggle Universal Sidebar
-
-    // Navbar Search with autosuggest (typeahead)
-    // ? You can remove the following JS if you don't want to use search functionality.
-    //----------------------------------------------------------------------------------
 
     var searchToggler = $('.search-toggler'),
       searchInputWrapper = $('.search-input-wrapper'),
       searchInput = $('.search-input'),
       contentBackdrop = $('.content-backdrop');
 
-    // Open search input on click of search icon
     if (searchToggler.length) {
       searchToggler.on('click', function () {
         if (searchInputWrapper.length) {
@@ -448,7 +441,7 @@ if (typeof $ !== 'undefined') {
         }
       });
     }
-    // Open search on 'CTRL+/'
+
     $(document).on('keydown', function (event) {
       let ctrlKey = event.ctrlKey,
         slashKey = event.which === 191;
@@ -460,7 +453,7 @@ if (typeof $ !== 'undefined') {
         }
       }
     });
-    // Note: Following code is required to update container class of typeahead dropdown width on focus of search input. setTimeout is required to allow time to initiate Typeahead UI.
+
     setTimeout(function () {
       var twitterTypeahead = $('.twitter-typeahead');
       searchInput.on('focus', function () {
@@ -475,11 +468,9 @@ if (typeof $ !== 'undefined') {
     }, 10);
 
     if (searchInput.length) {
-      // Filter config
       var filterConfig = function (data) {
         return function findMatches(q, cb) {
-          let matches;
-          matches = [];
+          let matches = [];
           data.filter(function (i) {
             if (i.display_name.toLowerCase().startsWith(q.toLowerCase())) {
               matches.push(i);
@@ -491,194 +482,103 @@ if (typeof $ !== 'undefined') {
               matches.sort(function (a, b) {
                 return b.display_name < a.display_name ? 1 : -1;
               });
-            } else {
-              return [];
             }
           });
           cb(matches);
         };
       };
 
-
-      /*
-            // Search JSON
-            var searchJson = 'search-vertical.json'; // For vertical layout
-            if ($('#layout-menu').hasClass('menu-horizontal')) {
-              var searchJson = 'search-horizontal.json'; // For vertical layout
-            }
-            // Search API AJAX call
-      
-            var searchData = $.ajax({
-              url: assetsPath + 'json/' + searchJson, //? Use your own search api instead
-              dataType: 'json',
-              async: false
-            }).responseJSON;*/
-
-      var response = await fetch('/users/search', {
-        method: 'POST'
-      });
-
-      var data = await response.json();
-
-
-
-      // Init typeahead on searchInput
       searchInput.each(function () {
         var $this = $(this);
-        searchInput
-          .typeahead(
-            {
-              hint: false,
-              classNames: {
-                menu: 'tt-menu navbar-search-suggestion',
-                cursor: 'active',
-                suggestion: 'suggestion d-flex justify-content-between px-3 py-2 w-100'
-              }
-            },
-            // ? Add/Update blocks as per need
-            // Contacts
-            {
-              name: 'contacts',
-              display: 'name',
-              limit: 10,
-              source: filterConfig(data.contacts),
-              templates: {
-                header: '<h6 class="suggestions-header text-primary mb-0 mx-3 mt-3 pb-2">Contacts</h6>',
-                suggestion: function ({ display_name, type_display, phone }) {
-                  return (
-                    '<div class="not-found px-3 py-2">' +
-                    `<p class="py-2 mb-0"> ${display_name},  ${type_display},  ${phone}</p>` +
-                    '</div>'
-                  );
-                },
-                notFound:
-                  '<div class="not-found px-3 py-2">' +
-                  '<h6 class="suggestions-header text-primary mb-2">Contacts</h6>' +
-                  '<p class="py-2 mb-0"><i class="ti ti-alert-circle ti-xs me-2"></i> No Results Found</p>' +
-                  '</div>'
-              }
-            },
-            // Policies
-            /*{
-              name: 'policies',
-              display: 'name',
-              limit: 4,
-              source: filterConfig(searchData.files),
-              templates: {
-                header: '<h6 class="suggestions-header text-primary mb-0 mx-3 mt-3 pb-2">Policies</h6>',
-                suggestion: function ({ src, name, subtitle, meta }) {
-                  return (
-                    '<a href="javascript:;">' +
-                    '<div class="d-flex w-50">' +
-                    '<img class="me-3" src="' +
-                    assetsPath +
-                    src +
-                    '" alt="' +
-                    name +
-                    '" height="32">' +
-                    '<div class="w-75">' +
-                    '<h6 class="mb-0">' +
-                    name +
-                    '</h6>' +
-                    '<small class="text-muted">' +
-                    subtitle +
-                    '</small>' +
-                    '</div>' +
-                    '</div>' +
-                    '<small class="text-muted">' +
-                    meta +
-                    '</small>' +
-                    '</a>'
-                  );
-                },
-                notFound:
-                  '<div class="not-found px-3 py-2">' +
-                  '<h6 class="suggestions-header text-primary mb-2">Policies</h6>' +
-                  '<p class="py-2 mb-0"><i class="ti ti-alert-circle ti-xs me-2"></i> No Results Found</p>' +
-                  '</div>'
-              }
-            },
-            // Locations
-            {
-              name: 'locations',
-              display: 'name',
-              limit: 10,
-              source: filterConfig(searchData.members),
-              templates: {
-                header: '<h6 class="suggestions-header text-primary mb-0 mx-3 mt-3 pb-2">Locations</h6>',
-                suggestion: function ({ name, src, subtitle, url }) {
-                  return (
-                    `<a href="/users/${url}">` +
-                    '<div class="d-flex align-items-center">' +
-                    '<img class="rounded-circle me-3" src="' +
-                    assetsPath +
-                    src +
-                    '" alt="' +
-                    name +
-                    '" height="32">' +
-                    '<div class="user-info">' +
-                    '<h6 class="mb-0">' +
-                    name +
-                    '</h6>' +
-                    '<small class="text-muted">' +
-                    subtitle +
-                    '</small>' +
-                    '</div>' +
-                    '</div>' +
-                    '</a>'
-                  );
-                },
-                notFound:
-                  '<div class="not-found px-3 py-2">' +
-                  '<h6 class="suggestions-header text-primary mb-2">Locations</h6>' +
-                  '<p class="py-2 mb-0"><i class="ti ti-alert-circle ti-xs me-2"></i> No Results Found</p>' +
-                  '</div>'
-              }
-            }*/
-          )
-          //On typeahead result render.
-          .bind('typeahead:render', function () {
-            // Show content backdrop,
-            contentBackdrop.addClass('show').removeClass('fade');
-          })
-          // On typeahead select
-          .bind('typeahead:select', function (ev, suggestion) {
-            // Open selected page
-            if (suggestion.url) {
-              window.location = suggestion.url;
-            }
-          })
-          // On typeahead close
-          .bind('typeahead:close', function () {
-            // Clear search
-            searchInput.val('');
-            $this.typeahead('val', '');
-            // Hide search input wrapper
-            searchInputWrapper.addClass('d-none');
-            // Fade content backdrop
-            contentBackdrop.addClass('fade').removeClass('show');
-          });
+        let fetchTimeout;
+        let fetchedData = [];
 
-        // On searchInput keyup, Fade content backdrop if search input is blank
         searchInput.on('keyup', function () {
-          if (searchInput.val() == '') {
+          clearTimeout(fetchTimeout);
+          const query = $(this).val().trim();
+
+          if (query.length >= 3) {
+            fetchTimeout = setTimeout(async () => {
+              try {
+                const response = await fetch('/users/search', {
+                  method: 'POST'
+                });
+                const data = await response.json();
+                fetchedData = data.contacts;
+
+                $this.typeahead('destroy');
+                $this.typeahead(
+                  {
+                    hint: false,
+                    classNames: {
+                      menu: 'tt-menu navbar-search-suggestion',
+                      cursor: 'active',
+                      suggestion: 'suggestion d-flex justify-content-between px-3 py-2 w-100'
+                    }
+                  },
+                  {
+                    name: 'contacts',
+                    display: 'name',
+                    limit: 10,
+                    source: filterConfig(fetchedData),
+                    templates: {
+                      header:
+                        '<h6 class="suggestions-header text-primary mb-0 mx-3 mt-3 pb-2">Contacts</h6>',
+                      suggestion: function ({ display_name, email, phone }) {
+                        return (
+                          '<div class="not-found px-3 py-2">' +
+                          `<p class="py-2 mb-0">${display_name}, ${email}, ${phone}</p>` +
+                          '</div>'
+                        );
+                      },
+                      notFound:
+                        '<div class="not-found px-3 py-2">' +
+                        '<h6 class="suggestions-header text-primary mb-2">Contacts</h6>' +
+                        '<p class="py-2 mb-0"><i class="ti ti-alert-circle ti-xs me-2"></i> No Results Found</p>' +
+                        '</div>'
+                    }
+                  }
+                )
+                  .bind('typeahead:render', function () {
+                    contentBackdrop.addClass('show').removeClass('fade');
+                  })
+                  .bind('typeahead:select', (ev, suggestion) => {
+                    if (suggestion.user_id) {
+                      window.location = `/users/profile/${suggestion.user_id}`;
+                    }
+                  })
+                  .bind('typeahead:close', function () {
+                    searchInput.val('');
+                    $this.typeahead('val', '');
+                    searchInputWrapper.addClass('d-none');
+                    contentBackdrop.addClass('fade').removeClass('show');
+                  });
+
+                var psSearch;
+                $('.navbar-search-suggestion').each(function () {
+                  psSearch = new PerfectScrollbar($(this)[0], {
+                    wheelPropagation: false,
+                    suppressScrollX: true
+                  });
+                });
+
+                searchInput.on('keyup', function () {
+                  if (psSearch) psSearch.update();
+                  if (searchInput.val() === '') {
+                    contentBackdrop.addClass('fade').removeClass('show');
+                  }
+                });
+              } catch (err) {
+                console.error('Search fetch error:', err);
+              }
+            }, 300);
+          } else {
             contentBackdrop.addClass('fade').removeClass('show');
           }
         });
       });
-
-      // Init PerfectScrollbar in search result
-      var psSearch;
-      $('.navbar-search-suggestion').each(function () {
-        psSearch = new PerfectScrollbar($(this)[0], {
-          wheelPropagation: false,
-          suppressScrollX: true
-        });
-      });
-
-      searchInput.on('keyup', function () {
-        psSearch.update();
-      });
     }
   });
 }
+
+

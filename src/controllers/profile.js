@@ -1,4 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
+import { prismaContext } from "../config/prismaContext.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -31,8 +32,9 @@ const renderProfile = async (req, res) => {
         },
     });
 
-    const activity = logs
-        .map(createActivityEntry)
+    const activityEntries = await Promise.all(logs.map(createActivityEntry));
+
+    const activity = activityEntries
         .filter(Boolean) // Remove null entries
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -131,7 +133,7 @@ function timeAgo(date) {
     return `${days} day${days !== 1 ? 's' : ''} ago`;
 }
 
-function createActivityEntry(log) {
+async function createActivityEntry(log) {
     if (!log.action || !log.createdAt) return null;
 
     let title = '';
@@ -149,48 +151,50 @@ function createActivityEntry(log) {
 
     const variant = isCreate ? 'success' : isUpdate ? 'info' : 'warning';
 
+    const userId = log.userId;
+    const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
+    const legalName = personalInfo?.legalName || '(Unknown User)';
+
     if (table.includes('user')) {
         if (isCreate) {
-            title = 'User Created';
-            description = 'The user was created.';
+            title = `User Created by ${legalName}`;
+            description = ''; // No description for create
         } else if (isUpdate) {
-            title = 'User Updated';
+            title = `User Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
         } else if (isDelete) {
-            title = 'User Deleted';
-            description = formatVal(oldObj);
+            title = `User Deleted by ${legalName}`;
+            description = '';
         }
     } else if (table.includes('carriers')) {
-        // handle objects or arrays
         const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
         const company = carrierObj?.company ?? '(unknown)';
         const state = carrierObj?.state ?? '(unknown)';
 
         if (isUpdate) {
-            title = `Carrier ${company} Updated`;
+            title = `Carrier ${company} Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
         } else if (isCreate) {
-            title = 'Carrier Created';
-            description = `The carrier ${company} in state ${state} was created.`;
+            title = `Carrier ${company} Created by ${legalName}`;
+            description = '';
         } else if (isDelete) {
             const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
-            title = 'Carrier Deleted';
+            title = `Carrier ${oldCarrierObj.company ?? '(unknown)'} Deleted by ${legalName}`;
             description = `The carrier ${oldCarrierObj.company ?? '(unknown)'} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
         }
     } else {
         if (isUpdate) {
-            title = `${log.table} Updated`;
+            title = `${log.table} Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
         } else if (isCreate) {
-            title = `${log.table} Created`;
-            description = formatVal(newObj);
+            title = `${log.table} Created by ${legalName}`;
+            description = ''; // No description for create
         } else if (isDelete) {
-            title = `${log.table} Deleted`;
-            description = formatVal(oldObj);
+            title = `${log.table} Deleted by ${legalName}`;
+            description = '';
         }
     }
 
-    // Always ensure description is a string
     if (typeof description !== 'string') {
         description = formatVal(description);
     }
@@ -200,7 +204,8 @@ function createActivityEntry(log) {
         title,
         description,
         timeAgo: timeAgo(new Date(log.createdAt)),
-        createdAt: log.createdAt
+        createdAt: log.createdAt,
+        legalName,
     };
 }
 
@@ -238,13 +243,15 @@ const postNote = async (req, res) => {
     }
 
     try {
-        const note = await prisma.note.create({
-            data: {
-                userId,
-                text
-            }
+        await prismaContext.run({ userId: req.user.user_id }, async () => {
+            const note = await prisma.note.create({
+                data: {
+                    userId,
+                    text
+                }
+            });
+            res.status(201).json(note);
         });
-        res.status(201).json(note);
     } catch (error) {
         console.error("Error creating note:", error);
         res.status(500).json({ error: "Failed to create note." });
@@ -260,11 +267,13 @@ const editNote = async (req, res) => {
     }
 
     try {
-        const note = await prisma.note.update({
-            where: { id: noteId },
-            data: { text }
+        await prismaContext.run({ userId: req.user.user_id }, async () => {
+            const note = await prisma.note.update({
+                where: { id: noteId },
+                data: { text }
+            });
+            res.status(200).json(note);
         });
-        res.status(200).json(note);
     } catch (error) {
         console.error("Error updating note:", error);
         res.status(500).json({ error: "Failed to update note." });
@@ -275,14 +284,17 @@ const deleteNote = async (req, res) => {
     const { noteId } = req.params;
 
     try {
-        await prisma.note.delete({
-            where: { id: noteId }
+        await prismaContext.run({ userId: req.user.user_id }, async () => {
+            await prisma.note.delete({
+                where: { id: noteId }
+            });
+            res.status(200).json({ message: "Note deleted successfully." });
         });
-        res.status(200).json({ message: "Note deleted successfully." });
     } catch (error) {
         console.error("Error deleting note:", error);
         res.status(500).json({ error: "Failed to delete note." });
     }
 };
+
 
 export { renderProfile, renderNotes, postNote, editNote, deleteNote };

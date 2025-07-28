@@ -1,20 +1,46 @@
-import { pool } from "../config/dbConfig.js";
+import { pool, prisma } from "../config/dbConfig.js";
 
-const dataSearch = (req, res) => {
-  pool.query(
-    `SELECT entity_id, display_name, type_display, phone FROM qq.contacts WHERE status = 'A' ORDER BY display_name ASC LIMIT 500`,
-    (err, result) => {
-      if (err) {
-        console.log(`Function : dataSearch`, err);
-        res.status(500).json({
-          message: `Server Error`,
-        });
+const dataSearch = async (req, res) => {
+  const { query } = req.body;
+
+  console.log("query: ", query)
+
+  if (!query || query.trim().length < 3) {
+    return res.status(400).json({ error: "Query parameter is required and must be at least 3 characters." });
+  }
+
+  try {
+    const result = await prisma.user.findMany({
+      where: {
+        OR: [
+          { display_name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          {
+            contactInfo: {
+              OR: [
+                { personalEmail: { contains: query, mode: "insensitive" } },
+                { personalPhone: { contains: query, mode: "insensitive" } },
+              ]
+            }
+          },
+          {
+            personalInfo: {
+              legalName: { contains: query, mode: "insensitive" }
+            }
+          }
+        ]
+      },
+      include: {
+        contactInfo: true,
+        personalInfo: true
       }
-      res.status(200).json({
-        contacts: result.rows,
-      });
-    },
-  );
+    });
+
+    res.json({ contacts: result });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 export { dataSearch };

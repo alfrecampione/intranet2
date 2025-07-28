@@ -13,14 +13,15 @@ const renderAgents = async (req, res) => {
     ],
     include: {
       personalInfo: {
-        select: { photoPath: true }
+        select: { photoPath: true, agency: true }
       }
     }
   });
 
   const registeredUsers = users.map(u => ({
     ...u,
-    photoPath: u.personalInfo?.photoPath || null
+    photoPath: u.personalInfo?.photoPath || null,
+    agency: u.personalInfo?.agency || null,
   }));
 
   res.render("agents", { user, registeredUsers });

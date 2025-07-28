@@ -126,7 +126,7 @@
                                 <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
                                     href="javascript:void(0);">
                                     <i class="ti ti-search ti-md me-2"></i>
-                                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                                    <span class="d-none d-md-inline-block text-muted">Search</span>
                                 </a>
                             </div>
                         </div>
@@ -530,6 +530,7 @@
           <div class="card shadow-sm">
             <div class="card-body d-flex justify-content-between">
               <div>
+                <p class="mb-2 fs-6">${note.legalName ?? ""}</p>
                 <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
                 <small class="text-muted">${formatDate(note.createdAt)}</small>
               </div>

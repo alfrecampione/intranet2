@@ -126,7 +126,7 @@
                                 <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
                                     href="javascript:void(0);">
                                     <i class="ti ti-search ti-md me-2"></i>
-                                    <span class="d-none d-md-inline-block text-muted">Search (Ctrl+/)</span>
+                                    <span class="d-none d-md-inline-block text-muted">Search</span>
                                 </a>
                             </div>
                         </div>
@@ -262,7 +262,7 @@
                                                     data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
                                                     <span>
                                                         <i class="ti ti-plus me-sm-1"></i>
-                                                        <span class="d-none d-sm-inline-block">Send New Email</span>
+                                                        <span class="d-none d-sm-inline-block">Onboarding</span>
                                                     </span>
                                                 </button>
                                             </div>
@@ -315,6 +315,11 @@
                                                     Email
                                                 </th>
                                                 <th class="sorting_disabled" tabindex="2"
+                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                    style="width: 130px"
+                                                    aria-label="Photo: activate to sort column ascending">
+                                                    Agency
+                                                <th class="sorting_disabled" tabindex="3"
                                                     aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                     style="width: 130px"
                                                     aria-label="Created_at: activate to sort column ascending">
@@ -574,6 +579,10 @@
                     const tdEmail = document.createElement("td");
                     tdEmail.textContent = user.email;
                     tr.appendChild(tdEmail);
+
+                    const tdAgency = document.createElement("td");
+                    tdAgency.textContent = user.agency;
+                    tr.appendChild(tdAgency);
 
                     const tdCreated = document.createElement("td");
                     tdCreated.textContent = user.createdAt
