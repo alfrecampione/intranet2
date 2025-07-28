@@ -423,162 +423,96 @@ if (document.getElementById('layout-menu')) {
   }
 })();
 
-// ! Removed following code if you do't wish to use jQuery. Remember that navbar search functionality will stop working on removal.
+
 if (typeof $ !== 'undefined') {
-  $(async function () {
-    window.Helpers.initSidebarToggle();
+  $(function () {
+    const $navbar = $('#layout-navbar');
+    const $normalContent = $navbar.find('.navbar-nav-right');
+    const $fullSearch = $('.navbar-full-search');
+    const $searchInput = $('#navbar-full-search-input');
+    const $dropdown = $('#search-dropdown');
+    const $backdrop = $('.search-backdrop');
+    let timeout;
 
-    var searchToggler = $('.search-toggler'),
-      searchInputWrapper = $('.search-input-wrapper'),
-      searchInput = $('.search-input'),
-      contentBackdrop = $('.content-backdrop');
-
-    if (searchToggler.length) {
-      searchToggler.on('click', function () {
-        if (searchInputWrapper.length) {
-          searchInputWrapper.toggleClass('d-none');
-          searchInput.focus();
-        }
-      });
+    function openSearch() {
+      $normalContent.addClass('d-none');
+      $fullSearch.removeClass('d-none');
+      $backdrop.removeClass('d-none');
+      $searchInput.focus();
     }
 
-    $(document).on('keydown', function (event) {
-      let ctrlKey = event.ctrlKey,
-        slashKey = event.which === 191;
+    function closeSearch() {
+      $fullSearch.addClass('d-none');
+      $normalContent.removeClass('d-none');
+      $backdrop.addClass('d-none');
+      $dropdown.addClass('d-none');
+      $searchInput.val('');
+    }
 
-      if (ctrlKey && slashKey) {
-        if (searchInputWrapper.length) {
-          searchInputWrapper.toggleClass('d-none');
-          searchInput.focus();
-        }
+    // Toggle search mode
+    $('.search-toggler').on('click', openSearch);
+    $('.search-close').on('click', closeSearch);
+    $backdrop.on('click', closeSearch);
+
+    // Escape key closes search
+    $searchInput.on('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeSearch();
       }
     });
 
-    setTimeout(function () {
-      var twitterTypeahead = $('.twitter-typeahead');
-      searchInput.on('focus', function () {
-        if (searchInputWrapper.hasClass('container-xxl')) {
-          searchInputWrapper.find(twitterTypeahead).addClass('container-xxl');
-          twitterTypeahead.removeClass('container-fluid');
-        } else if (searchInputWrapper.hasClass('container-fluid')) {
-          searchInputWrapper.find(twitterTypeahead).addClass('container-fluid');
-          twitterTypeahead.removeClass('container-xxl');
-        }
-      });
-    }, 10);
+    $(document).on('click', function (e) {
+      const isClickInsideNavbar = $(e.target).closest('#layout-navbar').length > 0;
+      const searchIsVisible = !$fullSearch.hasClass('d-none');
 
-    if (searchInput.length) {
-      var filterConfig = function (data) {
-        return function findMatches(q, cb) {
-          let matches = [];
-          data.filter(function (i) {
-            if (i.display_name.toLowerCase().startsWith(q.toLowerCase())) {
-              matches.push(i);
-            } else if (
-              !i.display_name.toLowerCase().startsWith(q.toLowerCase()) &&
-              i.display_name.toLowerCase().includes(q.toLowerCase())
-            ) {
-              matches.push(i);
-              matches.sort(function (a, b) {
-                return b.display_name < a.display_name ? 1 : -1;
-              });
-            }
+      if (!isClickInsideNavbar && searchIsVisible) {
+        closeSearch();
+      }
+    });
+
+    // Live search
+    $searchInput.on('input', function () {
+      const query = $(this).val().trim();
+      clearTimeout(timeout);
+
+      if (query.length < 3) {
+        $dropdown.addClass('d-none');
+        return;
+      }
+
+      timeout = setTimeout(async () => {
+        try {
+          const res = await fetch('/users/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query }),
           });
-          cb(matches);
-        };
-      };
 
-      searchInput.each(function () {
-        var $this = $(this);
-        let fetchTimeout;
-        let fetchedData = [];
+          const data = await res.json();
+          $dropdown.empty();
 
-        searchInput.on('keyup', function () {
-          clearTimeout(fetchTimeout);
-          const query = $(this).val().trim();
-
-          if (query.length >= 3) {
-            fetchTimeout = setTimeout(async () => {
-              try {
-                const response = await fetch('/users/search', {
-                  method: 'POST'
-                });
-                const data = await response.json();
-                fetchedData = data.contacts;
-
-                $this.typeahead('destroy');
-                $this.typeahead(
-                  {
-                    hint: false,
-                    classNames: {
-                      menu: 'tt-menu navbar-search-suggestion',
-                      cursor: 'active',
-                      suggestion: 'suggestion d-flex justify-content-between px-3 py-2 w-100'
-                    }
-                  },
-                  {
-                    name: 'contacts',
-                    display: 'name',
-                    limit: 10,
-                    source: filterConfig(fetchedData),
-                    templates: {
-                      header:
-                        '<h6 class="suggestions-header text-primary mb-0 mx-3 mt-3 pb-2">Contacts</h6>',
-                      suggestion: function ({ display_name, email, phone }) {
-                        return (
-                          '<div class="not-found px-3 py-2">' +
-                          `<p class="py-2 mb-0">${display_name}, ${email}, ${phone}</p>` +
-                          '</div>'
-                        );
-                      },
-                      notFound:
-                        '<div class="not-found px-3 py-2">' +
-                        '<h6 class="suggestions-header text-primary mb-2">Contacts</h6>' +
-                        '<p class="py-2 mb-0"><i class="ti ti-alert-circle ti-xs me-2"></i> No Results Found</p>' +
-                        '</div>'
-                    }
-                  }
-                )
-                  .bind('typeahead:render', function () {
-                    contentBackdrop.addClass('show').removeClass('fade');
-                  })
-                  .bind('typeahead:select', (ev, suggestion) => {
-                    if (suggestion.user_id) {
-                      window.location = `/users/profile/${suggestion.user_id}`;
-                    }
-                  })
-                  .bind('typeahead:close', function () {
-                    searchInput.val('');
-                    $this.typeahead('val', '');
-                    searchInputWrapper.addClass('d-none');
-                    contentBackdrop.addClass('fade').removeClass('show');
-                  });
-
-                var psSearch;
-                $('.navbar-search-suggestion').each(function () {
-                  psSearch = new PerfectScrollbar($(this)[0], {
-                    wheelPropagation: false,
-                    suppressScrollX: true
-                  });
-                });
-
-                searchInput.on('keyup', function () {
-                  if (psSearch) psSearch.update();
-                  if (searchInput.val() === '') {
-                    contentBackdrop.addClass('fade').removeClass('show');
-                  }
-                });
-              } catch (err) {
-                console.error('Search fetch error:', err);
-              }
-            }, 300);
+          if (!data.contacts || data.contacts.length === 0) {
+            $dropdown.append('<li class="dropdown-item text-muted">No results</li>');
           } else {
-            contentBackdrop.addClass('fade').removeClass('show');
+            data.contacts.forEach(user => {
+              const name = user.display_name || user.personalInfo?.legalName || 'Unknown';
+              const email = user.email || user.contactInfo?.personalEmail || '';
+              const phone = user.contactInfo?.personalPhone || "";
+              const id = user.user_id;
+              const $item = $(`<li class="dropdown-item" style="cursor: pointer;">${name}, ${email}, ${phone}</li>`);
+              $item.on('click', () => {
+                window.location.href = `/users/profile/${id}`;
+              });
+              $dropdown.append($item);
+            });
           }
-        });
-      });
-    }
+
+          $dropdown.removeClass('d-none');
+        } catch (error) {
+          console.error('Search error:', error);
+          $dropdown.empty().append('<li class="dropdown-item text-danger">Error fetching results</li>').removeClass('d-none');
+        }
+      }, 300);
+    });
   });
 }
-
-

@@ -149,7 +149,6 @@
       </aside>
 
       <div class="layout-page">
-
         <nav
           class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
           id="layout-navbar">
@@ -162,8 +161,8 @@
           <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
             <!-- Search -->
             <div class="navbar-nav align-items-center">
-              <div class="nav-item navbar-search-wrapper mb-0">
-                <a class="nav-item nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
+              <div class="nav-item mb-0">
+                <a class="nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
                   <i class="ti ti-search ti-md me-2"></i>
                   <span class="d-none d-md-inline-block text-muted">Search</span>
                 </a>
@@ -270,12 +269,18 @@
             </ul>
           </div>
 
-          <!-- Search Small Screens -->
-          <div class="navbar-search-wrapper search-input-wrapper d-none">
-            <input type="text" class="form-control search-input container-xxl border-0" placeholder="Search..."
-              aria-label="Search..." />
-            <i class="ti ti-x ti-sm search-toggler cursor-pointer"></i>
+          <!-- Full Nav Search Mode -->
+          <div class="navbar-full-search d-none w-100 position-relative">
+            <div class="container-xxl d-flex align-items-center position-relative">
+              <i class="ti ti-search ti-md position-absolute top-50 start-0 translate-middle-y ms-3 text-body"></i>
+              <input type="text" class="form-control form-control-lg ps-5 border-0 shadow-none w-100"
+                placeholder="Search..." id="navbar-full-search-input" />
+              <i class="ti ti-x ti-lg ms-3 cursor-pointer search-close text-muted"></i>
+            </div>
+            <ul class="dropdown-menu show d-none" id="search-dropdown"
+              style="position: absolute; top: 100%; left: 0; z-index: 1100; width: 100%;"></ul>
           </div>
+          <!--/ Full Nav Search -->
         </nav>
 
         <div class="content-wrapper">

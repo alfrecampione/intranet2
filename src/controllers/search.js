@@ -3,8 +3,6 @@ import { pool, prisma } from "../config/dbConfig.js";
 const dataSearch = async (req, res) => {
   const { query } = req.body;
 
-  console.log("query: ", query)
-
   if (!query || query.trim().length < 3) {
     return res.status(400).json({ error: "Query parameter is required and must be at least 3 characters." });
   }
