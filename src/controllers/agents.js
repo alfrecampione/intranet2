@@ -188,9 +188,7 @@ const massiveCreateAgents = async (req, res) => {
         data: {
           userId: user.user_id,
           personalEmail: email,
-          isPersonalEmailVisible: false,
           personalPhone: cellPhone || null,
-          isPersonalPhoneVisible: false,
           country: "USA",
           city: city || "",
           state: state || "",

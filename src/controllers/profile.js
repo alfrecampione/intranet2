@@ -149,16 +149,16 @@ async function createActivityEntry(log) {
     const isUpdate = action.includes('update');
     const isDelete = action.includes('delete');
 
-    const variant = isCreate ? 'success' : isUpdate ? 'info' : 'warning';
+    const variant = isCreate ? 'success' : isUpdate ? 'info' : 'danger';
 
     const userId = log.userId;
     const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-    const legalName = personalInfo?.legalName || '(Unknown User)';
+    const legalName = personalInfo?.legalName || '(Administrator User)';
 
     if (table.includes('user')) {
         if (isCreate) {
             title = `User Created by ${legalName}`;
-            description = ''; // No description for create
+            description = '';
         } else if (isUpdate) {
             title = `User Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
@@ -188,7 +188,7 @@ async function createActivityEntry(log) {
             description = diffJson(log.oldValue, log.newValue);
         } else if (isCreate) {
             title = `${log.table} Created by ${legalName}`;
-            description = ''; // No description for create
+            description = '';
         } else if (isDelete) {
             title = `${log.table} Deleted by ${legalName}`;
             description = '';
@@ -242,12 +242,19 @@ const postNote = async (req, res) => {
         return res.status(400).json({ error: "Note text is required." });
     }
 
+    const creatorUser = await prisma.user.findUnique({
+        where: { user_id: req.user.user_id }
+    });
+
+    let creator = creatorUser?.display_name ?? "Administrator User";
+
     try {
         await prismaContext.run({ userId: req.user.user_id }, async () => {
             const note = await prisma.note.create({
                 data: {
                     userId,
-                    text
+                    text,
+                    createdBy: creator
                 }
             });
             res.status(201).json(note);

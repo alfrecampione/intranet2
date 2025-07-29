@@ -60,19 +60,17 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  personalEmail          String?
-  isPersonalEmailVisible Boolean @default(false)
-  personalPhone          String?
-  isPersonalPhoneVisible Boolean @default(false)
-  country                String?
-  city                   String?
-  state                  String?
-  zipCode                String?
-  id                     String  @id @default(uuid())
-  userId                 String  @unique
-  addressLine1           String?
-  addressLine2           String?
-  user                   User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  personalEmail String?
+  personalPhone String?
+  country       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  id            String  @id @default(uuid())
+  userId        String  @unique
+  addressLine1  String?
+  addressLine2  String?
+  user          User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
 }
@@ -209,6 +207,7 @@ model Note {
   userId    String
   text      String
   createdAt DateTime @default(now())
+  createdBy String
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
