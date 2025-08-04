@@ -120,31 +120,30 @@
         <div class="menu-inner-shadow"></div>
 
         <ul class="menu-inner py-1">
-          <% if (isEdit) { %>
+          <li class="menu-item">
+            <a href="/users/dashboard" class="menu-link">
+              <i class="menu-icon tf-icons ti ti-smart-home"></i>
+              <div data-i18n="Dashboard">Dashboard</div>
+            </a>
+          </li>
+          <% if (user && (user.agency || !user.isAgent)) { %>
             <li class="menu-item">
-              <a href="/users/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-smart-home"></i>
-                <div data-i18n="Dashboard">Dashboard</div>
+              <a href="/users/agents" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                <div data-i18n="Agents">Agents</div>
               </a>
             </li>
-            <% if (user && (user.agency || !user.isAgent)) { %>
-              <li class="menu-item active">
-                <a href="/users/agents" class="menu-link">
-                  <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                  <div data-i18n="Agents">Agents</div>
-                </a>
-              </li>
-              <li class="menu-header small text-uppercase">
-                <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
-              </li>
-              <li class="menu-item">
-                <a href="/users/config_emails" class="menu-link">
-                  <i class="menu-icon tf-icons ti ti-settings-check"></i>
-                  <div data-i18n="Config">Config</div>
-                </a>
-              </li>
-              <% } %>
-                <% } %>
+
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+            </li>
+            <li class="menu-item">
+              <a href="/users/config_emails" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                <div data-i18n="Config">Config</div>
+              </a>
+            </li>
+            <% } %>
         </ul>
       </aside>
 
