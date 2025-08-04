@@ -186,5 +186,8 @@ router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
 import { massiveCreateAgents } from "./controllers/agents.js";
 router.post("/agents/massiveCreate", massiveCreateAgents);
 
+import { sendSMSHandler } from "./controllers/communication.js";
+router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler)
+
 
 export default router;
