@@ -294,7 +294,8 @@
 
                                 <table class="table table-bordered" id="results-table">
                                     <thead>
-                                        <tr id="results-header">
+                                        <tr>
+                                            <th>#</th>
                                             <th>Name</th>
                                             <th>Filter</th>
                                         </tr>
@@ -365,98 +366,105 @@
     </script>
 
     <script>
-        const data = JSON.parse(document.getElementById("agents-data").textContent);
-        const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
+        $(document).ready(function () {
+            const data = JSON.parse(document.getElementById("agents-data").textContent);
+            const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
 
-        const filterTypeSelect = document.getElementById('filter-type');
-        const filterValueSelect = document.getElementById('filter-value');
-        const resultsCount = document.getElementById('results-count');
+            const filterTypeSelect = document.getElementById('filter-type');
+            const filterValueSelect = document.getElementById('filter-value');
+            const resultsCount = document.getElementById('results-count');
 
-        let dataTable;
+            let dataTable;
 
-        function populateFilterValues(type) {
-            filterValueSelect.innerHTML = '';
-            if (!type || !filtersData[type + 's']) return;
+            function populateFilterValues(type) {
+                filterValueSelect.innerHTML = '<option value="">Select Value</option>';
+                if (!type || !filtersData[type + 's']) return;
 
-            filtersData[type + 's'].forEach(value => {
-                const opt = document.createElement('option');
-                opt.value = value;
-                opt.textContent = value;
-                filterValueSelect.appendChild(opt);
-            });
+                filtersData[type + 's'].forEach(value => {
+                    const opt = document.createElement('option');
+                    opt.value = value;
+                    opt.textContent = value;
+                    filterValueSelect.appendChild(opt);
+                });
 
-            filterValueSelect.disabled = false;
-        }
-
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        function uniqueByProperty(arr, prop) {
-            const seen = new Set();
-            return arr.filter(item => {
-                if (seen.has(item[prop])) return false;
-                seen.add(item[prop]);
-                return true;
-            });
-        }
-
-        function applyFilterAndRender() {
-            const filterType = filterTypeSelect.value;
-            const filterValue = filterValueSelect.value;
-
-            let filtered = data;
-
-            if (filterType && filterValue) {
-                filtered = data.filter(item => item[filterType] === filterValue);
-                filtered = uniqueByProperty(filtered, 'user_id');
-            } else {
-                filtered = uniqueByProperty(data, 'user_id');
+                filterValueSelect.disabled = false;
             }
 
-            resultsCount.textContent = `Results found: ${filtered.length}`;
+            function capitalize(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
 
-            const tableData = filtered.map((item, index) => {
-                return [
+            function uniqueByProperty(arr, prop) {
+                const seen = new Set();
+                return arr.filter(item => {
+                    if (seen.has(item[prop])) return false;
+                    seen.add(item[prop]);
+                    return true;
+                });
+            }
+
+            function applyFilterAndRender() {
+                const filterType = filterTypeSelect.value;
+                const filterValue = filterValueSelect.value;
+
+                let filtered = data;
+
+                if (filterType && filterValue) {
+                    filtered = data.filter(item => item[filterType] === filterValue);
+                    filtered = uniqueByProperty(filtered, 'user_id');
+                } else {
+                    filtered = uniqueByProperty(data, 'user_id');
+                }
+
+                resultsCount.textContent = `Results found: ${filtered.length}`;
+
+                // Update the table header
+                const headerText = filterType ? capitalize(filterType) : 'Filter';
+                $('#results-table thead tr th:nth-child(3)').text(headerText);
+
+                // Prepare table data
+                const tableData = filtered.map((item, index) => [
                     index + 1,
                     item.name,
-                    filterType ? item[filterType] || '' : ''
-                ];
-            });
+                    filterType ? (item[filterType] || '') : ''
+                ]);
 
-            if (dataTable) {
-                dataTable.clear().rows.add(tableData).draw();
-            } else {
+                // Destroy existing DataTable if it exists
+                if ($.fn.DataTable.isDataTable('#results-table')) {
+                    dataTable.destroy();
+                }
+
+                // Initialize DataTable
                 dataTable = $('#results-table').DataTable({
                     data: tableData,
                     columns: [
                         { title: "#" },
                         { title: "Name" },
-                        { title: capitalize(filterType || "Filter") }
+                        { title: headerText }
                     ],
-                    destroy: true,
                     responsive: true,
                     pageLength: 10,
-                    lengthMenu: [7, 10, 25, 50, 75, 100]
+                    lengthMenu: [7, 10, 25, 50, 75, 100],
+                    autoWidth: false // Add this to prevent width calculation issues
                 });
             }
-        }
 
-        filterTypeSelect.addEventListener('change', () => {
-            const type = filterTypeSelect.value;
-            if (type) {
-                populateFilterValues(type);
-            } else {
-                filterValueSelect.innerHTML = '';
-                filterValueSelect.disabled = true;
-            }
+            filterTypeSelect.addEventListener('change', () => {
+                const type = filterTypeSelect.value;
+                if (type) {
+                    populateFilterValues(type);
+                } else {
+                    filterValueSelect.innerHTML = '<option value="">Select Value</option>';
+                    filterValueSelect.disabled = true;
+                }
+                applyFilterAndRender();
+            });
+
+            filterValueSelect.addEventListener('change', applyFilterAndRender);
+
+            // Initial render
             applyFilterAndRender();
         });
-
-        filterValueSelect.addEventListener('change', applyFilterAndRender);
-
-        // Initial render
-        applyFilterAndRender();
     </script>
 </body>
 
