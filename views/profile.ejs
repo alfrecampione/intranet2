@@ -504,7 +504,7 @@
     </script>
 
     <script>
-        const statusOptions = [
+        const normalStatusOptions = [
             "Request Received from Agent",
             "Pending Submission",
             "Submitted to Carrier",
@@ -512,6 +512,15 @@
             "Carrier Sent Contract to Agent",
             "Ready to Sell"
         ];
+
+        const specialStatusOptions = [
+            "Rejected by Carrier",
+            "Withdrawn by Agent",
+            "Need Release"
+        ];
+
+        // Todos los estados para el select
+        const allStatusOptions = [...normalStatusOptions, ...specialStatusOptions];
 
         const user = JSON.parse(document.getElementById("user").textContent);
 
@@ -522,7 +531,7 @@
             const select = document.createElement("select");
             select.className = "form-select form-select-sm";
 
-            statusOptions.forEach((status) => {
+            allStatusOptions.forEach((status) => {
                 const option = document.createElement("option");
                 option.value = status;
                 option.textContent = status;
@@ -585,15 +594,28 @@
                         });
                         tdStatusProgress.appendChild(select);
                     } else {
-                        const idx = statusOptions.indexOf(carrier.status);
-                        const currentStep = idx === -1 ? 0 : idx + 1;
-                        const totalSteps = statusOptions.length;
-                        const percent = (currentStep / totalSteps) * 100;
+                        const isNormal = normalStatusOptions.includes(carrier.status);
+                        let percent = 0;
+                        let progressBarClass = "";
+
+                        if (isNormal) {
+                            const idx = normalStatusOptions.indexOf(carrier.status);
+                            const currentStep = idx === -1 ? 0 : idx + 1;
+                            const totalSteps = normalStatusOptions.length;
+                            percent = (currentStep / totalSteps) * 100;
+                            progressBarClass = percent === 100 ? "bg-success" : "bg-primary";
+                        } else if (specialStatusOptions.includes(carrier.status)) {
+                            percent = 100;
+                            progressBarClass = "bg-warning";
+                        } else {
+                            percent = 0;
+                            progressBarClass = "bg-secondary";
+                        }
 
                         tdStatusProgress.innerHTML = `
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1" style="height: 8px;">
-                                <div class="progress-bar ${percent === 100 ? 'bg-success' : ''}"
+                                <div class="progress-bar ${progressBarClass}"
                                     role="progressbar"
                                     style="width: ${percent}%;"
                                     aria-valuenow="${percent}"
@@ -601,7 +623,7 @@
                                     aria-valuemax="100">
                                 </div>
                             </div>
-                            <small class="text-nowrap">${currentStep}/${totalSteps}</small>
+                            <small class="text-nowrap">${isNormal ? (normalStatusOptions.indexOf(carrier.status) + 1) + '/' + normalStatusOptions.length : ''}</small>
                         </div>
                         <small class="text-muted d-block mb-1">${carrier.status || 'Unknown status'}</small>
                     `;
