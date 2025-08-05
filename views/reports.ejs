@@ -269,31 +269,40 @@
                 </nav>
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="mb-3 d-flex gap-2 flex-wrap">
-                            <select id="filter-type" class="form-select" style="width: 200px;">
-                                <option value="">Select Filter Type</option>
-                                <option value="state">State</option>
-                                <option value="carrier">Carrier</option>
-                                <option value="status">Status</option>
-                                <option value="agency">Agency</option>
-                            </select>
+                        <div class="card">
+                            <div class="card-header flex-column flex-md-row align-items-center gap-2">
+                                <div class="head-label">
+                                    <h5 class="card-title mb-0">Agents</h5>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap ms-md-auto">
+                                    <select id="filter-type" class="form-select" style="width: 200px;">
+                                        <option value="">Select Filter Type</option>
+                                        <option value="state">State</option>
+                                        <option value="carrier">Carrier</option>
+                                        <option value="status">Status</option>
+                                        <option value="agency">Agency</option>
+                                    </select>
 
-                            <select id="filter-value" class="form-select" style="width: 200px;" disabled>
-                                <option value="">Select Value</option>
-                            </select>
+                                    <select id="filter-value" class="form-select" style="width: 200px;" disabled>
+                                        <option value="">Select Value</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div id="results-count" class="mb-2 fw-bold"></div>
+
+                                <table class="table table-bordered" id="results-table">
+                                    <thead>
+                                        <tr id="results-header">
+                                            <th>Name</th>
+                                            <th>Filter</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
-
-                        <div id="results-count" class="mb-2 fw-bold"></div>
-
-                        <table class="table table-bordered" id="results-table">
-                            <thead>
-                                <tr id="results-header">
-                                    <th>Name</th>
-                                    <th>Filter</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
                     </div>
                     <div class="content-backdrop fade"></div>
                 </div>
@@ -362,7 +371,8 @@
         const filterTypeSelect = document.getElementById('filter-type');
         const filterValueSelect = document.getElementById('filter-value');
         const resultsCount = document.getElementById('results-count');
-        const tableBody = document.querySelector('#results-table tbody');
+
+        let dataTable;
 
         function populateFilterValues(type) {
             filterValueSelect.innerHTML = '';
@@ -378,37 +388,6 @@
             filterValueSelect.disabled = false;
         }
 
-        function renderTable(filteredData) {
-            const filterType = filterTypeSelect.value;
-            tableBody.innerHTML = '';
-
-            const headerRow = document.getElementById('results-header');
-
-            if (filterType) {
-                headerRow.innerHTML = `
-                <th>Name</th>
-                <th>${capitalize(filterType)}</th>
-            `;
-            } else {
-                headerRow.innerHTML = `<th>Name</th>`;
-            }
-
-            resultsCount.textContent = `Results found: ${filteredData.length}`;
-
-            filteredData.forEach(row => {
-                const tr = document.createElement('tr');
-                if (filterType) {
-                    tr.innerHTML = `
-                    <td>${row.name}</td>
-                    <td>${row[filterType]}</td>
-                `;
-                } else {
-                    tr.innerHTML = `<td>${row.name}</td>`;
-                }
-                tableBody.appendChild(tr);
-            });
-        }
-
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
@@ -422,7 +401,7 @@
             });
         }
 
-        function applyFilter() {
+        function applyFilterAndRender() {
             const filterType = filterTypeSelect.value;
             const filterValue = filterValueSelect.value;
 
@@ -435,7 +414,32 @@
                 filtered = uniqueByProperty(data, 'user_id');
             }
 
-            renderTable(filtered);
+            resultsCount.textContent = `Results found: ${filtered.length}`;
+
+            const tableData = filtered.map((item, index) => {
+                return [
+                    index + 1,
+                    item.name,
+                    filterType ? item[filterType] || '' : ''
+                ];
+            });
+
+            if (dataTable) {
+                dataTable.clear().rows.add(tableData).draw();
+            } else {
+                dataTable = $('#results-table').DataTable({
+                    data: tableData,
+                    columns: [
+                        { title: "#" },
+                        { title: "Name" },
+                        { title: capitalize(filterType || "Filter") }
+                    ],
+                    destroy: true,
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [7, 10, 25, 50, 75, 100]
+                });
+            }
         }
 
         filterTypeSelect.addEventListener('change', () => {
@@ -443,15 +447,16 @@
             if (type) {
                 populateFilterValues(type);
             } else {
-                filterValueSelect.innerHTML = '<option value="">Select Value</option>';
+                filterValueSelect.innerHTML = '';
                 filterValueSelect.disabled = true;
             }
-            applyFilter();
+            applyFilterAndRender();
         });
 
-        filterValueSelect.addEventListener('change', applyFilter);
+        filterValueSelect.addEventListener('change', applyFilterAndRender);
 
-        renderTable(uniqueByProperty(data, 'user_id'));
+        // Initial render
+        applyFilterAndRender();
     </script>
 </body>
 
