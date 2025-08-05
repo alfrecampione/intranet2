@@ -318,7 +318,9 @@
                                                 <li class="mb-2">
                                                     <span class="h6">Birthday:</span>
                                                     <span>
-                                                        <%= personalInfo?.dateOfBirth || "None" %>
+                                                        <%= personalInfo?.dateOfBirth ? new
+                                                            Date(personalInfo.dateOfBirth).toLocaleDateString() : "None"
+                                                            %>
                                                     </span>
                                                 </li>
                                                 <li class="mb-2">
