@@ -405,10 +405,9 @@
 
             function applyFilterAndRender() {
                 const filterType = filterTypeSelect.value;
-                // Considerar "Select Value" como no tener filtro
+
                 const filterValue = filterValueSelect.value === "" ? null : filterValueSelect.value;
 
-                // Determinar si hay filtro aplicado
                 const isFilterApplied = filterType && filterValue;
 
                 let filtered = data;
@@ -422,10 +421,10 @@
 
                 resultsCount.textContent = `Results found: ${filtered.length}`;
 
-                // Preparar columnas dinámicamente
                 const columns = [
                     {
                         title: "#",
+                        data: null,
                         render: function (data, type, row, meta) {
                             return meta.row + 1;
                         }
@@ -433,7 +432,6 @@
                     { title: "Name", data: "name" }
                 ];
 
-                // Añadir columna de filtro solo si hay filtro aplicado
                 if (isFilterApplied) {
                     columns.push({
                         title: capitalize(filterType),
@@ -441,14 +439,11 @@
                     });
                 }
 
-                // Destruir DataTable si existe
                 if ($.fn.DataTable.isDataTable('#results-table')) {
                     dataTable.destroy();
-                    // Limpiar la estructura de la tabla
                     $('#results-table').empty().html('<thead><tr></tr></thead><tbody></tbody>');
                 }
 
-                // Inicializar DataTable con columnas dinámicas
                 dataTable = $('#results-table').DataTable({
                     data: filtered,
                     columns: columns,
