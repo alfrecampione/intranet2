@@ -386,8 +386,8 @@
 
             if (filterType) {
                 headerRow.innerHTML = `
-            <th>Name</th>
-            <th>${capitalize(filterType)}</th>
+                <th>Name</th>
+                <th>${capitalize(filterType)}</th>
             `;
             } else {
                 headerRow.innerHTML = `<th>Name</th>`;
@@ -399,9 +399,9 @@
                 const tr = document.createElement('tr');
                 if (filterType) {
                     tr.innerHTML = `
-                <td>${row.name}</td>
-                <td>${row[filterType]}</td>
-            `;
+                    <td>${row.name}</td>
+                    <td>${row[filterType]}</td>
+                `;
                 } else {
                     tr.innerHTML = `<td>${row.name}</td>`;
                 }
@@ -414,6 +414,15 @@
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
+        function uniqueByProperty(arr, prop) {
+            const seen = new Set();
+            return arr.filter(item => {
+                if (seen.has(item[prop])) return false;
+                seen.add(item[prop]);
+                return true;
+            });
+        }
+
         function applyFilter() {
             const filterType = filterTypeSelect.value;
             const filterValue = filterValueSelect.value;
@@ -422,6 +431,11 @@
 
             if (filterType && filterValue) {
                 filtered = data.filter(item => item[filterType] === filterValue);
+                // Eliminar duplicados basados en el filtro aplicado
+                filtered = uniqueByProperty(filtered, filterType);
+            } else {
+                // Sin filtro, eliminar duplicados basados en el nombre
+                filtered = uniqueByProperty(filtered, 'name');
             }
 
             renderTable(filtered);
