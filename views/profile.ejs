@@ -692,54 +692,53 @@
                                     <div class="card-datatable table-responsive pt-0">
                                         <div id="DataTables_Table_0_wrapper"
                                             class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                            <div class="card-header flex-column flex-md-row">
-                                                <div class="head-label text-center">
+                                            <div
+                                                class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                                                <div class="head-label">
                                                     <h5 class="card-title mb-0">Agent's Carrier Status</h5>
                                                 </div>
-                                            </div>
-                                            <% if (!user?.isAgent) { %>
-                                                <div id="edit-controls" class="text-end mb-2">
-                                                    <button id="edit-toggle"
-                                                        class="btn btn-sm btn-outline-primary">Editar</button>
-                                                </div>
-                                                <% } %>
 
-                                                    <table
-                                                        class="datatables-basic table dataTable no-footer dtr-column table-bordered"
-                                                        id="DataTables_Table_0"
-                                                        aria-describedby="DataTables_Table_0_info"
-                                                        style="width: 1396px">
-                                                        <thead>
-                                                            <tr>
-                                                                <th class="sorting_disabled"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 30px" aria-label="#">#
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="0"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 144px">
-                                                                    State
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="0"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 144px">
-                                                                    Carrier Name
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="2"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 130px">
-                                                                    Status Progress
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr class="odd">
-                                                                <td valign="top" colspan="4" class="dataTables_empty">
-                                                                    Loading...
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                                <% if (!user?.isAgent) { %>
+                                                    <div id="edit-controls">
+                                                        <a href="javascript:void(0)" id="edit-toggle"
+                                                            class="ti ti-edit fs-5 text-body" title="Edit status"></a>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+                                            <table
+                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
+                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                                style="width: 1396px">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="sorting_disabled" aria-controls="DataTables_Table_0"
+                                                            rowspan="1" colspan="1" style="width: 30px" aria-label="#">#
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="0"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 144px">
+                                                            State
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="0"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 144px">
+                                                            Carrier Name
+                                                        </th>
+                                                        <th class="sorting_disabled" tabindex="2"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 130px">
+                                                            Status Progress
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr class="odd">
+                                                        <td valign="top" colspan="4" class="dataTables_empty">
+                                                            Loading...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -949,10 +948,8 @@
             });
 
             const result = await response.json();
-            if (result.success) {
-                alert("Estados actualizados correctamente");
-            } else {
-                alert("Error al actualizar los estados: " + result.message);
+            if (!result.success) {
+                alert("Error when updating status: " + result.message);
             }
         }
 
@@ -969,12 +966,15 @@
             editButton.addEventListener("click", async () => {
                 if (!isEditing) {
                     isEditing = true;
-                    editButton.textContent = "Guardar";
+                    editButton.classList.remove("ti-edit");
+                    editButton.classList.add("ti-device-floppy"); // ícono de guardar
+                    editButton.setAttribute("title", "Guardar cambios");
                     renderCarrierTable(carriersData);
                 } else {
-                    // Guardar cambios
                     isEditing = false;
-                    editButton.textContent = "Editar";
+                    editButton.classList.remove("ti-device-floppy");
+                    editButton.classList.add("ti-edit");
+                    editButton.setAttribute("title", "Editar datos");
                     await saveCarrierUpdates(carriersData);
                     renderCarrierTable(carriersData);
                 }
