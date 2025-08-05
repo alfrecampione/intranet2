@@ -697,40 +697,49 @@
                                                     <h5 class="card-title mb-0">Agent's Carrier Status</h5>
                                                 </div>
                                             </div>
-                                            <table
-                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
-                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                style="width: 1396px">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="sorting_disabled" aria-controls="DataTables_Table_0"
-                                                            rowspan="1" colspan="1" style="width: 30px" aria-label="#">#
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="0"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 144px">
-                                                            State
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="0"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 144px">
-                                                            Carrier Name
-                                                        </th>
-                                                        <th class="sorting_disabled" tabindex="2"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 130px">
-                                                            Status Progress
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr class="odd">
-                                                        <td valign="top" colspan="4" class="dataTables_empty">
-                                                            Loading...
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                            <% if (!user?.isAgent) { %>
+                                                <div id="edit-controls" class="text-end mb-2">
+                                                    <button id="edit-toggle"
+                                                        class="btn btn-sm btn-outline-primary">Editar</button>
+                                                </div>
+                                                <% } %>
+
+                                                    <table
+                                                        class="datatables-basic table dataTable no-footer dtr-column table-bordered"
+                                                        id="DataTables_Table_0"
+                                                        aria-describedby="DataTables_Table_0_info"
+                                                        style="width: 1396px">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="sorting_disabled"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 30px" aria-label="#">#
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 144px">
+                                                                    State
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 144px">
+                                                                    Carrier Name
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="2"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 130px">
+                                                                    Status Progress
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr class="odd">
+                                                                <td valign="top" colspan="4" class="dataTables_empty">
+                                                                    Loading...
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                         </div>
                                     </div>
                                 </div>
@@ -807,6 +816,9 @@
     <script id="carriers-data" type="application/json">
       <%- JSON.stringify(carriers) %>
     </script>
+    <script id="user" type="application/json">
+      <%- JSON.stringify(user) %>
+    </script>
 
     <script>
         const statusOptions = [
@@ -817,6 +829,26 @@
             "Carrier Sent Contract to Agent",
             "Ready to Sell"
         ];
+
+        const user = JSON.parse(document.getElementById("user").textContent);
+
+        let isEditing = false;
+        let carriersData = [];
+
+        function createStatusSelect(currentStatus) {
+            const select = document.createElement("select");
+            select.className = "form-select form-select-sm";
+
+            statusOptions.forEach((status) => {
+                const option = document.createElement("option");
+                option.value = status;
+                option.textContent = status;
+                if (status === currentStatus) option.selected = true;
+                select.appendChild(option);
+            });
+
+            return select;
+        }
 
         function renderCarrierTable(carriers) {
             const table = document.querySelector(".datatables-basic");
@@ -860,27 +892,37 @@
                     tr.appendChild(tdName);
 
                     const tdStatusProgress = document.createElement("td");
+                    tdStatusProgress.dataset.company = carrier.company;
+                    tdStatusProgress.dataset.state = carrier.state;
 
-                    const idx = statusOptions.indexOf(carrier.status);
-                    const currentStep = (idx === -1 ? 0 : idx + 1);
-                    const totalSteps = statusOptions.length;
-                    const percent = (currentStep / totalSteps) * 100;
+                    if (isEditing) {
+                        const select = createStatusSelect(carrier.status);
+                        select.addEventListener("change", (e) => {
+                            carrier.status = e.target.value;
+                        });
+                        tdStatusProgress.appendChild(select);
+                    } else {
+                        const idx = statusOptions.indexOf(carrier.status);
+                        const currentStep = idx === -1 ? 0 : idx + 1;
+                        const totalSteps = statusOptions.length;
+                        const percent = (currentStep / totalSteps) * 100;
 
-                    tdStatusProgress.innerHTML = `
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="progress flex-grow-1" style="height: 8px;">
-                        <div class="progress-bar ${percent === 100 ? 'bg-success' : ''}"
-                             role="progressbar"
-                             style="width: ${percent}%;"
-                             aria-valuenow="${percent}"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
+                        tdStatusProgress.innerHTML = `
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar ${percent === 100 ? 'bg-success' : ''}"
+                                    role="progressbar"
+                                    style="width: ${percent}%;"
+                                    aria-valuenow="${percent}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-nowrap">${currentStep}/${totalSteps}</small>
                         </div>
-                      </div>
-                      <small class="text-nowrap">${currentStep}/${totalSteps}</small>
-                    </div>
-                    <small class="text-muted">${carrier.status || 'Unknown status'}</small>
-                  `;
+                        <small class="text-muted d-block mb-1">${carrier.status || 'Unknown status'}</small>
+                    `;
+                    }
 
                     tr.appendChild(tdStatusProgress);
                     tbody.appendChild(tr);
@@ -888,9 +930,55 @@
             });
         }
 
+        async function saveCarrierUpdates(carriers) {
+            const updates = carriers.map(({ company, state, status }) => ({
+                company,
+                state,
+                status,
+            }));
+
+            const response = await fetch("/users/carrrier_status", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    updates,
+                    userId: user.user_id,
+                }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert("Estados actualizados correctamente");
+            } else {
+                alert("Error al actualizar los estados: " + result.message);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
-            const carriers = JSON.parse(document.getElementById("carriers-data").textContent);
-            renderCarrierTable(carriers);
+            carriersData = JSON.parse(document.getElementById("carriers-data").textContent);
+            renderCarrierTable(carriersData);
+
+            if (!user.isAgent) {
+                document.getElementById("edit-controls").style.display = "block";
+            }
+
+            const editButton = document.getElementById("edit-toggle");
+
+            editButton.addEventListener("click", async () => {
+                if (!isEditing) {
+                    isEditing = true;
+                    editButton.textContent = "Guardar";
+                    renderCarrierTable(carriersData);
+                } else {
+                    // Guardar cambios
+                    isEditing = false;
+                    editButton.textContent = "Editar";
+                    await saveCarrierUpdates(carriersData);
+                    renderCarrierTable(carriersData);
+                }
+            });
         });
     </script>
 
