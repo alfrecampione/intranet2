@@ -272,7 +272,6 @@
                         <div class="card">
                             <div class="card-header flex-column flex-md-row align-items-center gap-2">
                                 <div class="head-label">
-                                    <h5 class="card-title mb-0">Agents</h5>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap ms-md-auto">
                                     <select id="filter-type" class="form-select" style="width: 200px;">
@@ -297,7 +296,7 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Name</th>
-                                            <th>Filter</th>
+                                            <!-- La columna Filter será dinámica -->
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -373,6 +372,7 @@
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
             const resultsCount = document.getElementById('results-count');
+            const resultsTable = document.getElementById('results-table');
 
             let dataTable;
 
@@ -405,11 +405,15 @@
 
             function applyFilterAndRender() {
                 const filterType = filterTypeSelect.value;
-                const filterValue = filterValueSelect.value;
+                // Considerar "Select Value" como no tener filtro
+                const filterValue = filterValueSelect.value === "" ? null : filterValueSelect.value;
+
+                // Determinar si hay filtro aplicado
+                const isFilterApplied = filterType && filterValue;
 
                 let filtered = data;
 
-                if (filterType && filterValue) {
+                if (isFilterApplied) {
                     filtered = data.filter(item => item[filterType] === filterValue);
                     filtered = uniqueByProperty(filtered, 'user_id');
                 } else {
@@ -418,34 +422,40 @@
 
                 resultsCount.textContent = `Results found: ${filtered.length}`;
 
-                // Update the table header
-                const headerText = filterType ? capitalize(filterType) : 'Filter';
-                $('#results-table thead tr th:nth-child(3)').text(headerText);
+                // Preparar columnas dinámicamente
+                const columns = [
+                    {
+                        title: "#",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { title: "Name", data: "name" }
+                ];
 
-                // Prepare table data
-                const tableData = filtered.map((item, index) => [
-                    index + 1,
-                    item.name,
-                    filterType ? (item[filterType] || '') : ''
-                ]);
-
-                // Destroy existing DataTable if it exists
-                if ($.fn.DataTable.isDataTable('#results-table')) {
-                    dataTable.destroy();
+                // Añadir columna de filtro solo si hay filtro aplicado
+                if (isFilterApplied) {
+                    columns.push({
+                        title: capitalize(filterType),
+                        data: filterType
+                    });
                 }
 
-                // Initialize DataTable
+                // Destruir DataTable si existe
+                if ($.fn.DataTable.isDataTable('#results-table')) {
+                    dataTable.destroy();
+                    // Limpiar la estructura de la tabla
+                    $('#results-table').empty().html('<thead><tr></tr></thead><tbody></tbody>');
+                }
+
+                // Inicializar DataTable con columnas dinámicas
                 dataTable = $('#results-table').DataTable({
-                    data: tableData,
-                    columns: [
-                        { title: "#" },
-                        { title: "Name" },
-                        { title: headerText }
-                    ],
+                    data: filtered,
+                    columns: columns,
                     responsive: true,
                     pageLength: 10,
                     lengthMenu: [7, 10, 25, 50, 75, 100],
-                    autoWidth: false // Add this to prevent width calculation issues
+                    autoWidth: false
                 });
             }
 
