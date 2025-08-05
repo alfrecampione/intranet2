@@ -17,6 +17,14 @@ const renderProfile = async (req, res) => {
         where: { userId }
     });
 
+    const paymentMethod = await prisma.paymentMethod.findUnique({
+        where: { userId }
+    });
+
+    const documents = await prisma.documents.findUnique({
+        where: { userId }
+    });
+
     const carriers = await prisma.statesANDCarriers.findMany({
         where: { userId },
         orderBy: { state: 'asc' },
@@ -35,7 +43,7 @@ const renderProfile = async (req, res) => {
     const activityEntries = await Promise.all(logs.map(createActivityEntry));
 
     const activity = activityEntries
-        .filter(Boolean) // Remove null entries
+        .filter(Boolean)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.render("profile", {
@@ -44,6 +52,8 @@ const renderProfile = async (req, res) => {
         profile,
         personalInfo,
         contactInfo,
+        paymentMethod,
+        documents,
         carriers,
         activity
     });

@@ -310,14 +310,15 @@
                                                     </span>
                                                 </li>
                                                 <li class="mb-2">
-                                                    <span class="h6">Age:</span>
+                                                    <span class="h6">NPM:</span>
                                                     <span>
-                                                        <% if (personalInfo?.dateOfBirth) { %>
-                                                            <%= new Date().getFullYear() - new
-                                                                Date(personalInfo.dateOfBirth).getFullYear() %>
-                                                                <% } else { %>
-                                                                    None
-                                                                    <% } %>
+                                                        <%= personalInfo?.npm || "None" %>
+                                                    </span>
+                                                </li>
+                                                <li class="mb-2">
+                                                    <span class="h6">Birthday:</span>
+                                                    <span>
+                                                        <%= personalInfo?.dateOfBirth || "None" %>
                                                     </span>
                                                 </li>
                                                 <li class="mb-2">
@@ -338,6 +339,333 @@
                                     </div>
                                 </div>
                                 <!-- /Agent Card -->
+                                <!-- Extra Agent Details -->
+                                <div class="card mb-6">
+                                    <div class="card-body">
+                                        <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
+                                        <ul class="list-unstyled mb-4">
+                                            <!-- Personal Info -->
+                                            <% if (personalInfo?.preferredName) { %>
+                                                <li class="mb-2"><span class="h6">Preferred Name:</span> <span>
+                                                        <%= personalInfo.preferredName %>
+                                                    </span></li>
+                                                <% } %>
+                                                    <% if (personalInfo?.ssn) { %>
+                                                        <li class="mb-2"><span class="h6">SSN:</span> <span>
+                                                                <%= personalInfo.ssn %>
+                                                            </span></li>
+                                                        <% } %>
+                                                            <% if (personalInfo?.agency) { %>
+                                                                <li class="mb-2"><span class="h6">Agency:</span> <span>
+                                                                        <%= personalInfo.agency %>
+                                                                    </span></li>
+                                                                <% } %>
+                                                                    <li class="mb-2"><span class="h6">Franchise:</span>
+                                                                        <span>
+                                                                            <%= personalInfo?.franchise ? "Yes" : "No"
+                                                                                %>
+                                                                        </span>
+                                                                    </li>
+                                                                    <% if (personalInfo?.businessName) { %>
+                                                                        <li class="mb-2"><span class="h6">Business
+                                                                                Name:</span> <span>
+                                                                                <%= personalInfo.businessName %>
+                                                                            </span></li>
+                                                                        <% } %>
+                                                                            <% if (personalInfo?.companyEIN) { %>
+                                                                                <li class="mb-2"><span
+                                                                                        class="h6">Company EIN:</span>
+                                                                                    <span>
+                                                                                        <%= personalInfo.companyEIN %>
+                                                                                    </span>
+                                                                                </li>
+                                                                                <% } %>
+
+                                                                                    <!-- Contact Info -->
+                                                                                    <% if (contactInfo?.addressLine1) {
+                                                                                        %>
+                                                                                        <li class="mb-2"><span
+                                                                                                class="h6">Address Line
+                                                                                                1:</span> <span>
+                                                                                                <%= contactInfo.addressLine1
+                                                                                                    %>
+                                                                                            </span></li>
+                                                                                        <% } %>
+                                                                                            <% if
+                                                                                                (contactInfo?.addressLine2)
+                                                                                                { %>
+                                                                                                <li class="mb-2"><span
+                                                                                                        class="h6">Address
+                                                                                                        Line 2:</span>
+                                                                                                    <span>
+                                                                                                        <%= contactInfo.addressLine2
+                                                                                                            %>
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                                <% } %>
+                                                                                                    <% if
+                                                                                                        (contactInfo?.zipCode)
+                                                                                                        { %>
+                                                                                                        <li
+                                                                                                            class="mb-2">
+                                                                                                            <span
+                                                                                                                class="h6">Zip
+                                                                                                                Code:</span>
+                                                                                                            <span>
+                                                                                                                <%= contactInfo.zipCode
+                                                                                                                    %>
+                                                                                                            </span>
+                                                                                                        </li>
+                                                                                                        <% } %>
+
+                                                                                                            <!-- Payment Method -->
+                                                                                                            <% if
+                                                                                                                (paymentMethod?.bankAccountType)
+                                                                                                                { %>
+                                                                                                                <li
+                                                                                                                    class="mb-2">
+                                                                                                                    <span
+                                                                                                                        class="h6">Bank
+                                                                                                                        Account
+                                                                                                                        Type:</span>
+                                                                                                                    <span>
+                                                                                                                        <%= paymentMethod.bankAccountType
+                                                                                                                            %>
+                                                                                                                    </span>
+                                                                                                                </li>
+                                                                                                                <% } %>
+                                                                                                                    <% if
+                                                                                                                        (paymentMethod?.bankAccountNum)
+                                                                                                                        {
+                                                                                                                        %>
+                                                                                                                        <li
+                                                                                                                            class="mb-2">
+                                                                                                                            <span
+                                                                                                                                class="h6">Bank
+                                                                                                                                Account
+                                                                                                                                Number:</span>
+                                                                                                                            <span>
+                                                                                                                                <%= paymentMethod.bankAccountNum
+                                                                                                                                    %>
+                                                                                                                            </span>
+                                                                                                                        </li>
+                                                                                                                        <% }
+                                                                                                                            %>
+                                                                                                                            <% if
+                                                                                                                                (paymentMethod?.bankRoutingNum)
+                                                                                                                                {
+                                                                                                                                %>
+                                                                                                                                <li
+                                                                                                                                    class="mb-2">
+                                                                                                                                    <span
+                                                                                                                                        class="h6">Routing
+                                                                                                                                        Number:</span>
+                                                                                                                                    <span>
+                                                                                                                                        <%= paymentMethod.bankRoutingNum
+                                                                                                                                            %>
+                                                                                                                                    </span>
+                                                                                                                                </li>
+                                                                                                                                <% }
+                                                                                                                                    %>
+                                                                                                                                    <% if
+                                                                                                                                        (paymentMethod?.accountNickname)
+                                                                                                                                        {
+                                                                                                                                        %>
+                                                                                                                                        <li
+                                                                                                                                            class="mb-2">
+                                                                                                                                            <span
+                                                                                                                                                class="h6">Account
+                                                                                                                                                Nickname:</span>
+                                                                                                                                            <span>
+                                                                                                                                                <%= paymentMethod.accountNickname
+                                                                                                                                                    %>
+                                                                                                                                            </span>
+                                                                                                                                        </li>
+                                                                                                                                        <% }
+                                                                                                                                            %>
+
+                                                                                                                                            <!-- Documents -->
+                                                                                                                                            <% if
+                                                                                                                                                (documents?.directDepositForm)
+                                                                                                                                                {
+                                                                                                                                                %>
+                                                                                                                                                <li
+                                                                                                                                                    class="mb-2">
+                                                                                                                                                    <span
+                                                                                                                                                        class="h6">Direct
+                                                                                                                                                        Deposit
+                                                                                                                                                        Form:</span>
+                                                                                                                                                    <span>
+                                                                                                                                                        <%= documents.directDepositForm
+                                                                                                                                                            %>
+                                                                                                                                                    </span>
+                                                                                                                                                </li>
+                                                                                                                                                <% }
+                                                                                                                                                    %>
+                                                                                                                                                    <% if
+                                                                                                                                                        (documents?.driverLicense)
+                                                                                                                                                        {
+                                                                                                                                                        %>
+                                                                                                                                                        <li
+                                                                                                                                                            class="mb-2">
+                                                                                                                                                            <span
+                                                                                                                                                                class="h6">Driver
+                                                                                                                                                                License:</span>
+                                                                                                                                                            <span>
+                                                                                                                                                                <%= documents.driverLicense
+                                                                                                                                                                    %>
+                                                                                                                                                            </span>
+                                                                                                                                                        </li>
+                                                                                                                                                        <% }
+                                                                                                                                                            %>
+                                                                                                                                                            <% if
+                                                                                                                                                                (documents?.EINconfirmation)
+                                                                                                                                                                {
+                                                                                                                                                                %>
+                                                                                                                                                                <li
+                                                                                                                                                                    class="mb-2">
+                                                                                                                                                                    <span
+                                                                                                                                                                        class="h6">EIN
+                                                                                                                                                                        Confirmation:</span>
+                                                                                                                                                                    <span>
+                                                                                                                                                                        <%= documents.EINconfirmation
+                                                                                                                                                                            %>
+                                                                                                                                                                    </span>
+                                                                                                                                                                </li>
+                                                                                                                                                                <% }
+                                                                                                                                                                    %>
+                                                                                                                                                                    <% if
+                                                                                                                                                                        (documents?.eANDo)
+                                                                                                                                                                        {
+                                                                                                                                                                        %>
+                                                                                                                                                                        <li
+                                                                                                                                                                            class="mb-2">
+                                                                                                                                                                            <span
+                                                                                                                                                                                class="h6">E&O:</span>
+                                                                                                                                                                            <span>
+                                                                                                                                                                                <%= documents.eANDo
+                                                                                                                                                                                    %>
+                                                                                                                                                                            </span>
+                                                                                                                                                                        </li>
+                                                                                                                                                                        <% }
+                                                                                                                                                                            %>
+                                                                                                                                                                            <% if
+                                                                                                                                                                                (documents?.proLicense)
+                                                                                                                                                                                {
+                                                                                                                                                                                %>
+                                                                                                                                                                                <li
+                                                                                                                                                                                    class="mb-2">
+                                                                                                                                                                                    <span
+                                                                                                                                                                                        class="h6">Pro
+                                                                                                                                                                                        License:</span>
+                                                                                                                                                                                    <span>
+                                                                                                                                                                                        <%= documents.proLicense
+                                                                                                                                                                                            %>
+                                                                                                                                                                                    </span>
+                                                                                                                                                                                </li>
+                                                                                                                                                                                <% }
+                                                                                                                                                                                    %>
+                                                                                                                                                                                    <% if
+                                                                                                                                                                                        (documents?.corporationLicense)
+                                                                                                                                                                                        {
+                                                                                                                                                                                        %>
+                                                                                                                                                                                        <li
+                                                                                                                                                                                            class="mb-2">
+                                                                                                                                                                                            <span
+                                                                                                                                                                                                class="h6">Corporation
+                                                                                                                                                                                                License:</span>
+                                                                                                                                                                                            <span>
+                                                                                                                                                                                                <%= documents.corporationLicense
+                                                                                                                                                                                                    %>
+                                                                                                                                                                                            </span>
+                                                                                                                                                                                        </li>
+                                                                                                                                                                                        <% }
+                                                                                                                                                                                            %>
+                                                                                                                                                                                            <% if
+                                                                                                                                                                                                (documents?.ffmCertification)
+                                                                                                                                                                                                {
+                                                                                                                                                                                                %>
+                                                                                                                                                                                                <li
+                                                                                                                                                                                                    class="mb-2">
+                                                                                                                                                                                                    <span
+                                                                                                                                                                                                        class="h6">FFM
+                                                                                                                                                                                                        Certification:</span>
+                                                                                                                                                                                                    <span>
+                                                                                                                                                                                                        <%= documents.ffmCertification
+                                                                                                                                                                                                            %>
+                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                </li>
+                                                                                                                                                                                                <% }
+                                                                                                                                                                                                    %>
+                                                                                                                                                                                                    <% if
+                                                                                                                                                                                                        (documents?.gaCertification)
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                        %>
+                                                                                                                                                                                                        <li
+                                                                                                                                                                                                            class="mb-2">
+                                                                                                                                                                                                            <span
+                                                                                                                                                                                                                class="h6">GA
+                                                                                                                                                                                                                Certification:</span>
+                                                                                                                                                                                                            <span>
+                                                                                                                                                                                                                <%= documents.gaCertification
+                                                                                                                                                                                                                    %>
+                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                        </li>
+                                                                                                                                                                                                        <% }
+                                                                                                                                                                                                            %>
+                                                                                                                                                                                                            <% if
+                                                                                                                                                                                                                (documents?.gaLicense)
+                                                                                                                                                                                                                {
+                                                                                                                                                                                                                %>
+                                                                                                                                                                                                                <li
+                                                                                                                                                                                                                    class="mb-2">
+                                                                                                                                                                                                                    <span
+                                                                                                                                                                                                                        class="h6">GA
+                                                                                                                                                                                                                        License:</span>
+                                                                                                                                                                                                                    <span>
+                                                                                                                                                                                                                        <%= documents.gaLicense
+                                                                                                                                                                                                                            %>
+                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                </li>
+                                                                                                                                                                                                                <% }
+                                                                                                                                                                                                                    %>
+                                                                                                                                                                                                                    <% if
+                                                                                                                                                                                                                        (documents?.sunbiz)
+                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                        %>
+                                                                                                                                                                                                                        <li
+                                                                                                                                                                                                                            class="mb-2">
+                                                                                                                                                                                                                            <span
+                                                                                                                                                                                                                                class="h6">Sunbiz:</span>
+                                                                                                                                                                                                                            <span>
+                                                                                                                                                                                                                                <%= documents.sunbiz
+                                                                                                                                                                                                                                    %>
+                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                        </li>
+                                                                                                                                                                                                                        <% }
+                                                                                                                                                                                                                            %>
+                                                                                                                                                                                                                            <% if
+                                                                                                                                                                                                                                (documents?.taxIdentificationW9)
+                                                                                                                                                                                                                                {
+                                                                                                                                                                                                                                %>
+                                                                                                                                                                                                                                <li
+                                                                                                                                                                                                                                    class="mb-2">
+                                                                                                                                                                                                                                    <span
+                                                                                                                                                                                                                                        class="h6">Tax
+                                                                                                                                                                                                                                        ID
+                                                                                                                                                                                                                                        (W9):</span>
+                                                                                                                                                                                                                                    <span>
+                                                                                                                                                                                                                                        <%= documents.taxIdentificationW9
+                                                                                                                                                                                                                                            %>
+                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                                </li>
+                                                                                                                                                                                                                                <% }
+                                                                                                                                                                                                                                    %>
+                                        </ul>
+
+                                    </div>
+                                </div>
+                                <!-- /Extra Agent Details -->
                             </div>
                             <!--/ Agent Sidebar -->
 

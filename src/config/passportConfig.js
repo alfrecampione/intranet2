@@ -6,7 +6,13 @@ const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
       // Primero busca en Prisma
-      const prismaUser = await prisma.user.findUnique({ where: { email } });
+      const prismaUser = await prisma.user.findUnique({
+        where: { email }, include: {
+          personalInfo: {
+            select: { photoPath: true, agency: true }
+          }
+        }
+      });
       if (prismaUser) {
         const isMatch = await bcrypt.compare(password, prismaUser.password);
         if (isMatch) {
