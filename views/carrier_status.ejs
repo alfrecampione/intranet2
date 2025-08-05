@@ -199,7 +199,8 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="/users/profile/<%= user.user_id %>">
+                                        <a class="dropdown-item"
+                                            href="<%= user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
                                             <div class="d-flex">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="avatar avatar-online">
