@@ -1,0 +1,424 @@
+<!doctype html>
+
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
+    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template">
+
+<head>
+    <script>
+        const url = `${window.location.protocol}//${window.location.host}`;
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicon/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/favicon/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicon/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon/apple-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicon/apple-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicon/apple-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicon/apple-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicon/apple-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-icon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon/android-icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
+    <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
+
+    <title>Agents | GTI</title>
+
+    <meta name="description" content="" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+        rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <script src="/vendor/js/helpers.js"></script>
+    <script src="/vendor/js/template-customizer.js"></script>
+    <script src="/js/config.js"></script>
+</head>
+
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="/users/dashboard" class="app-brand-link">
+                        <span class="app-brand-text">
+                            <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
+                        </span>
+                    </a>
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+                        <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
+                        <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+                    </a>
+                </div>
+
+                <div class="menu-inner-shadow"></div>
+
+                <ul class="menu-inner py-1">
+                    <li class="menu-item">
+                        <a href="/users/dashboard" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                            <div data-i18n="Dashboard">Dashboard</div>
+                        </a>
+                    </li>
+                    <% if (user && (user.agency || !user.isAgent)) { %>
+                        <li class="menu-item active">
+                            <a href="/users/agents" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                                <div data-i18n="Agents">Agents</div>
+                            </a>
+                        </li>
+                        <li class="menu-header small text-uppercase">
+                            <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/users/config_emails" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                                <div data-i18n="Config">Config</div>
+                            </a>
+                        </li>
+                        <% } %>
+                </ul>
+            </aside>
+            <div class="layout-page">
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+                    id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="ti ti-menu-2 ti-sm"></i>
+                        </a>
+                    </div>
+
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <!-- Search -->
+                        <div class="navbar-nav align-items-center">
+                            <div class="nav-item mb-0">
+                                <a class="nav-link search-toggler d-flex align-items-center px-0"
+                                    href="javascript:void(0);">
+                                    <i class="ti ti-search ti-md me-2"></i>
+                                    <span class="d-none d-md-inline-block text-muted">Search</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- /Search -->
+
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- Style Switcher -->
+                            <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <i class="ti ti-md"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                                            <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                                            <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                                            <span class="align-middle"><i
+                                                    class="ti ti-device-desktop me-2"></i>System</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Notification -->
+                            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <i class="ti ti-bell ti-md"></i>
+                                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end py-0">
+                                    <li class="dropdown-menu-header border-bottom">
+                                        <div class="dropdown-header d-flex align-items-center py-3">
+                                            <h5 class="text-body mb-0 me-auto">Notification</h5>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-all text-body"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-menu-footer border-top">
+                                        <a href="javascript:void(0);"
+                                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
+                                            View all notifications
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!--/ Notification -->
+
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                                    data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <% if (user.personalInfo && user.personalInfo.photoPath) { %>
+                                            <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar"
+                                                class="rounded-circle" />
+                                            <% } else { %>
+                                                <span class="avatar-initial rounded-circle bg-label-primary">
+                                                    <%= user.display_name ? user.display_name[0] : (user.email ?
+                                                        user.email[0] : "" ) %>
+                                                </span>
+                                                <% } %>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item"
+                                            href="<%= user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
+                                            <div class="d-flex">
+                                                <div class="flex-shrink-0 me-3">
+                                                    <div class="avatar avatar-online">
+                                                        <% if (user.personalInfo && user.personalInfo.photoPath) { %>
+                                                            <img src="<%= user.personalInfo.photoPath %>"
+                                                                alt="User Avatar" class="rounded-circle" />
+                                                            <% } else { %>
+                                                                <span
+                                                                    class="avatar-initial rounded-circle bg-label-primary">
+                                                                    <%= user.display_name ? user.display_name[0] :
+                                                                        (user.email ? user.email[0] : "" ) %>
+                                                                </span>
+                                                                <% } %>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-medium d-block">
+                                                        <%= user.display_name %>
+                                                    </span>
+                                                    <% if (user.job_title) { %>
+                                                        <small class="text-muted">
+                                                            <%= user.job_title %>
+                                                        </small>
+                                                        <% } %>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/users/logout">
+                                            <i class="ti ti-logout me-2 ti-sm"></i>
+                                            <span class="align-middle">Log Out</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Full Nav Search Mode -->
+                    <div class="navbar-full-search d-none w-100 position-relative">
+                        <div class="container-xxl d-flex align-items-center position-relative">
+                            <i
+                                class="ti ti-search ti-md position-absolute top-50 start-0 translate-middle-y ms-3 text-body"></i>
+                            <input type="text" class="form-control form-control-lg ps-5 border-0 shadow-none w-100"
+                                placeholder="Search..." id="navbar-full-search-input" />
+                            <i class="ti ti-x ti-lg ms-3 cursor-pointer search-close text-muted"></i>
+                        </div>
+                        <ul class="dropdown-menu show d-none" id="search-dropdown"
+                            style="position: absolute; top: 100%; left: 0; z-index: 1100; width: 100%;"></ul>
+                    </div>
+                    <!--/ Full Nav Search -->
+                </nav>
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                    </div>
+                    <div class="mb-3 d-flex gap-2 flex-wrap">
+                        <select id="filter-type" class="form-select" style="width: 200px;">
+                            <option value="">Select Filter Type</option>
+                            <option value="state">State</option>
+                            <option value="carrier">Carrier</option>
+                            <option value="status">Status</option>
+                            <option value="agency">Agency</option>
+                        </select>
+
+                        <select id="filter-value" class="form-select" style="width: 200px;" disabled>
+                            <option value="">Select Value</option>
+                        </select>
+                    </div>
+
+                    <div id="results-count" class="mb-2 fw-bold"></div>
+
+                    <table class="table table-bordered" id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>State</th>
+                                <th>Carrier</th>
+                                <th>Status</th>
+                                <th>Agency</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="content-backdrop fade"></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
+
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+
+    <!-- Overlay Spinner -->
+    <div id="email-overlay"
+        style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Sending...</span>
+        </div>
+    </div>
+
+    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+        aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+            <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Agents</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+    </div>
+
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <!-- Flat Picker -->
+    <script src="/vendor/libs/moment/moment.js"></script>
+    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+    <!-- Form Validation -->
+    <script src="/vendor/libs/@form-validation/popular.js"></script>
+    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    <script id="agents-data" type="application/json">
+      <%- JSON.stringify(agents) %>
+    </script>
+
+    <script id="filters-data" type="application/json">
+      <%- JSON.stringify(filters) %>
+    </script>
+
+    <script>
+        const data = JSON.parse(document.getElementById("agents-json").textContent);
+        const filtersData = JSON.parse(document.getElementById("filters-json").textContent);
+
+        const filterTypeSelect = document.getElementById('filter-type');
+        const filterValueSelect = document.getElementById('filter-value');
+        const resultsCount = document.getElementById('results-count');
+        const tableBody = document.querySelector('#results-table tbody');
+
+        function populateFilterValues(type) {
+            filterValueSelect.innerHTML = '<option value="">All</option>';
+            if (!type || !filtersData[type + 's']) return;
+
+            filtersData[type + 's'].forEach(value => {
+                const opt = document.createElement('option');
+                opt.value = value;
+                opt.textContent = value;
+                filterValueSelect.appendChild(opt);
+            });
+
+            filterValueSelect.disabled = false;
+        }
+
+        function renderTable(filteredData) {
+            tableBody.innerHTML = '';
+            resultsCount.textContent = `Results found: ${filteredData.length}`;
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+        <td>${row.name}</td>
+        <td>${row.state}</td>
+        <td>${row.carrier}</td>
+        <td>${row.status}</td>
+        <td>${row.agency}</td>
+      `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function applyFilter() {
+            const filterType = filterTypeSelect.value;
+            const filterValue = filterValueSelect.value;
+
+            let filtered = data;
+
+            if (filterType && filterValue) {
+                filtered = data.filter(item => item[filterType] === filterValue);
+            }
+
+            renderTable(filtered);
+        }
+
+        filterTypeSelect.addEventListener('change', () => {
+            const type = filterTypeSelect.value;
+            if (type) {
+                populateFilterValues(type);
+            } else {
+                filterValueSelect.innerHTML = '<option value="">Select Value</option>';
+                filterValueSelect.disabled = true;
+            }
+            applyFilter();
+        });
+
+        filterValueSelect.addEventListener('change', applyFilter);
+
+        renderTable(data);
+    </script>
+</body>
+
+</html>

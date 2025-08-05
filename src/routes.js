@@ -187,7 +187,11 @@ import { massiveCreateAgents } from "./controllers/agents.js";
 router.post("/agents/massiveCreate", massiveCreateAgents);
 
 import { sendSMSHandler } from "./controllers/communication.js";
-router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler)
+router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);
+
+
+import { renderReports } from "./controllers/reports.js";
+router.get("/users/reports", checkNotAuthenticated, renderReports);
 
 
 export default router;
