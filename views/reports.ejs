@@ -365,7 +365,7 @@
         const tableBody = document.querySelector('#results-table tbody');
 
         function populateFilterValues(type) {
-            filterValueSelect.innerHTML = '<option value="">All</option>';
+            filterValueSelect.innerHTML = '';
             if (!type || !filtersData[type + 's']) return;
 
             filtersData[type + 's'].forEach(value => {
