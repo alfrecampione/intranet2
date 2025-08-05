@@ -967,15 +967,15 @@
             editButton.addEventListener("click", async () => {
                 if (!isEditing) {
                     isEditing = true;
-                    editButton.classList.remove("ti-edit");
-                    editButton.classList.add("ti-device-floppy"); // ícono de guardar
-                    editButton.setAttribute("title", "Guardar cambios");
+                    editButton.classList.remove("ti-edit", "text-danger");
+                    editButton.classList.add("ti-device-floppy", "text-primary");
+                    editButton.setAttribute("title", "Save changes");
                     renderCarrierTable(carriersData);
                 } else {
                     isEditing = false;
-                    editButton.classList.remove("ti-device-floppy");
-                    editButton.classList.add("ti-edit");
-                    editButton.setAttribute("title", "Editar datos");
+                    editButton.classList.remove("ti-device-floppy", "text-primary");
+                    editButton.classList.add("ti-edit", "text-danger");
+                    editButton.setAttribute("title", "Edit Status");
                     await saveCarrierUpdates(carriersData);
                     renderCarrierTable(carriersData);
                 }
