@@ -285,18 +285,12 @@
 
                         <div id="results-count" class="mb-2 fw-bold"></div>
 
-                        <table class="table table-bordered" id="results-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>State</th>
-                                    <th>Carrier</th>
-                                    <th>Status</th>
-                                    <th>Agency</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <thead>
+                            <tr id="results-header">
+                                <th>Name</th>
+                                <th>Filter</th>
+                            </tr>
+                        </thead>
                     </div>
                     <div class="content-backdrop fade"></div>
                 </div>
@@ -382,19 +376,39 @@
         }
 
         function renderTable(filteredData) {
+            const filterType = filterTypeSelect.value;
             tableBody.innerHTML = '';
+
+            const headerRow = document.getElementById('results-header');
+
+            if (filterType) {
+                headerRow.innerHTML = `
+            <th>Name</th>
+            <th>${capitalize(filterType)}</th>
+            `;
+            } else {
+                headerRow.innerHTML = `<th>Name</th>`;
+            }
+
             resultsCount.textContent = `Results found: ${filteredData.length}`;
+
             filteredData.forEach(row => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-        <td>${row.name}</td>
-        <td>${row.state}</td>
-        <td>${row.carrier}</td>
-        <td>${row.status}</td>
-        <td>${row.agency}</td>
-      `;
+                if (filterType) {
+                    tr.innerHTML = `
+                <td>${row.name}</td>
+                <td>${row[filterType]}</td>
+            `;
+                } else {
+                    tr.innerHTML = `<td>${row.name}</td>`;
+                }
                 tableBody.appendChild(tr);
             });
+        }
+
+        // Helper function to capitalize first letter
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
         function applyFilter() {
