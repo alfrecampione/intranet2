@@ -409,7 +409,6 @@
             });
         }
 
-        // Helper function to capitalize first letter
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
@@ -431,11 +430,9 @@
 
             if (filterType && filterValue) {
                 filtered = data.filter(item => item[filterType] === filterValue);
-                // Eliminar duplicados basados en el filtro aplicado
-                filtered = uniqueByProperty(filtered, filterType);
+                filtered = uniqueByProperty(filtered, 'user_id');
             } else {
-                // Sin filtro, eliminar duplicados basados en el nombre
-                filtered = uniqueByProperty(filtered, 'name');
+                filtered = uniqueByProperty(data, 'user_id');
             }
 
             renderTable(filtered);
@@ -454,7 +451,7 @@
 
         filterValueSelect.addEventListener('change', applyFilter);
 
-        renderTable(data);
+        renderTable(uniqueByProperty(data, 'user_id'));
     </script>
 </body>
 

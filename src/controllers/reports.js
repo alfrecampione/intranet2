@@ -17,12 +17,12 @@ const renderReports = async (req, res) => {
         }
     });
 
-    // Flatten and extract data from agents
     const processedAgents = [];
 
     agents.forEach(agent => {
         agent.statesAndCarriers.forEach(record => {
             processedAgents.push({
+                user_id: agent.user_id,
                 name: agent.display_name || '',
                 state: record.state || '',
                 carrier: record.company || '',
