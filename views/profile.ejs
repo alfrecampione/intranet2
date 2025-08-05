@@ -750,7 +750,8 @@
             const content = document.createElement(isLink ? 'a' : 'span');
             content.className = isLink ? 'ms-1' : '';
             if (isLink) {
-                content.href = value;
+                const fullUrl = `${window.location.protocol}//${window.location.host}/${value}`;
+                content.href = fullUrl;
                 content.textContent = 'View Document';
                 content.target = '_blank';
                 content.rel = 'noopener noreferrer';
@@ -762,6 +763,7 @@
             li.appendChild(content);
             list.appendChild(li);
         }
+
 
         const { personalInfo, contactInfo, paymentMethod, documents } = data;
 
