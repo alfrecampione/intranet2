@@ -513,9 +513,9 @@
                         </div>
 
                         <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
-                          <label class="form-label" for="companySelect">Select a Franchise</label>
+                          <label class="form-label" for="companySelect">Select an agency</label>
                           <select id="franchiseSelect" name="company" class="form-select" required>
-                            <option value="">Select a Franchise...</option>
+                            <option value="">Select an agency...</option>
                             <% if (company && company.length) { %>
                               <% company.forEach(c=> { %>
                                 <option value="<%= c.alias %>" <%=personalInfo?.agency===c.alias ? 'selected' : '' %>>
