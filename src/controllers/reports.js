@@ -35,19 +35,19 @@ const renderReports = async (req, res) => {
     // Extract unique values for filters
     const getUnique = (arr, key) => [...new Set(arr.map(item => item[key]).filter(Boolean))].sort();
 
-    const states = getUnique(processedAgents, 'state');
-    const carriers = getUnique(processedAgents, 'carrier');
-    const statuses = getUnique(processedAgents, 'status');
-    const agencies = getUnique(processedAgents, 'agency');
+    const state = getUnique(processedAgents, 'state');
+    const carrier = getUnique(processedAgents, 'carrier');
+    const status = getUnique(processedAgents, 'status');
+    const agency = getUnique(processedAgents, 'agency');
 
     res.render("reports", {
         user,
         agents: processedAgents,
         filters: {
-            states,
-            carriers,
-            statuses,
-            agencies
+            state,
+            carrier,
+            status,
+            agency
         }
     });
 }

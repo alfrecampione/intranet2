@@ -369,6 +369,8 @@
             const data = JSON.parse(document.getElementById("agents-data").textContent);
             const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
 
+            console.log(filtersData);
+
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
             const resultsCount = document.getElementById('results-count');
@@ -378,9 +380,9 @@
 
             function populateFilterValues(type) {
                 filterValueSelect.innerHTML = '<option value="">Select Value</option>';
-                if (!type || !filtersData[type + 's']) return;
+                if (!type || !filtersData[type]) return;
 
-                filtersData[type + 's'].forEach(value => {
+                filtersData[type].forEach(value => {
                     const opt = document.createElement('option');
                     opt.value = value;
                     opt.textContent = value;
