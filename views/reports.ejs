@@ -278,6 +278,7 @@
                                         <option value="">Select Filter Type</option>
                                         <option value="state">State</option>
                                         <option value="carrier">Carrier</option>
+                                        <option value="carrier & state">Carrier & State</option>
                                         <option value="status">Status</option>
                                         <option value="agency">Agency</option>
                                     </select>
@@ -285,6 +286,12 @@
                                     <select id="filter-value" class="form-select" style="width: 200px;" disabled>
                                         <option value="">Select Value</option>
                                     </select>
+                                    <select id="filter-carrier" class="form-select"
+                                        style="width: 200px; display: none;">
+                                        <option value="">Select a Carrier</option>
+                                    </select>
+
+                                    <button id="export-button" class="btn btn-success">Export to Excel</button>
                                 </div>
                             </div>
 
@@ -296,7 +303,8 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Name</th>
-                                            <!-- La columna Filter será dinámica -->
+                                            <th>Email</th>
+                                            <th>Number</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -366,17 +374,16 @@
 
     <script>
         $(document).ready(function () {
-            const data = JSON.parse(document.getElementById("agents-data").textContent);
             const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
-
-            console.log(filtersData);
 
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
+            const carrierSelect = document.getElementById('filter-carrier');
             const resultsCount = document.getElementById('results-count');
             const resultsTable = document.getElementById('results-table');
 
             let dataTable;
+            const pageLength = 10;
 
             function populateFilterValues(type) {
                 filterValueSelect.innerHTML = '<option value="">Select Value</option>';
@@ -392,36 +399,25 @@
                 filterValueSelect.disabled = false;
             }
 
-            function capitalize(str) {
-                return str.charAt(0).toUpperCase() + str.slice(1);
-            }
-
-            function uniqueByProperty(arr, prop) {
-                const seen = new Set();
-                return arr.filter(item => {
-                    if (seen.has(item[prop])) return false;
-                    seen.add(item[prop]);
-                    return true;
-                });
-            }
-
-            function applyFilterAndRender() {
+            async function fetchFilteredData() {
                 const filterType = filterTypeSelect.value;
+                const filterValue = filterValueSelect.value;
+                const carrierValue = carrierSelect.value;
 
-                const filterValue = filterValueSelect.value === "" ? null : filterValueSelect.value;
+                const params = new URLSearchParams();
+                if (filterType) params.append("filterType", filterType);
+                if (filterValue) params.append("filterValue", filterValue);
+                if (carrierValue) params.append("carrierValue", carrierValue);
 
-                const isFilterApplied = filterType && filterValue;
+                const response = await fetch(`/users/reports/filter?${params.toString()}`);
+                const result = await response.json();
+                return result;
+            }
 
-                let filtered = data;
+            async function applyFilterAndRender() {
+                const { data, total } = await fetchFilteredData();
 
-                if (isFilterApplied) {
-                    filtered = data.filter(item => item[filterType] === filterValue);
-                    filtered = uniqueByProperty(filtered, 'user_id');
-                } else {
-                    filtered = uniqueByProperty(data, 'user_id');
-                }
-
-                resultsCount.textContent = `Results found: ${filtered.length}`;
+                resultsCount.textContent = `Results found: ${total}`;
 
                 const columns = [
                     {
@@ -431,46 +427,101 @@
                             return meta.row + 1;
                         }
                     },
-                    { title: "Name", data: "name" }
+                    {
+                        title: "Name",
+                        data: "name",
+                        render: function (data, type, row) {
+                            return `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`;
+                        }
+                    },
+                    {
+                        title: "Email",
+                        data: "email",
+                        render: function (data) {
+                            return data ? `<a href="mailto:${data}">${data}</a>` : '';
+                        }
+                    },
+                    {
+                        title: "Number",
+                        data: "number",
+                        render: function (data) {
+                            return data ? `<a href="tel:${data}">${data}</a>` : '';
+                        }
+                    }
                 ];
 
-                if (isFilterApplied) {
-                    columns.push({
-                        title: capitalize(filterType),
-                        data: filterType
+                if ($.fn.DataTable.isDataTable('#results-table')) {
+                    dataTable.clear().rows.add(data).draw();
+                } else {
+                    dataTable = $('#results-table').DataTable({
+                        data,
+                        columns,
+                        responsive: true,
+                        pageLength: pageLength,
+                        lengthMenu: [7, 10, 25, 50, 75, 100],
+                        autoWidth: false
                     });
                 }
-
-                if ($.fn.DataTable.isDataTable('#results-table')) {
-                    dataTable.destroy();
-                    $('#results-table').empty().html('<thead><tr></tr></thead><tbody></tbody>');
-                }
-
-                dataTable = $('#results-table').DataTable({
-                    data: filtered,
-                    columns: columns,
-                    responsive: true,
-                    pageLength: 10,
-                    lengthMenu: [7, 10, 25, 50, 75, 100],
-                    autoWidth: false
-                });
             }
 
+            // Filter type change
             filterTypeSelect.addEventListener('change', () => {
                 const type = filterTypeSelect.value;
-                if (type) {
+
+                if (type === 'carrier & state') {
+                    filterValueSelect.innerHTML = '<option value="">Select State</option>';
+                    filtersData['state'].forEach(state => {
+                        const opt = document.createElement('option');
+                        opt.value = state;
+                        opt.textContent = state;
+                        filterValueSelect.appendChild(opt);
+                    });
+                    filterValueSelect.disabled = false;
+
+                    carrierSelect.innerHTML = '<option value="">Select Carrier</option>';
+                    filtersData['carrier'].forEach(carrier => {
+                        const opt = document.createElement('option');
+                        opt.value = carrier;
+                        opt.textContent = carrier;
+                        carrierSelect.appendChild(opt);
+                    });
+                    carrierSelect.style.display = 'block';
+                } else if (type) {
                     populateFilterValues(type);
+                    carrierSelect.style.display = 'none';
                 } else {
                     filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                     filterValueSelect.disabled = true;
+                    carrierSelect.style.display = 'none';
                 }
+
                 applyFilterAndRender();
             });
 
+            // Filter value or carrier change
             filterValueSelect.addEventListener('change', applyFilterAndRender);
+            carrierSelect.addEventListener('change', applyFilterAndRender);
 
             // Initial render
             applyFilterAndRender();
+        });
+    </script>
+
+    <script>
+        document.getElementById('export-button').addEventListener('click', () => {
+            const filterType = document.getElementById('filter-type').value;
+            const filterValue = document.getElementById('filter-value').value;
+            const carrierValue = document.getElementById('filter-carrier').value;
+
+            const params = new URLSearchParams();
+            if (filterType) params.append("filterType", filterType);
+            if (filterValue) params.append("filterValue", filterValue);
+            if (carrierValue) params.append("carrierValue", carrierValue);
+
+            const url = `/users/reports/export?${params.toString()}`;
+
+            // Open file in a new tab or force download
+            window.open(url, '_blank');
         });
     </script>
 </body>

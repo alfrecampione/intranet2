@@ -190,8 +190,11 @@ import { sendSMSHandler } from "./controllers/communication.js";
 router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);
 
 
-import { renderReports } from "./controllers/reports.js";
+import { renderReports, filterReport, exportData } from "./controllers/reports.js";
 router.get("/users/reports", checkNotAuthenticated, renderReports);
+router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
+router.get("/users/reports/export", checkNotAuthenticated, exportData);
+
 
 
 export default router;
