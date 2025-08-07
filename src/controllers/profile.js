@@ -25,6 +25,10 @@ const renderProfile = async (req, res) => {
         where: { userId }
     });
 
+    const necesaryDocs = await prisma.necesaryDocuments.findUnique({
+        where: { email: profile.email }
+    });
+
     const carriers = await prisma.statesANDCarriers.findMany({
         where: { userId },
         orderBy: { state: 'asc' },
@@ -54,6 +58,7 @@ const renderProfile = async (req, res) => {
         contactInfo,
         paymentMethod,
         documents,
+        necesaryDocs,
         carriers,
         activity
     });

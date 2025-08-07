@@ -118,9 +118,6 @@ import ExcelJS from "exceljs";
 const exportData = async (req, res) => {
     let { filterType, filterValue, carrierValue } = req.query;
 
-    console.log({ filterType, filterValue, carrierValue });
-
-
     // Build the where clause dynamically
     const whereClause = {
         isAgent: true

@@ -763,59 +763,105 @@
 
     <!-- User Data-->
     <script id="user-data" type="application/json">
-        <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents }) %>
+        <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents, necesaryDocs}) %>
     </script>
 
     <script>
         const data = JSON.parse(document.getElementById('user-data').textContent);
         const list = document.getElementById('user-info-list');
 
-        function addListItem(label, value, isLink = false) {
+        function addSectionHeader(title) {
+            const header = document.createElement('li');
+            header.className = 'fw-bold mt-3 mb-2'; // Bootstrap classes for styling
+            header.textContent = title;
+            list.appendChild(header);
+        }
+
+        function addListItem(label, value, isLink = false, isSensitive = false) {
             const li = document.createElement('li');
             li.className = 'mb-2';
 
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex align-items-center';
+
             const labelSpan = document.createElement('span');
-            labelSpan.className = 'h6';
+            labelSpan.className = 'h6 me-2 mb-0';
             labelSpan.textContent = `${label}:`;
 
-            const content = document.createElement(isLink ? 'a' : 'span');
-            content.className = isLink ? 'ms-1' : '';
-            if (isLink) {
+            const contentSpan = document.createElement('span');
+            contentSpan.className = 'mb-0';
+
+            if (isLink && value) {
                 const fullUrl = `${window.location.protocol}//${window.location.host}/${value}`;
-                content.href = fullUrl;
-                content.textContent = 'View Document';
-                content.target = '_blank';
-                content.rel = 'noopener noreferrer';
+                const link = document.createElement('a');
+                link.href = fullUrl;
+                link.textContent = 'View Document';
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                contentSpan.appendChild(link);
+            } else if (isSensitive) {
+                const hiddenValue = value ? '*'.repeat(value.length) : '****';
+                const visibleValue = value || 'None';
+
+                const sensitiveSpan = document.createElement('span');
+                sensitiveSpan.textContent = hiddenValue;
+                sensitiveSpan.dataset.visible = 'false';
+                sensitiveSpan.dataset.full = visibleValue;
+
+                const toggleIcon = document.createElement('i');
+                toggleIcon.className = 'ti ti-eye ms-2';
+                toggleIcon.style.cursor = 'pointer';
+                toggleIcon.setAttribute('aria-hidden', 'true');
+                toggleIcon.title = 'Show/Hide';
+
+                toggleIcon.addEventListener('click', () => {
+                    const isVisible = sensitiveSpan.dataset.visible === 'true';
+                    sensitiveSpan.textContent = isVisible ? hiddenValue : visibleValue;
+                    sensitiveSpan.dataset.visible = (!isVisible).toString();
+                    toggleIcon.className = isVisible ? 'ti ti-eye ms-2' : 'ti ti-eye-off ms-2';
+                });
+
+                contentSpan.appendChild(sensitiveSpan);
+                contentSpan.appendChild(toggleIcon);
             } else {
-                content.textContent = ` ${value}`;
+                contentSpan.textContent = value || 'None';
             }
 
-            li.appendChild(labelSpan);
-            li.appendChild(content);
+            wrapper.appendChild(labelSpan);
+            wrapper.appendChild(contentSpan);
+            li.appendChild(wrapper);
             list.appendChild(li);
         }
 
 
-        const { personalInfo, contactInfo, paymentMethod, documents } = data;
+        const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
 
         // Personal Info
-        if (personalInfo?.preferredName) addListItem('Preferred Name', personalInfo.preferredName);
-        if (personalInfo?.ssn) addListItem('SSN', personalInfo.ssn);
-        if (personalInfo?.agency) addListItem('Agency', personalInfo.agency);
+        addSectionHeader('Personal Info');
+        addListItem('Preferred Name', personalInfo.preferredName || 'None');
+        addListItem('Contact Type', personalInfo.contactType || 'None');
+        if (personalInfo?.contactType?.toLowerCase() === 'business') {
+            addListItem('Business Name', personalInfo.businessName || 'None');
+            addListItem('Company EIN', personalInfo.companyEIN || 'None');
+        }
+        const dob = new Date(personalInfo.dateOfBirth);
+        addListItem('DoB', dob.toLocaleDateString() || 'None');
+        addListItem('Sex', personalInfo.legalSex || 'None');
+        addListItem('NPN', personalInfo.npn || 'None');
+        addListItem('SSN', personalInfo.ssn, false, true);
+        addListItem('Agency', personalInfo.agency || 'None');
         addListItem('Franchise', personalInfo?.franchise ? 'Yes' : 'No');
-        if (personalInfo?.businessName) addListItem('Business Name', personalInfo.businessName);
-        if (personalInfo?.companyEIN) addListItem('Company EIN', personalInfo.companyEIN);
 
         // Contact Info
-        if (contactInfo?.addressLine1) addListItem('Address Line 1', contactInfo.addressLine1);
-        if (contactInfo?.addressLine2) addListItem('Address Line 2', contactInfo.addressLine2);
-        if (contactInfo?.zipCode) addListItem('Zip Code', contactInfo.zipCode);
-
-        // Payment Method
-        if (paymentMethod?.bankAccountType) addListItem('Bank Account Type', paymentMethod.bankAccountType);
-        if (paymentMethod?.bankAccountNum) addListItem('Bank Account Number', paymentMethod.bankAccountNum);
-        if (paymentMethod?.bankRoutingNum) addListItem('Routing Number', paymentMethod.bankRoutingNum);
-        if (paymentMethod?.accountNickname) addListItem('Account Nickname', paymentMethod.accountNickname);
+        addSectionHeader('Contact Info');
+        addListItem('Phone', contactInfo.personalPhone || 'None');
+        addListItem('Email', contactInfo.personalEmail || 'None');
+        addListItem('Country', contactInfo.country || 'None');
+        addListItem('State', contactInfo.state || 'None');
+        addListItem('City', contactInfo.city || 'None');
+        addListItem('Address 1', contactInfo.addressLine1 || 'None');
+        addListItem('Address 2', contactInfo.addressLine2 || 'None');
+        addListItem('Zip Code', contactInfo.zipCode || 'None');
 
         // Documents
         const documentFields = [
@@ -832,13 +878,20 @@
             { key: 'taxIdentificationW9', label: 'Tax ID (W9)' }
         ];
 
+        addSectionHeader('Documents');
         documentFields.forEach(({ key, label }) => {
-            const value = documents?.[key];
-            if (value) addListItem(label, value, true);
+            const isRequired = necesaryDocs?.[key];
+            if (isRequired) {
+                const filePath = documents?.[key];
+                if (filePath) {
+                    addListItem(label, filePath, true);
+                } else {
+                    addListItem(label, 'Missing', false);
+                }
+            }
         });
     </script>
-
-
+    <!-- /User Data-->
 
     <!-- Timeline-->
     <script id="activity-data" type="application/json">
