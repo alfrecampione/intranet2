@@ -29,7 +29,7 @@ import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
 import { renderAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
-import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection } from "./controllers/profile.js";
+import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser } from "./controllers/profile.js";
 
 const router = express.Router();
 
@@ -50,6 +50,7 @@ router.post("/users/profile/:id/notes", checkNotAuthenticated, postNote);
 router.put("/users/profile/:id/notes/:noteId", checkNotAuthenticated, editNote);
 router.delete("/users/profile/:id/notes/:noteId", checkNotAuthenticated, deleteNote);
 router.post("/users/profile/save-section", checkNotAuthenticated, saveSection);
+router.post("/users/profile/add-carrier", checkNotAuthenticated, addCarrierToUser);
 
 router.post(
   "/users/dashboard/lastQuarter",
@@ -168,7 +169,7 @@ import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
 router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
 
-import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert } from "./controllers/config.js";
+import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert, addCarrier } from "./controllers/config.js";
 router.get("/users/config_emails", checkNotAuthenticated, renderConfigEmails)
 router.post("/users/config_emails", checkNotAuthenticated, postAdminToAlert);
 router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);

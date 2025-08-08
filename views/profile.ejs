@@ -382,7 +382,10 @@
                                                 </div>
 
                                                 <% if (!user?.isAgent) { %>
-                                                    <div id="edit-controls">
+                                                    <div id="edit-controls" class="d-flex gap-2">
+                                                        <a href="javascript:void(0)" id="add-carrier"
+                                                            class="ti ti-plus fs-3 text-primary"
+                                                            title="Add Carrier"></a>
                                                         <a href="javascript:void(0)" id="edit-toggle"
                                                             class="ti ti-edit fs-3 text-danger" title="Edit status"></a>
                                                     </div>
@@ -441,7 +444,48 @@
                         </div>
                     </div>
                     <!-- / Content -->
-
+                    <div class="modal fade" id="addCarrierModal" tabindex="-1" aria-labelledby="addCarrierModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addCarrierModalLabel">Add Carrier</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addCarrierForm">
+                                        <div class="mb-3">
+                                            <label for="modalStateSelect" class="form-label">State</label>
+                                            <select class="form-select" id="modalStateSelect" required>
+                                                <option value="">-- Select a state --</option>
+                                                <!-- States options will be populated dynamically -->
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalCompanySelect" class="form-label">Carrier Name</label>
+                                            <select class="form-select" id="modalCompanySelect" required>
+                                                <option value="">-- Select a carrier --</option>
+                                                <!-- Carrier options update dynamically based on state -->
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalStatusSelect" class="form-label">Status Progress</label>
+                                            <select class="form-select" id="modalStatusSelect" required>
+                                                <!-- Status options -->
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" id="saveCarrierBtn">Add
+                                        Carrier</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="content-backdrop fade"></div>
                 </div>
             </div>
@@ -675,10 +719,6 @@
             carriersData = JSON.parse(document.getElementById("carriers-data").textContent);
             renderCarrierTable(carriersData);
 
-            if (!user.isAgent) {
-                document.getElementById("edit-controls").style.display = "block";
-            }
-
             const editButton = document.getElementById("edit-toggle");
 
             editButton.addEventListener("click", async () => {
@@ -761,6 +801,140 @@
                 if (stateAbbreviationMap[abbr]) {
                     header.textContent = stateAbbreviationMap[abbr];
                 }
+            });
+        });
+    </script>
+
+    <script type="application/json" id="companies-data">
+    <%- JSON.stringify(allCompanies || []) %>
+    </script>
+
+    <script>
+        async function addCarrier(state, company, status) {
+            try {
+                const response = await fetch("/users/profile/add-carrier", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        userId: profile.user_id,
+                        company,
+                        state,
+                        status,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addCarrierModal')).hide();
+                    carriersData.push({ state, company, status });
+                    renderCarrierTable(carriersData);
+                    showToast("Success", "Carrier added successfully.");
+                } else {
+                    showToast("Error", "Failed to add carrier: " + result.message);
+                }
+            } catch (error) {
+                alert("Error adding carrier: " + error.message);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const companies = JSON.parse(document.getElementById('companies-data').textContent);
+            const US_STATES = [
+                { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
+                { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
+                { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
+                { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
+                { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
+                { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
+                { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
+                { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
+                { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
+                { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
+                { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
+                { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
+                { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
+                { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
+                { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
+                { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
+                { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
+            ];
+
+            const statesWithCompanies = US_STATES.filter(state =>
+                companies.some(c => Array.isArray(c.States) && c.States.includes(state.abbr))
+            );
+
+            function getCompaniesByState(abbr) {
+                return companies
+                    .filter(c => Array.isArray(c.States) && c.States.includes(abbr))
+                    .map(c => c.name);
+            }
+
+            // Populate state dropdown in modal
+            const modalStateSelect = document.getElementById("modalStateSelect");
+            statesWithCompanies.forEach(state => {
+                const option = document.createElement("option");
+                option.value = state.abbr;
+                option.textContent = state.name;
+                modalStateSelect.appendChild(option);
+            });
+
+            // Populate status dropdown in modal
+            const modalStatusSelect = document.getElementById("modalStatusSelect");
+            allStatusOptions.forEach(status => {
+                const option = document.createElement("option");
+                option.value = status;
+                option.textContent = status;
+                modalStatusSelect.appendChild(option);
+            });
+
+            // When state changes in modal, update carriers dropdown
+            modalStateSelect.addEventListener("change", () => {
+                const selectedState = modalStateSelect.value;
+                const modalCompanySelect = document.getElementById("modalCompanySelect");
+                modalCompanySelect.innerHTML = '<option value="">-- Select a carrier --</option>';
+
+                if (!selectedState) return;
+
+                const carriersForState = getCompaniesByState(selectedState);
+                carriersForState.forEach(carrierName => {
+                    const option = document.createElement("option");
+                    option.value = carrierName;
+                    option.textContent = carrierName;
+                    modalCompanySelect.appendChild(option);
+                });
+            });
+
+            // Show modal on add carrier button click
+            const addCarrierBtn = document.getElementById("add-carrier");
+            addCarrierBtn.addEventListener("click", () => {
+                document.getElementById("addCarrierForm").reset();
+                modalCompanySelect.innerHTML = '<option value="">-- Select a carrier --</option>';
+
+                new bootstrap.Modal(document.getElementById('addCarrierModal')).show();
+            });
+
+            // Save new carrier from modal
+            document.getElementById("saveCarrierBtn").addEventListener("click", async () => {
+                const state = modalStateSelect.value;
+                const company = document.getElementById("modalCompanySelect").value;
+                const status = modalStatusSelect.value;
+
+                if (!state || !company || !status) {
+                    alert("Please select state, carrier, and status.");
+                    return;
+                }
+
+                // Check if carrier entry already exists
+                const exists = carriersData.some(c => c.state === state && c.company === company);
+                if (exists) {
+                    alert("This carrier already exists in the list.");
+                    return;
+                }
+
+                // Add new carrier
+                await addCarrier(state, company, status);
             });
         });
     </script>

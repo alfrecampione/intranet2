@@ -34,6 +34,8 @@ const renderProfile = async (req, res) => {
         orderBy: { state: 'asc' },
     });
 
+    const allCompanies = await prisma.company.findMany();
+
     const logs = await prisma.logs.findMany({
         where: {
             OR: [
@@ -60,6 +62,7 @@ const renderProfile = async (req, res) => {
         documents,
         necesaryDocs,
         carriers,
+        allCompanies,
         activity
     });
 };
@@ -340,6 +343,30 @@ const saveSection = async (req, res) => {
     }
 };
 
+const addCarrierToUser = async (req, res) => {
+    const { userId, company, state, status } = req.body;
+    const requesterId = req.user.user_id;
 
+    if (!userId || !company || !state || !status) {
+        return res.status(400).json({ success: false, message: "All fields are required." });
+    }
 
-export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection };
+    try {
+        await prismaContext.run({ requesterId }, async () => {
+            const newCarrier = await prisma.statesANDCarriers.create({
+                data: {
+                    userId,
+                    company,
+                    state,
+                    status
+                }
+            });
+            res.status(201).json({ success: true, data: newCarrier });
+        });
+    } catch (error) {
+        console.error("Error adding carrier:", error);
+        res.status(500).json({ success: false, message: "Failed to add carrier." });
+    }
+}
+
+export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser };

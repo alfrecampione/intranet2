@@ -924,8 +924,6 @@
       const bsToast = new bootstrap.Toast(toast);
       bsToast.show();
     }
-
-    // Mostrar/ocultar campos de negocio según tipo de contacto
     document.addEventListener('DOMContentLoaded', function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
@@ -1333,8 +1331,6 @@
         wantFranchise: wantFranchise,
         agency: agency || null
       };
-
-      console.log("Personal Info to save:", personalInfo);
 
       const response = await fetch(`${url}/steps/personal-info`, {
         method: "POST",
