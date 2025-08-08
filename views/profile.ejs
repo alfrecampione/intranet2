@@ -986,7 +986,6 @@
                     editIcon.className = 'ti ti-device-floppy';
                     editing = true;
                 } else {
-                    // Guardar cambios
                     const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input`);
                     const updatedValues = {};
 
@@ -1042,7 +1041,7 @@
             li.className = 'mb-2';
             li.dataset.section = sectionKey;
             li.dataset.label = label;
-            li.dataset.field = fieldName; // aquí guardamos el nombre exacto de Prisma
+            li.dataset.field = fieldName;
 
             const wrapper = document.createElement('div');
             wrapper.className = 'd-flex align-items-center';
