@@ -318,5 +318,28 @@ const deleteNote = async (req, res) => {
     }
 };
 
+const saveSection = async (req, res) => {
+    const { userId, sectionKey, values } = req.body;
+    const requesterId = req.user.user_id;
 
-export { renderProfile, renderNotes, postNote, editNote, deleteNote };
+    if (!sectionKey || !values) {
+        return res.status(400).json({ success: false, message: "Section key and values are required." });
+    }
+
+    try {
+        await prismaContext.run({ requesterId }, async () => {
+            const updatedSection = await prisma[sectionKey].update({
+                where: { userId },
+                data: values
+            });
+            res.status(200).json({ success: true, data: updatedSection });
+        });
+    } catch (error) {
+        console.error("Error saving section:", error);
+        res.status(500).json({ success: false, message: "Failed to save section." });
+    }
+};
+
+
+
+export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection };

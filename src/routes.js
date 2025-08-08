@@ -29,7 +29,7 @@ import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
 import { renderAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
-import { renderProfile, renderNotes, postNote, editNote, deleteNote } from "./controllers/profile.js";
+import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection } from "./controllers/profile.js";
 
 const router = express.Router();
 
@@ -49,6 +49,7 @@ router.get("/users/profile/:id/notes", checkNotAuthenticated, renderNotes);
 router.post("/users/profile/:id/notes", checkNotAuthenticated, postNote);
 router.put("/users/profile/:id/notes/:noteId", checkNotAuthenticated, editNote);
 router.delete("/users/profile/:id/notes/:noteId", checkNotAuthenticated, deleteNote);
+router.post("/users/profile/save-section", checkNotAuthenticated, saveSection);
 
 router.post(
   "/users/dashboard/lastQuarter",
