@@ -248,17 +248,51 @@
         </nav>
         <div class="content-wrapper">
           <div class="container-xxl flex-grow-1 container-p-y">
-            <div class="row">
-              <div class="row mt-4 mb-3">
-                <div class="d-flex justify-content-center align-items-center" style="height: 300px">
-                  <div class="text-center">
-                    <h2 class="fw-bold">
-                      Welcome <%= user.display_name %> to GoldenHealth
-                    </h2>
+
+            <% if (user && (user.agency || !user.isAgent)) { %>
+
+              <!-- Polar Area Chart -->
+              <div class="col-lg-6 col-12 mb-6">
+                <div class="card">
+                  <div class="card-header header-elements">
+                    <h5 class="card-title mb-0">Group by carriers</h5>
+                    <div class="card-header-elements ms-auto py-0 dropdown">
+                      <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-n1" type="button"
+                        id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="ti ti-dots-vertical ti-md text-muted"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
+                        <a class="dropdown-item active" href="#" data-state="all">All States</a>
+                        <% states.forEach(state=> { %>
+                          <a class="dropdown-item" href="#" data-state="<%= state %>">
+                            <%= state %>
+                          </a>
+                          <% }) %>
+                      </div>
+                    </div>
+                    <!-- Add this div to show total users count -->
+                    <div id="totalUsers" class="mt-2" style="font-weight: 600; color: #555;"></div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
                   </div>
                 </div>
               </div>
-            </div>
+              <!-- /Polar Area Chart -->
+
+              <% } else { %>
+                <div class="row">
+                  <div class="row mt-4 mb-3">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 300px">
+                      <div class="text-center">
+                        <h2 class="fw-bold">
+                          Welcome <%= user.display_name %> to GoldenHealth
+                        </h2>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <% } %>
           </div>
           <div class="content-backdrop fade"></div>
         </div>
@@ -294,6 +328,77 @@
 
   <!-- Main JS -->
   <script src="/js/main.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script id="companies-data" type="application/json">
+    <%- JSON.stringify(companies) %>
+  </script>
+
+  <script id="user-company-state-data" type="application/json">
+    <%- JSON.stringify(userCompanyStateData) %>
+  </script>
+
+  <script>
+    const companies = JSON.parse(document.getElementById('companies-data').textContent);
+    const userCompanyStateData = JSON.parse(document.getElementById('user-company-state-data').textContent);
+
+    let selectedState = 'all';
+
+    function getDataByState(state) {
+      const filtered = state === 'all'
+        ? userCompanyStateData
+        : userCompanyStateData.filter(d => d.state === state);
+
+      const counts = {};
+      filtered.forEach(({ company }) => {
+        counts[company] = (counts[company] || 0) + 1;
+      });
+      return companies.map(c => counts[c.name] || 0);
+    }
+    const ctx = document.getElementById('polarChart').getContext('2d');
+
+    const chartConfig = {
+      type: 'polarArea',
+      data: {
+        labels: companies.map(c => c.name),
+        datasets: [{
+          data: [],
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+          ],
+        }]
+      },
+      options: {}
+    };
+
+    const polarChart = new Chart(ctx, chartConfig);
+
+    function updateChart(state) {
+      const newData = getDataByState(state);
+      polarChart.data.datasets[0].data = newData;
+      polarChart.update();
+      document.getElementById('totalUsers').innerText =
+        `Total users in ${state === 'all' ? 'all states' : state}: ${newData.reduce((a, b) => a + b, 0)}`;
+    }
+
+    updateChart(selectedState);
+
+    document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+
+        selectedState = e.target.getAttribute('data-state');
+
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(i => i.classList.remove('active'));
+
+        e.target.classList.add('active');
+
+        updateChart(selectedState);
+      });
+    });
+  </script>
+
 </body>
 
 </html>

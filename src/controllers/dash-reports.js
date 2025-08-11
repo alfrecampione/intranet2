@@ -18,9 +18,23 @@ const dashboard = async (req, res) => {
     return;
   }
 
-  let displayName = req.user.display_name;
+  try {
+    const companies = await prisma.company.findMany();
+    const userCompanyStateData = await prisma.statesANDCarriers.findMany({
+      select: { userId: true, company: true, state: true }
+    });
+    const states = [...new Set(userCompanyStateData.map(d => d.state))];
 
-  res.render("dashboard", { user: req.user, displayName });
+    res.render('dashboard', {
+      user: req.user,
+      companies,
+      userCompanyStateData,
+      states,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 };
 
 // const dashboard = async (req, res) => {
