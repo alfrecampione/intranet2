@@ -345,9 +345,14 @@
     <%- JSON.stringify(userCompanyStateData) %>
   </script>
 
+  <script id="states-data" type="application/json">
+    <%- JSON.stringify(states) %>
+  </script>
+
   <script>
     const companies = JSON.parse(document.getElementById('companies-data').textContent);
     const userCompanyStateData = JSON.parse(document.getElementById('user-company-state-data').textContent);
+    const states = JSON.parse(document.getElementById('states-data').textContent);
 
     let selectedState = 'all';
 
@@ -360,22 +365,70 @@
       filtered.forEach(({ company }) => {
         counts[company] = (counts[company] || 0) + 1;
       });
-      return companies.map(c => counts[c.name] || 0);
+
+      const companyData = companies.map(c => counts[c.name] || 0);
+      const totalExpected = 500;  // <-- Aquí defines el total esperado
+      const currentSum = companyData.reduce((a, b) => a + b, 0);
+      const noneValue = Math.max(totalExpected - currentSum, 0);
+
+      return [...companyData, noneValue];
     }
+
+    const statesWithData = states.filter(state => {
+      const data = userCompanyStateData.filter(d => d.state === state);
+      return data.length > 0;
+    });
+
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    dropdownMenu.innerHTML = `
+  <a class="dropdown-item active" href="#" data-state="all">All States</a>
+  ${statesWithData.map(state => `<a class="dropdown-item" href="#" data-state="${state}">${state}</a>`).join('')}
+`;
+
     const ctx = document.getElementById('polarChart').getContext('2d');
 
     const chartConfig = {
       type: 'polarArea',
       data: {
-        labels: companies.map(c => c.name),
+        labels: [...companies.map(c => c.name), 'None'],
         datasets: [{
           data: [],
           backgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+            '#CCCCCC'
           ],
         }]
       },
-      options: {}
+      options: {
+        rotation: -0.5 * Math.PI,
+        startAngle: 0,
+        circumference: 2 * Math.PI,
+        animation: {
+          animateRotate: true,
+          animateScale: true,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'right',
+          }
+        },
+        scales: {
+          r: {
+            angleLines: {
+              display: false,
+            },
+            ticks: {
+              display: false,
+              beginAtZero: true,
+            },
+            grid: {
+              display: false,
+              circular: false,
+            }
+          }
+        }
+      }
     };
 
     const polarChart = new Chart(ctx, chartConfig);
