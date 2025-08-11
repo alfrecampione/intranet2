@@ -572,7 +572,8 @@
         const specialStatusOptions = [
             "Rejected by Carrier",
             "Withdrawn by Agent",
-            "Need Release"
+            "Need Release",
+            "Release"
         ];
 
         const allStatusOptions = [...normalStatusOptions, ...specialStatusOptions];
@@ -653,30 +654,6 @@
 
                         wrapper.appendChild(select);
 
-                        const deleteLink = document.createElement("a");
-                        deleteLink.href = "#";
-                        deleteLink.className = "ms-2 text-danger";
-                        deleteLink.title = "Delete Carrier";
-                        deleteLink.innerHTML = `<i class="ti ti-trash"></i>`;
-                        deleteLink.addEventListener("click", async (e) => {
-                            e.preventDefault();
-                            if (confirm(`Are you sure you want to delete ${carrier.company} in ${carrier.state}?`)) {
-                                try {
-                                    const res = await deleteCarrier(carrier.id);
-                                    if (res.ok) {
-                                        carriersData = carriersData.filter(c => c.id !== carrier.id);
-                                        renderCarrierTable(carriersData);
-                                    } else {
-                                        alert("Failed to delete carrier.");
-                                    }
-                                } catch (err) {
-                                    alert("Error deleting carrier: " + err.message);
-                                }
-                            }
-                        });
-
-                        wrapper.appendChild(deleteLink);
-
                         tdStatusProgress.appendChild(wrapper);
                     }
                     else {
@@ -722,7 +699,26 @@
         }
 
         async function saveCarrierUpdates(carriers) {
-            const updates = carriers.map(({ company, state, status }) => ({
+            const carriersToDelete = carriers.filter(({ company, state, status }) => {
+                return !status || status === "Release";
+            });
+
+            const carriersToUpdate = carriers.filter(({ company, state, status }) => {
+                return status && status !== "Release" && !carriersToDelete.some(c => c.company === company && c.state === state);
+            });
+
+            await Promise.all(carriersToDelete.map(async (carrier) => {
+                try {
+                    const res = await deleteCarrier(carrier.id);
+                    if (!res.ok) {
+                        alert("Failed to delete carrier: " + carrier.company);
+                    }
+                } catch (err) {
+                    alert("Error deleting carrier: " + err.message);
+                }
+            }));
+
+            const updates = carriersToUpdate.map(({ company, state, status }) => ({
                 company,
                 state,
                 status,
@@ -743,6 +739,11 @@
             if (!result.success) {
                 alert("Error when updating status: " + result.message);
             }
+            const filteredCarriers = carriers.filter(c =>
+                !carriersToDelete.some(d => d.company === c.company && d.state === c.state)
+            );
+
+            return filteredCarriers;
         }
 
         async function deleteCarrier(id) {
@@ -772,7 +773,7 @@
                     editButton.classList.remove("ti-device-floppy", "text-primary");
                     editButton.classList.add("ti-edit", "text-danger");
                     editButton.setAttribute("title", "Edit Status");
-                    await saveCarrierUpdates(carriersData);
+                    carriersData = await saveCarrierUpdates(carriersData);
                     renderCarrierTable(carriersData);
                 }
             });
