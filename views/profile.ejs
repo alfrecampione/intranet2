@@ -538,6 +538,15 @@
     <!-- Main JS -->
     <script src="/js/main.js"></script>
 
+    <script>
+        function showToast(headerText, bodyText) {
+            const toast = document.querySelector('.toast-ex1');
+            toast.querySelector('.toast-header small').textContent = headerText;
+            toast.querySelector('.toast-body').textContent = bodyText;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    </script>
 
     <!-- Carrier Status JS -->
     <script id="carriers-data" type="application/json">
@@ -548,16 +557,6 @@
     </script>
     <script id="user" type="application/json">
       <%- JSON.stringify(user) %>
-    </script>
-
-    <script>
-        function showToast(headerText, bodyText) {
-            const toast = document.querySelector('.toast-ex1');
-            toast.querySelector('.toast-header small').textContent = headerText;
-            toast.querySelector('.toast-body').textContent = bodyText;
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-        }
     </script>
 
     <script>
@@ -605,7 +604,7 @@
 
             if (carriers.length === 0) {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td valign="top" colspan="4" class="dataTables_empty">No carriers found.</td>`;
+                tr.innerHTML = `<td valign="top" colspan="5" class="dataTables_empty">No carriers found.</td>`;
                 tbody.appendChild(tr);
                 return;
             }
@@ -644,12 +643,43 @@
                     tdStatusProgress.dataset.state = carrier.state;
 
                     if (isEditing) {
+                        const wrapper = document.createElement("div");
+                        wrapper.className = "d-flex align-items-center";
+
                         const select = createStatusSelect(carrier.status);
                         select.addEventListener("change", (e) => {
                             carrier.status = e.target.value;
                         });
-                        tdStatusProgress.appendChild(select);
-                    } else {
+
+                        wrapper.appendChild(select);
+
+                        const deleteLink = document.createElement("a");
+                        deleteLink.href = "#";
+                        deleteLink.className = "ms-2 text-danger";
+                        deleteLink.title = "Delete Carrier";
+                        deleteLink.innerHTML = `<i class="ti ti-trash"></i>`;
+                        deleteLink.addEventListener("click", async (e) => {
+                            e.preventDefault();
+                            if (confirm(`Are you sure you want to delete ${carrier.company} in ${carrier.state}?`)) {
+                                try {
+                                    const res = await deleteCarrier(carrier.id);
+                                    if (res.ok) {
+                                        carriersData = carriersData.filter(c => c.id !== carrier.id);
+                                        renderCarrierTable(carriersData);
+                                    } else {
+                                        alert("Failed to delete carrier.");
+                                    }
+                                } catch (err) {
+                                    alert("Error deleting carrier: " + err.message);
+                                }
+                            }
+                        });
+
+                        wrapper.appendChild(deleteLink);
+
+                        tdStatusProgress.appendChild(wrapper);
+                    }
+                    else {
                         const isNormal = normalStatusOptions.includes(carrier.status);
                         let percent = 0;
                         let progressBarClass = "";
@@ -669,20 +699,20 @@
                         }
 
                         tdStatusProgress.innerHTML = `
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="progress flex-grow-1" style="height: 8px;">
-                                <div class="progress-bar ${progressBarClass}"
-                                    role="progressbar"
-                                    style="width: ${percent}%;"
-                                    aria-valuenow="${percent}"
-                                    aria-valuemin="0"
-                                    aria-valuemax="100">
-                                </div>
-                            </div>
-                            <small class="text-nowrap">${isNormal ? (normalStatusOptions.indexOf(carrier.status) + 1) + '/' + normalStatusOptions.length : ''}</small>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="progress flex-grow-1" style="height: 8px;">
+                        <div class="progress-bar ${progressBarClass}"
+                            role="progressbar"
+                            style="width: ${percent}%;"
+                            aria-valuenow="${percent}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
                         </div>
-                        <small class="text-muted d-block mb-1">${carrier.status || 'Unknown status'}</small>
-                    `;
+                    </div>
+                    <small class="text-nowrap">${isNormal ? (normalStatusOptions.indexOf(carrier.status) + 1) + '/' + normalStatusOptions.length : ''}</small>
+                </div>
+                <small class="text-muted d-block mb-1">${carrier.status || 'Unknown status'}</small>
+                `;
                     }
 
                     tr.appendChild(tdStatusProgress);
@@ -713,6 +743,15 @@
             if (!result.success) {
                 alert("Error when updating status: " + result.message);
             }
+        }
+
+        async function deleteCarrier(id) {
+            return await fetch(`/users/profile/carrier/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -839,6 +878,7 @@
                 alert("Error adding carrier: " + error.message);
             }
         }
+
         document.addEventListener("DOMContentLoaded", () => {
             const companies = JSON.parse(document.getElementById('companies-data').textContent);
             const US_STATES = [
@@ -966,8 +1006,15 @@
             editIcon.addEventListener('click', async () => {
                 const sectionItems = list.querySelectorAll(`li[data-section="${sectionKey}"] span[data-value]`);
 
+                async function fetchAgencies(franchiseValue) {
+                    const res = await fetch(`/users/profile/agencies/${franchiseValue}`);
+                    return res.ok ? (await res.json()).data : [];
+                }
+
                 if (!editing) {
-                    sectionItems.forEach(span => {
+                    for (const span of sectionItems) {
+                        const li = span.closest('li');
+                        const fieldName = li.dataset.field;
                         let currentValue;
                         const sensitiveSpan = span.querySelector?.('span[data-full]');
                         if (sensitiveSpan) {
@@ -976,33 +1023,119 @@
                             currentValue = span.textContent;
                         }
 
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.value = currentValue === 'None' ? '' : currentValue;
-                        input.dataset.original = input.value;
-                        input.className = 'form-control form-control-sm';
+                        let input;
+
+                        // Franchise
+                        if (fieldName === 'franchise') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+
+                            const isFranchise = currentValue.toLowerCase() === 'yes';
+
+                            ['Yes', 'No'].forEach(opt => {
+                                const option = document.createElement('option');
+                                option.value = (opt === 'Yes') ? 'true' : 'false';
+                                option.textContent = opt;
+                                if ((opt === 'Yes' && isFranchise) || (opt === 'No' && !isFranchise)) {
+                                    option.selected = true;
+                                }
+                                input.appendChild(option);
+                            });
+
+                            input.dataset.original = isFranchise.toString();
+
+                            input.addEventListener('change', async () => {
+                                const agencySelect = list.querySelector('li[data-field="agency"] select');
+                                if (agencySelect) {
+                                    agencySelect.innerHTML = '';
+                                    const agencies = await fetchAgencies(input.value === 'true');
+                                    agencies.forEach(a => {
+                                        const opt = document.createElement('option');
+                                        opt.value = a.alias || a.name;
+                                        opt.textContent = a.alias || a.name;
+                                        agencySelect.appendChild(opt);
+                                    });
+                                }
+                            });
+                        }
+
+                        // Agency
+                        else if (fieldName === 'agency') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+
+                            input.dataset.original = currentValue;
+
+                            const franchiseValue = list
+                                .querySelector('li[data-field="franchise"] span[data-value]')?.textContent || 'No';
+                            const agencies = await fetchAgencies(franchiseValue);
+
+                            agencies.forEach(a => {
+                                const option = document.createElement('option');
+                                option.value = a.alias || a.name;
+                                option.textContent = a.alias || a.name;
+                                if (option.value === currentValue) option.selected = true;
+                                input.appendChild(option);
+                            });
+                        }
+                        // Documents
+                        else if (sectionKey === 'documents') {
+                            input = document.createElement('input');
+                            input.type = 'file';
+                            input.className = 'form-control form-control-sm';
+                            input.dataset.original = '';
+                        }
+
+                        else {
+                            input = document.createElement('input');
+                            input.type = 'text';
+                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.dataset.original = input.value;
+                            input.className = 'form-control form-control-sm';
+                        }
+
                         span.replaceWith(input);
-                    });
+                    }
+
                     editIcon.className = 'ti ti-device-floppy';
                     editing = true;
+
                 } else {
-                    const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input`);
+                    const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
                     const updatedValues = {};
 
-                    inputs.forEach(input => {
+                    for (const input of inputs) {
                         const fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
-                        const newValue = input.value;
 
-                        if (newValue !== originalValue) {
-                            updatedValues[fieldName] = newValue;
+                        if (input.type === 'file' && input.files.length > 0) {
+                            const formData = new FormData();
+                            formData.append('file', input.files[0]);
+
+                            const uploadRes = await fetch('/upload', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            const uploadData = await uploadRes.json();
+                            if (uploadData.path) {
+                                updatedValues[fieldName] = uploadData.path;
+                            } else {
+                                showToast('Error', `Error uploading document: ${fieldName}`);
+                            }
+                        }
+                        else {
+                            const newValue = input.value;
+                            if (newValue !== originalValue) {
+                                updatedValues[fieldName] = newValue;
+                            }
                         }
 
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
-                        span.textContent = newValue || 'None';
+                        span.textContent = input.type === 'file' ? (input.files[0]?.name || 'None') : (input.value || 'None');
                         input.replaceWith(span);
-                    });
+                    }
 
                     if (Object.keys(updatedValues).length > 0) {
                         const response = await fetch("/users/profile/save-section", {
@@ -1016,13 +1149,11 @@
                         });
 
                         const result = await response.json();
-
                         if (!result.success) {
                             showToast("Error", "Error saving data.");
-                        }
-                        else {
+                        } else {
                             showToast("Success", "Profile updated successfully.");
-                            location.reload()
+                            location.reload();
                         }
                     }
 
@@ -1139,7 +1270,7 @@
         ];
 
         sectionKey = 'documents';
-        addSectionHeader('Documents', 'documents');
+        addSectionHeader('Documents', sectionKey);
         documentFields.forEach(({ key, label }) => {
             const isRequired = necesaryDocs?.[key];
             if (isRequired) {

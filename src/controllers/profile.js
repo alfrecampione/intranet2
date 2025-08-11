@@ -325,15 +325,21 @@ const saveSection = async (req, res) => {
     const { userId, sectionKey, values } = req.body;
     const requesterId = req.user.user_id;
 
+    console.log("Saving section:", sectionKey, "for user:", userId, "with values:", values);
+
     if (!sectionKey || !values) {
         return res.status(400).json({ success: false, message: "Section key and values are required." });
     }
 
     try {
         await prismaContext.run({ requesterId }, async () => {
-            const updatedSection = await prisma[sectionKey].update({
+            const updatedSection = await prisma[sectionKey].upsert({
                 where: { userId },
-                data: values
+                update: values,
+                create: {
+                    userId,
+                    ...values
+                }
             });
             res.status(200).json({ success: true, data: updatedSection });
         });
@@ -369,4 +375,43 @@ const addCarrierToUser = async (req, res) => {
     }
 }
 
-export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser };
+const deleteCarrierToUser = async (req, res) => {
+    const { carrierId } = req.params;
+    const requesterId = req.user.user_id;
+
+    if (!carrierId) {
+        return res.status(400).json({ success: false, message: "Carrier ID is required." });
+    }
+    try {
+        await prismaContext.run({ requesterId }, async () => {
+            await prisma.statesANDCarriers.delete({
+                where: { id: carrierId }
+            });
+            res.status(200).json({ success: true, message: "Carrier deleted successfully." });
+        });
+    } catch (error) {
+        console.error("Error deleting carrier:", error);
+        res.status(500).json({ success: false, message: "Failed to delete carrier." });
+    }
+}
+
+const getAgencies = async (req, res) => {
+    const { franchise } = req.params;
+
+    if (!franchise) {
+        return res.status(400).json({ success: false, message: "Franchise is required." });
+    }
+    try {
+        const external = await prisma.agency.findMany({});
+        const company = await prisma.$queryRaw`
+      SELECT alias FROM qq.locations WHERE location_type = 2 or location_id = 1
+      ORDER BY location_id ASC
+    `;
+        res.status(200).json({ success: true, data: (franchise.toLowerCase() === 'yes') ? external : company });
+    } catch (error) {
+        console.error("Error fetching agencies:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch agencies." });
+    }
+}
+
+export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies };
