@@ -200,9 +200,13 @@
                       <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                           <div class="avatar avatar-online">
-                            <span class="avatar-initial rounded-circle bg-label-primary">
-                              <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
-                            </span>
+                            <% if (user.personalInfo && user.personalInfo.photoPath) { %>
+                              <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
+                              <% } else { %>
+                                <span class="avatar-initial rounded-circle bg-label-primary">
+                                  <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
+                                </span>
+                                <% } %>
                           </div>
                         </div>
                         <div class="flex-grow-1">
