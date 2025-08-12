@@ -357,6 +357,8 @@
 
     let selectedState = 'all';
 
+    const originalLabels = [...companies.map(c => c.name), 'None'];
+
     function getDataByState(state) {
       const filtered = state === 'all'
         ? userCompanyStateData
@@ -367,7 +369,6 @@
         counts[company] = (counts[company] || 0) + 1;
       });
 
-      // Asegura que siempre devuelva valores para todas las empresas
       return companies.map(c => counts[c.name] || 0);
     }
 
@@ -399,7 +400,7 @@
     const chartConfig = {
       type: 'polarArea',
       data: {
-        labels: [...companies.map(c => c.name), 'None'],
+        labels: originalLabels,
         datasets: [{
           data: [],
           backgroundColor: generateColors(companies.length + 1),
@@ -433,7 +434,6 @@
       const currentSum = rawData.reduce((a, b) => a + b, 0);
       const totalUsersDiv = document.getElementById('totalUsers');
 
-      // Caso sin usuarios
       if (currentSum === 0) {
         polarChart.data.labels = ['No Users'];
         polarChart.data.datasets[0].data = [1];
@@ -444,12 +444,11 @@
         return;
       }
 
-      // Calcular valor "None"
-      let noneValue = 0; // sin mínimo artificial
+      let noneValue = 0;
       const fullData = [...rawData, noneValue];
 
       const zipped = fullData.map((value, i) => ({
-        label: chartConfig.data.labels[i],
+        label: originalLabels[i],
         value,
         color: generateColors(fullData.length)[i]
       }));
@@ -481,6 +480,7 @@
       });
     });
   </script>
+
 
 
 </body>
