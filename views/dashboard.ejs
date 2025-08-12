@@ -366,12 +366,7 @@
         counts[company] = (counts[company] || 0) + 1;
       });
 
-      const companyData = companies.map(c => counts[c.name] || 0);
-      const totalExpected = 500;  // <-- Aquí defines el total esperado
-      const currentSum = companyData.reduce((a, b) => a + b, 0);
-      const noneValue = Math.max(totalExpected - currentSum, 0);
-
-      return [...companyData, noneValue];
+      return companies.map(c => counts[c.name] || 0);
     }
 
     const statesWithData = states.filter(state => {
@@ -381,11 +376,23 @@
 
     const dropdownMenu = document.querySelector('.dropdown-menu');
     dropdownMenu.innerHTML = `
-  <a class="dropdown-item active" href="#" data-state="all">All States</a>
-  ${statesWithData.map(state => `<a class="dropdown-item" href="#" data-state="${state}">${state}</a>`).join('')}
-`;
+    <a class="dropdown-item active" href="#" data-state="all">All States</a>
+    ${statesWithData.map(state => `<a class="dropdown-item" href="#" data-state="${state}">${state}</a>`).join('')}
+  `;
 
     const ctx = document.getElementById('polarChart').getContext('2d');
+
+    function generateColors(n) {
+      const baseColors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#CCCCCC'
+      ];
+      if (n <= baseColors.length) return baseColors.slice(0, n);
+      const colors = [];
+      for (let i = 0; i < n; i++) {
+        colors.push(baseColors[i % baseColors.length]);
+      }
+      return colors;
+    }
 
     const chartConfig = {
       type: 'polarArea',
@@ -393,16 +400,10 @@
         labels: [...companies.map(c => c.name), 'None'],
         datasets: [{
           data: [],
-          backgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-            '#CCCCCC'
-          ],
+          backgroundColor: generateColors(companies.length + 1),
         }]
       },
       options: {
-        rotation: -0.5 * Math.PI,
-        startAngle: 0,
-        circumference: 2 * Math.PI,
         animation: {
           animateRotate: true,
           animateScale: true,
@@ -415,17 +416,9 @@
         },
         scales: {
           r: {
-            angleLines: {
-              display: false,
-            },
-            ticks: {
-              display: false,
-              beginAtZero: true,
-            },
-            grid: {
-              display: false,
-              circular: false,
-            }
+            angleLines: { display: false },
+            ticks: { display: false, beginAtZero: true },
+            grid: { display: false, circular: false }
           }
         }
       }
@@ -434,11 +427,51 @@
     const polarChart = new Chart(ctx, chartConfig);
 
     function updateChart(state) {
-      const newData = getDataByState(state);
-      polarChart.data.datasets[0].data = newData;
+      const rawData = getDataByState(state);
+      const currentSum = rawData.reduce((a, b) => a + b, 0);
+
+      // Handle "No Users" case
+      if (currentSum === 0) {
+        polarChart.data.labels = ['No Users'];
+        polarChart.data.datasets[0].data = [1];
+        polarChart.data.datasets[0].backgroundColor = ['#CCCCCC'];
+        polarChart.update();
+        document.getElementById('totalUsers').innerText =
+          `No users in ${state === 'all' ? 'all states' : state}`;
+        return;
+      }
+
+      // No minimum expected — just fill with None if needed
+      const totalExpected = currentSum;
+      let noneValue = totalExpected - currentSum;
+      noneValue = noneValue < 0 ? 0 : noneValue;
+
+      const fullData = [...rawData, noneValue];
+
+      const zipped = fullData.map((value, i) => ({
+        label: chartConfig.data.labels[i],
+        value,
+        color: generateColors(fullData.length)[i]
+      }));
+
+      const filtered = zipped.filter(d => d.value > 0);
+
+      filtered.sort((a, b) => b.value - a.value);
+      filtered.reverse();
+
+      const filteredLabels = filtered.map(d => d.label);
+      const filteredData = filtered.map(d => d.value);
+      const filteredColors = filtered.map(d => d.color);
+
+      polarChart.data.labels = filteredLabels;
+      polarChart.data.datasets[0].data = filteredData;
+      polarChart.data.datasets[0].backgroundColor = filteredColors;
+
+      polarChart.options.rotation = -Math.PI / 2;
       polarChart.update();
+
       document.getElementById('totalUsers').innerText =
-        `Total users in ${state === 'all' ? 'all states' : state}: ${newData.reduce((a, b) => a + b, 0)}`;
+        `Total users in ${state === 'all' ? 'all states' : state}: ${filteredData.reduce((a, b) => a + b, 0)}`;
     }
 
     updateChart(selectedState);
@@ -446,17 +479,14 @@
     document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
       item.addEventListener('click', e => {
         e.preventDefault();
-
         selectedState = e.target.getAttribute('data-state');
-
         document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(i => i.classList.remove('active'));
-
         e.target.classList.add('active');
-
         updateChart(selectedState);
       });
     });
   </script>
+
 
 </body>
 
