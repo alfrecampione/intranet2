@@ -441,7 +441,6 @@
         return;
       }
 
-      // No minimum expected — just fill with None if needed
       const totalExpected = currentSum;
       let noneValue = totalExpected - currentSum;
       noneValue = noneValue < 0 ? 0 : noneValue;
@@ -457,7 +456,6 @@
       const filtered = zipped.filter(d => d.value > 0);
 
       filtered.sort((a, b) => b.value - a.value);
-      filtered.reverse();
 
       const filteredLabels = filtered.map(d => d.label);
       const filteredData = filtered.map(d => d.value);
