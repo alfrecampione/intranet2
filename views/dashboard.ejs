@@ -263,8 +263,9 @@
                   <div class="card-header header-elements">
                     <h5 class="card-title mb-0">Group by carriers</h5>
                     <div class="card-header-elements ms-auto py-0 dropdown">
-                      <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-n1" type="button"
-                        id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
+                        type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
                         <i class="ti ti-dots-vertical ti-md text-muted"></i>
                       </button>
                       <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
@@ -356,8 +357,6 @@
 
     let selectedState = 'all';
 
-    const baseLabels = [...companies.map(c => c.name), 'None'];
-
     function getDataByState(state) {
       const filtered = state === 'all'
         ? userCompanyStateData
@@ -368,6 +367,7 @@
         counts[company] = (counts[company] || 0) + 1;
       });
 
+      // Asegura que siempre devuelva valores para todas las empresas
       return companies.map(c => counts[c.name] || 0);
     }
 
@@ -399,10 +399,10 @@
     const chartConfig = {
       type: 'polarArea',
       data: {
-        labels: baseLabels,
+        labels: [...companies.map(c => c.name), 'None'],
         datasets: [{
           data: [],
-          backgroundColor: generateColors(baseLabels.length),
+          backgroundColor: generateColors(companies.length + 1),
         }]
       },
       options: {
@@ -431,22 +431,25 @@
     function updateChart(state) {
       const rawData = getDataByState(state);
       const currentSum = rawData.reduce((a, b) => a + b, 0);
+      const totalUsersDiv = document.getElementById('totalUsers');
 
+      // Caso sin usuarios
       if (currentSum === 0) {
         polarChart.data.labels = ['No Users'];
         polarChart.data.datasets[0].data = [1];
         polarChart.data.datasets[0].backgroundColor = ['#CCCCCC'];
         polarChart.update();
-        document.getElementById('totalUsers').innerText =
-          `No users in ${state === 'all' ? 'all states' : state}`;
+        totalUsersDiv.className = 'mt-4 fw-bold text-danger';
+        totalUsersDiv.innerText = `No users in ${state === 'all' ? 'all states' : state}`;
         return;
       }
 
-      let noneValue = 0;
+      // Calcular valor "None"
+      let noneValue = 0; // sin mínimo artificial
       const fullData = [...rawData, noneValue];
 
       const zipped = fullData.map((value, i) => ({
-        label: baseLabels[i],
+        label: chartConfig.data.labels[i],
         value,
         color: generateColors(fullData.length)[i]
       }));
@@ -461,7 +464,8 @@
       polarChart.options.rotation = -Math.PI / 2;
       polarChart.update();
 
-      document.getElementById('totalUsers').innerText =
+      totalUsersDiv.className = 'mt-4 fw-bold text-secondary';
+      totalUsersDiv.innerText =
         `Total users in ${state === 'all' ? 'all states' : state}: ${filtered.reduce((sum, d) => sum + d.value, 0)}`;
     }
 
@@ -477,7 +481,6 @@
       });
     });
   </script>
-
 
 
 </body>
