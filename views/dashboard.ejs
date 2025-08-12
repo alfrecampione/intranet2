@@ -356,6 +356,8 @@
 
     let selectedState = 'all';
 
+    const baseLabels = [...companies.map(c => c.name), 'None'];
+
     function getDataByState(state) {
       const filtered = state === 'all'
         ? userCompanyStateData
@@ -397,10 +399,10 @@
     const chartConfig = {
       type: 'polarArea',
       data: {
-        labels: [...companies.map(c => c.name), 'None'],
+        labels: baseLabels,
         datasets: [{
           data: [],
-          backgroundColor: generateColors(companies.length + 1),
+          backgroundColor: generateColors(baseLabels.length),
         }]
       },
       options: {
@@ -430,7 +432,6 @@
       const rawData = getDataByState(state);
       const currentSum = rawData.reduce((a, b) => a + b, 0);
 
-      // Handle "No Users" case
       if (currentSum === 0) {
         polarChart.data.labels = ['No Users'];
         polarChart.data.datasets[0].data = [1];
@@ -441,35 +442,27 @@
         return;
       }
 
-      const totalExpected = currentSum;
-      let noneValue = totalExpected - currentSum;
-      noneValue = noneValue < 0 ? 0 : noneValue;
-
+      let noneValue = 0;
       const fullData = [...rawData, noneValue];
 
       const zipped = fullData.map((value, i) => ({
-        label: chartConfig.data.labels[i],
+        label: baseLabels[i],
         value,
         color: generateColors(fullData.length)[i]
       }));
 
       const filtered = zipped.filter(d => d.value > 0);
-
       filtered.sort((a, b) => b.value - a.value);
 
-      const filteredLabels = filtered.map(d => d.label);
-      const filteredData = filtered.map(d => d.value);
-      const filteredColors = filtered.map(d => d.color);
-
-      polarChart.data.labels = filteredLabels;
-      polarChart.data.datasets[0].data = filteredData;
-      polarChart.data.datasets[0].backgroundColor = filteredColors;
+      polarChart.data.labels = filtered.map(d => d.label);
+      polarChart.data.datasets[0].data = filtered.map(d => d.value);
+      polarChart.data.datasets[0].backgroundColor = filtered.map(d => d.color);
 
       polarChart.options.rotation = -Math.PI / 2;
       polarChart.update();
 
       document.getElementById('totalUsers').innerText =
-        `Total users in ${state === 'all' ? 'all states' : state}: ${filteredData.reduce((a, b) => a + b, 0)}`;
+        `Total users in ${state === 'all' ? 'all states' : state}: ${filtered.reduce((sum, d) => sum + d.value, 0)}`;
     }
 
     updateChart(selectedState);
@@ -484,6 +477,7 @@
       });
     });
   </script>
+
 
 
 </body>
