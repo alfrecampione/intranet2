@@ -256,37 +256,51 @@
           <div class="container-xxl flex-grow-1 container-p-y">
 
             <% if (user && (user.agency || !user.isAgent)) { %>
-
-              <!-- Polar Area Chart -->
-              <div class="col-lg-6 col-12 mb-6">
-                <div class="card">
-                  <div class="card-header header-elements">
-                    <h5 class="card-title mb-0">Group by carriers</h5>
-                    <div class="card-header-elements ms-auto py-0 dropdown">
-                      <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
-                        type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false">
-                        <i class="ti ti-dots-vertical ti-md text-muted"></i>
-                      </button>
-                      <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
-                        <a class="dropdown-item active" href="#" data-state="all">All States</a>
-                        <% states.forEach(state=> { %>
-                          <a class="dropdown-item" href="#" data-state="<%= state %>">
-                            <%= state %>
-                          </a>
-                          <% }) %>
+              <div class="row">
+                <!-- Group by carriers -->
+                <div class="col-lg-6 col-md-6 col-12 mb-6">
+                  <div class="card">
+                    <div class="card-header header-elements">
+                      <h5 class="card-title mb-0">Group by carriers</h5>
+                      <div class="card-header-elements ms-auto py-0 dropdown">
+                        <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
+                          type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
+                          aria-expanded="false">
+                          <i class="ti ti-dots-vertical ti-md text-muted"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
+                          <a class="dropdown-item active" href="#" data-state="all">All States</a>
+                          <% states.forEach(state=> { %>
+                            <a class="dropdown-item" href="#" data-state="<%= state %>">
+                              <%= state %>
+                            </a>
+                            <% }) %>
+                        </div>
                       </div>
+                      <div id="totalUsers" class="mt-2" style="font-weight: 600; color: #555;"></div>
                     </div>
-                    <!-- Add this div to show total users count -->
-                    <div id="totalUsers" class="mt-2" style="font-weight: 600; color: #555;"></div>
-                  </div>
-                  <div class="card-body">
-                    <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
+                    <div class="card-body">
+                      <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <!-- /Polar Area Chart -->
+                <!-- /Group by carriers -->
 
+                <!-- Group by states -->
+                <div class="col-lg-6 col-md-6 col-12 mb-6">
+                  <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between">
+                      <div class="card-title mb-0">
+                        <h5 class="mb-1">Group by states</h5>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <ul class="p-0 m-0" id="groupByStatesList"></ul>
+                    </div>
+                  </div>
+                </div>
+                <!--/ Group by states -->
+              </div>
               <% } else { %>
                 <div class="row">
                   <div class="row mt-4 mb-3">
@@ -350,6 +364,7 @@
     <%- JSON.stringify(states) %>
   </script>
 
+  <!-- Group by carriers -->
   <script>
     const companies = JSON.parse(document.getElementById('companies-data').textContent);
     const userCompanyStateData = JSON.parse(document.getElementById('user-company-state-data').textContent);
@@ -480,7 +495,141 @@
       });
     });
   </script>
+  <!--/ Group by carriers -->
 
+  <!-- Group by states -->
+  <script>
+    const userCompanyStateData2 = JSON.parse(document.getElementById('user-company-state-data').textContent);
+    const states2 = JSON.parse(document.getElementById('states-data').textContent);
+
+    const stateLogos = {
+      'California': '../../assets/img/icons/states/california.png',
+      'Texas': '../../assets/img/icons/states/texas.png',
+      'New York': '../../assets/img/icons/states/new-york.png',
+      // ... add all states here
+    };
+
+    const stateCounts = {};
+    userCompanyStateData2.forEach(({ state }) => {
+      stateCounts[state] = (stateCounts[state] || 0) + 1;
+    });
+
+    const totalUsersAllStates = Object.values(stateCounts).reduce((a, b) => a + b, 0);
+
+    const sortedStates = Object.entries(stateCounts)
+      .sort((a, b) => b[1] - a[1]);
+
+    const statesList = document.querySelector('#groupByStatesList');
+    statesList.innerHTML = sortedStates.map(([state, count]) => {
+      const percentage = ((count / totalUsersAllStates) * 100).toFixed(0);
+      return `
+      <li class="mb-4 d-flex">
+        <div class="d-flex w-50 align-items-center me-4">
+          <img src="${stateLogos[state] || '/img/icons/states/default.png'}" 
+               alt="${state}-logo" class="me-4" width="35" />
+          <div>
+            <h6 class="mb-0">${state}</h6>
+            <small class="text-body">${count} users</small>
+          </div>
+        </div>
+        <div class="d-flex flex-grow-1 align-items-center">
+          <div class="progress w-100 me-4" style="height: 8px">
+            <div class="progress-bar bg-primary" role="progressbar" 
+                 style="width: ${percentage}%" 
+                 aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+            </div>
+          </div>
+          <span class="text-muted">${percentage}%</span>
+        </div>
+      </li>
+    `;
+    }).join('');
+  </script>
+  <!--/ Group by states -->
+
+  <script>
+    // Mapping of state abbreviations to full names
+    const stateAbbreviationMap = {
+      "AL": "Alabama",
+      "AK": "Alaska",
+      "AZ": "Arizona",
+      "AR": "Arkansas",
+      "CA": "California",
+      "CO": "Colorado",
+      "CT": "Connecticut",
+      "DE": "Delaware",
+      "FL": "Florida",
+      "GA": "Georgia",
+      "HI": "Hawaii",
+      "ID": "Idaho",
+      "IL": "Illinois",
+      "IN": "Indiana",
+      "IA": "Iowa",
+      "KS": "Kansas",
+      "KY": "Kentucky",
+      "LA": "Louisiana",
+      "ME": "Maine",
+      "MD": "Maryland",
+      "MA": "Massachusetts",
+      "MI": "Michigan",
+      "MN": "Minnesota",
+      "MS": "Mississippi",
+      "MO": "Missouri",
+      "MT": "Montana",
+      "NE": "Nebraska",
+      "NV": "Nevada",
+      "NH": "New Hampshire",
+      "NJ": "New Jersey",
+      "NM": "New Mexico",
+      "NY": "New York",
+      "NC": "North Carolina",
+      "ND": "North Dakota",
+      "OH": "Ohio",
+      "OK": "Oklahoma",
+      "OR": "Oregon",
+      "PA": "Pennsylvania",
+      "RI": "Rhode Island",
+      "SC": "South Carolina",
+      "SD": "South Dakota",
+      "TN": "Tennessee",
+      "TX": "Texas",
+      "UT": "Utah",
+      "VT": "Vermont",
+      "VA": "Virginia",
+      "WA": "Washington",
+      "WV": "West Virginia",
+      "WI": "Wisconsin",
+      "WY": "Wyoming"
+    };
+
+    function replaceStateAbbreviationsInGraph() {
+      document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(el => {
+        const text = el.textContent.trim();
+        if (stateAbbreviationMap[text]) {
+          el.textContent = stateAbbreviationMap[text];
+        }
+      });
+
+      document.querySelectorAll('#groupByStatesList li .card-title, #groupByStatesList li h6, #groupByStatesList li small').forEach(el => {
+        const words = el.textContent.split(' ');
+        const replacedWords = words.map(word => stateAbbreviationMap[word] || word);
+        el.textContent = replacedWords.join(' ');
+      });
+
+      document.querySelectorAll('td, span, div').forEach(el => {
+        const text = el.textContent.trim();
+        if (stateAbbreviationMap[text]) {
+          el.textContent = stateAbbreviationMap[text];
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        replaceStateAbbreviationsInGraph();
+      }, 500);
+    });
+  </script>
 
 
 </body>
