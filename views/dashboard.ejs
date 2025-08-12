@@ -258,27 +258,31 @@
             <% if (user && (user.agency || !user.isAgent)) { %>
               <div class="row">
                 <!-- Group by carriers -->
-                <div class="col-lg-6 col-md-6 col-12 mb-6">
+                <div class="col-lg-4 col-md-6 col-12 mb-6">
                   <div class="card">
-                    <div class="card-header header-elements">
-                      <h5 class="card-title mb-0">Group by carriers</h5>
-                      <div class="card-header-elements ms-auto py-0 dropdown">
-                        <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
-                          type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
-                          aria-expanded="false">
-                          <i class="ti ti-dots-vertical ti-md text-muted"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
-                          <a class="dropdown-item active" href="#" data-state="all">All States</a>
-                          <% states.forEach(state=> { %>
-                            <a class="dropdown-item" href="#" data-state="<%= state %>">
-                              <%= state %>
-                            </a>
-                            <% }) %>
+                    <div class="card-header header-elements d-flex justify-content-between align-items-center">
+                      <h5 id="chartTitle" class="card-title mb-0">Group by carriers</h5>
+                      <!-- Contenedor alineado a la derecha -->
+                      <div class="d-flex align-items-center ms-auto">
+                        <div id="totalUsers" class="mt-2 me-3" style="font-weight: 600; color: #555;"></div>
+                        <div class="dropdown ms-3">
+                          <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
+                            type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                            <i class="ti ti-dots-vertical ti-md text-muted"></i>
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
+                            <a class="dropdown-item active" href="#" data-state="all">All States</a>
+                            <% states.forEach(state=> { %>
+                              <a class="dropdown-item" href="#" data-state="<%= state %>">
+                                <%= state %>
+                              </a>
+                              <% }) %>
+                          </div>
                         </div>
                       </div>
-                      <div id="totalUsers" class="mt-2" style="font-weight: 600; color: #555;"></div>
                     </div>
+
                     <div class="card-body">
                       <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
                     </div>
@@ -287,7 +291,7 @@
                 <!-- /Group by carriers -->
 
                 <!-- Group by states -->
-                <div class="col-lg-6 col-md-6 col-12 mb-6">
+                <div class="col-lg-3 col-md-6 col-12 mb-6">
                   <div class="card h-100">
                     <div class="card-header d-flex justify-content-between">
                       <div class="card-title mb-0">
@@ -351,201 +355,6 @@
   <script src="/js/main.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script id="companies-data" type="application/json">
-    <%- JSON.stringify(companies) %>
-  </script>
-
-  <script id="user-company-state-data" type="application/json">
-    <%- JSON.stringify(userCompanyStateData) %>
-  </script>
-
-  <script id="states-data" type="application/json">
-    <%- JSON.stringify(states) %>
-  </script>
-
-  <!-- Group by carriers -->
-  <script>
-    const companies = JSON.parse(document.getElementById('companies-data').textContent);
-    const userCompanyStateData = JSON.parse(document.getElementById('user-company-state-data').textContent);
-    const states = JSON.parse(document.getElementById('states-data').textContent);
-
-    let selectedState = 'all';
-
-    const originalLabels = [...companies.map(c => c.name), 'None'];
-
-    function getDataByState(state) {
-      const filtered = state === 'all'
-        ? userCompanyStateData
-        : userCompanyStateData.filter(d => d.state === state);
-
-      const counts = {};
-      filtered.forEach(({ company }) => {
-        counts[company] = (counts[company] || 0) + 1;
-      });
-
-      return companies.map(c => counts[c.name] || 0);
-    }
-
-    const statesWithData = states.filter(state => {
-      const data = userCompanyStateData.filter(d => d.state === state);
-      return data.length > 0;
-    });
-
-    const dropdownMenu = document.querySelector('.dropdown-menu');
-    dropdownMenu.innerHTML = `
-    <a class="dropdown-item active" href="#" data-state="all">All States</a>
-    ${statesWithData.map(state => `<a class="dropdown-item" href="#" data-state="${state}">${state}</a>`).join('')}
-  `;
-
-    const ctx = document.getElementById('polarChart').getContext('2d');
-
-    function generateColors(n) {
-      const baseColors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#CCCCCC'
-      ];
-      if (n <= baseColors.length) return baseColors.slice(0, n);
-      const colors = [];
-      for (let i = 0; i < n; i++) {
-        colors.push(baseColors[i % baseColors.length]);
-      }
-      return colors;
-    }
-
-    const chartConfig = {
-      type: 'polarArea',
-      data: {
-        labels: originalLabels,
-        datasets: [{
-          data: [],
-          backgroundColor: generateColors(companies.length + 1),
-        }]
-      },
-      options: {
-        animation: {
-          animateRotate: true,
-          animateScale: true,
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'right',
-          }
-        },
-        scales: {
-          r: {
-            angleLines: { display: false },
-            ticks: { display: false, beginAtZero: true },
-            grid: { display: false, circular: false }
-          }
-        }
-      }
-    };
-
-    const polarChart = new Chart(ctx, chartConfig);
-
-    function updateChart(state) {
-      const rawData = getDataByState(state);
-      const currentSum = rawData.reduce((a, b) => a + b, 0);
-      const totalUsersDiv = document.getElementById('totalUsers');
-
-      if (currentSum === 0) {
-        polarChart.data.labels = ['No Users'];
-        polarChart.data.datasets[0].data = [1];
-        polarChart.data.datasets[0].backgroundColor = ['#CCCCCC'];
-        polarChart.update();
-        totalUsersDiv.className = 'mt-4 fw-bold text-danger';
-        totalUsersDiv.innerText = `No users in ${state === 'all' ? 'all states' : state}`;
-        return;
-      }
-
-      let noneValue = 0;
-      const fullData = [...rawData, noneValue];
-
-      const zipped = fullData.map((value, i) => ({
-        label: originalLabels[i],
-        value,
-        color: generateColors(fullData.length)[i]
-      }));
-
-      const filtered = zipped.filter(d => d.value > 0);
-      filtered.sort((a, b) => b.value - a.value);
-
-      polarChart.data.labels = filtered.map(d => d.label);
-      polarChart.data.datasets[0].data = filtered.map(d => d.value);
-      polarChart.data.datasets[0].backgroundColor = filtered.map(d => d.color);
-
-      polarChart.options.rotation = -Math.PI / 2;
-      polarChart.update();
-
-      totalUsersDiv.className = 'mt-4 fw-bold text-secondary';
-      totalUsersDiv.innerText =
-        `Total users in ${state === 'all' ? 'all states' : state}: ${filtered.reduce((sum, d) => sum + d.value, 0)}`;
-    }
-
-    updateChart(selectedState);
-
-    document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
-      item.addEventListener('click', e => {
-        e.preventDefault();
-        selectedState = e.target.getAttribute('data-state');
-        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(i => i.classList.remove('active'));
-        e.target.classList.add('active');
-        updateChart(selectedState);
-      });
-    });
-  </script>
-  <!--/ Group by carriers -->
-
-  <!-- Group by states -->
-  <script>
-    const userCompanyStateData2 = JSON.parse(document.getElementById('user-company-state-data').textContent);
-    const states2 = JSON.parse(document.getElementById('states-data').textContent);
-
-    const stateLogos = {
-      'California': '../../assets/img/icons/states/california.png',
-      'Texas': '../../assets/img/icons/states/texas.png',
-      'New York': '../../assets/img/icons/states/new-york.png',
-      // ... add all states here
-    };
-
-    const stateCounts = {};
-    userCompanyStateData2.forEach(({ state }) => {
-      stateCounts[state] = (stateCounts[state] || 0) + 1;
-    });
-
-    const totalUsersAllStates = Object.values(stateCounts).reduce((a, b) => a + b, 0);
-
-    const sortedStates = Object.entries(stateCounts)
-      .sort((a, b) => b[1] - a[1]);
-
-    const statesList = document.querySelector('#groupByStatesList');
-    statesList.innerHTML = sortedStates.map(([state, count]) => {
-      const percentage = ((count / totalUsersAllStates) * 100).toFixed(0);
-      return `
-      <li class="mb-4 d-flex">
-        <div class="d-flex w-50 align-items-center me-4">
-          <img src="${stateLogos[state] || '/img/icons/states/default.png'}" 
-               alt="${state}-logo" class="me-4" width="35" />
-          <div>
-            <h6 class="mb-0">${state}</h6>
-            <small class="text-body">${count} users</small>
-          </div>
-        </div>
-        <div class="d-flex flex-grow-1 align-items-center">
-          <div class="progress w-100 me-4" style="height: 8px">
-            <div class="progress-bar bg-primary" role="progressbar" 
-                 style="width: ${percentage}%" 
-                 aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
-            </div>
-          </div>
-          <span class="text-muted">${percentage}%</span>
-        </div>
-      </li>
-    `;
-    }).join('');
-  </script>
-  <!--/ Group by states -->
 
   <!-- Mapping of state abbreviations to full namesMapping of state abbreviations to full names -->
   <script>
@@ -631,6 +440,209 @@
     });
   </script>
   <!--/ Mapping -->
+
+  <script id="companies-data" type="application/json">
+    <%- JSON.stringify(companies) %>
+  </script>
+
+  <script id="user-company-state-data" type="application/json">
+    <%- JSON.stringify(userCompanyStateData) %>
+  </script>
+
+  <script id="states-data" type="application/json">
+    <%- JSON.stringify(states) %>
+  </script>
+
+
+
+  <!-- Group by carriers -->
+  <script>
+    const companies = JSON.parse(document.getElementById('companies-data').textContent);
+    const userCompanyStateData = JSON.parse(document.getElementById('user-company-state-data').textContent);
+    const states = JSON.parse(document.getElementById('states-data').textContent);
+
+    let selectedState = 'all';
+
+    const originalLabels = [...companies.map(c => c.name), 'None'];
+
+    function getDataByState(state) {
+      const filtered = state === 'all'
+        ? userCompanyStateData
+        : userCompanyStateData.filter(d => d.state === state);
+
+      const counts = {};
+      filtered.forEach(({ company }) => {
+        counts[company] = (counts[company] || 0) + 1;
+      });
+
+      return companies.map(c => counts[c.name] || 0);
+    }
+
+    const statesWithData = states.filter(state => {
+      const data = userCompanyStateData.filter(d => d.state === state);
+      return data.length > 0;
+    });
+
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    dropdownMenu.innerHTML = `
+    <a class="dropdown-item active" href="#" data-state="all">All States</a>
+    ${statesWithData.map(state => `<a class="dropdown-item" href="#" data-state="${state}">${state}</a>`).join('')}
+  `;
+
+    const ctx = document.getElementById('polarChart').getContext('2d');
+
+    function generateColors(n) {
+      const baseColors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#CCCCCC'
+      ];
+      if (n <= baseColors.length) return baseColors.slice(0, n);
+      const colors = [];
+      for (let i = 0; i < n; i++) {
+        colors.push(baseColors[i % baseColors.length]);
+      }
+      return colors;
+    }
+
+    const chartConfig = {
+      type: 'polarArea',
+      data: {
+        labels: originalLabels,
+        datasets: [{
+          data: [],
+          backgroundColor: generateColors(companies.length + 1),
+        }]
+      },
+      options: {
+        animation: {
+          animateRotate: true,
+          animateScale: true,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'right',
+          }
+        },
+        scales: {
+          r: {
+            angleLines: { display: false },
+            ticks: { display: false, beginAtZero: true },
+            grid: { display: false, circular: false }
+          }
+        }
+      }
+    };
+
+    const polarChart = new Chart(ctx, chartConfig);
+
+    function updateChart(state) {
+      const chartTitle = document.getElementById('chartTitle');
+      chartTitle.innerText = (state === 'all')
+        ? 'All States by carriers'
+        : `${stateAbbreviationMap[state] || state} by carriers`;
+
+
+      const rawData = getDataByState(state);
+      const currentSum = rawData.reduce((a, b) => a + b, 0);
+      const totalUsersDiv = document.getElementById('totalUsers');
+
+      if (currentSum === 0) {
+        polarChart.data.labels = ['No Agents'];
+        polarChart.data.datasets[0].data = [1];
+        polarChart.data.datasets[0].backgroundColor = ['#CCCCCC'];
+        polarChart.update();
+        totalUsersDiv.className = 'mt-4 fw-bold text-danger';
+        totalUsersDiv.innerText = `No agents in ${state === 'all' ? 'all states' : state}`;
+        return;
+      }
+
+      let noneValue = 0;
+      const fullData = [...rawData, noneValue];
+
+      const zipped = fullData.map((value, i) => ({
+        label: originalLabels[i],
+        value,
+        color: generateColors(fullData.length)[i]
+      }));
+
+      const filtered = zipped.filter(d => d.value > 0);
+      filtered.sort((a, b) => b.value - a.value);
+
+      polarChart.data.labels = filtered.map(d => d.label);
+      polarChart.data.datasets[0].data = filtered.map(d => d.value);
+      polarChart.data.datasets[0].backgroundColor = filtered.map(d => d.color);
+
+      polarChart.options.rotation = -Math.PI / 2;
+      polarChart.update();
+
+      totalUsersDiv.className = 'mt-4 fw-bold text-secondary';
+      totalUsersDiv.innerText =
+        `${filtered.reduce((sum, d) => sum + d.value, 0)} agents`;
+    }
+
+    updateChart(selectedState);
+
+    document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        selectedState = e.target.getAttribute('data-state');
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(i => i.classList.remove('active'));
+        e.target.classList.add('active');
+        updateChart(selectedState);
+      });
+    });
+  </script>
+  <!--/ Group by carriers -->
+
+  <!-- Group by states -->
+  <script>
+    const userCompanyStateData2 = JSON.parse(document.getElementById('user-company-state-data').textContent);
+    const states2 = JSON.parse(document.getElementById('states-data').textContent);
+
+    const stateLogos = {
+      'California': '../../assets/img/icons/states/california.png',
+      'Texas': '../../assets/img/icons/states/texas.png',
+      'New York': '../../assets/img/icons/states/new-york.png',
+      // ... add all states here
+    };
+
+    const stateCounts = {};
+    userCompanyStateData2.forEach(({ state }) => {
+      stateCounts[state] = (stateCounts[state] || 0) + 1;
+    });
+
+    const totalUsersAllStates = Object.values(stateCounts).reduce((a, b) => a + b, 0);
+
+    const sortedStates = Object.entries(stateCounts)
+      .sort((a, b) => b[1] - a[1]);
+
+    const statesList = document.querySelector('#groupByStatesList');
+    statesList.innerHTML = sortedStates.map(([state, count]) => {
+      const percentage = ((count / totalUsersAllStates) * 100).toFixed(1);
+      return `
+      <li class="mb-4 d-flex">
+        <div class="d-flex w-50 align-items-center me-4">
+          <img src="${stateLogos[state] || '/img/icons/states/default.png'}" 
+               alt="${state}-logo" class="me-4" width="35" />
+          <div>
+            <h6 class="mb-0">${state}</h6>
+            <small class="text-body">${count} agents</small>
+          </div>
+        </div>
+        <div class="d-flex flex-grow-1 align-items-center">
+          <div class="progress w-100 me-4" style="height: 8px">
+            <div class="progress-bar bg-primary" role="progressbar" 
+                 style="width: ${percentage}%" 
+                 aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+            </div>
+          </div>
+          <span class="text-muted">${percentage}%</span>
+        </div>
+      </li>
+    `;
+    }).join('');
+  </script>
+  <!--/ Group by states -->
 
 
 </body>
