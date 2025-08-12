@@ -13,7 +13,7 @@ import {
 } from "./controllers/auth.js";
 import {
   redirect_dashboard,
-  dashboard,
+  renderDashboard,
   dashboardLastQuarter,
   dashboardWeekReports,
   totalSalesStatistics,
@@ -42,7 +42,7 @@ router.get("/users/auth/reset-password/:email", renderResetPassword);
 router.post("/users/auth/reset-password/:email", resetPassword);
 router.get("/users/logout", logout);
 router.get("/", checkNotAuthenticated, redirect_dashboard);
-router.get("/users/dashboard", checkNotAuthenticated, dashboard);
+router.get("/users/dashboard", checkNotAuthenticated, renderDashboard);
 
 router.get("/users/profile/:id", checkNotAuthenticated, renderProfile);
 router.get("/users/profile/:id/notes", checkNotAuthenticated, renderNotes);

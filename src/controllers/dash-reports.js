@@ -5,10 +5,7 @@ const redirect_dashboard = (req, res) => {
   res.redirect("/users/dashboard");
 };
 
-const dashboard = async (req, res) => {
-  if (!req.user) {
-    return res.redirect("/login");
-  }
+const renderDashboard = async (req, res) => {
   const registrationDone = await prisma.user.findUnique({
     where: { user_id: req.user.user_id },
     select: { registrationCompleted: true },
@@ -425,7 +422,7 @@ const cnSalesStatistics = async (req, res) => {
 
 export {
   redirect_dashboard,
-  dashboard,
+  renderDashboard,
   dashboardLastQuarter,
   dashboardWeekReports,
   totalSalesStatistics,
