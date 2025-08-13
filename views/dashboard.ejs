@@ -491,16 +491,30 @@
     const ctx = document.getElementById('polarChart').getContext('2d');
 
     function generateColors(n) {
-      const baseColors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#CCCCCC'
-      ];
-      if (n <= baseColors.length) return baseColors.slice(0, n);
       const colors = [];
+
       for (let i = 0; i < n; i++) {
-        colors.push(baseColors[i % baseColors.length]);
+        const hue = Math.round((360 / n) * i);
+
+        // Base values for clarity
+        let saturation = 70;
+        let lightness = 50;
+
+        // Apply very small variation (±5%) to avoid flatness
+        saturation += Math.floor(Math.random() * 11) - 5; // 65–75%
+        lightness += Math.floor(Math.random() * 11) - 5;  // 45–55%
+
+        colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
       }
+
+      for (let i = colors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [colors[i], colors[j]] = [colors[j], colors[i]];
+      }
+
       return colors;
     }
+
 
     const chartConfig = {
       type: 'polarArea',
