@@ -572,10 +572,12 @@
       let noneValue = 0;
       const fullData = [...rawData, noneValue];
 
+      const colors = generateColors(fullData.length);
+
       const zipped = fullData.map((value, i) => ({
         label: originalLabels[i],
         value,
-        color: generateColors(fullData.length)[i]
+        color: colors[i]
       }));
 
       const filtered = zipped.filter(d => d.value > 0);
