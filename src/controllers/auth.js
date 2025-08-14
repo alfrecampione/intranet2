@@ -80,6 +80,47 @@ const renderEmailValidation = (req, res) => {
   res.render("validateEmail", { email: req.query.email });
 };
 
+const leadToAgent = async (user) => {
+  try {
+    const lead = await prisma.lead.findUnique({
+      where: { email: user.email }
+    });
+
+    if (lead && lead.isAcepted) {
+      await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
+        try {
+          await prisma.personalInfo.create({
+            data: {
+              userId: user.user_id,
+              legalName: lead.fullName,
+              dateOfBirth: lead.dateOfBirth,
+              npn: lead.npn
+            }
+          });
+          await prisma.contactInfo.create({
+            data: {
+              userId: user.user_id,
+              personalPhone: lead.phone,
+              city: lead.city,
+              state: lead.state,
+              zipCode: lead.zipCode,
+              addressLine1: lead.address,
+            }
+          });
+          await prisma.lead.delete({
+            where: { id: lead.id }
+          });
+        } catch (err) {
+          console.error("Error updating user role to agent:", err);
+        }
+      });
+    }
+  }
+  catch (error) {
+    console.error("Error in leadToAgent:", error);
+  }
+};
+
 const validateEmail = async (req, res, next) => {
   const { email, confirmationCode } = req.body;
 
@@ -106,6 +147,8 @@ const validateEmail = async (req, res, next) => {
         email: existingUser.email,
         password: existingUser.password
       };
+
+      await leadToAgent(existingUser);
 
       req.login(user, (err) => {
         if (err) {

@@ -21,8 +21,8 @@ import {
   rnSalesStatistics,
   rwSalesStatistics,
   cnSalesStatistics,
-} from "./controllers/dash-reports.js";
-import { agency } from "./controllers/agency-reports.js";
+} from "./controllers/dash_reports.js";
+import { agency } from "./controllers/agency_reports.js";
 import { dataSearch } from "./controllers/search.js";
 import { passwordMail, email_sender, new_user_notification } from "./controllers/mailer.js";
 import passport from "passport";
@@ -108,7 +108,7 @@ router.get("/users/agents", checkNotAuthenticated, renderAgents);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 
-router.post("/necesaryDocs", checkNotAuthenticated, markDocsAsNecessary);
+router.post("/necessaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
 router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
@@ -198,6 +198,10 @@ import { renderReports, filterReport, exportData } from "./controllers/reports.j
 router.get("/users/reports", checkNotAuthenticated, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
 router.get("/users/reports/export", checkNotAuthenticated, exportData);
+
+import { renderLeadCenter, deleteLead } from "./controllers/lead_center.js";
+router.get("/users/lead-center", checkNotAuthenticated, renderLeadCenter);
+router.delete("/users/lead-center/:id", checkNotAuthenticated, deleteLead);
 
 
 

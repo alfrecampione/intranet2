@@ -582,7 +582,7 @@
                     overlay.style.display = "flex";
 
                     try {
-                        const docsResponse = await fetch(`${url}/necesaryDocs`, {
+                        const docsResponse = await fetch(`/necessaryDocs`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -591,14 +591,14 @@
                             }),
                         });
 
-                        const encryptEmail = await fetch(`${url}/email/encrypt/${email}`, {
+                        const encryptEmail = await fetch(`/email/encrypt/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                         });
 
                         const encryptedEmail = await encryptEmail.json();
 
-                        if (!docsResponse.ok) throw new Error("Error uploading documents");
+                        if (!docsResponse.ok) throw new Error("Error adding necessary documents");
                         if (!encryptEmail.ok) throw new Error("Error encrypting email");
 
                         const body = {

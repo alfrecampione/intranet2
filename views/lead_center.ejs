@@ -1,0 +1,389 @@
+<!doctype html>
+
+<html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr"
+    data-theme="theme-default" data-assets-path="/" data-template="vertical-menu-template">
+
+<head>
+    <script>
+        const url = `${window.location.protocol}//${window.location.host}`;
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicon/apple-icon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/favicon/apple-icon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicon/apple-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon/apple-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicon/apple-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicon/apple-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicon/apple-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicon/apple-icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-icon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon/android-icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/favicon/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
+    <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
+
+    <title>Agents | GTI</title>
+
+    <meta name="description" content="" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+        rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="/vendor/fonts/fontawesome.css" />
+    <link rel="stylesheet" href="/vendor/fonts/tabler-icons.css" />
+    <link rel="stylesheet" href="/vendor/fonts/flag-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/vendor/css/rtl/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/vendor/libs/node-waves/node-waves.css" />
+    <link rel="stylesheet" href="/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
+    <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <script src="/vendor/js/helpers.js"></script>
+    <script src="/vendor/js/template-customizer.js"></script>
+    <script src="/js/config.js"></script>
+</head>
+
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <%- include('partials/sidebar', { user: user, activePage: activePage }) %>
+                <div class="layout-page">
+                    <%- include('partials/navbar', {user: user}) %>
+                        <div class="content-wrapper">
+                            <div class="container-xxl flex-grow-1 container-p-y">
+                                <div class="card">
+                                    <div class="card-header flex-column flex-md-row align-items-center gap-2">
+                                        <div class="head-label">
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-bordered" id="results-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Number</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- Modal to add new record -->
+                                <div class="offcanvas offcanvas-end" id="add-new-record">
+                                    <div class="offcanvas-header border-bottom">
+                                        <h5 class="offcanvas-title" id="exampleModalLabel">
+                                            Send Email
+                                        </h5>
+                                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="offcanvas-body flex-grow-1">
+                                        <form class="add-new-record pt-2 pb-2 px-1 row g-3" id="form-send-email"
+                                            onsubmit="return false">
+                                            <div class="col-12 mb-3">
+                                                <label class="form-label mb-2">Required Documents</label>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="directDepositForm" name="directDepositForm">
+                                                            <label class="form-check-label"
+                                                                for="directDepositForm">Direct
+                                                                Deposit Form</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="driverLicense" name="driverLicense">
+                                                            <label class="form-check-label" for="driverLicense">Driver
+                                                                License</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="EINconfirmation" name="EINconfirmation">
+                                                            <label class="form-check-label" for="EINconfirmation">EIN
+                                                                Confirmation</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox" id="eANDo"
+                                                                name="eANDo">
+                                                            <label class="form-check-label" for="eANDo">E&O</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="proLicense" name="proLicense">
+                                                            <label class="form-check-label"
+                                                                for="proLicense">Professional
+                                                                License</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="taxIdentificationW9" name="taxIdentificationW9"
+                                                                checked disabled>
+                                                            <label class="form-check-label" for="taxIdentificationW9">
+                                                                Tax Identification W9
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="ffmCertification" name="ffmCertification">
+                                                            <label class="form-check-label" for="ffmCertification">FFM
+                                                                Certification</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="gaLicense" name="gaLicense">
+                                                            <label class="form-check-label" for="gaLicense">GA
+                                                                License</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="gaCertification" name="gaCertification">
+                                                            <label class="form-check-label" for="gaCertification">GA
+                                                                Certification</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox" id="sunbiz"
+                                                                name="sunbiz">
+                                                            <label class="form-check-label" for="sunbiz">Sunbiz</label>
+                                                        </div>
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="corporationLicense" name="corporationLicense">
+                                                            <label class="form-check-label"
+                                                                for="corporationLicense">Corporation
+                                                                License</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 d-flex justify-content-start gap-2 mt-3">
+                                                <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1">
+                                                    Send
+                                                </button>
+                                                <button type="reset" class="btn btn-outline-secondary"
+                                                    data-bs-dismiss="offcanvas">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-backdrop fade"></div>
+                        </div>
+                </div>
+        </div>
+        <div class="layout-overlay layout-menu-toggle"></div>
+
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+
+    <!-- Overlay Spinner -->
+    <div id="email-overlay"
+        style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);justify-content:center;align-items:center;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Sending...</span>
+        </div>
+    </div>
+
+    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+        aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+            <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Agents</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+    </div>
+
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <!-- Flat Picker -->
+    <script src="/vendor/libs/moment/moment.js"></script>
+    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+    <!-- Form Validation -->
+    <script src="/vendor/libs/@form-validation/popular.js"></script>
+    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    <script id="agents-data" type="application/json">
+      <%- JSON.stringify(leadCenter) %>
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tableBody = document.querySelector("#results-table tbody");
+            const leads = JSON.parse(document.getElementById("agents-data").textContent);
+            let selectedEmail = null;
+
+            // Populate the table
+            tableBody.innerHTML = leads.map((lead, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${lead.fullName}</td>
+                <td>${lead.email}</td>
+                <td>${lead.phone}</td>
+                <td>
+                    <a href="javascript:void(0)" 
+                       class="ti ti-check text-success btn-send-onboarding" 
+                       title="Send Onboarding"
+                       data-email="${lead.email}">
+                    </a>
+                    <a href="javascript:void(0)" 
+                       class="ti ti-x text-danger" 
+                       title="Delete"
+                       onclick="if(confirm('Are you sure you want to delete it?')) { fetch('/users/lead-center/${user.user_id}', { method: 'DELETE' }).then(() => location.reload()); }">
+                    </a>
+                    <a href="#" class="ti ti-search text-info"></a>
+                </td>
+            </tr>
+            `).join("");
+
+            // Open modal on check icon click
+            document.querySelectorAll(".btn-send-onboarding").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    selectedEmail = btn.dataset.email;
+                    const offcanvas = new bootstrap.Offcanvas(document.getElementById("add-new-record"));
+                    offcanvas.show();
+                });
+            });
+
+            // Handle send email form submission
+            document.getElementById("form-send-email").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                if (!selectedEmail) return;
+
+                const docFields = [
+                    "directDepositForm",
+                    "driverLicense",
+                    "EINconfirmation",
+                    "eANDo",
+                    "proLicense",
+                    "taxIdentificationW9",
+                    "ffmCertification",
+                    "gaLicense",
+                    "gaCertification",
+                    "sunbiz",
+                    "corporationLicense"
+                ];
+
+                const requiredDocuments = {};
+                docFields.forEach(field => {
+                    requiredDocuments[field] = document.getElementById(field).checked;
+                });
+
+                const subject = "Create your account on GoldenHealth";
+                const overlay = document.getElementById("email-overlay");
+                overlay.style.display = "flex";
+
+                try {
+                    const docsResponse = await fetch(`/necessaryDocs`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: selectedEmail,
+                            ...requiredDocuments
+                        }),
+                    });
+
+                    const encryptEmail = await fetch(`/email/encrypt/${selectedEmail}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                    });
+
+                    const encryptedEmail = await encryptEmail.json();
+
+                    if (!docsResponse.ok) throw new Error("Error adding necessary documents");
+                    if (!encryptEmail.ok) throw new Error("Error encrypting email");
+
+                    const body = {
+                        name: selectedEmail,
+                        intro: "Welcome! Please follow the instructions below.",
+                        action: {
+                            instructions: "To continue with the creation of your account, please click here:",
+                            button: {
+                                color: "#27388B",
+                                text: "Create your account",
+                                link: `${url}/signUp/${encryptedEmail.data.encryptedData}`
+                            }
+                        },
+                        outro: "If you have questions, you can reply to this email."
+                    };
+
+                    const response = await fetch(`${url}/sendEmail/${selectedEmail}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: selectedEmail,
+                            subject,
+                            body
+                        }),
+                    });
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        showToast("Success", "Email sent successfully!");
+
+                        docFields.forEach(field => {
+                            document.getElementById(field).checked = false;
+                        });
+                        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById("add-new-record"));
+                        if (offcanvas) offcanvas.hide();
+                    } else {
+                        showToast("Error", responseData.message || "Error sending email.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Error", "Error sending email.");
+                } finally {
+                    overlay.style.display = "none";
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

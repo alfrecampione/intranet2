@@ -62,7 +62,6 @@ model PersonalInfo {
 model ContactInfo {
   personalEmail String?
   personalPhone String?
-  country       String?
   city          String?
   state         String?
   zipCode       String?
@@ -107,7 +106,7 @@ model Documents {
   @@schema("health")
 }
 
-model NecesaryDocuments {
+model NecessaryDocuments {
   id                  String  @id @default(uuid())
   email               String  @unique
   directDepositForm   Boolean @default(false)
@@ -158,12 +157,14 @@ model NewUserAlerts {
 }
 
 model Company {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  States     String[]
-  createdAt  DateTime     @default(now())
-  phone      String
-  Commisions Commisions[]
+  id        String   @id @default(uuid())
+  name      String   @unique
+  States    String[]
+  createdAt DateTime @default(now())
+  phone     String
+
+  Commisions  Commisions[]
+  LeadCenters Lead[]       @relation("CompanyLeadCenters")
 
   @@schema("health")
 }
@@ -210,6 +211,26 @@ model Note {
   createdBy String
 
   user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@schema("health")
+}
+
+model Lead {
+  id          String   @id @default(uuid())
+  isAcepted   Boolean  @default(false)
+  fullName    String
+  email       String   @unique
+  phone       String
+  dateOfBirth DateTime
+  npn         String
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  states      String[]
+  createdAt   DateTime @default(now())
+
+  Companies Company[] @relation("CompanyLeadCenters")
 
   @@schema("health")
 }

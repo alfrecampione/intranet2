@@ -21,16 +21,16 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     prisma.recommendation.findUnique({ where: { userId } })
   ]);
 
-  let necesaryDocuments;
+  let necessaryDocuments;
 
   if (isEdit) {
     const existingUser = await prisma.user.findUnique({ where: { user_id: userId } })
-    necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+    necessaryDocuments = await prisma.necessaryDocuments.findUnique({
       where: { email: existingUser.email },
     });
   }
   else {
-    necesaryDocuments = await prisma.necesaryDocuments.findUnique({
+    necessaryDocuments = await prisma.necessaryDocuments.findUnique({
       where: { email: user.email },
     });
   }
@@ -43,7 +43,7 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     contactInfo,
     paymentMethod,
     documents,
-    necesaryDocuments,
+    necessaryDocuments,
     isEdit,
     statesAndCarriersbyUser,
     allCompanies,

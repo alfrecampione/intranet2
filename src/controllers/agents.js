@@ -58,7 +58,7 @@ const markDocsAsNecessary = async (req, res) => {
 
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     try {
-      const doc = await prisma.necesaryDocuments.upsert({
+      const doc = await prisma.necessaryDocuments.upsert({
         where: { email },
         update: requiredDocuments,
         create: {
@@ -163,7 +163,7 @@ const massiveCreateAgents = async (req, res) => {
         }
       });
 
-      await prisma.necesaryDocuments.create({
+      await prisma.necessaryDocuments.create({
         data: { email: user.email }
       });
 

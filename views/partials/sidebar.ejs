@@ -14,31 +14,48 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
+        <!-- Dashboard -->
         <li class="menu-item <%= activePage === 'dashboard' ? 'active' : '' %>">
             <a href="/users/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                <i class="menu-icon tf-icons ti ti-home"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
         </li>
+
         <% if (user && (user.agency || !user.isAgent)) { %>
+            <!-- Agents -->
             <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
                 <a href="/users/agents" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                    <i class="menu-icon tf-icons ti ti-id-badge"></i>
                     <div data-i18n="Agents">Agents</div>
                 </a>
             </li>
+
+            <!-- Lead Center -->
+            <li class="menu-item <%= activePage === 'lead-center' ? 'active' : '' %>">
+                <a href="/users/lead-center" class="menu-link">
+                    <i class="menu-icon tf-icons ti ti-users-group"></i>
+                    <div data-i18n="Lead Center">Lead Center</div>
+                </a>
+            </li>
+
+            <!-- Reports -->
             <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
                 <a href="/users/reports" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
+                    <i class="menu-icon tf-icons ti ti-chart-bar"></i>
                     <div data-i18n="Reports">Reports</div>
                 </a>
             </li>
+
+            <!-- Admin header -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
             </li>
+
+            <!-- Config -->
             <li class="menu-item <%= activePage === 'config' ? 'active' : '' %>">
                 <a href="/users/config" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-settings-check"></i>
+                    <i class="menu-icon tf-icons ti ti-settings"></i>
                     <div data-i18n="Config">Config</div>
                 </a>
             </li>
