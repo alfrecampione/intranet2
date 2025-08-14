@@ -52,7 +52,8 @@ const renderReports = async (req, res) => {
             carrier,
             status,
             agency
-        }
+        },
+        activePage: 'reports'
     });
 }
 

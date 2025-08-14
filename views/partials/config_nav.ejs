@@ -1,0 +1,30 @@
+<div class="nav-align-top mb-3">
+    <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-2 gap-lg-0">
+        <!-- Notification Emails -->
+        <li class="nav-item">
+            <a class="nav-link <%= open === 'emails' ? 'active' : '' %>"
+                href="<%= open === 'emails' ? 'javascript:void(0)' : '/users/config' %>">
+                <i class="ti-sm ti ti-mail me-1_5"></i>
+                Notification Emails
+            </a>
+        </li>
+
+        <!-- Carriers -->
+        <li class="nav-item">
+            <a class="nav-link <%= open === 'carriers' ? 'active' : '' %>"
+                href="<%= open === 'carriers' ? 'javascript:void(0)' : '/users/config_carriers' %>">
+                <i class="ti-sm ti ti-truck me-1_5"></i>
+                Carriers
+            </a>
+        </li>
+
+        <!-- Commissions -->
+        <li class="nav-item">
+            <a class="nav-link <%= open === 'commisions' ? 'active' : '' %>"
+                href="<%= open === 'commisions' ? 'javascript:void(0)' : '/users/config_commisions' %>">
+                <i class="ti-sm ti ti-table me-1_5"></i>
+                Commissions
+            </a>
+        </li>
+    </ul>
+</div>

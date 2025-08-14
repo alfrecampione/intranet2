@@ -1,10 +1,11 @@
 import { pool, prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+
 const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
   const admins = await getAdmins();
 
-  res.render("config_emails", { user: req.user, emails, admins });
+  res.render("config_emails", { user: req.user, emails, admins, activePage: 'config', open: 'emails' });
 };
 
 async function getEmailsToAlert() {
@@ -84,15 +85,12 @@ const renderConfigCarriers = async (req, res) => {
 
     res.render("config_carriers", {
       user: req.user,
-      companies: formattedCompanies
+      companies: formattedCompanies,
+      activePage: 'config',
+      open: 'carriers'
     });
   } catch (error) {
     console.error("Error rendering carriers config:", error);
-    res.render("config_carriers", {
-      user: req.user,
-      companies: [],
-      error: "Error loading companies"
-    });
   }
 }
 
@@ -234,18 +232,17 @@ const renderConfigCommisions = async (req, res) => {
   }));
 
 
-  res.render("config_commisions", { user: req.user, companies, commisions });
+  res.render("config_commisions", { user: req.user, companies, commisions, activePage: 'config', open: 'commisions' });
 };
 
 const updateCommisions = async (req, res) => {
-  const { commissions } = req.body; // expects array of {company, state, commission}
+  const { commissions } = req.body;
 
   if (!Array.isArray(commissions) || commissions.length === 0) {
     return res.status(400).json({ message: "No commissions provided" });
   }
 
   try {
-    // Get all companies in one query to avoid repeated DB calls
     const companyNames = [...new Set(commissions.map(c => c.company))];
     const companies = await prisma.company.findMany({
       where: { name: { in: companyNames } }
@@ -285,7 +282,7 @@ const headcarrier = async (req, res) => {
     console.log(`Function headcarrier `, error);
     data.carriers = [];
   }
-  res.render("config-headcarrier", data);
+  res.render("config-headcarrier", { data, activePage: 'config' });
 };
 
 const addHeadCarrier = (req, res) => {

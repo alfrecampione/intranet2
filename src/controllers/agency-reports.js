@@ -13,24 +13,24 @@ const agency = async (req, res) => {
   production =
     req.user.id_location_type != 1
       ? (
-          await pool.query(`SELECT * from intranet.agency_location_daily($1)`, [
-            req.user.id_location,
-          ])
-        ).rows
+        await pool.query(`SELECT * from intranet.agency_location_daily($1)`, [
+          req.user.id_location,
+        ])
+      ).rows
       : (
-          await pool.query(
-            `SELECT * from intranet.agency_location_corp_daily`,
-            [req.user.id_location],
-          )
-        ).rows;
+        await pool.query(
+          `SELECT * from intranet.agency_location_corp_daily`,
+          [req.user.id_location],
+        )
+      ).rows;
   agency =
     req.user.id_location_type != 1
       ? (
-          await pool.query(
-            `SELECT alias from qq.locations where location_id = $1`,
-            [req.user.location_id],
-          )
-        ).rows[0].alias
+        await pool.query(
+          `SELECT alias from qq.locations where location_id = $1`,
+          [req.user.location_id],
+        )
+      ).rows[0].alias
       : "Corporate";
 
   data.agency = agency;
@@ -54,17 +54,17 @@ const agency = async (req, res) => {
   production =
     req.user.id_location_type != 1
       ? (
-          await pool.query(
-            `SELECT * from intranet.agency_location_month($1, $2, $3)`,
-            [initial_date, final_date, req.user.id_location],
-          )
-        ).rows
+        await pool.query(
+          `SELECT * from intranet.agency_location_month($1, $2, $3)`,
+          [initial_date, final_date, req.user.id_location],
+        )
+      ).rows
       : (
-          await pool.query(
-            `SELECT * from intranet.agency_location_corp_month($1, $2, $3)`,
-            [initial_date, final_date, req.user.id_location],
-          )
-        ).rows;
+        await pool.query(
+          `SELECT * from intranet.agency_location_corp_month($1, $2, $3)`,
+          [initial_date, final_date, req.user.id_location],
+        )
+      ).rows;
 
   data.lm_nb_prem = production[0].premium
     ? production[0].premium.substring(0, production[0].premium.length - 3)
@@ -171,8 +171,8 @@ const agency = async (req, res) => {
       if (
         fs.accessSync(
           "./assets/img/avatars/agencies/" +
-            data.dashboard_location[i].id_location +
-            ".png",
+          data.dashboard_location[i].id_location +
+          ".png",
         )
       ) {
         data.data.dashboard_location[i].avatar =
@@ -205,8 +205,8 @@ const agency = async (req, res) => {
       if (
         fs.accessSync(
           "./assets/img/avatars/comp/" +
-            data.dashboard_company[i].id_company +
-            ".png",
+          data.dashboard_company[i].id_company +
+          ".png",
         )
       ) {
         data.data.dashboard_company[i].avatar =
@@ -230,7 +230,7 @@ const agency = async (req, res) => {
 
   //////////////////// Render //////////////////////////////////
   data.user = req.user;
-  res.render("agency", data);
+  res.render("agency", { data, activePage: 'agency' });
 };
 
 export { agency };

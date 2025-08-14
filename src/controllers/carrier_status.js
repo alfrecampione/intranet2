@@ -9,7 +9,7 @@ const renderCarrierStatus = async (req, res) => {
         orderBy: { state: 'asc' },
     });
 
-    res.render("carrier_status", { carriers, userId, user: req.user });
+    res.render("carrier_status", { carriers, userId, user: req.user, activePage: 'config' });
 };
 
 const updateCarrierStatus = async (req, res) => {

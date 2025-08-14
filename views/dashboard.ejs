@@ -64,263 +64,78 @@
 <body>
   <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
-      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-        <div class="app-brand demo">
-          <a href="/users/dashboard" class="app-brand-link">
-            <span class="app-brand-text">
-              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
-            </span>
-          </a>
-          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-            <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
-            <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
-          </a>
-        </div>
+      <%- include('partials/sidebar', { user: user, activePage: activePage }) %>
+        <div class="layout-page">
+          <%- include('partials/navbar', {user: user}) %>
+            <div class="content-wrapper">
+              <div class="container-xxl flex-grow-1 container-p-y">
 
-        <div class="menu-inner-shadow"></div>
-
-        <ul class="menu-inner py-1">
-          <li class="menu-item active">
-            <a href="/users/dashboard" class="menu-link">
-              <i class="menu-icon tf-icons ti ti-smart-home"></i>
-              <div data-i18n="Dashboard">Dashboard</div>
-            </a>
-          </li>
-          <% if (user && (user.agency || !user.isAgent)) { %>
-            <li class="menu-item">
-              <a href="/users/agents" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                <div data-i18n="Agents">Agents</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="/users/reports" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                <div data-i18n="Reports">Reports</div>
-              </a>
-            </li>
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
-            </li>
-            <li class="menu-item">
-              <a href="/users/config_emails" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-settings-check"></i>
-                <div data-i18n="Config">Config</div>
-              </a>
-            </li>
-            <% } %>
-        </ul>
-      </aside>
-      <div class="layout-page">
-        <nav
-          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
-          id="layout-navbar">
-          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-              <i class="ti ti-menu-2 ti-sm"></i>
-            </a>
-          </div>
-
-          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-            <!-- Search -->
-            <div class="navbar-nav align-items-center">
-              <div class="nav-item mb-0">
-                <a class="nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
-                  <i class="ti ti-search ti-md me-2"></i>
-                  <span class="d-none d-md-inline-block text-muted">Search</span>
-                </a>
-              </div>
-            </div>
-            <!-- /Search -->
-
-            <ul class="navbar-nav flex-row align-items-center ms-auto">
-              <!-- Style Switcher -->
-              <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <i class="ti ti-md"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                      <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                      <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                      <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-
-              <!-- Notification -->
-              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
-                  data-bs-auto-close="outside" aria-expanded="false">
-                  <i class="ti ti-bell ti-md"></i>
-                  <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-end py-0">
-                  <li class="dropdown-menu-header border-bottom">
-                    <div class="dropdown-header d-flex align-items-center py-3">
-                      <h5 class="text-body mb-0 me-auto">Notification</h5>
-                      <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
-                    </div>
-                  </li>
-                  <li class="dropdown-menu-footer border-top">
-                    <a href="javascript:void(0);"
-                      class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                      View all notifications
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <!--/ Notification -->
-
-              <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <div class="avatar avatar-online">
-                    <% if (user.personalInfo && user.personalInfo.photoPath) { %>
-                      <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
-                      <% } else { %>
-                        <span class="avatar-initial rounded-circle bg-label-primary">
-                          <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
-                        </span>
-                        <% } %>
-                  </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <a class="dropdown-item"
-                      href="<%= user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
-                      <div class="d-flex">
-                        <div class="flex-shrink-0 me-3">
-                          <div class="avatar avatar-online">
-                            <% if (user.personalInfo && user.personalInfo.photoPath) { %>
-                              <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
-                              <% } else { %>
-                                <span class="avatar-initial rounded-circle bg-label-primary">
-                                  <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
-                                </span>
-                                <% } %>
+                <% if (user && (user.agency || !user.isAgent)) { %>
+                  <div class="row">
+                    <!-- Group by carriers -->
+                    <div class="col-lg-4 col-md-6 col-12 mb-6">
+                      <div class="card">
+                        <div class="card-header header-elements d-flex justify-content-between align-items-center">
+                          <h5 id="chartTitle" class="card-title mb-0">Group by carriers</h5>
+                          <div class="d-flex align-items-center ms-auto">
+                            <div id="totalUsers" class="mt-2 me-3" style="font-weight: 600; color: #555;"></div>
+                            <div class="dropdown ms-3">
+                              <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
+                                type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                                <i class="ti ti-dots-vertical ti-md text-muted"></i>
+                              </button>
+                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
+                                <a class="dropdown-item active" href="#" data-state="all">All States</a>
+                                <% states.forEach(state=> { %>
+                                  <a class="dropdown-item" href="#" data-state="<%= state %>">
+                                    <%= state %>
+                                  </a>
+                                  <% }) %>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div class="flex-grow-1">
-                          <span class="fw-medium d-block">
-                            <%= user.display_name %>
-                          </span>
-                          <% if (user.job_title) { %>
-                            <small class="text-muted">
-                              <%= user.job_title %>
-                            </small>
-                            <% } %>
+
+                        <div class="card-body">
+                          <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
                         </div>
                       </div>
-                    </a>
-                  </li>
-                  <li>
-                    <div class="dropdown-divider"></div>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="/users/logout">
-                      <i class="ti ti-logout me-2 ti-sm"></i>
-                      <span class="align-middle">Log Out</span>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
+                    </div>
+                    <!-- /Group by carriers -->
 
-          <!-- Full Nav Search Mode -->
-          <div class="navbar-full-search d-none w-100 position-relative">
-            <div class="container-xxl d-flex align-items-center position-relative">
-              <i class="ti ti-search ti-md position-absolute top-50 start-0 translate-middle-y ms-3 text-body"></i>
-              <input type="text" class="form-control form-control-lg ps-5 border-0 shadow-none w-100"
-                placeholder="Search..." id="navbar-full-search-input" />
-              <i class="ti ti-x ti-lg ms-3 cursor-pointer search-close text-muted"></i>
-            </div>
-            <ul class="dropdown-menu show d-none" id="search-dropdown"
-              style="position: absolute; top: 100%; left: 0; z-index: 1100; width: 100%;"></ul>
-          </div>
-          <!--/ Full Nav Search -->
-        </nav>
-        <div class="content-wrapper">
-          <div class="container-xxl flex-grow-1 container-p-y">
-
-            <% if (user && (user.agency || !user.isAgent)) { %>
-              <div class="row">
-                <!-- Group by carriers -->
-                <div class="col-lg-4 col-md-6 col-12 mb-6">
-                  <div class="card">
-                    <div class="card-header header-elements d-flex justify-content-between align-items-center">
-                      <h5 id="chartTitle" class="card-title mb-0">Group by carriers</h5>
-                      <div class="d-flex align-items-center ms-auto">
-                        <div id="totalUsers" class="mt-2 me-3" style="font-weight: 600; color: #555;"></div>
-                        <div class="dropdown ms-3">
-                          <button class="btn btn-text-secondary rounded-pill text-muted border-0 p-2 me-2 mt-2"
-                            type="button" id="heat-chart-dd" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                            <i class="ti ti-dots-vertical ti-md text-muted"></i>
-                          </button>
-                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="heat-chart-dd">
-                            <a class="dropdown-item active" href="#" data-state="all">All States</a>
-                            <% states.forEach(state=> { %>
-                              <a class="dropdown-item" href="#" data-state="<%= state %>">
-                                <%= state %>
-                              </a>
-                              <% }) %>
+                    <!-- Group by states -->
+                    <div class="col-lg-4 col-md-6 col-12 mb-6">
+                      <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between">
+                          <div class="card-title mb-0">
+                            <h5 class="mb-1">Group by states</h5>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <ul class="p-0 m-0" id="groupByStatesList"></ul>
+                        </div>
+                      </div>
+                    </div>
+                    <!--/ Group by states -->
+                  </div>
+                  <% } else { %>
+                    <div class="row">
+                      <div class="row mt-4 mb-3">
+                        <div class="d-flex justify-content-center align-items-center" style="height: 300px">
+                          <div class="text-center">
+                            <h2 class="fw-bold">
+                              Welcome <%= user.display_name %> to GoldenHealth
+                            </h2>
                           </div>
                         </div>
                       </div>
                     </div>
-
-                    <div class="card-body">
-                      <canvas id="polarChart" class="chartjs" data-height="337"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <!-- /Group by carriers -->
-
-                <!-- Group by states -->
-                <div class="col-lg-4 col-md-6 col-12 mb-6">
-                  <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between">
-                      <div class="card-title mb-0">
-                        <h5 class="mb-1">Group by states</h5>
-                      </div>
-                    </div>
-                    <div class="card-body">
-                      <ul class="p-0 m-0" id="groupByStatesList"></ul>
-                    </div>
-                  </div>
-                </div>
-                <!--/ Group by states -->
+                    <% } %>
               </div>
-              <% } else { %>
-                <div class="row">
-                  <div class="row mt-4 mb-3">
-                    <div class="d-flex justify-content-center align-items-center" style="height: 300px">
-                      <div class="text-center">
-                        <h2 class="fw-bold">
-                          Welcome <%= user.display_name %> to GoldenHealth
-                        </h2>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <% } %>
-          </div>
-          <div class="content-backdrop fade"></div>
+              <div class="content-backdrop fade"></div>
+            </div>
         </div>
-      </div>
     </div>
     <div class="layout-overlay layout-menu-toggle"></div>
 

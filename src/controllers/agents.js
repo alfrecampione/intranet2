@@ -24,7 +24,7 @@ const renderAgents = async (req, res) => {
     agency: u.personalInfo?.agency || null,
   }));
 
-  res.render("agents", { user, registeredUsers });
+  res.render("agents", { user, registeredUsers, activePage: 'agents' });
 };
 
 // Deletes a user (write operation – needs context)

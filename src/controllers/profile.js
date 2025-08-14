@@ -63,7 +63,8 @@ const renderProfile = async (req, res) => {
         necesaryDocs,
         carriers,
         allCompanies,
-        activity
+        activity,
+        activePage: 'profile'
     });
 };
 
@@ -249,7 +250,7 @@ const renderNotes = async (req, res) => {
     });
 
 
-    res.render("notes", { userId, user, profile, personalInfo, contactInfo, notes });
+    res.render("notes", { userId, user, profile, personalInfo, contactInfo, notes, activePage: 'profile' });
 }
 
 const postNote = async (req, res) => {

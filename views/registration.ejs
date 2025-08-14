@@ -104,754 +104,579 @@
   <!-- Content -->
   <div class="layout-wrapper layout-content-navbar">
     <div class="layout-container">
-      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-        <div class="app-brand demo">
-          <a href="/users/dashboard" class="app-brand-link">
-            <span class="app-brand-text">
-              <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
-            </span>
-          </a>
-          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-            <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
-            <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
-          </a>
-        </div>
+      <%- include('partials/sidebar', { user: user, activePage: activePage }) %>
+        <div class="layout-page">
+          <%- include('partials/navbar', {user: user}) %>
+            <div class="content-wrapper">
+              <!-- Multi Steps Registration -->
+              <div class="container-xxl flex-grow-1 container-p-y">
+                <form id="multiStepsForm" class="w-100" onsubmit="return false">
+                  <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
+                    <div class="bs-stepper-header d-flex flex-wrap gap-2 w-100">
 
-        <div class="menu-inner-shadow"></div>
+                      <!-- Paso : Personal Info -->
+                      <div class="step" data-target="#accountDetailsValidation">
+                        <button type="button" class="step-trigger">
+                          <span class="bs-stepper-circle"><i class="ti ti-file-analytics ti-md"></i></span>
+                          <span class="bs-stepper-label"><span class="bs-stepper-title">Personal Info</span></span>
+                        </button>
+                      </div>
+                      <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-        <ul class="menu-inner py-1">
-          <% if (isEdit) { %>
-            <li class="menu-item">
-              <a href="/users/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-smart-home"></i>
-                <div data-i18n="Dashboard">Dashboard</div>
-              </a>
-            </li>
-            <% if (user && (user.agency || !user.isAgent)) { %>
-              <li class="menu-item">
-                <a href="/users/agents" class="menu-link">
-                  <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                  <div data-i18n="Agents">Agents</div>
-                </a>
-              </li>
-              <li class="menu-item">
-                <a href="/users/reports" class="menu-link">
-                  <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                  <div data-i18n="Reports">Reports</div>
-                </a>
-              </li>
-              <li class="menu-header small text-uppercase">
-                <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
-              </li>
-              <li class="menu-item">
-                <a href="/users/config_emails" class="menu-link">
-                  <i class="menu-icon tf-icons ti ti-settings-check"></i>
-                  <div data-i18n="Config">Config</div>
-                </a>
-              </li>
-              <% } %>
-                <% } %>
-        </ul>
-      </aside>
+                      <!-- Paso : Contact Info -->
+                      <div class="step" data-target="#contactInfoValidation">
+                        <button type="button" class="step-trigger">
+                          <span class="bs-stepper-circle"><i class="ti ti-user ti-md"></i></span>
+                          <span class="bs-stepper-label"><span class="bs-stepper-title">Contact Info</span></span>
+                        </button>
+                      </div>
+                      <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-      <div class="layout-page">
-        <nav
-          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
-          id="layout-navbar">
-          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-            <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-              <i class="ti ti-menu-2 ti-sm"></i>
-            </a>
-          </div>
+                      <!-- Paso : Commisions -->
+                      <div class="step" data-target="#commisionValidation">
+                        <button type="button" class="step-trigger">
+                          <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
+                          <span class="bs-stepper-label"><span class="bs-stepper-title">Commision</span></span>
+                        </button>
+                      </div>
+                      <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-            <!-- Search -->
-            <div class="navbar-nav align-items-center">
-              <div class="nav-item mb-0">
-                <a class="nav-link search-toggler d-flex align-items-center px-0" href="javascript:void(0);">
-                  <i class="ti ti-search ti-md me-2"></i>
-                  <span class="d-none d-md-inline-block text-muted">Search</span>
-                </a>
-              </div>
-            </div>
-            <!-- /Search -->
+                      <!-- Paso : Documents -->
+                      <div class="step" data-target="#documentsValidation">
+                        <button type="button" class="step-trigger">
+                          <span class="bs-stepper-circle"><i class="ti ti-file-text ti-md"></i></span>
+                          <span class="bs-stepper-label"><span class="bs-stepper-title">Documents</span></span>
+                        </button>
+                      </div>
+                      <div class="line"><i class="ti ti-chevron-right"></i></div>
 
-            <ul class="navbar-nav flex-row align-items-center ms-auto">
-              <!-- Style Switcher -->
-              <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <i class="ti ti-md"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                      <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                      <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                      <span class="align-middle"><i class="ti ti-device-desktop me-2"></i>System</span>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-
-              <!-- Notification -->
-              <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown"
-                  data-bs-auto-close="outside" aria-expanded="false">
-                  <i class="ti ti-bell ti-md"></i>
-                  <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-end py-0">
-                  <li class="dropdown-menu-header border-bottom">
-                    <div class="dropdown-header d-flex align-items-center py-3">
-                      <h5 class="text-body mb-0 me-auto">Notification</h5>
-                      <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                        data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                      <!-- Paso : States & Carriers -->
+                      <div class="step" data-target="#statesCarriersValidation">
+                        <button type="button" class="step-trigger">
+                          <span class="bs-stepper-circle"><i class="ti ti-building ti-md"></i></span>
+                          <span class="bs-stepper-label"><span class="bs-stepper-title">States & Carriers</span></span>
+                        </button>
+                      </div>
                     </div>
-                  </li>
-                  <li class="dropdown-menu-footer border-top">
-                    <a href="javascript:void(0);"
-                      class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                      View all notifications
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <!--/ Notification -->
-
-              <!-- User -->
-              <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                  <div class="avatar avatar-online">
-                    <span class="avatar-initial rounded-circle bg-label-primary">
-                      <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
-                    </span>
-                  </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <a class="dropdown-item"
-                      href="<%= user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
-                      <div class="d-flex">
-                        <div class="flex-shrink-0 me-3">
-                          <div class="avatar avatar-online">
-                            <span class="avatar-initial rounded-circle bg-label-primary">
-                              <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0] : "" ) %>
-                            </span>
+                    <div class="bs-stepper-content">
+                      <!-- Contenido 1 -->
+                      <div id="accountDetailsValidation" class="content active">
+                        <div class="content-header mb-6">
+                          <h4 class="mb-0">Personal Info</h4>
+                          <p class="mb-0">Enter Your Personal Information</p>
+                        </div>
+                        <div class="row g-3">
+                          <!-- Contact type (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="contactType">
+                              Contact Type <span class="text-danger">*</span>
+                            </label>
+                            <select id="contactType" name="contactType" class="form-select" required>
+                              <option value="" disabled <%=!personalInfo?.contactType ? 'selected' : '' %>>Select
+                                type... </option>
+                              <option value="individual" <%=personalInfo?.contactType==='individual' ? 'selected' : ''
+                                %>
+                                >Individual</option>
+                              <option value="business" <%=personalInfo?.contactType==='business' ? 'selected' : '' %>
+                                >Business</option>
+                            </select>
                           </div>
-                        </div>
-                        <div class="flex-grow-1">
-                          <span class="fw-medium d-block">
-                            <%= user.display_name %>
-                          </span>
-                          <% if (user.job_title) { %>
-                            <small class="text-muted">
-                              <%= user.job_title %>
-                            </small>
-                            <% } %>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li>
-                    <div class="dropdown-divider"></div>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="/users/logout">
-                      <i class="ti ti-logout me-2 ti-sm"></i>
-                      <span class="align-middle">Log Out</span>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <!--/ User -->
-            </ul>
-          </div>
 
-          <!-- Full Nav Search Mode -->
-          <div class="navbar-full-search d-none w-100 position-relative">
-            <div class="container-xxl d-flex align-items-center position-relative">
-              <i class="ti ti-search ti-md position-absolute top-50 start-0 translate-middle-y ms-3 text-body"></i>
-              <input type="text" class="form-control form-control-lg ps-5 border-0 shadow-none w-100"
-                placeholder="Search..." id="navbar-full-search-input" />
-              <i class="ti ti-x ti-lg ms-3 cursor-pointer search-close text-muted"></i>
-            </div>
-            <ul class="dropdown-menu show d-none" id="search-dropdown"
-              style="position: absolute; top: 100%; left: 0; z-index: 1100; width: 100%;"></ul>
-          </div>
-          <!--/ Full Nav Search -->
-        </nav>
-
-        <div class="content-wrapper">
-          <!-- Multi Steps Registration -->
-          <div class="container-xxl flex-grow-1 container-p-y">
-            <form id="multiStepsForm" class="w-100" onsubmit="return false">
-              <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
-                <div class="bs-stepper-header d-flex flex-wrap gap-2 w-100">
-
-                  <!-- Paso : Personal Info -->
-                  <div class="step" data-target="#accountDetailsValidation">
-                    <button type="button" class="step-trigger">
-                      <span class="bs-stepper-circle"><i class="ti ti-file-analytics ti-md"></i></span>
-                      <span class="bs-stepper-label"><span class="bs-stepper-title">Personal Info</span></span>
-                    </button>
-                  </div>
-                  <div class="line"><i class="ti ti-chevron-right"></i></div>
-
-                  <!-- Paso : Contact Info -->
-                  <div class="step" data-target="#contactInfoValidation">
-                    <button type="button" class="step-trigger">
-                      <span class="bs-stepper-circle"><i class="ti ti-user ti-md"></i></span>
-                      <span class="bs-stepper-label"><span class="bs-stepper-title">Contact Info</span></span>
-                    </button>
-                  </div>
-                  <div class="line"><i class="ti ti-chevron-right"></i></div>
-
-                  <!-- Paso : Commisions -->
-                  <div class="step" data-target="#commisionValidation">
-                    <button type="button" class="step-trigger">
-                      <span class="bs-stepper-circle"><i class="ti ti-cash ti-md"></i></span>
-                      <span class="bs-stepper-label"><span class="bs-stepper-title">Commision</span></span>
-                    </button>
-                  </div>
-                  <div class="line"><i class="ti ti-chevron-right"></i></div>
-
-                  <!-- Paso : Documents -->
-                  <div class="step" data-target="#documentsValidation">
-                    <button type="button" class="step-trigger">
-                      <span class="bs-stepper-circle"><i class="ti ti-file-text ti-md"></i></span>
-                      <span class="bs-stepper-label"><span class="bs-stepper-title">Documents</span></span>
-                    </button>
-                  </div>
-                  <div class="line"><i class="ti ti-chevron-right"></i></div>
-
-                  <!-- Paso : States & Carriers -->
-                  <div class="step" data-target="#statesCarriersValidation">
-                    <button type="button" class="step-trigger">
-                      <span class="bs-stepper-circle"><i class="ti ti-building ti-md"></i></span>
-                      <span class="bs-stepper-label"><span class="bs-stepper-title">States & Carriers</span></span>
-                    </button>
-                  </div>
-                </div>
-                <div class="bs-stepper-content">
-                  <!-- Contenido 1 -->
-                  <div id="accountDetailsValidation" class="content active">
-                    <div class="content-header mb-6">
-                      <h4 class="mb-0">Personal Info</h4>
-                      <p class="mb-0">Enter Your Personal Information</p>
-                    </div>
-                    <div class="row g-3">
-                      <!-- Contact type (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="contactType">
-                          Contact Type <span class="text-danger">*</span>
-                        </label>
-                        <select id="contactType" name="contactType" class="form-select" required>
-                          <option value="" disabled <%=!personalInfo?.contactType ? 'selected' : '' %>>Select
-                            type... </option>
-                          <option value="individual" <%=personalInfo?.contactType==='individual' ? 'selected' : '' %>
-                            >Individual</option>
-                          <option value="business" <%=personalInfo?.contactType==='business' ? 'selected' : '' %>
-                            >Business</option>
-                        </select>
-                      </div>
-
-                      <!-- Legal Name (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="legalName">
-                          Legal Name <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="legalName" id="legalName" class="form-control" placeholder="John Doe"
-                          value="<%= personalInfo?.legalName || '' %>" required />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- Business Name (Required if business) -->
-                      <div class="col-sm-6" id="businessNameGroup" style="display:none;">
-                        <label class="form-label" for="businessName">
-                          Business Name <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="businessName" id="businessName" class="form-control"
-                          placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
-                      </div>
-
-                      <!-- EIN de la Compañía (Required if business) -->
-                      <div class="col-sm-6" id="einGroup" style="display:none;">
-                        <label class="form-label" for="ein">
-                          EIN<span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
-                          value="<%= personalInfo?.companyEIN || '' %>" required>
-                      </div>
-                      <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                          const einInput = document.getElementById('ein');
-
-                          einInput.addEventListener('input', function (e) {
-                            let value = einInput.value.replace(/\D/g, '').slice(0, 9); // Solo dígitos, máx 9
-
-                            if (value.length > 2) {
-                              value = value.slice(0, 2) + '-' + value.slice(2);
-                            }
-
-                            einInput.value = value;
-                          });
-                        });
-                      </script>
-                      <!-- Preferred First Name -->
-                      <div class="col-sm-6" id="preferredFirstNameGroup">
-                        <label class="form-label" for="preferredFirstName">Preferred First Name</label>
-                        <input type="text" name="preferredFirstName" id="preferredFirstName" class="form-control"
-                          placeholder="John" value="<%= personalInfo?.preferredName || '' %>" />
-                      </div>
-
-                      <!-- Legal Sex (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label">Legal Sex <span class="text-danger">*</span></label>
-                        <div class="mt-2">
-                          <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="legalSex" id="legalSexMale" value="male"
-                              required <%=personalInfo?.legalSex==='male' ? 'checked' : '' %> />
-                            <label class="form-check-label" for="legalSexMale">Male</label>
+                          <!-- Legal Name (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="legalName">
+                              Legal Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="legalName" id="legalName" class="form-control"
+                              placeholder="John Doe" value="<%= personalInfo?.legalName || '' %>" required />
+                            <div class="invalid-feedback"></div>
                           </div>
-                          <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="legalSex" id="legalSexFemale"
-                              value="female" required <%=personalInfo?.legalSex==='female' ? 'checked' : '' %> />
-                            <label class="form-check-label" for="legalSexFemale">Female</label>
+
+                          <!-- Business Name (Required if business) -->
+                          <div class="col-sm-6" id="businessNameGroup" style="display:none;">
+                            <label class="form-label" for="businessName">
+                              Business Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="businessName" id="businessName" class="form-control"
+                              placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
                           </div>
-                        </div>
-                        <div class="invalid-feedback"></div>
-                      </div>
 
-                      <!-- Date of Birth (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="dateOfBirth">
-                          Date of Birth <span class="text-danger">*</span>
-                        </label>
-                        <input type="date" class="form-control" placeholder="YYYY-MM-DD" id="dateOfBirth"
-                          name="dateOfBirth" required
-                          value="<%= personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.toISOString().substring(0, 10) : '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- SSN y NPN (Required) -->
-                      <div class="row g-3">
-                        <!-- SSN -->
-                        <div class="col-sm-6">
-                          <label class="form-label" for="ssn">
-                            SSN <span class="text-danger">*</span>
-                          </label>
-                          <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
-                            aria-label="Social Security Number" required maxlength="9"
-                            value="<%= personalInfo?.ssn || '' %>" />
-                        </div>
-
-                        <!-- NPN -->
-                        <div class="col-sm-6">
-                          <label class="form-label" for="npn">
-                            NPN <span class="text-danger">*</span>
-                          </label>
-                          <input type="text" name="npn" id="npn" class="form-control" placeholder="XXXXXXXX"
-                            aria-label="NPN" required pattern="\d{8}" maxlength="8"
-                            value="<%= personalInfo?.npn || '' %>" />
-                        </div>
-                      </div>
-                      <script>
-                        document.getElementById("ssn").addEventListener("input", function (e) {
-                          let value = e.target.value.replace(/\D/g, "");
-                          if (value.length > 5) {
-                            e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}-${value.slice(5, 9)}`;
-                          } else if (value.length > 3) {
-                            e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}`;
-                          } else {
-                            e.target.value = value.slice(0, 9); // Limitar a 9 dígitos máx
-                          }
-                        });
-                        document.querySelector("form").addEventListener("submit", function (e) {
-                          const ssnInput = document.getElementById("ssn");
-                          if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
-                            ssnInput.classList.add("is-invalid");
-                            e.preventDefault();
-                          }
-                        });
-
-                        document.getElementById("npn").addEventListener("input", function (e) {
-                          let value = e.target.value.replace(/\D/g, ""); // solo números
-                          e.target.value = value.slice(0, 8); // máximo 8 dígitos
-                        });
-                        document.querySelector("form").addEventListener("submit", function (e) {
-                          const npnInput = document.getElementById("npn");
-                          if (!/^\d{8}$/.test(npnInput.value)) {
-                            npnInput.classList.add("is-invalid");
-                            e.preventDefault();
-                          }
-                        });
-                      </script>
-
-
-                      <div class="col-sm-6" id="directHireGroup" style="display: none;">
-                        <label class="form-label d-block">
-                          Do you want to be hired directly to the company? <span class="text-danger">*</span>
-                        </label>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredYes" value="yes"
-                            required <%=personalInfo?.franchise===true ? 'checked' : '' %> />
-                          <label class="form-check-label" for="hiredYes">Yes</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredNo" value="no"
-                            required <%=personalInfo?.franchise===false ? 'checked' : '' %> />
-                          <label class="form-check-label" for="hiredNo">No</label>
-                        </div>
-
-                        <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
-                          <label class="form-label" for="companySelect">Select an agency</label>
-                          <select id="franchiseSelect" name="company" class="form-select" required>
-                            <option value="">Select an agency...</option>
-                            <% if (company && company.length) { %>
-                              <% company.forEach(c=> { %>
-                                <option value="<%= c.alias %>" <%=personalInfo?.agency===c.alias ? 'selected' : '' %>>
-                                  <%= c.alias %>
-                                </option>
-                                <% }); %>
-                                  <% } %>
-                          </select>
-                        </div>
-
-                        <div id="referralSelectGroup" style="display: none; margin-top: 1rem;">
-                          <label class="form-label" for="referralSelect">Select an Agency</label>
-                          <select id="referralSelect" name="referralPartner" class="form-select" required>
-                            <option value="">Select an Agency...</option>
-                            <% if (external && external.length) { %>
-                              <% external.forEach(a=> { %>
-                                <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
-                                  <%= a.name %>
-                                </option>
-                                <% }); %>
-                                  <% } %>
-                          </select>
-                        </div>
-                      </div>
-
-                      <!-- 7. Photo -->
-                      <div class="col-md-12" style="padding-bottom: 5%;">
-                        <label class="form-label" for="profilePhotoInput">Profile Photo</label>
-                        <div class="d-flex align-items-center border rounded p-3 mb-3">
-                          <% if (personalInfo?.photoPath) { %>
-                            <div class="me-3">
-                              <img id="profilePhotoPreview" alt="Profile Photo"
-                                style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
-                            </div>
-                            <% } %>
-                              <div>
-                                <input class="form-control" type="file" id="profilePhotoInput" name="profilePhoto"
-                                  accept="image/*" />
-                                <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
-                              </div>
-                        </div>
-                        <% if (personalInfo?.photoPath) { %>
+                          <!-- EIN de la Compañía (Required if business) -->
+                          <div class="col-sm-6" id="einGroup" style="display:none;">
+                            <label class="form-label" for="ein">
+                              EIN<span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="ein" id="ein" class="form-control" placeholder="XX-XXXXXXX"
+                              value="<%= personalInfo?.companyEIN || '' %>" required>
+                          </div>
                           <script>
-                            const origin = window.location.origin;
-                            const photoPath = "<%= personalInfo.photoPath %>";
-                            document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
-                            document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
+                            document.addEventListener('DOMContentLoaded', function () {
+                              const einInput = document.getElementById('ein');
+
+                              einInput.addEventListener('input', function (e) {
+                                let value = einInput.value.replace(/\D/g, '').slice(0, 9); // Solo dígitos, máx 9
+
+                                if (value.length > 2) {
+                                  value = value.slice(0, 2) + '-' + value.slice(2);
+                                }
+
+                                einInput.value = value;
+                              });
+                            });
                           </script>
-                          <% } %>
-                      </div>
-                    </div>
-                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
-                      <button class="btn btn-label-secondary btn-prev" disabled>Previous</button>
-                      <button type="button" class="btn btn-primary btn-next">Next</button>
-                    </div>
-                  </div>
+                          <!-- Preferred First Name -->
+                          <div class="col-sm-6" id="preferredFirstNameGroup">
+                            <label class="form-label" for="preferredFirstName">Preferred First Name</label>
+                            <input type="text" name="preferredFirstName" id="preferredFirstName" class="form-control"
+                              placeholder="John" value="<%= personalInfo?.preferredName || '' %>" />
+                          </div>
 
-                  <!-- Contenido -->
-                  <div id="contactInfoValidation" class="content">
-                    <div class="content-header mb-6">
-                      <h4 class="mb-0">Contact Info</h4>
-                      <p class="mb-0">Enter Your Contact Information</p>
-                    </div>
-                    <div class="row g-6">
-                      <!-- 1. Personal Email (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="personalEmail">Personal Email <span
-                            class="text-danger">*</span></label>
-                        <input type="email" id="personalEmail" name="personalEmail" class="form-control"
-                          placeholder="john.doe@email.com" required value="<%= contactInfo?.personalEmail || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 2. Personal Phone -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="personalPhone">Personal Phone</label>
-                        <input type="tel" id="personalPhone" name="personalPhone" class="form-control"
-                          placeholder="202 555 0111" maxlength="14" required
-                          value="<%= contactInfo?.personalPhone || '' %>" />
-                      </div>
-
-                      <script>
-                        const phoneInput = document.getElementById("personalPhone");
-
-                        phoneInput.addEventListener("input", function (e) {
-                          let value = e.target.value.replace(/\D/g, ""); // Solo números
-
-                          if (value.length > 10) value = value.slice(0, 10);
-
-                          let formatted = value;
-                          if (value.length > 6) {
-                            formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
-                          } else if (value.length > 3) {
-                            formatted = `(${value.slice(0, 3)}) ${value.slice(3)}`;
-                          } else if (value.length > 0) {
-                            formatted = `(${value}`;
-                          }
-
-                          e.target.value = formatted;
-                        });
-                      </script>
-
-                      <!-- 3. Country (Required) -->
-                      <div class="col-sm-6">
-                        <label class="form-label" for="country">Country <span class="text-danger">*</span></label>
-                        <input type="text" id="country" name="country" class="form-control"
-                          placeholder="e.g. United States" required value="<%= contactInfo?.country || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 4. Address Line 1 (Required) -->
-                      <div class="col-md-12">
-                        <label class="form-label" for="addressLine1">Address Line 1 <span
-                            class="text-danger">*</span></label>
-                        <input type="text" id="addressLine1" name="addressLine1" class="form-control"
-                          placeholder="1234 Main St" required value="<%= contactInfo?.addressLine1 || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 5. Address Line 2 -->
-                      <div class="col-md-12">
-                        <label class="form-label" for="addressLine2">Address Line 2</label>
-                        <input type="text" id="addressLine2" name="addressLine2" class="form-control"
-                          placeholder="Apartment, studio, or floor" value="<%= contactInfo?.addressLine2 || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 6. City (Required) -->
-                      <div class="col-sm-4">
-                        <label class="form-label" for="city">City <span class="text-danger">*</span></label>
-                        <input type="text" id="city" name="city" class="form-control" placeholder="e.g. New York"
-                          required value="<%= contactInfo?.city || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 7. State (Required) -->
-                      <div class="col-sm-4">
-                        <label class="form-label" for="multiStepsState">State <span class="text-danger">*</span></label>
-                        <input type="text" id="state" name="state" class="form-control" placeholder="e.g. California"
-                          required value="<%= contactInfo?.state || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-
-                      <!-- 8. ZIP Code (Required) -->
-                      <div class="col-sm-4">
-                        <label class="form-label" for="zipCode">ZIP Code <span class="text-danger">*</span></label>
-                        <input type="number" id="zipCode" name="zipCode" class="form-control" placeholder="10001"
-                          maxlength="5" minlength="5" required value="<%= contactInfo?.zipCode || '' %>" />
-                        <div class="invalid-feedback"></div>
-                      </div>
-                    </div>
-                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
-                      <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                      <button type="button" class="btn btn-primary btn-next">Next</button>
-                    </div>
-                  </div>
-                  <!-- Contenido -->
-                  <div id="commisionValidation" class="content">
-                    <div class="content-header mb-6">
-                      <h4 class="mb-0">Would you like to assign your commissions to GoldenTrust?</h4>
-                      <div class="mt-2">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="yes" required
-                            <%=(paymentMethod && paymentMethod.assignToGTI===true) || !paymentMethod ? 'checked' : '' %>
-                          />
-                          <label class="form-check-label">Yes</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="no" required
-                            <%=paymentMethod && paymentMethod.assignToGTI===false ? 'checked' : '' %> />
-                          <label class="form-check-label">No</label>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Payment Method Section -->
-                    <div class="row g-6">
-                      <!-- Single Bank Account Form -->
-                      <div class="card bank-account-entry mb-4 mt-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                          <h6 class="mb-0">Bank Account</h6>
-                        </div>
-                        <div class="card-body">
-                          <div class="row g-6">
-                            <div class="col-12">
-                              <label class="form-label">Bank Account Type</label>
-                              <div>
-                                <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" id="bankAccountTypeCheking"
-                                    value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
-                                    ? 'checked' : '' %>
-                                  required />
-                                  <label class="form-check-label">Checking</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                  <input class="form-check-input" type="radio" id="bankAccountTypeSavings"
-                                    value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
-                                    ? 'checked' : '' %>
-                                  required />
-                                  <label class="form-check-label">Savings</label>
-                                </div>
-                                <div class="form-text">Select an option.</div>
+                          <!-- Legal Sex (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label">Legal Sex <span class="text-danger">*</span></label>
+                            <div class="mt-2">
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="legalSex" id="legalSexMale"
+                                  value="male" required <%=personalInfo?.legalSex==='male' ? 'checked' : '' %> />
+                                <label class="form-check-label" for="legalSexMale">Male</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="legalSex" id="legalSexFemale"
+                                  value="female" required <%=personalInfo?.legalSex==='female' ? 'checked' : '' %> />
+                                <label class="form-check-label" for="legalSexFemale">Female</label>
                               </div>
                             </div>
-                            <div class="col-md-6">
-                              <label class="form-label">Bank Account Number <span class="text-danger">*</span></label>
-                              <input type="number" id="accountNumber" class="form-control" autocomplete="off" required
-                                value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- Date of Birth (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="dateOfBirth">
+                              Date of Birth <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" placeholder="YYYY-MM-DD" id="dateOfBirth"
+                              name="dateOfBirth" required
+                              value="<%= personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.toISOString().substring(0, 10) : '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- SSN y NPN (Required) -->
+                          <div class="row g-3">
+                            <!-- SSN -->
+                            <div class="col-sm-6">
+                              <label class="form-label" for="ssn">
+                                SSN <span class="text-danger">*</span>
+                              </label>
+                              <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
+                                aria-label="Social Security Number" required maxlength="9"
+                                value="<%= personalInfo?.ssn || '' %>" />
                             </div>
-                            <div class="col-md-6">
-                              <label class="form-label">Confirm Account Number <span
-                                  class="text-danger">*</span></label>
-                              <input type="number" id="confirmAccountNumber" class="form-control" autocomplete="off"
-                                required value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
-                            </div>
-                            <div class="col-md-6">
-                              <label class="form-label">Bank Routing Number <span class="text-danger">*</span></label>
-                              <input type="number" id="routingNumber" class="form-control" required
-                                value="<%= paymentMethod ? paymentMethod.bankRoutingNum : '' %>" />
-                            </div>
-                            <div class="col-md-6">
-                              <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
-                              <input type="text" id="accountNickname" class="form-control"
-                                placeholder="e.g., My Primary Checking" required
-                                value="<%= paymentMethod ? paymentMethod.accountNickname : '' %>" />
+
+                            <!-- NPN -->
+                            <div class="col-sm-6">
+                              <label class="form-label" for="npn">
+                                NPN <span class="text-danger">*</span>
+                              </label>
+                              <input type="text" name="npn" id="npn" class="form-control" placeholder="XXXXXXXX"
+                                aria-label="NPN" required pattern="\d{8}" maxlength="8"
+                                value="<%= personalInfo?.npn || '' %>" />
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      <!-- End Single Bank Account Form -->
-                    </div>
-                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
-                      <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                      <button type="button" class="btn btn-primary btn-next">Next</button>
-                    </div>
-                  </div>
-                  <!-- Contenido -->
-                  <div id="documentsValidation" class="content">
-                    <div class="content-header mb-6">
-                      <h4 class="mb-0">Documents</h4>
-                      <p class="mb-0">Please upload the required documents to complete your profile.</p>
-                    </div>
-                    <div class="row g-4">
-                      <% const docs=documents || {}; const requiredDocs=necesaryDocuments || {}; const docFields=[ {
-                        key: "directDepositForm" , label: "Direct Deposit Form" , inputId: "directDepositUpload" }, {
-                        key: "driverLicense" , label: "Driver's License" , inputId: "driversLicenseUpload" }, {
-                        key: "EINconfirmation" , label: "EIN Confirmation Letter" , inputId: "einConfirmationUpload" },
-                        { key: "eANDo" , label: "E&O" , inputId: "eoUpload" }, { key: "proLicense" ,
-                        label: "Professional License" , inputId: "professionalLicenseUpload" }, {
-                        key: "socialSecurityCard" , label: "Social Security Card" , inputId: "ssnCardUpload" }, {
-                        key: "ffmCertification" , label: "FFM Certification" , inputId: "ffmCertificationUpload" }, {
-                        key: "gaLicense" , label: "GA License" , inputId: "gaLicenseUpload" }, { key: "gaCertification"
-                        , label: "GA Certification" , inputId: "gaCertificationUpload" }, { key: "sunbiz" ,
-                        label: "Sunbiz" , inputId: "sunbizUpload" }, { key: "corporationLicense" ,
-                        label: "Corporation License" , inputId: "corporationLicenseUpload" },
-                        {key: "taxIdentificationW9" , label: "Tax Identification W9" ,
-                        inputId: "taxIdentificationW9Upload" } ]; const hasRequiredDocs=docFields.some(doc=>
-                        requiredDocs[doc.key]);
-                        %>
-                        <% if (!hasRequiredDocs) { %>
-                          <div class="col-12">
-                            <div class="alert alert-info mb-0">
-                              No documents are required for your profile at this time.
+                          <script>
+                            document.getElementById("ssn").addEventListener("input", function (e) {
+                              let value = e.target.value.replace(/\D/g, "");
+                              if (value.length > 5) {
+                                e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}-${value.slice(5, 9)}`;
+                              } else if (value.length > 3) {
+                                e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}`;
+                              } else {
+                                e.target.value = value.slice(0, 9); // Limitar a 9 dígitos máx
+                              }
+                            });
+                            document.querySelector("form").addEventListener("submit", function (e) {
+                              const ssnInput = document.getElementById("ssn");
+                              if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
+                                ssnInput.classList.add("is-invalid");
+                                e.preventDefault();
+                              }
+                            });
+
+                            document.getElementById("npn").addEventListener("input", function (e) {
+                              let value = e.target.value.replace(/\D/g, ""); // solo números
+                              e.target.value = value.slice(0, 8); // máximo 8 dígitos
+                            });
+                            document.querySelector("form").addEventListener("submit", function (e) {
+                              const npnInput = document.getElementById("npn");
+                              if (!/^\d{8}$/.test(npnInput.value)) {
+                                npnInput.classList.add("is-invalid");
+                                e.preventDefault();
+                              }
+                            });
+                          </script>
+
+
+                          <div class="col-sm-6" id="directHireGroup" style="display: none;">
+                            <label class="form-label d-block">
+                              Do you want to be hired directly to the company? <span class="text-danger">*</span>
+                            </label>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredYes"
+                                value="yes" required <%=personalInfo?.franchise===true ? 'checked' : '' %> />
+                              <label class="form-check-label" for="hiredYes">Yes</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredNo"
+                                value="no" required <%=personalInfo?.franchise===false ? 'checked' : '' %> />
+                              <label class="form-check-label" for="hiredNo">No</label>
+                            </div>
+
+                            <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
+                              <label class="form-label" for="companySelect">Select an agency</label>
+                              <select id="franchiseSelect" name="company" class="form-select" required>
+                                <option value="">Select an agency...</option>
+                                <% if (company && company.length) { %>
+                                  <% company.forEach(c=> { %>
+                                    <option value="<%= c.alias %>" <%=personalInfo?.agency===c.alias ? 'selected' : ''
+                                      %>>
+                                      <%= c.alias %>
+                                    </option>
+                                    <% }); %>
+                                      <% } %>
+                              </select>
+                            </div>
+
+                            <div id="referralSelectGroup" style="display: none; margin-top: 1rem;">
+                              <label class="form-label" for="referralSelect">Select an Agency</label>
+                              <select id="referralSelect" name="referralPartner" class="form-select" required>
+                                <option value="">Select an Agency...</option>
+                                <% if (external && external.length) { %>
+                                  <% external.forEach(a=> { %>
+                                    <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
+                                      <%= a.name %>
+                                    </option>
+                                    <% }); %>
+                                      <% } %>
+                              </select>
                             </div>
                           </div>
-                          <% } %>
-                            <% docFields.forEach(doc=> { %>
-                              <% if (requiredDocs[doc.key]) { %>
-                                <div class="col-md-6">
-                                  <div
-                                    class="d-flex justify-content-between align-items-center border rounded p-3 mb-3">
-                                    <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>
-                                      <%= doc.label %>
-                                    </span>
-                                    <div>
-                                      <input type="file" id="<%= doc.inputId %>" name="<%= doc.inputId %>"
-                                        class="d-none" required />
-                                      <label for="<%= doc.inputId %>"
-                                        class="btn btn-sm btn-outline-primary">Upload</label>
-                                      <% if (docs[doc.key]) { %>
-                                        <a href="/<%= docs[doc.key] %>" target="_blank" class="ms-2">View</a>
-                                        <% } %>
-                                    </div>
-                                  </div>
+
+                          <!-- 7. Photo -->
+                          <div class="col-md-12" style="padding-bottom: 5%;">
+                            <label class="form-label" for="profilePhotoInput">Profile Photo</label>
+                            <div class="d-flex align-items-center border rounded p-3 mb-3">
+                              <% if (personalInfo?.photoPath) { %>
+                                <div class="me-3">
+                                  <img id="profilePhotoPreview" alt="Profile Photo"
+                                    style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
                                 </div>
                                 <% } %>
-                                  <% }); %>
-                    </div>
-                    <div class="mb-4"></div>
-                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
-                      <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                      <button type="button" class="btn btn-primary btn-next">Next</button>
-                    </div>
-                  </div>
-                  <!-- Contenido -->
-                  <div id="statesCarriersValidation" class="content">
-                    <div class="content-header mb-6">
-                      <h4 class="mb-0">States & Carriers</h4>
-                      <p class="mb-0">Add all the carriers you work with and the states where you are licensed to
-                        sell.
-                      </p>
-                    </div>
-                    <div class="mb-3">
-                      <button type="button" id="add-state-btn" class="btn btn-primary">Add State</button>
-                    </div>
-                    <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
-                    <div class="mt-4 w-100">
-                      <label for="carrier-recommendation" class="form-label fw-semibold">Optional
-                        Recommendation</label>
-                      <div class="mb-2">
-                        <label for="carrier-recommendation" class="form-label">Carrier Recommendation</label>
-                        <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control"
-                          rows="4"
-                          placeholder="Add any comments or recommendations about the carriers..."><%= recommendation?.recommendation || '' %></textarea>
-                      </div>
-                      <% if (isEdit) { %>
-                        <div class="form-check mb-2">
-                          <input class="form-check-input" type="checkbox" id="recommendation-done" name="isDone"
-                            value="true" <%=recommendation?.isDone ? 'checked' : '' %>>
-                          <label class="form-check-label" for="recommendation-done">
-                            Is recommendation completed
-                          </label>
+                                  <div>
+                                    <input class="form-control" type="file" id="profilePhotoInput" name="profilePhoto"
+                                      accept="image/*" />
+                                    <div class="form-text">Upload your profile picture (optional). Max size 2MB.</div>
+                                  </div>
+                            </div>
+                            <% if (personalInfo?.photoPath) { %>
+                              <script>
+                                const origin = window.location.origin;
+                                const photoPath = "<%= personalInfo.photoPath %>";
+                                document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
+                                document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
+                              </script>
+                              <% } %>
+                          </div>
                         </div>
-                        <% } %>
+                        <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                          <button class="btn btn-label-secondary btn-prev" disabled>Previous</button>
+                          <button type="button" class="btn btn-primary btn-next">Next</button>
+                        </div>
+                      </div>
+
+                      <!-- Contenido -->
+                      <div id="contactInfoValidation" class="content">
+                        <div class="content-header mb-6">
+                          <h4 class="mb-0">Contact Info</h4>
+                          <p class="mb-0">Enter Your Contact Information</p>
+                        </div>
+                        <div class="row g-6">
+                          <!-- 1. Personal Email (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="personalEmail">Personal Email <span
+                                class="text-danger">*</span></label>
+                            <input type="email" id="personalEmail" name="personalEmail" class="form-control"
+                              placeholder="john.doe@email.com" required
+                              value="<%= contactInfo?.personalEmail || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 2. Personal Phone -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="personalPhone">Personal Phone</label>
+                            <input type="tel" id="personalPhone" name="personalPhone" class="form-control"
+                              placeholder="202 555 0111" maxlength="14" required
+                              value="<%= contactInfo?.personalPhone || '' %>" />
+                          </div>
+
+                          <script>
+                            const phoneInput = document.getElementById("personalPhone");
+
+                            phoneInput.addEventListener("input", function (e) {
+                              let value = e.target.value.replace(/\D/g, ""); // Solo números
+
+                              if (value.length > 10) value = value.slice(0, 10);
+
+                              let formatted = value;
+                              if (value.length > 6) {
+                                formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+                              } else if (value.length > 3) {
+                                formatted = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                              } else if (value.length > 0) {
+                                formatted = `(${value}`;
+                              }
+
+                              e.target.value = formatted;
+                            });
+                          </script>
+
+                          <!-- 3. Country (Required) -->
+                          <div class="col-sm-6">
+                            <label class="form-label" for="country">Country <span class="text-danger">*</span></label>
+                            <input type="text" id="country" name="country" class="form-control"
+                              placeholder="e.g. United States" required value="<%= contactInfo?.country || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 4. Address Line 1 (Required) -->
+                          <div class="col-md-12">
+                            <label class="form-label" for="addressLine1">Address Line 1 <span
+                                class="text-danger">*</span></label>
+                            <input type="text" id="addressLine1" name="addressLine1" class="form-control"
+                              placeholder="1234 Main St" required value="<%= contactInfo?.addressLine1 || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 5. Address Line 2 -->
+                          <div class="col-md-12">
+                            <label class="form-label" for="addressLine2">Address Line 2</label>
+                            <input type="text" id="addressLine2" name="addressLine2" class="form-control"
+                              placeholder="Apartment, studio, or floor"
+                              value="<%= contactInfo?.addressLine2 || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 6. City (Required) -->
+                          <div class="col-sm-4">
+                            <label class="form-label" for="city">City <span class="text-danger">*</span></label>
+                            <input type="text" id="city" name="city" class="form-control" placeholder="e.g. New York"
+                              required value="<%= contactInfo?.city || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 7. State (Required) -->
+                          <div class="col-sm-4">
+                            <label class="form-label" for="multiStepsState">State <span
+                                class="text-danger">*</span></label>
+                            <input type="text" id="state" name="state" class="form-control"
+                              placeholder="e.g. California" required value="<%= contactInfo?.state || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+
+                          <!-- 8. ZIP Code (Required) -->
+                          <div class="col-sm-4">
+                            <label class="form-label" for="zipCode">ZIP Code <span class="text-danger">*</span></label>
+                            <input type="number" id="zipCode" name="zipCode" class="form-control" placeholder="10001"
+                              maxlength="5" minlength="5" required value="<%= contactInfo?.zipCode || '' %>" />
+                            <div class="invalid-feedback"></div>
+                          </div>
+                        </div>
+                        <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                          <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                          <button type="button" class="btn btn-primary btn-next">Next</button>
+                        </div>
+                      </div>
+                      <!-- Contenido -->
+                      <div id="commisionValidation" class="content">
+                        <div class="content-header mb-6">
+                          <h4 class="mb-0">Would you like to assign your commissions to GoldenTrust?</h4>
+                          <div class="mt-2">
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="yes"
+                                required <%=(paymentMethod && paymentMethod.assignToGTI===true) || !paymentMethod
+                                ? 'checked' : '' %>
+                              />
+                              <label class="form-check-label">Yes</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="no"
+                                required <%=paymentMethod && paymentMethod.assignToGTI===false ? 'checked' : '' %> />
+                              <label class="form-check-label">No</label>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Payment Method Section -->
+                        <div class="row g-6">
+                          <!-- Single Bank Account Form -->
+                          <div class="card bank-account-entry mb-4 mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                              <h6 class="mb-0">Bank Account</h6>
+                            </div>
+                            <div class="card-body">
+                              <div class="row g-6">
+                                <div class="col-12">
+                                  <label class="form-label">Bank Account Type</label>
+                                  <div>
+                                    <div class="form-check form-check-inline">
+                                      <input class="form-check-input" type="radio" id="bankAccountTypeCheking"
+                                        value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
+                                        ? 'checked' : '' %>
+                                      required />
+                                      <label class="form-check-label">Checking</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                      <input class="form-check-input" type="radio" id="bankAccountTypeSavings"
+                                        value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
+                                        ? 'checked' : '' %>
+                                      required />
+                                      <label class="form-check-label">Savings</label>
+                                    </div>
+                                    <div class="form-text">Select an option.</div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Bank Account Number <span
+                                      class="text-danger">*</span></label>
+                                  <input type="number" id="accountNumber" class="form-control" autocomplete="off"
+                                    required value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Confirm Account Number <span
+                                      class="text-danger">*</span></label>
+                                  <input type="number" id="confirmAccountNumber" class="form-control" autocomplete="off"
+                                    required value="<%= paymentMethod ? paymentMethod.bankAccountNum : '' %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Bank Routing Number <span
+                                      class="text-danger">*</span></label>
+                                  <input type="number" id="routingNumber" class="form-control" required
+                                    value="<%= paymentMethod ? paymentMethod.bankRoutingNum : '' %>" />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Account Nickname <span class="text-danger">*</span></label>
+                                  <input type="text" id="accountNickname" class="form-control"
+                                    placeholder="e.g., My Primary Checking" required
+                                    value="<%= paymentMethod ? paymentMethod.accountNickname : '' %>" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- End Single Bank Account Form -->
+                        </div>
+                        <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                          <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                          <button type="button" class="btn btn-primary btn-next">Next</button>
+                        </div>
+                      </div>
+                      <!-- Contenido -->
+                      <div id="documentsValidation" class="content">
+                        <div class="content-header mb-6">
+                          <h4 class="mb-0">Documents</h4>
+                          <p class="mb-0">Please upload the required documents to complete your profile.</p>
+                        </div>
+                        <div class="row g-4">
+                          <% const docs=documents || {}; const requiredDocs=necesaryDocuments || {}; const docFields=[ {
+                            key: "directDepositForm" , label: "Direct Deposit Form" , inputId: "directDepositUpload" },
+                            { key: "driverLicense" , label: "Driver's License" , inputId: "driversLicenseUpload" }, {
+                            key: "EINconfirmation" , label: "EIN Confirmation Letter" , inputId: "einConfirmationUpload"
+                            }, { key: "eANDo" , label: "E&O" , inputId: "eoUpload" }, { key: "proLicense" ,
+                            label: "Professional License" , inputId: "professionalLicenseUpload" }, {
+                            key: "socialSecurityCard" , label: "Social Security Card" , inputId: "ssnCardUpload" }, {
+                            key: "ffmCertification" , label: "FFM Certification" , inputId: "ffmCertificationUpload" },
+                            { key: "gaLicense" , label: "GA License" , inputId: "gaLicenseUpload" }, {
+                            key: "gaCertification" , label: "GA Certification" , inputId: "gaCertificationUpload" }, {
+                            key: "sunbiz" , label: "Sunbiz" , inputId: "sunbizUpload" }, { key: "corporationLicense" ,
+                            label: "Corporation License" , inputId: "corporationLicenseUpload" },
+                            {key: "taxIdentificationW9" , label: "Tax Identification W9" ,
+                            inputId: "taxIdentificationW9Upload" } ]; const hasRequiredDocs=docFields.some(doc=>
+                            requiredDocs[doc.key]);
+                            %>
+                            <% if (!hasRequiredDocs) { %>
+                              <div class="col-12">
+                                <div class="alert alert-info mb-0">
+                                  No documents are required for your profile at this time.
+                                </div>
+                              </div>
+                              <% } %>
+                                <% docFields.forEach(doc=> { %>
+                                  <% if (requiredDocs[doc.key]) { %>
+                                    <div class="col-md-6">
+                                      <div
+                                        class="d-flex justify-content-between align-items-center border rounded p-3 mb-3">
+                                        <span class="fw-medium"><i class="ti ti-file-text ti-md me-2"></i>
+                                          <%= doc.label %>
+                                        </span>
+                                        <div>
+                                          <input type="file" id="<%= doc.inputId %>" name="<%= doc.inputId %>"
+                                            class="d-none" required />
+                                          <label for="<%= doc.inputId %>"
+                                            class="btn btn-sm btn-outline-primary">Upload</label>
+                                          <% if (docs[doc.key]) { %>
+                                            <a href="/<%= docs[doc.key] %>" target="_blank" class="ms-2">View</a>
+                                            <% } %>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <% } %>
+                                      <% }); %>
+                        </div>
+                        <div class="mb-4"></div>
+                        <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                          <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                          <button type="button" class="btn btn-primary btn-next">Next</button>
+                        </div>
+                      </div>
+                      <!-- Contenido -->
+                      <div id="statesCarriersValidation" class="content">
+                        <div class="content-header mb-6">
+                          <h4 class="mb-0">States & Carriers</h4>
+                          <p class="mb-0">Add all the carriers you work with and the states where you are licensed to
+                            sell.
+                          </p>
+                        </div>
+                        <div class="mb-3">
+                          <button type="button" id="add-state-btn" class="btn btn-primary">Add State</button>
+                        </div>
+                        <div id="carriers-list" class="mx-auto d-flex flex-wrap" data-select2-id="carriers-list"></div>
+                        <div class="mt-4 w-100">
+                          <label for="carrier-recommendation" class="form-label fw-semibold">Optional
+                            Recommendation</label>
+                          <div class="mb-2">
+                            <label for="carrier-recommendation" class="form-label">Carrier Recommendation</label>
+                            <textarea id="carrier-recommendation" name="carrier_recommendation" class="form-control"
+                              rows="4"
+                              placeholder="Add any comments or recommendations about the carriers..."><%= recommendation?.recommendation || '' %></textarea>
+                          </div>
+                          <% if (isEdit) { %>
+                            <div class="form-check mb-2">
+                              <input class="form-check-input" type="checkbox" id="recommendation-done" name="isDone"
+                                value="true" <%=recommendation?.isDone ? 'checked' : '' %>>
+                              <label class="form-check-label" for="recommendation-done">
+                                Is recommendation completed
+                              </label>
+                            </div>
+                            <% } %>
+                        </div>
+                        <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
+                          <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
+                          <button type="submit" class="btn btn-success btn-submit">
+                            Review & Submit
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-12 d-flex justify-content-between mt-4 sticky-bottom">
-                      <button type="button" class="btn btn-label-secondary btn-prev">Previous</button>
-                      <button type="submit" class="btn btn-success btn-submit">
-                        Review & Submit
-                      </button>
-                    </div>
-                  </div>
-                </div>
-            </form>
-          </div>
+                </form>
+              </div>
+            </div>
         </div>
-      </div>
     </div>
   </div>
 

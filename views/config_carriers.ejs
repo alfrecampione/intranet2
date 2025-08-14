@@ -31,7 +31,7 @@
 
     <title>Carriers | GTI</title>
 
-    <meta name="description" content="" />+
+    <meta name="description" content="" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -72,435 +72,235 @@
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu -->
-            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-                <div class="app-brand demo">
-                    <a href="/users/dashboard" class="app-brand-link">
-                        <span class="app-brand-text">
-                            <img src="/img/branding/gti_logo1.png" alt="" id="menuLogo" />
-                        </span>
-                    </a>
-                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-                        <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-middle"></i>
-                        <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
-                    </a>
-                </div>
+            <%- include('partials/sidebar', { user: user, activePage: activePage }) %>
+                <!-- / Menu -->
+                <!-- Layout container -->
+                <div class="layout-page">
+                    <!-- Navbar -->
+                    <%- include('partials/navbar', {user: user}) %>
+                        <!-- / Navbar -->
+                        <!-- Content wrapper -->
+                        <div class="content-wrapper">
+                            <!-- Content -->
 
-                <div class="menu-inner-shadow"></div>
-
-                <ul class="menu-inner py-1">
-                    <li class="menu-item">
-                        <a href="/users/dashboard" class="menu-link">
-                            <i class="menu-icon tf-icons ti ti-smart-home"></i>
-                            <div data-i18n="Dashboard">Dashboard</div>
-                        </a>
-                    </li>
-                    <% if (user && (user.agency || !user.isAgent)) { %>
-                        <li class="menu-item">
-                            <a href="/users/agents" class="menu-link">
-                                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                                <div data-i18n="Agents">Agents</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="/users/reports" class="menu-link">
-                                <i class="menu-icon tf-icons ti ti-clipboard-list"></i>
-                                <div data-i18n="Reports">Reports</div>
-                            </a>
-                        </li>
-                        <li class="menu-header small text-uppercase">
-                            <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
-                        </li>
-                        <li class="menu-item active">
-                            <a href="/users/config_emails" class="menu-link">
-                                <i class="menu-icon tf-icons ti ti-settings-check"></i>
-                                <div data-i18n="Config">Config</div>
-                            </a>
-                        </li>
-                        <% } %>
-                </ul>
-            </aside>
-            <!-- / Menu -->
-
-            <!-- Layout container -->
-            <div class="layout-page">
-                <!-- Navbar -->
-
-                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
-                    id="layout-navbar">
-                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
-                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
-                            <i class="ti ti-menu-2 ti-sm"></i>
-                        </a>
-                    </div>
-
-                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-                        <!-- Search -->
-                        <div class="navbar-nav align-items-center">
-                            <div class="nav-item mb-0">
-                                <a class="nav-link search-toggler d-flex align-items-center px-0"
-                                    href="javascript:void(0);">
-                                    <i class="ti ti-search ti-md me-2"></i>
-                                    <span class="d-none d-md-inline-block text-muted">Search</span>
-                                </a>
-                            </div>
-                        </div>
-                        <!-- /Search -->
-
-                        <ul class="navbar-nav flex-row align-items-center ms-auto">
-                            <!-- Style Switcher -->
-                            <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
-                                    data-bs-toggle="dropdown">
-                                    <i class="ti ti-md"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
-                                    <li>
-                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                                            <span class="align-middle"><i class="ti ti-sun me-2"></i>Light</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                                            <span class="align-middle"><i class="ti ti-moon me-2"></i>Dark</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                                            <span class="align-middle"><i
-                                                    class="ti ti-device-desktop me-2"></i>System</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <!-- Notification -->
-                            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
-                                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                    <i class="ti ti-bell ti-md"></i>
-                                    <!--<span class="badge bg-danger rounded-pill badge-notifications">5</span>-->
-                                </a>
-
-                                <ul class="dropdown-menu dropdown-menu-end py-0">
-                                    <li class="dropdown-menu-header border-bottom">
-                                        <div class="dropdown-header d-flex align-items-center py-3">
-                                            <h5 class="text-body mb-0 me-auto">Notification</h5>
-                                            <a href="javascript:void(0)" class="dropdown-notifications-all text-body"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
-                                        </div>
-                                    </li>
-                                    <li class="dropdown-menu-footer border-top">
-                                        <a href="javascript:void(0);"
-                                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                                            View all notifications
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <!--/ Notification -->
-
-                            <!-- User -->
-                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
-                                    data-bs-toggle="dropdown">
-                                    <div class="avatar avatar-online">
-                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                            <%= user.display_name ? user.display_name[0] : (user.email ? user.email[0]
-                                                : "" ) %>
-                                        </span>
-                                    </div>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item"
-                                            href="<%= user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
-                                            <div class="d-flex">
-                                                <div class="flex-shrink-0 me-3">
-                                                    <div class="avatar avatar-online">
-                                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                                            <%= user.display_name ? user.display_name[0] : (user.email ?
-                                                                user.email[0] : "" ) %>
-                                                        </span>
+                            <div class="container-xxl flex-grow-1 container-p-y">
+                                <%- include('partials/config_nav', { user: user, open: open}) %>
+                                    <!-- DataTable with Buttons -->
+                                    <div class="card">
+                                        <div class="card-datatable table-responsive pt-0">
+                                            <div id="DataTables_Table_0_wrapper"
+                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                <div class="card-header flex-column flex-md-row">
+                                                    <div class="head-label text-center">
+                                                        <h5 class="card-title mb-0">Carriers</h5>
+                                                    </div>
+                                                    <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                        <div class="dt-buttons btn-group flex-wrap">
+                                                            <button
+                                                                class="btn btn-secondary create-new btn-primary waves-effect waves-light"
+                                                                tabindex="0" aria-controls="DataTables_Table_0"
+                                                                type="button" data-bs-toggle="offcanvas"
+                                                                data-bs-target="#add-new-record">
+                                                                <span>
+                                                                    <i class="ti ti-plus me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">Add New
+                                                                        Carrier</span>
+                                                                </span>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="flex-grow-1">
-                                                    <span class="fw-medium d-block">
-                                                        <%= user.display_name %>
-                                                    </span>
-                                                    <% if (user.job_title) { %>
-                                                        <small class="text-muted">
-                                                            <%= user.job_title %>
-                                                        </small>
-                                                        <% } %>
+                                                <div class="row">
+                                                    <div
+                                                        class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
+                                                        <div id="DataTables_Table_0_filter" class="dataTables_filter">
+                                                            <label>Search:<input type="search" class="form-control"
+                                                                    placeholder=""
+                                                                    aria-controls="DataTables_Table_0" /></label>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                                    style="width: 1396px">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 40px;">#</th>
+                                                            <th class="sorting_disabled" tabindex="0"
+                                                                aria-controls="DataTables_Table_0" rowspan="1"
+                                                                colspan="1" style="width: 147px"
+                                                                aria-label="Carrier: activate to sort column ascending">
+                                                                Carrier
+                                                            </th>
+                                                            <th class="sorting_disabled" tabindex="0"
+                                                                aria-controls="DataTables_Table_0" rowspan="1"
+                                                                colspan="1" style="width: 147px"
+                                                                aria-label="Phone: activate to sort column ascending">
+                                                                Phone
+                                                            </th>
+                                                            <th class="sorting_disabled" tabindex="0"
+                                                                aria-controls="DataTables_Table_0" rowspan="1"
+                                                                colspan="1" style="width: 130px"
+                                                                aria-label="Created_at: activate to sort column ascending">
+                                                                States
+                                                            </th>
+                                                            <th class="sorting_disabled" rowspan="1" colspan="1"
+                                                                style="width: 174px" aria-label="Actions">
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% if (companies && companies.length> 0) { %>
+                                                            <% companies.forEach(function(company, idx) { %>
+                                                                <tr>
+                                                                    <td>
+                                                                        <%= idx + 1 %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <%= company.name %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <%= company.phone %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <% const
+                                                                            allStates=company.states.split('|').map(s=>
+                                                                            s.trim()).filter(s => s);
+                                                                            const visibleStates = allStates.slice(0,
+                                                                            5).join('| ');
+                                                                            const hasMore = allStates.length > 5;
+                                                                            %>
+                                                                            <% if (hasMore) { %>
+                                                                                <span data-bs-toggle="tooltip"
+                                                                                    data-bs-placement="top"
+                                                                                    title="<%= allStates.join(', ') %>">
+                                                                                    <%= visibleStates %> ...
+                                                                                </span>
+                                                                                <% } else { %>
+                                                                                    <%= visibleStates %>
+                                                                                        <% } %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <a href="javascript:void(0)"
+                                                                            class="btn-outline-warning edit-company-btn ti ti-edit"
+                                                                            data-company="<%= company.name %>"
+                                                                            data-phone="<%= company.phone %>"
+                                                                            data-states='<%= JSON.stringify(company.states) %>'>
+                                                                        </a>
+                                                                        <a href="javascript:void(0)"
+                                                                            class="btn-outline-danger delete-email-btn ti ti-trash"
+                                                                            data-company="<%= company.name %>"></a>
+                                                                    </td>
+                                                                </tr>
+                                                                <% }); %>
+                                                                    <% } else { %>
+                                                                        <tr>
+                                                                            <td colspan="5">No carriers found.</td>
+                                                                        </tr>
+                                                                        <% } %>
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <div class="dropdown-divider"></div>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="/users/logout">
-                                            <i class="ti ti-logout me-2 ti-sm"></i>
-                                            <span class="align-middle">Log Out</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <!--/ User -->
-                        </ul>
-                    </div>
-
-                    <!-- Full Nav Search Mode -->
-                    <div class="navbar-full-search d-none w-100 position-relative">
-                        <div class="container-xxl d-flex align-items-center position-relative">
-                            <i
-                                class="ti ti-search ti-md position-absolute top-50 start-0 translate-middle-y ms-3 text-body"></i>
-                            <input type="text" class="form-control form-control-lg ps-5 border-0 shadow-none w-100"
-                                placeholder="Search..." id="navbar-full-search-input" />
-                            <i class="ti ti-x ti-lg ms-3 cursor-pointer search-close text-muted"></i>
-                        </div>
-                        <ul class="dropdown-menu show d-none" id="search-dropdown"
-                            style="position: absolute; top: 100%; left: 0; z-index: 1100; width: 100%;"></ul>
-                    </div>
-                    <!--/ Full Nav Search -->
-                </nav>
-
-                <!-- / Navbar -->
-
-                <!-- Content wrapper -->
-                <div class="content-wrapper">
-                    <!-- Content -->
-
-                    <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="nav-align-top mb-3">
-                            <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-2 gap-lg-0">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="/users/config_emails"><i
-                                            class="ti-sm ti ti-mail me-1_5"></i> Notification Emails</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="javascript:void(0);"><i
-                                            class="ti-sm ti ti-truck me-1_5"></i>
-                                        Carriers</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="/users/config_commisions"><i
-                                            class="ti-sm ti ti-table me-1_5"></i>
-                                        Commisions</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <!-- DataTable with Buttons -->
-                        <div class="card">
-                            <div class="card-datatable table-responsive pt-0">
-                                <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                    <div class="card-header flex-column flex-md-row">
-                                        <div class="head-label text-center">
-                                            <h5 class="card-title mb-0">Carriers</h5>
                                         </div>
-                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                            <div class="dt-buttons btn-group flex-wrap">
-                                                <button
-                                                    class="btn btn-secondary create-new btn-primary waves-effect waves-light"
-                                                    tabindex="0" aria-controls="DataTables_Table_0" type="button"
-                                                    data-bs-toggle="offcanvas" data-bs-target="#add-new-record">
-                                                    <span>
-                                                        <i class="ti ti-plus me-sm-1"></i>
-                                                        <span class="d-none d-sm-inline-block">Add New Carrier</span>
-                                                    </span>
+                                    </div>
+                                    <!-- Modal to insert companies -->
+                                    <div class="offcanvas offcanvas-end" id="add-new-record">
+                                        <div class="offcanvas-header border-bottom">
+                                            <h5 class="offcanvas-title" id="exampleModalLabel">Insert a Carrier</h5>
+                                            <button type="button" class="btn-close text-reset"
+                                                data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                        </div>
+                                        <div class="offcanvas-body flex-grow-1">
+                                            <div class="mb-3">
+                                                <label for="companyNameInput" class="form-label">Carrier Name</label>
+                                                <input type="text" id="companyNameInput" class="form-control"
+                                                    placeholder="Enter company name">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="companyNameInput" class="form-label">Carrier Phone</label>
+                                                <input type="text" id="companyPhoneInput" class="form-control"
+                                                    placeholder="Enter company name">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="select2Primary" class="form-label">States</label>
+                                                <select id="select2Primary" class="select2 form-select" multiple>
+                                                    <option value="AL">Alabama (AL)</option>
+                                                    <option value="AK">Alaska (AK)</option>
+                                                    <option value="AZ">Arizona (AZ)</option>
+                                                    <option value="AR">Arkansas (AR)</option>
+                                                    <option value="CA">California (CA)</option>
+                                                    <option value="CO">Colorado (CO)</option>
+                                                    <option value="CT">Connecticut (CT)</option>
+                                                    <option value="DE">Delaware (DE)</option>
+                                                    <option value="FL">Florida (FL)</option>
+                                                    <option value="GA">Georgia (GA)</option>
+                                                    <option value="HI">Hawaii (HI)</option>
+                                                    <option value="ID">Idaho (ID)</option>
+                                                    <option value="IL">Illinois (IL)</option>
+                                                    <option value="IN">Indiana (IN)</option>
+                                                    <option value="IA">Iowa (IA)</option>
+                                                    <option value="KS">Kansas (KS)</option>
+                                                    <option value="KY">Kentucky (KY)</option>
+                                                    <option value="LA">Louisiana (LA)</option>
+                                                    <option value="ME">Maine (ME)</option>
+                                                    <option value="MD">Maryland (MD)</option>
+                                                    <option value="MA">Massachusetts (MA)</option>
+                                                    <option value="MI">Michigan (MI)</option>
+                                                    <option value="MN">Minnesota (MN)</option>
+                                                    <option value="MS">Mississippi (MS)</option>
+                                                    <option value="MO">Missouri (MO)</option>
+                                                    <option value="MT">Montana (MT)</option>
+                                                    <option value="NE">Nebraska (NE)</option>
+                                                    <option value="NV">Nevada (NV)</option>
+                                                    <option value="NH">New Hampshire (NH)</option>
+                                                    <option value="NJ">New Jersey (NJ)</option>
+                                                    <option value="NM">New Mexico (NM)</option>
+                                                    <option value="NY">New York (NY)</option>
+                                                    <option value="NC">North Carolina (NC)</option>
+                                                    <option value="ND">North Dakota (ND)</option>
+                                                    <option value="OH">Ohio (OH)</option>
+                                                    <option value="OK">Oklahoma (OK)</option>
+                                                    <option value="OR">Oregon (OR)</option>
+                                                    <option value="PA">Pennsylvania (PA)</option>
+                                                    <option value="RI">Rhode Island (RI)</option>
+                                                    <option value="SC">South Carolina (SC)</option>
+                                                    <option value="SD">South Dakota (SD)</option>
+                                                    <option value="TN">Tennessee (TN)</option>
+                                                    <option value="TX">Texas (TX)</option>
+                                                    <option value="UT">Utah (UT)</option>
+                                                    <option value="VT">Vermont (VT)</option>
+                                                    <option value="VA">Virginia (VA)</option>
+                                                    <option value="WA">Washington (WA)</option>
+                                                    <option value="WV">West Virginia (WV)</option>
+                                                    <option value="WI">Wisconsin (WI)</option>
+                                                    <option value="WY">Wyoming (WY)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <br>
+                                                <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1"
+                                                    id="addCompanyBtn">
+                                                    Add
+                                                </button>
+                                                <button type="reset" class="btn btn-outline-secondary"
+                                                    data-bs-dismiss="offcanvas">
+                                                    Cancel
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div
-                                            class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
-                                            <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                                                <label>Search:<input type="search" class="form-control" placeholder=""
-                                                        aria-controls="DataTables_Table_0" /></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <table class="datatables-basic table dataTable no-footer dtr-column"
-                                        id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                        style="width: 1396px">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 40px;">#</th>
-                                                <th class="sorting_disabled" tabindex="0"
-                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                    style="width: 147px"
-                                                    aria-label="Carrier: activate to sort column ascending">
-                                                    Carrier
-                                                </th>
-                                                <th class="sorting_disabled" tabindex="0"
-                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                    style="width: 147px"
-                                                    aria-label="Phone: activate to sort column ascending">
-                                                    Phone
-                                                </th>
-                                                <th class="sorting_disabled" tabindex="0"
-                                                    aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                    style="width: 130px"
-                                                    aria-label="Created_at: activate to sort column ascending">
-                                                    States
-                                                </th>
-                                                <th class="sorting_disabled" rowspan="1" colspan="1"
-                                                    style="width: 174px" aria-label="Actions">
-                                                    Actions
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (companies && companies.length> 0) { %>
-                                                <% companies.forEach(function(company, idx) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <%= idx + 1 %>
-                                                        </td>
-                                                        <td>
-                                                            <%= company.name %>
-                                                        </td>
-                                                        <td>
-                                                            <%= company.phone %>
-                                                        </td>
-                                                        <td>
-                                                            <% const allStates=company.states.split('|').map(s=>
-                                                                s.trim()).filter(s => s);
-                                                                const visibleStates = allStates.slice(0, 5).join('| ');
-                                                                const hasMore = allStates.length > 5;
-                                                                %>
-                                                                <% if (hasMore) { %>
-                                                                    <span data-bs-toggle="tooltip"
-                                                                        data-bs-placement="top"
-                                                                        title="<%= allStates.join(', ') %>">
-                                                                        <%= visibleStates %> ...
-                                                                    </span>
-                                                                    <% } else { %>
-                                                                        <%= visibleStates %>
-                                                                            <% } %>
-                                                        </td>
-                                                        <td>
-                                                            <a href="javascript:void(0)"
-                                                                class="btn-outline-warning edit-company-btn ti ti-edit"
-                                                                data-company="<%= company.name %>"
-                                                                data-phone="<%= company.phone %>"
-                                                                data-states='<%= JSON.stringify(company.states) %>'>
-                                                            </a>
-                                                            <a href="javascript:void(0)"
-                                                                class="btn-outline-danger delete-email-btn ti ti-trash"
-                                                                data-company="<%= company.name %>"></a>
-                                                        </td>
-                                                    </tr>
-                                                    <% }); %>
-                                                        <% } else { %>
-                                                            <tr>
-                                                                <td colspan="5">No carriers found.</td>
-                                                            </tr>
-                                                            <% } %>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <!--/ DataTable with Buttons -->
+                                    <div class="content-backdrop fade"></div>
                             </div>
                         </div>
-                        <!-- Modal to insert companies -->
-                        <div class="offcanvas offcanvas-end" id="add-new-record">
-                            <div class="offcanvas-header border-bottom">
-                                <h5 class="offcanvas-title" id="exampleModalLabel">Insert a Carrier</h5>
-                                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="offcanvas-body flex-grow-1">
-                                <div class="mb-3">
-                                    <label for="companyNameInput" class="form-label">Carrier Name</label>
-                                    <input type="text" id="companyNameInput" class="form-control"
-                                        placeholder="Enter company name">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="companyNameInput" class="form-label">Carrier Phone</label>
-                                    <input type="text" id="companyPhoneInput" class="form-control"
-                                        placeholder="Enter company name">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="select2Primary" class="form-label">States</label>
-                                    <select id="select2Primary" class="select2 form-select" multiple>
-                                        <option value="AL">Alabama (AL)</option>
-                                        <option value="AK">Alaska (AK)</option>
-                                        <option value="AZ">Arizona (AZ)</option>
-                                        <option value="AR">Arkansas (AR)</option>
-                                        <option value="CA">California (CA)</option>
-                                        <option value="CO">Colorado (CO)</option>
-                                        <option value="CT">Connecticut (CT)</option>
-                                        <option value="DE">Delaware (DE)</option>
-                                        <option value="FL">Florida (FL)</option>
-                                        <option value="GA">Georgia (GA)</option>
-                                        <option value="HI">Hawaii (HI)</option>
-                                        <option value="ID">Idaho (ID)</option>
-                                        <option value="IL">Illinois (IL)</option>
-                                        <option value="IN">Indiana (IN)</option>
-                                        <option value="IA">Iowa (IA)</option>
-                                        <option value="KS">Kansas (KS)</option>
-                                        <option value="KY">Kentucky (KY)</option>
-                                        <option value="LA">Louisiana (LA)</option>
-                                        <option value="ME">Maine (ME)</option>
-                                        <option value="MD">Maryland (MD)</option>
-                                        <option value="MA">Massachusetts (MA)</option>
-                                        <option value="MI">Michigan (MI)</option>
-                                        <option value="MN">Minnesota (MN)</option>
-                                        <option value="MS">Mississippi (MS)</option>
-                                        <option value="MO">Missouri (MO)</option>
-                                        <option value="MT">Montana (MT)</option>
-                                        <option value="NE">Nebraska (NE)</option>
-                                        <option value="NV">Nevada (NV)</option>
-                                        <option value="NH">New Hampshire (NH)</option>
-                                        <option value="NJ">New Jersey (NJ)</option>
-                                        <option value="NM">New Mexico (NM)</option>
-                                        <option value="NY">New York (NY)</option>
-                                        <option value="NC">North Carolina (NC)</option>
-                                        <option value="ND">North Dakota (ND)</option>
-                                        <option value="OH">Ohio (OH)</option>
-                                        <option value="OK">Oklahoma (OK)</option>
-                                        <option value="OR">Oregon (OR)</option>
-                                        <option value="PA">Pennsylvania (PA)</option>
-                                        <option value="RI">Rhode Island (RI)</option>
-                                        <option value="SC">South Carolina (SC)</option>
-                                        <option value="SD">South Dakota (SD)</option>
-                                        <option value="TN">Tennessee (TN)</option>
-                                        <option value="TX">Texas (TX)</option>
-                                        <option value="UT">Utah (UT)</option>
-                                        <option value="VT">Vermont (VT)</option>
-                                        <option value="VA">Virginia (VA)</option>
-                                        <option value="WA">Washington (WA)</option>
-                                        <option value="WV">West Virginia (WV)</option>
-                                        <option value="WI">Wisconsin (WI)</option>
-                                        <option value="WY">Wyoming (WY)</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-12">
-                                    <br>
-                                    <button type="submit" class="btn btn-primary data-submit me-sm-4 me-1"
-                                        id="addCompanyBtn">
-                                        Add
-                                    </button>
-                                    <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!--/ DataTable with Buttons -->
-                        <div class="content-backdrop fade"></div>
-                    </div>
                 </div>
-            </div>
 
-            <!-- Overlay -->
-            <div class="layout-overlay layout-menu-toggle"></div>
+                <!-- Overlay -->
+                <div class="layout-overlay layout-menu-toggle"></div>
 
-            <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-            <div class="drag-target"></div>
+                <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+                <div class="drag-target"></div>
         </div>
         <!-- / Layout wrapper -->
 

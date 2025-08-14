@@ -27,6 +27,7 @@ const renderDashboard = async (req, res) => {
       companies,
       userCompanyStateData,
       states,
+      activePage: 'dashboard'
     });
   } catch (error) {
     console.error(error);
