@@ -25,12 +25,12 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
 
   if (isEdit) {
     const existingUser = await prisma.user.findUnique({ where: { user_id: userId } })
-    necessaryDocuments = await prisma.necessaryDocuments.findUnique({
+    necessaryDocuments = await prisma.necesaryDocuments.findUnique({
       where: { email: existingUser.email },
     });
   }
   else {
-    necessaryDocuments = await prisma.necessaryDocuments.findUnique({
+    necessaryDocuments = await prisma.necesaryDocuments.findUnique({
       where: { email: user.email },
     });
   }

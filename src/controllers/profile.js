@@ -25,7 +25,7 @@ const renderProfile = async (req, res) => {
         where: { userId }
     });
 
-    const necesaryDocs = await prisma.necessaryDocuments.findUnique({
+    const necesaryDocs = await prisma.necesaryDocuments.findUnique({
         where: { email: profile.email }
     });
 

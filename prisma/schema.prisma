@@ -106,7 +106,7 @@ model Documents {
   @@schema("health")
 }
 
-model NecessaryDocuments {
+model NecesaryDocuments {
   id                  String  @id @default(uuid())
   email               String  @unique
   directDepositForm   Boolean @default(false)

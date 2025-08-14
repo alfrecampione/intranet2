@@ -4,7 +4,7 @@ import { prismaContext } from "../config/prismaContext.js";
 const renderLeadCenter = async (req, res) => {
     try {
         const leadCenter = await prisma.lead.findMany({
-            include: { Company: true },
+            include: { Companies: true },
             orderBy: { fullName: "desc" },
         });
 
