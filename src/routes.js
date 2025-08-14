@@ -199,8 +199,9 @@ router.get("/users/reports", checkNotAuthenticated, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
 router.get("/users/reports/export", checkNotAuthenticated, exportData);
 
-import { renderLeadCenter, deleteLead } from "./controllers/lead_center.js";
+import { renderLeadCenter, acceptAsAgent, deleteLead } from "./controllers/lead_center.js";
 router.get("/users/lead-center", checkNotAuthenticated, renderLeadCenter);
+router.post("/users/lead-center/:email", checkNotAuthenticated, acceptAsAgent);
 router.delete("/users/lead-center/:id", checkNotAuthenticated, deleteLead);
 
 

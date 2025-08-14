@@ -19,6 +19,36 @@ const renderLeadCenter = async (req, res) => {
     }
 };
 
+const acceptAsAgent = async (req, res) => {
+    const { email } = req.params;
+    try {
+        const lead = await prisma.lead.findUnique({
+            where: { email: email },
+        });
+
+        if (!lead) {
+            return res.status(404).json({ error: "Lead not found" });
+        }
+
+        await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
+            try {
+                await prisma.lead.update({
+                    where: { id: id },
+                    data: { isAcepted: true },
+                });
+            } catch (err) {
+                console.error("Error updating lead to accepted:", err);
+                throw err;
+            }
+        });
+
+    }
+    catch (error) {
+        console.error("Error accepting lead as agent:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
 const deleteLead = async (req, res) => {
     const { id } = req.params;
     try {
@@ -32,4 +62,4 @@ const deleteLead = async (req, res) => {
     }
 }
 
-export { renderLeadCenter, deleteLead };
+export { renderLeadCenter, deleteLead, acceptAsAgent };

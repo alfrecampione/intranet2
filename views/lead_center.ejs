@@ -319,6 +319,16 @@
                 overlay.style.display = "flex";
 
                 try {
+                    const acepted = await fetch(`/users/lead-center/${selectedEmail}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                    });
+
+                    if (!acepted.ok) {
+                        showToast("Error", acepted.message || "Error accepting lead.");
+                    }
+
+
                     const docsResponse = await fetch(`/necessaryDocs`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
