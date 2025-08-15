@@ -82,7 +82,7 @@ const register = async (req, res) => {
       SELECT alias FROM qq.locations WHERE location_type = 2 or location_id = 1
       ORDER BY location_id ASC
     `;
-    res.render("registration", { ...data, US_STATES, company, external });
+    res.render("registration", { ...data, US_STATES, company, external, activePage: "registration" });
   } catch (error) {
     console.error("Error loading registration data:", error.message);
     res.status(500).send("Error loading registration data.");
@@ -102,7 +102,7 @@ const editRegister = async (req, res) => {
       ORDER BY location_id ASC
     `;
 
-    res.render("registration", { ...data, US_STATES, company, external });
+    res.render("registration", { ...data, US_STATES, company, external, activePage: "registration" });
   } catch (error) {
     console.error("Error loading registration data:", error.message);
     res.status(500).send("Error loading registration data.");

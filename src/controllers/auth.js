@@ -80,14 +80,16 @@ const renderEmailValidation = (req, res) => {
   res.render("validateEmail", { email: req.query.email });
 };
 
-const leadToAgent = async (user) => {
+const leadToAgent = async (user, user_id) => {
   try {
     const lead = await prisma.lead.findUnique({
       where: { email: user.email }
     });
 
+    console.log("Lead found for user:", lead);
+
     if (lead && lead.isAcepted) {
-      await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
+      await prismaContext.run({ userId: user_id ?? "anonymous" }, async () => {
         try {
           await prisma.personalInfo.create({
             data: {
@@ -148,7 +150,7 @@ const validateEmail = async (req, res, next) => {
         password: existingUser.password
       };
 
-      await leadToAgent(existingUser);
+      await leadToAgent(existingUser, req.user?.user_id);
 
       req.login(user, (err) => {
         if (err) {

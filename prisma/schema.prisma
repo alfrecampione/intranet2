@@ -163,8 +163,7 @@ model Company {
   createdAt DateTime @default(now())
   phone     String
 
-  Commisions  Commisions[]
-  LeadCenters Lead[]       @relation("CompanyLeadCenters")
+  Commisions Commisions[]
 
   @@schema("health")
 }
@@ -216,21 +215,20 @@ model Note {
 }
 
 model Lead {
-  id          String   @id @default(uuid())
-  isAcepted   Boolean  @default(false)
-  fullName    String
-  email       String   @unique
-  phone       String
-  dateOfBirth DateTime
-  npn         String
-  address     String
-  city        String
-  state       String
-  zipCode     String
-  states      String[]
-  createdAt   DateTime @default(now())
-
-  Companies Company[] @relation("CompanyLeadCenters")
+  id            String   @id @default(uuid())
+  isAcepted     Boolean  @default(false)
+  fullName      String
+  email         String   @unique
+  phone         String
+  dateOfBirth   DateTime
+  npn           String
+  address       String
+  city          String
+  state         String
+  zipCode       String
+  companyStates String[]
+  companyNames  String[]
+  createdAt     DateTime @default(now())
 
   @@schema("health")
 }

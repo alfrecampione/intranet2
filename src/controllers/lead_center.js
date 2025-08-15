@@ -4,10 +4,8 @@ import { prismaContext } from "../config/prismaContext.js";
 const renderLeadCenter = async (req, res) => {
     try {
         const leadCenter = await prisma.lead.findMany({
-            include: { Companies: true },
             orderBy: { fullName: "desc" },
         });
-
         res.render("lead_center", {
             user: req.user,
             leadCenter,
@@ -33,7 +31,7 @@ const acceptAsAgent = async (req, res) => {
         await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
             try {
                 await prisma.lead.update({
-                    where: { id: id },
+                    where: { email: email },
                     data: { isAcepted: true },
                 });
             } catch (err) {
@@ -42,6 +40,10 @@ const acceptAsAgent = async (req, res) => {
             }
         });
 
+        console.log("Lead accepted as agent:", email);
+
+        return res.status(200).json({ message: "Lead accepted as agent successfully" });
+
     }
     catch (error) {
         console.error("Error accepting lead as agent:", error);
@@ -49,11 +51,38 @@ const acceptAsAgent = async (req, res) => {
     }
 }
 
+const addLead = async (req, res) => {
+    const { fullName, email, phone, companyNames, companyStates, dateOfBirth, npn, address, city, state, zipCode } = req.body;
+    try {
+        const newLead = await prisma.lead.create({
+            data: {
+                fullName,
+                email,
+                phone,
+                companyNames,
+                companyStates,
+                dateOfBirth: new Date(dateOfBirth),
+                npn,
+                address,
+                city,
+                state,
+                zipCode,
+            },
+        });
+        res.status(201).json(newLead);
+    } catch (error) {
+        console.error("Error adding new lead:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
 const deleteLead = async (req, res) => {
     const { id } = req.params;
     try {
-        const lead = await prisma.lead.delete({
-            where: { id: id },
+        await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
+            const lead = await prisma.lead.delete({
+                where: { id: id },
+            });
         });
         res.status(200).json({ success: true, message: "Lead deleted successfully" });
     } catch (error) {
@@ -62,4 +91,15 @@ const deleteLead = async (req, res) => {
     }
 }
 
-export { renderLeadCenter, deleteLead, acceptAsAgent };
+const renderNewLead = async (req, res) => {
+    const companies = await prisma.company.findMany({
+        select: {
+            id: true,
+            name: true,
+        },
+    });
+
+    res.render("newLead", { companies });
+}
+
+export { renderLeadCenter, deleteLead, acceptAsAgent, addLead, renderNewLead };

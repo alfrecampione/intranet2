@@ -420,11 +420,10 @@
                           <script>
                             const phoneInput = document.getElementById("personalPhone");
 
-                            phoneInput.addEventListener("input", function (e) {
-                              let value = e.target.value.replace(/\D/g, ""); // Solo números
-
+                            // Format phone for display (on input and on load)
+                            function formatPhoneDisplay(val) {
+                              let value = (val || '').replace(/\D/g, "");
                               if (value.length > 10) value = value.slice(0, 10);
-
                               let formatted = value;
                               if (value.length > 6) {
                                 formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
@@ -433,8 +432,19 @@
                               } else if (value.length > 0) {
                                 formatted = `(${value}`;
                               }
+                              return formatted;
+                            }
 
-                              e.target.value = formatted;
+                            // On load, format the value if present
+                            phoneInput.value = formatPhoneDisplay(phoneInput.value);
+
+                            phoneInput.addEventListener("input", function (e) {
+                              e.target.value = formatPhoneDisplay(e.target.value);
+                            });
+
+                            // On form submit, strip formatting so only digits are sent
+                            document.getElementById('multiStepsForm').addEventListener('submit', function (e) {
+                              phoneInput.value = phoneInput.value.replace(/\D/g, "");
                             });
                           </script>
 

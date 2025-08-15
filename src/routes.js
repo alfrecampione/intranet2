@@ -199,11 +199,14 @@ router.get("/users/reports", checkNotAuthenticated, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
 router.get("/users/reports/export", checkNotAuthenticated, exportData);
 
-import { renderLeadCenter, acceptAsAgent, deleteLead } from "./controllers/lead_center.js";
+import { renderLeadCenter, addLead, acceptAsAgent, deleteLead } from "./controllers/lead_center.js";
 router.get("/users/lead-center", checkNotAuthenticated, renderLeadCenter);
-router.post("/users/lead-center/:email", checkNotAuthenticated, acceptAsAgent);
+router.post("/users/lead-center", checkNotAuthenticated, addLead);
+router.post("/users/lead-center/accept/:email", checkNotAuthenticated, acceptAsAgent);
 router.delete("/users/lead-center/:id", checkNotAuthenticated, deleteLead);
 
+import { renderNewLead } from "./controllers/lead_center.js";
+router.get("/users/lead-center/newLead", renderNewLead);
 
 
 export default router;
