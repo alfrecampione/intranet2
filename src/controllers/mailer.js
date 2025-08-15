@@ -12,8 +12,6 @@ const passwordMail = async (req, res) => {
 
   const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-  console.log("baseUrl", baseUrl);
-
   const { encryptedData, key, iv } = encrypt(email);
   let result, result1, prismaUser;
 

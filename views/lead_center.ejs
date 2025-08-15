@@ -278,8 +278,6 @@
             const leads = JSON.parse(document.getElementById("agents-data").textContent);
             let selectedEmail = null;
 
-            console.log("[LeadCenter] DOMContentLoaded, leads:", leads);
-
             if (leads.length === 0) {
                 tableBody.innerHTML = `
                 <tr>
@@ -315,7 +313,6 @@
             document.querySelectorAll(".btn-send-onboarding").forEach(btn => {
                 btn.addEventListener("click", () => {
                     selectedEmail = btn.dataset.email;
-                    console.log("[LeadCenter] Selected email for onboarding:", selectedEmail);
                     const offcanvas = new bootstrap.Offcanvas(document.getElementById("add-new-record"));
                     offcanvas.show();
                 });
@@ -353,20 +350,17 @@
                 overlay.style.display = "flex";
 
                 try {
-                    console.log("[LeadCenter] Accepting lead:", selectedEmail);
                     const acepted = await fetch(`/users/lead-center/accept/${selectedEmail}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                     });
                     const aceptedData = await acepted.json();
-                    console.log("[LeadCenter] Accept response:", acepted.status, aceptedData);
                     if (!acepted.ok) {
                         showToast("Error", aceptedData.message || "Error accepting lead.");
                         overlay.style.display = "none";
                         return;
                     }
 
-                    console.log("[LeadCenter] Marking necessary documents for:", selectedEmail, requiredDocuments);
                     const docsResponse = await fetch(`/necessaryDocs`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -375,15 +369,12 @@
                             ...requiredDocuments
                         }),
                     });
-                    console.log("[LeadCenter] Docs response:", docsResponse.status);
 
-                    console.log("[LeadCenter] Encrypting email:", selectedEmail);
                     const encryptEmail = await fetch(`/email/encrypt/${selectedEmail}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                     });
                     const encryptedEmail = await encryptEmail.json();
-                    console.log("[LeadCenter] Encrypted email response:", encryptEmail.status, encryptedEmail);
 
                     if (!docsResponse.ok) showToast("Error", "Error adding necessary documents");
                     if (!encryptEmail.ok) showToast("Error", "Error encrypting email");
@@ -402,7 +393,6 @@
                         outro: "If you have questions, you can reply to this email."
                     };
 
-                    console.log("[LeadCenter] Sending onboarding email to:", selectedEmail, body);
                     const response = await fetch(`${url}/sendEmail/${selectedEmail}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -414,7 +404,6 @@
                     });
 
                     const responseData = await response.json();
-                    console.log("[LeadCenter] Email send response:", response.status, responseData);
 
                     if (response.ok) {
                         showToast("Success", "Email sent successfully!");

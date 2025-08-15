@@ -40,8 +40,6 @@ const acceptAsAgent = async (req, res) => {
             }
         });
 
-        console.log("Lead accepted as agent:", email);
-
         return res.status(200).json({ message: "Lead accepted as agent successfully" });
 
     }

@@ -326,8 +326,6 @@ const saveSection = async (req, res) => {
     const { userId, sectionKey, values } = req.body;
     const requesterId = req.user.user_id;
 
-    console.log("Saving section:", sectionKey, "for user:", userId, "with values:", values);
-
     if (!sectionKey || !values) {
         return res.status(400).json({ success: false, message: "Section key and values are required." });
     }
