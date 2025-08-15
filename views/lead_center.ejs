@@ -303,7 +303,9 @@
                            title="Delete"
                            onclick="if(confirm('Are you sure you want to delete it?')) { fetch('/users/lead-center/${lead.id}', { method: 'DELETE' }).then(() => location.reload()); }">
                         </a>
-                        <a href="#" class="ti ti-search text-info"></a>
+                        <a href="/lead-center/loadLead/${lead.id}" 
+                        class="ti ti-search text-info"
+                        title= "View all data"></a>
                     </td>
                 </tr>
             `).join("");

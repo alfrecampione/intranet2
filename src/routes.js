@@ -205,8 +205,8 @@ router.post("/users/lead-center", checkNotAuthenticated, addLead);
 router.post("/users/lead-center/accept/:email", checkNotAuthenticated, acceptAsAgent);
 router.delete("/users/lead-center/:id", checkNotAuthenticated, deleteLead);
 
-import { renderNewLead } from "./controllers/lead_center.js";
-router.get("/users/lead-center/newLead", renderNewLead);
-
+import { renderNewLead, loadLead } from "./controllers/lead_center.js";
+router.get("/lead-center/newLead", renderNewLead);
+router.get("/lead-center/loadLead/:id", checkNotAuthenticated, loadLead);
 
 export default router;

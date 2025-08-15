@@ -97,7 +97,30 @@ const renderNewLead = async (req, res) => {
         },
     });
 
-    res.render("newLead", { companies });
+    res.render("newLead", { companies, lead: {}, isLoaded: false });
 }
 
-export { renderLeadCenter, deleteLead, acceptAsAgent, addLead, renderNewLead };
+const loadLead = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ error: "Lead ID is required" });
+    }
+    try {
+        const lead = await prisma.lead.findUnique({ where: { id: id } });
+        if (!lead) {
+            return res.status(404).json({ error: "Lead not found" });
+        }
+        const companies = await prisma.company.findMany({
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+        res.render("newLead", { companies, lead, isLoaded: true });
+    } catch (error) {
+        console.error("Error loading lead:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+export { renderLeadCenter, deleteLead, acceptAsAgent, addLead, renderNewLead, loadLead };
