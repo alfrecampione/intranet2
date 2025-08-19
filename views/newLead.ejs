@@ -211,10 +211,6 @@
             "default": "/images/icons/default.png"
         };
 
-        function normalizeName(name) {
-            return name.toLowerCase().replace(/\s+/g, "");
-        }
-
         // Populate square buttons instead of select
         const companyContainer = document.getElementById("companyButtons");
         const hiddenInput = document.getElementById("companyNames");
@@ -227,7 +223,7 @@
         }
 
         companies.forEach(company => {
-            const key = normalizeName(company.name);
+            const key = company.name;
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "company-btn btn btn-outline-primary d-flex flex-column align-items-center justify-content-center";
