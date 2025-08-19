@@ -120,7 +120,7 @@
 
                     <!-- NPN -->
                     <div class="mb-3">
-                        <label for="npn" class="form-label">National Producer Number (NPN)</label>
+                        <label for="npn" class="form-label">NPN</label>
                         <input type="text" class="form-control" id="npn" name="npn" required
                             value="<%= (lead && lead.npn) ? lead.npn : '' %>">
                     </div>
@@ -163,10 +163,10 @@
 
                     <!-- Carrier Names -->
                     <div class="mb-3">
-                        <label for="companyNames" class="form-label">Carrier Names</label>
-                        <select class="form-select" id="companyNames" name="companyNames" multiple required
-                            style="width: 100%">
-                        </select>
+                        <label class="form-label">Carrier Names</label>
+                        <div id="companyButtons" class="d-flex flex-wrap gap-2"></div>
+                        <!-- Hidden input to hold selected companies -->
+                        <input type="hidden" id="companyNames" name="companyNames" value="">
                     </div>
 
                     <!-- Submit -->
@@ -196,6 +196,80 @@
         const companies = JSON.parse(document.getElementById('carriers-data').textContent || '[]') || [];
         const lead = JSON.parse(document.getElementById('lead-data').textContent || '{}') || {};
 
+        // Mapping company names to icons
+        const companyIcons = {
+            "aetna": "/images/icons/aetna.png",
+            "unitedhealthcare": "/images/icons/uhc.png",
+            "cigna": "/images/icons/cigna.png",
+            "humana": "/images/icons/humana.png",
+            // fallback icon if company is missing
+            "default": "/images/icons/default.png"
+        };
+
+        function normalizeName(name) {
+            return name.toLowerCase().replace(/\s+/g, "");
+        }
+
+        // Populate square buttons instead of select
+        const companyContainer = document.getElementById("companyButtons");
+        const hiddenInput = document.getElementById("companyNames");
+        const selectedCompanies = Array.isArray(lead.companyNames) ? lead.companyNames : [];
+
+        function updateHiddenInput() {
+            const selected = [...companyContainer.querySelectorAll(".company-btn.selected")]
+                .map(btn => btn.dataset.name);
+            hiddenInput.value = JSON.stringify(selected);
+        }
+
+        companies.forEach(company => {
+            const key = normalizeName(company.name);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "company-btn btn btn-outline-primary d-flex flex-column align-items-center justify-content-center";
+            btn.style.width = "100px";
+            btn.style.height = "100px";
+            btn.style.borderRadius = "8px";
+
+            // Add company logo
+            const img = document.createElement("img");
+            img.src = companyIcons[key] || companyIcons["default"];
+            img.alt = company.name;
+            img.style.maxWidth = "40px";
+            img.style.maxHeight = "40px";
+            img.className = "mb-2";
+
+            // Add company name label
+            const span = document.createElement("span");
+            span.textContent = company.name;
+            span.style.fontSize = "0.75rem";
+            span.style.textAlign = "center";
+
+            btn.appendChild(img);
+            btn.appendChild(span);
+
+            btn.dataset.name = company.name;
+
+            // Mark as selected if in lead
+            if (selectedCompanies.includes(company.name)) {
+                btn.classList.add("selected", "btn-primary");
+                btn.classList.remove("btn-outline-primary");
+            }
+
+            btn.addEventListener("click", () => {
+                btn.classList.toggle("selected");
+                btn.classList.toggle("btn-primary");
+                btn.classList.toggle("btn-outline-primary");
+                updateHiddenInput();
+            });
+
+            companyContainer.appendChild(btn);
+        });
+
+        // Initialize hidden input
+        updateHiddenInput();
+    </script>
+
+    <script>
         // US states array
         const US_STATES = [
             { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
@@ -231,23 +305,6 @@
         });
         $(stateSelect).select2({
             placeholder: "Select licensed states",
-            width: '100%'
-        });
-
-        // Populate company names select
-        const companySelect = document.getElementById('companyNames');
-        const selectedCompanies = Array.isArray(lead.companyNames) ? lead.companyNames : [];
-        companies.forEach(company => {
-            const option = document.createElement('option');
-            option.value = company.name;
-            option.textContent = company.name;
-            if (selectedCompanies.includes(company.name)) {
-                option.selected = true;
-            }
-            companySelect.appendChild(option);
-        });
-        $(companySelect).select2({
-            placeholder: "Select carriers",
             width: '100%'
         });
     </script>

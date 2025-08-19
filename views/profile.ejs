@@ -908,6 +908,41 @@
                             input.className = 'form-control form-control-sm';
                             input.dataset.original = '';
                         }
+                        // Sex
+                        else if (fieldName === 'legalSex') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+
+                            ['Male', 'Female'].forEach(opt => {
+                                const option = document.createElement('option');
+                                option.value = opt.toLowerCase();
+                                option.textContent = opt;
+                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
+                                    option.selected = true;
+                                }
+                                input.appendChild(option);
+                            });
+
+                            input.dataset.original = currentValue?.toLowerCase() || '';
+                        }
+
+                        // Contact Type
+                        else if (fieldName === 'contactType') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+
+                            ['Individual', 'Business'].forEach(opt => {
+                                const option = document.createElement('option');
+                                option.value = opt.toLowerCase();
+                                option.textContent = opt;
+                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
+                                    option.selected = true;
+                                }
+                                input.appendChild(option);
+                            });
+
+                            input.dataset.original = currentValue?.toLowerCase() || '';
+                        }
 
                         else {
                             input = document.createElement('input');

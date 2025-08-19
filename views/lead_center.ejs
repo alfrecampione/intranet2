@@ -88,7 +88,7 @@
                                                     <th>#</th>
                                                     <th>Name</th>
                                                     <th>Email</th>
-                                                    <th>Number</th>
+                                                    <th>Phone</th>
                                                     <th>Company</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -395,7 +395,7 @@
                         outro: "If you have questions, you can reply to this email."
                     };
 
-                    const response = await fetch(`${url}/sendEmail/${selectedEmail}`, {
+                    const response = await fetch(`/sendEmail/${selectedEmail}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -415,6 +415,11 @@
                         });
                         const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById("add-new-record"));
                         if (offcanvas) offcanvas.hide();
+
+                        const deleteLead = await fetch(`/users/lead-center/${lead.id}`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                        });
                     } else {
                         showToast("Error", responseData.message || "Error sending email.");
                     }
