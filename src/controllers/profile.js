@@ -413,4 +413,19 @@ const getAgencies = async (req, res) => {
     }
 }
 
-export { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies };
+const releaseAgent = async (req, res) => {
+    const { id } = req.params;
+}
+
+export {
+    renderProfile,
+    renderNotes,
+    postNote,
+    editNote,
+    deleteNote,
+    saveSection,
+    addCarrierToUser,
+    deleteCarrierToUser,
+    getAgencies,
+    releaseAgent
+};

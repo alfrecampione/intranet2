@@ -53,6 +53,7 @@ router.post("/users/profile/save-section", checkNotAuthenticated, saveSection);
 router.post("/users/profile/add-carrier", checkNotAuthenticated, addCarrierToUser);
 router.delete("/users/profile/carrier/:carrierId", checkNotAuthenticated, deleteCarrierToUser);
 router.get("/users/profile/agencies/:franchise", checkNotAuthenticated, getAgencies);
+router.delete("/users/profile/release-agent/:id", checkNotAuthenticated, releaseAgent);
 
 router.post(
   "/users/dashboard/lastQuarter",
@@ -183,7 +184,6 @@ router.put("/users/config_carriers", checkNotAuthenticated, updateCompany);
 router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
 import { renderConfigCommisions, updateCommisions } from "./controllers/config.js";
-import { render } from "ejs";
 router.get("/users/config_commisions", checkNotAuthenticated, renderConfigCommisions);
 router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
 

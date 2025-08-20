@@ -204,8 +204,11 @@
                                                                     class="ti ti-plus fs-3 text-primary"
                                                                     title="Add Carrier"></a>
                                                                 <a href="javascript:void(0)" id="edit-toggle"
-                                                                    class="ti ti-edit fs-3 text-danger"
+                                                                    class="ti ti-edit fs-3 text-warning"
                                                                     title="Edit status"></a>
+                                                                <a href="javascript:void(0)" id="release"
+                                                                    class="ti ti-trash fs-3 text-danger"
+                                                                    title="Release agent"></a>
                                                             </div>
                                                             <% } %>
 
@@ -702,6 +705,19 @@
             }
         }
 
+        async function releaseAgent() {
+            try {
+                const response = await fetch(`/users/profile/release-agent/${profile.user_id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+            } catch (error) {
+                showToast("Error", "Failed to release agent: " + error.message);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const companies = JSON.parse(document.getElementById('companies-data').textContent);
             const US_STATES = [
@@ -767,6 +783,15 @@
                     option.textContent = carrierName;
                     modalCompanySelect.appendChild(option);
                 });
+            });
+
+            const releaseAgentBtn = document.getElementById("release");
+            releaseAgentBtn.addEventListener("click", async () => {
+                if (confirm("Are you sure you want to release this agent? This action cannot be undone.")) {
+                    await releaseAgent();
+                    showToast("Success", "Agent released successfully.");
+                    window.location.href = "/users/agents";
+                }
             });
 
             // Show modal on add carrier button click
@@ -984,14 +1009,24 @@
                         }
                         else {
                             const newValue = input.value;
-                            if (newValue !== originalValue) {
-                                updatedValues[fieldName] = newValue;
+
+                            if (fieldName === "franchise") {
+                                const boolValue = (newValue === "true");
+                                if (boolValue.toString() !== originalValue) {
+                                    updatedValues[fieldName] = boolValue;
+                                }
+                            } else {
+                                if (newValue !== originalValue) {
+                                    updatedValues[fieldName] = newValue;
+                                }
                             }
                         }
 
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
-                        span.textContent = input.type === 'file' ? (input.files[0]?.name || 'None') : (input.value || 'None');
+                        span.textContent = input.type === 'file'
+                            ? (input.files[0]?.name || 'None')
+                            : (input.value || 'None');
                         input.replaceWith(span);
                     }
 
