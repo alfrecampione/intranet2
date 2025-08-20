@@ -968,10 +968,19 @@
                 } else {
                     const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
                     const updatedValues = {};
+                    let hasEmpty = false;
 
                     for (const input of inputs) {
                         const fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
+
+                        // Check for empty (except file inputs)
+                        if (input.type !== 'file' && (!input.value || input.value.trim() === '')) {
+                            hasEmpty = true;
+                            input.classList.add('is-invalid');
+                        } else {
+                            input.classList.remove('is-invalid');
+                        }
 
                         if (input.type === 'file' && input.files.length > 0) {
                             const formData = new FormData();
@@ -1010,6 +1019,11 @@
                             ? (input.files[0]?.name || 'None')
                             : (input.value || 'None');
                         input.replaceWith(span);
+                    }
+
+                    if (hasEmpty) {
+                        alert('All fields must be filled out.');
+                        return;
                     }
 
                     if (Object.keys(updatedValues).length > 0) {
