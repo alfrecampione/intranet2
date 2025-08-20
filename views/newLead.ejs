@@ -111,7 +111,7 @@
                     <!-- Date of Birth -->
                     <div class="mb-3">
                         <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" required value="<%= (lead && lead.dateOfBirth) 
+                        <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= (lead && lead.dateOfBirth) 
                 ? (lead.dateOfBirth.toISOString 
                     ? lead.dateOfBirth.toISOString().substring(0,10) 
                     : lead.dateOfBirth.substring(0,10)) 
@@ -121,7 +121,7 @@
                     <!-- NPN -->
                     <div class="mb-3">
                         <label for="npn" class="form-label">NPN</label>
-                        <input type="text" class="form-control" id="npn" name="npn" required
+                        <input type="text" class="form-control" id="npn" name="npn"
                             value="<%= (lead && lead.npn) ? lead.npn : '' %>">
                     </div>
 
@@ -363,7 +363,6 @@
         // Initialize Select2 for companies
         $(document).ready(function () {
             $('#companyNames').select2({
-                placeholder: "Select carriers",
                 width: '100%'
             });
         });

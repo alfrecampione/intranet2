@@ -857,7 +857,7 @@
 
                             ['Yes', 'No'].forEach(opt => {
                                 const option = document.createElement('option');
-                                option.value = (opt === 'Yes') ? 'true' : 'false';
+                                option.value = (opt === 'Yes') ? true : false;
                                 option.textContent = opt;
                                 if ((opt === 'Yes' && isFranchise) || (opt === 'No' && !isFranchise)) {
                                     option.selected = true;
