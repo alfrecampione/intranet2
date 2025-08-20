@@ -1,0 +1,16 @@
+<div class="nav-align-top mb-3">
+    <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
+        <li class="nav-item">
+            <a class="nav-link <%= open === 'account' ? 'active' : '' %>"
+                href="<%= open === 'account' ? 'javascript:void(0)' : '/users/profile/' + profile.user_id %>">
+                <i class="ti ti-user-check ti-sm me-1_5"></i>Account
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= open === 'notes' ? 'active' : '' %>"
+                href="<%= open === 'notes' ? 'javascript:void(0)' : '/users/profile/' + profile.user_id + '/notes/' %>">
+                <i class="ti ti-user-check ti-sm me-1_5"></i>Notes
+            </a>
+        </li>
+    </ul>
+</div>

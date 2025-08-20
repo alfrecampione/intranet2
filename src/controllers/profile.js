@@ -52,6 +52,11 @@ const renderProfile = async (req, res) => {
         .filter(Boolean)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
+    const pinnedNotes = await prisma.note.findMany({
+        where: { userId, isPinned: true },
+        orderBy: { createdAt: 'desc' }
+    });
+
     res.render("profile", {
         userId,
         user,
@@ -64,6 +69,7 @@ const renderProfile = async (req, res) => {
         carriers,
         allCompanies,
         activity,
+        pinnedNotes,
         activePage: 'profile'
     });
 };
@@ -254,7 +260,7 @@ const renderNotes = async (req, res) => {
 }
 
 const postNote = async (req, res) => {
-    const { text } = req.body;
+    const { text, isPinned } = req.body;
     const userId = req.params.id ?? req.user.user_id;
 
     if (!text) {
@@ -273,6 +279,7 @@ const postNote = async (req, res) => {
                 data: {
                     userId,
                     text,
+                    isPinned: isPinned || false,
                     createdBy: creator
                 }
             });
@@ -286,7 +293,7 @@ const postNote = async (req, res) => {
 
 const editNote = async (req, res) => {
     const { noteId } = req.params;
-    const { text } = req.body;
+    const { text, isPinned } = req.body;
 
     if (!text) {
         return res.status(400).json({ error: "Note text is required." });
@@ -296,7 +303,7 @@ const editNote = async (req, res) => {
         await prismaContext.run({ userId: req.user.user_id }, async () => {
             const note = await prisma.note.update({
                 where: { id: noteId },
-                data: { text }
+                data: { text, isPinned: isPinned ?? false }
             });
             res.status(200).json(note);
         });

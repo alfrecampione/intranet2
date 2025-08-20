@@ -78,192 +78,100 @@
                             <div class="container-xxl flex-grow-1 container-p-y">
                                 <div class="row">
                                     <!-- Agent Sidebar -->
-                                    <div class="col-xl-4 col-lg-5 order-1 order-md-0">
-                                        <!-- Agent Card -->
-                                        <div class="card mb-6">
-                                            <div class="card-body pt-12">
-                                                <div class="user-avatar-section">
-                                                    <div class="d-flex align-items-center flex-column">
-                                                        <% if (personalInfo && personalInfo.photoPath) { %>
-                                                            <img class="img-fluid rounded mb-4"
-                                                                src="/<%= personalInfo.photoPath %>" height="120"
-                                                                width="120" alt="Agent avatar" />
-                                                            <% } else { %>
-                                                                <span
-                                                                    class="avatar-initial rounded-circle bg-label-primary"
-                                                                    style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
-                                                                    <%= profile.display_name ? profile.display_name[0] :
-                                                                        (profile.email ? profile.email[0] : "" ) %>
-                                                                </span>
-                                                                <% } %>
-                                                                    <div class="user-info text-center">
-                                                                        <h5>
-                                                                            <%= profile.display_name ?
-                                                                                profile.display_name : (profile.email ?
-                                                                                profile.email : "" ) %>
-                                                                        </h5>
+                                    <%- include('partials/agent_sidebar', { profile: profile, personalInfo:
+                                        personalInfo, contactInfo: contactInfo, user: user, extra_data : true }) %>
+                                        <!--/ Agent Sidebar -->
+
+                                        <!-- Agent Content -->
+                                        <div class="col-xl-8 col-lg-7 order-0 order-md-1">
+                                            <!-- Agent Pills -->
+                                            <%- include('partials/agent_pills', {user: user, profile: profile,
+                                                open: 'account' }) %>
+                                                <!--/ Agent Pills -->
+                                                <!-- Project table -->
+                                                <!-- Carrier Status -->
+                                                <div class="card mb-3">
+                                                    <div class="card-datatable table-responsive pt-0">
+                                                        <div id="DataTables_Table_0_wrapper"
+                                                            class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                            <div
+                                                                class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                                                                <div class="head-label">
+                                                                    <h5 class="card-title mb-0">Agent's Carrier Status
+                                                                    </h5>
+                                                                </div>
+
+                                                                <% if (!user?.isAgent) { %>
+                                                                    <div id="edit-controls" class="d-flex gap-2">
+                                                                        <a href="javascript:void(0)" id="add-carrier"
+                                                                            class="ti ti-plus fs-3 text-primary"
+                                                                            title="Add Carrier"></a>
+                                                                        <a href="javascript:void(0)" id="edit-toggle"
+                                                                            class="ti ti-edit fs-3 text-warning"
+                                                                            title="Edit status"></a>
+                                                                        <a href="javascript:void(0)" id="release"
+                                                                            class="ti ti-trash fs-3 text-danger"
+                                                                            title="Release agent"></a>
                                                                     </div>
-                                                    </div>
-                                                </div>
-                                                <h5 class="pb-4 border-bottom mb-4">Details</h5>
-                                                <div class="info-container">
-                                                    <ul class="list-unstyled mb-6">
-                                                        <li class="mb-2">
-                                                            <span class="h6">Email:</span>
-                                                            <span>
-                                                                <%= profile?.email || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Name:</span>
-                                                            <span>
-                                                                <%= profile?.display_name || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Contact Type:</span>
-                                                            <span>
-                                                                <%= personalInfo?.contactType || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Phone:</span>
-                                                            <span>
-                                                                <%= contactInfo?.personalPhone || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">NPN:</span>
-                                                            <span>
-                                                                <%= personalInfo?.npn || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Birthday:</span>
-                                                            <span>
-                                                                <%= personalInfo?.dateOfBirth ? new
-                                                                    Date(personalInfo.dateOfBirth).toLocaleDateString()
-                                                                    : "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Sex:</span>
-                                                            <span>
-                                                                <%= personalInfo?.legalSex || "None" %>
-                                                            </span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- /Agent Card -->
-                                        <!-- Extra Agent Details -->
-                                        <div class="card mb-6">
-                                            <div class="card-body">
-                                                <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
-                                                <ul id="user-info-list" class="list-unstyled mb-4"></ul>
-                                            </div>
-                                        </div>
-                                        <!-- /Extra Agent Details -->
-                                    </div>
-                                    <!--/ Agent Sidebar -->
+                                                                    <% } %>
 
-                                    <!-- Agent Content -->
-                                    <div class="col-xl-8 col-lg-7 order-0 order-md-1">
-                                        <!-- Agent Pills -->
-                                        <div class="nav-align-top mb-3">
-                                            <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
-                                                <li class="nav-item">
-                                                    <a class="nav-link active" href="javascript:void(0);"><i
-                                                            class="ti ti-user-check ti-sm me-1_5"></i>Account</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link"
-                                                        href="/users/profile/<%= profile.user_id %>/notes/"><i
-                                                            class="ti ti-user-check ti-sm me-1_5"></i>Notes</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <!--/ Agent Pills -->
-
-                                        <!-- Project table -->
-                                        <!-- Carrier Status -->
-                                        <div class="card mb-3">
-                                            <div class="card-datatable table-responsive pt-0">
-                                                <div id="DataTables_Table_0_wrapper"
-                                                    class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                                    <div
-                                                        class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                                                        <div class="head-label">
-                                                            <h5 class="card-title mb-0">Agent's Carrier Status</h5>
-                                                        </div>
-
-                                                        <% if (!user?.isAgent) { %>
-                                                            <div id="edit-controls" class="d-flex gap-2">
-                                                                <a href="javascript:void(0)" id="add-carrier"
-                                                                    class="ti ti-plus fs-3 text-primary"
-                                                                    title="Add Carrier"></a>
-                                                                <a href="javascript:void(0)" id="edit-toggle"
-                                                                    class="ti ti-edit fs-3 text-warning"
-                                                                    title="Edit status"></a>
-                                                                <a href="javascript:void(0)" id="release"
-                                                                    class="ti ti-trash fs-3 text-danger"
-                                                                    title="Release agent"></a>
                                                             </div>
-                                                            <% } %>
-
+                                                            <table
+                                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
+                                                                id="DataTables_Table_0"
+                                                                aria-describedby="DataTables_Table_0_info"
+                                                                style="width: 1396px">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="sorting_disabled"
+                                                                            aria-controls="DataTables_Table_0"
+                                                                            rowspan="1" colspan="1" style="width: 30px"
+                                                                            aria-label="#">#
+                                                                        </th>
+                                                                        <th class="sorting_disabled" tabindex="0"
+                                                                            aria-controls="DataTables_Table_0"
+                                                                            rowspan="1" colspan="1"
+                                                                            style="width: 144px">
+                                                                            State
+                                                                        </th>
+                                                                        <th class="sorting_disabled" tabindex="0"
+                                                                            aria-controls="DataTables_Table_0"
+                                                                            rowspan="1" colspan="1"
+                                                                            style="width: 144px">
+                                                                            Carrier Name
+                                                                        </th>
+                                                                        <th class="sorting_disabled" tabindex="2"
+                                                                            aria-controls="DataTables_Table_0"
+                                                                            rowspan="1" colspan="1"
+                                                                            style="width: 130px">
+                                                                            Status Progress
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr class="odd">
+                                                                        <td valign="top" colspan="4"
+                                                                            class="dataTables_empty">
+                                                                            Loading...
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
-                                                    <table
-                                                        class="datatables-basic table dataTable no-footer dtr-column table-bordered"
-                                                        id="DataTables_Table_0"
-                                                        aria-describedby="DataTables_Table_0_info"
-                                                        style="width: 1396px">
-                                                        <thead>
-                                                            <tr>
-                                                                <th class="sorting_disabled"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 30px" aria-label="#">#
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="0"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 144px">
-                                                                    State
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="0"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 144px">
-                                                                    Carrier Name
-                                                                </th>
-                                                                <th class="sorting_disabled" tabindex="2"
-                                                                    aria-controls="DataTables_Table_0" rowspan="1"
-                                                                    colspan="1" style="width: 130px">
-                                                                    Status Progress
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr class="odd">
-                                                                <td valign="top" colspan="4" class="dataTables_empty">
-                                                                    Loading...
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <!--/ Carrier Status -->
+                                                <!--/ Carrier Status -->
 
-                                        <!-- Activity Timeline -->
-                                        <div class="card mb-3">
-                                            <h5 class="card-header">Agent Activity Timeline</h5>
-                                            <div class="card-body pt-1">
-                                                <ul class="timeline mb-0" id="user-activity-timeline"></ul>
-                                            </div>
+                                                <!-- Activity Timeline -->
+                                                <div class="card mb-3">
+                                                    <h5 class="card-header">Agent Activity Timeline</h5>
+                                                    <div class="card-body pt-1">
+                                                        <ul class="timeline mb-0" id="user-activity-timeline"></ul>
+                                                    </div>
+                                                </div>
+                                                <!--/ Activity Timeline -->
                                         </div>
-                                        <!--/ Activity Timeline -->
-                                    </div>
-                                    <!--/ Agent Content -->
+                                        <!--/ Agent Content -->
                                 </div>
                             </div>
                             <!-- / Content -->
@@ -329,6 +237,9 @@
         </div>
     </div>
 
+    <div id="pinned-notes-toasts"
+        style="position: fixed; top: 1rem; right: 1rem; z-index: 1080; display: flex; flex-direction: column; gap: 1rem;">
+    </div>
     <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
         aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
         <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
@@ -337,6 +248,37 @@
         </div>
         <div class="toast-body text-primary"> You should receive an email, please check it. </div>
     </div>
+    <script id="notes-data" type="application/json">
+            <%- JSON.stringify(pinnedNotes || []) %>
+        </script>
+    <script>
+        // Show persistent toasts for pinned notes
+        document.addEventListener("DOMContentLoaded", () => {
+            const pinnedNotes = JSON.parse(document.getElementById('notes-data').textContent || '[]');
+            const container = document.getElementById('pinned-notes-toasts');
+            pinnedNotes.forEach(note => {
+                const toast = document.createElement('div');
+                toast.className = 'toast show border-warning shadow-sm';
+                toast.style.minWidth = '320px';
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                toast.innerHTML = `
+                    <div class="toast-header bg-warning bg-opacity-25">
+                        <i class="ti ti-pin me-2 text-warning"></i>
+                        <strong class="me-auto text-dark">Pinned Note</strong>
+                        <small class="text-muted">${note.createdBy ?? ''}</small>
+                        <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body text-dark">${note.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                `;
+                toast.querySelector('.btn-close').addEventListener('click', () => {
+                    toast.remove();
+                });
+                container.appendChild(toast);
+            });
+        });
+    </script>
 
     <script src="/vendor/libs/jquery/jquery.js"></script>
     <script src="/vendor/libs/popper/popper.js"></script>

@@ -78,188 +78,115 @@
                             <div class="container-xxl flex-grow-1 container-p-y">
                                 <div class="row">
                                     <!-- Agent Sidebar -->
-                                    <div class="col-xl-4 col-lg-5 order-1 order-md-0">
-                                        <!-- Agent Card -->
-                                        <div class="card mb-6">
-                                            <div class="card-body pt-12">
-                                                <div class="user-avatar-section">
-                                                    <div class="d-flex align-items-center flex-column">
-                                                        <% if (personalInfo && personalInfo.photoPath) { %>
-                                                            <img class="img-fluid rounded mb-4"
-                                                                src="/<%= personalInfo.photoPath %>" height="120"
-                                                                width="120" alt="Agent avatar" />
-                                                            <% } else { %>
-                                                                <span
-                                                                    class="avatar-initial rounded-circle bg-label-primary"
-                                                                    style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
-                                                                    <%= profile.display_name ? profile.display_name[0] :
-                                                                        (profile.email ? profile.email[0] : "" ) %>
-                                                                </span>
-                                                                <% } %>
-                                                                    <div class="user-info text-center">
-                                                                        <h5>
-                                                                            <%= profile.display_name ?
-                                                                                profile.display_name : (profile.email ?
-                                                                                profile.email : "" ) %>
-                                                                        </h5>
-                                                                    </div>
+                                    <%- include('partials/agent_sidebar', { profile: profile, personalInfo:
+                                        personalInfo, contactInfo: contactInfo, user: user, extra_data : false }) %>
+                                        <!--/ Agent Sidebar -->
+                                        <!-- Agent Content -->
+                                        <div class="col-xl-8 col-lg-7 order-0 order-md-1">
+                                            <!-- Agent Pills -->
+                                            <%- include('partials/agent_pills', {user: user, profile: profile,
+                                                open: 'notes' }) %>
+                                                <!--/ Agent Pills -->
+                                                <!-- Notes Section -->
+                                                <div class="card mb-3">
+                                                    <div
+                                                        class="card-header d-flex justify-content-between align-items-center">
+                                                        <h5 class="mb-0">Agent Notes</h5>
+                                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                                            data-bs-target="#addNoteModal">
+                                                            <i class="ti ti-plus"></i> Add Note
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="card-body">
+                                                        <div id="notesContainer" class="row g-3">
+                                                            <!-- Notes will be rendered here -->
+                                                        </div>
+                                                        <p id="noNotesMsg" class="text-muted d-none mb-0">No notes
+                                                            available.
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <h5 class="pb-4 border-bottom mb-4">Details</h5>
-                                                <div class="info-container">
-                                                    <ul class="list-unstyled mb-6">
-                                                        <li class="mb-2">
-                                                            <span class="h6">Email:</span>
-                                                            <span>
-                                                                <%= profile?.email || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Name:</span>
-                                                            <span>
-                                                                <%= profile?.display_name || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Contact Type:</span>
-                                                            <span>
-                                                                <%= personalInfo?.contactType || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Phone:</span>
-                                                            <span>
-                                                                <%= contactInfo?.personalPhone || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Age:</span>
-                                                            <span>
-                                                                <% if (personalInfo?.dateOfBirth) { %>
-                                                                    <%= new Date().getFullYear() - new
-                                                                        Date(personalInfo.dateOfBirth).getFullYear() %>
-                                                                        <% } else { %>
-                                                                            None
-                                                                            <% } %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Sex:</span>
-                                                            <span>
-                                                                <%= personalInfo?.legalSex || "None" %>
-                                                            </span>
-                                                        </li>
-                                                        <li class="mb-2">
-                                                            <span class="h6">Country/State/City:</span>
-                                                            <span>
-                                                                <%= contactInfo?.country || "None" %>/<%=
-                                                                        contactInfo?.state || "None" %>/<%=
-                                                                            contactInfo?.city || "None" %>
-                                                            </span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- /Agent Card -->
-                                    </div>
-                                    <!--/ Agent Sidebar -->
 
-                                    <!-- Agent Content -->
-                                    <div class="col-xl-8 col-lg-7 order-0 order-md-1">
-                                        <!-- Agent Pills -->
-                                        <div class="nav-align-top mb-3">
-                                            <ul class="nav nav-pills flex-column flex-md-row flex-wrap mb-6 row-gap-2">
-                                                <li class="nav-item">
-                                                    <a class="nav-link" href="/users/profile/<%= userId %>"><i
-                                                            class="ti ti-user-check ti-sm me-1_5"></i>Account</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link active" href="javascript:void(0);"><i
-                                                            class="ti ti-user-check ti-sm me-1_5"></i>Notes</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <!--/ Agent Pills -->
-                                        <!-- Notes Section -->
-                                        <div class="card mb-3">
-                                            <div class="card-header d-flex justify-content-between align-items-center">
-                                                <h5 class="mb-0">Agent Notes</h5>
-                                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                                    data-bs-target="#addNoteModal">
-                                                    <i class="ti ti-plus"></i> Add Note
-                                                </button>
-                                            </div>
+                                                <!-- Add Note Modal -->
+                                                <div class="modal fade" id="addNoteModal" tabindex="-1"
+                                                    aria-labelledby="addNoteModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
 
-                                            <div class="card-body">
-                                                <div id="notesContainer" class="row g-3">
-                                                    <!-- Notes will be rendered here -->
-                                                </div>
-                                                <p id="noNotesMsg" class="text-muted d-none mb-0">No notes
-                                                    available.
-                                                </p>
-                                            </div>
-                                        </div>
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="addNoteModalLabel">Add Note
+                                                                </h5>
+                                                                <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
 
-                                        <!-- Add Note Modal -->
-                                        <div class="modal fade" id="addNoteModal" tabindex="-1"
-                                            aria-labelledby="addNoteModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="addNoteModalLabel">Add Note</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Note</label>
-                                                            <textarea class="form-control" id="newNoteText" rows="4"
-                                                                required></textarea>
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Note</label>
+                                                                    <textarea class="form-control" id="newNoteText"
+                                                                        rows="4" required></textarea>
+                                                                </div>
+
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                        id="pinNoteCheck">
+                                                                    <label class="form-check-label" for="pinNoteCheck">
+                                                                        Pin this note
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="button" class="btn btn-primary"
+                                                                    id="saveNoteBtn">Save Note</button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="button" class="btn btn-primary"
-                                                            id="saveNoteBtn">Save
-                                                            Note</button>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
 
-                                        <!-- Edit Note Modal -->
-                                        <div class="modal fade" id="editNoteModal" tabindex="-1"
-                                            aria-labelledby="editNoteModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="editNoteModalLabel">Edit Note
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Note</label>
-                                                            <textarea class="form-control" id="editNoteText" rows="4"
-                                                                required></textarea>
+                                                <!-- Edit Note Modal -->
+                                                <div class="modal fade" id="editNoteModal" tabindex="-1"
+                                                    aria-labelledby="editNoteModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="editNoteModalLabel">Edit
+                                                                    Note
+                                                                </h5>
+                                                                <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Note</label>
+                                                                    <textarea class="form-control" id="editNoteText"
+                                                                        rows="4" required></textarea>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                        id="editPinNoteCheck">
+                                                                    <label class="form-check-label"
+                                                                        for="editPinNoteCheck">
+                                                                        Pin this note
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="button" class="btn btn-primary"
+                                                                    id="updateNoteBtn">Save
+                                                                    Changes</button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="button" class="btn btn-primary"
-                                                            id="updateNoteBtn">Save
-                                                            Changes</button>
-                                                    </div>
                                                 </div>
-                                            </div>
+                                                <!--/ Notes Section -->
                                         </div>
-                                        <!--/ Notes Section -->
-                                    </div>
-                                    <!--/ Agent Content -->
+                                        <!--/ Agent Content -->
                                 </div>
                             </div>
                             <!-- / Content -->
@@ -359,23 +286,32 @@
                 }
                 noNotesMsg.classList.add('d-none');
 
-                notes.forEach(note => {
+                // Sort: pinned notes first, then by createdAt desc
+                const sortedNotes = [...notes].sort((a, b) => {
+                    if (b.isPinned === a.isPinned) {
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    }
+                    return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
+                });
+
+                sortedNotes.forEach(note => {
                     const col = document.createElement('div');
                     col.className = "col-12";
                     col.innerHTML = `
-          <div class="card shadow-sm">
-            <div class="card-body d-flex justify-content-between">
-              <div>
-                <p class="mb-1 fs-7 text-muted">${note.createdBy ?? ""}</p>
-                <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
-                <small class="text-muted">${formatDate(note.createdAt)}</small>
-              </div>
-              <div class="ms-3 d-flex flex-column align-items-end">
-                <a href="javascript:void(0);" class="ti ti-edit mb-2" title="Edit Note" data-id="${note.id}" data-action="edit"></a>
-                <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Note" data-id="${note.id}" data-action="delete"></a>
-              </div>
-            </div>
-          </div>`;
+                    <div class="card shadow-sm${note.isPinned ? ' border-warning' : ''}">
+                        <div class="card-body d-flex justify-content-between">
+                            <div>
+                                <p class="mb-1 fs-7 text-muted">${note.createdBy ?? ""}</p>
+                                <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
+                                <small class="text-muted">${formatDate(note.createdAt)}</small>
+                                ${note.isPinned ? '<span class="badge bg-warning text-dark ms-2"><i class="ti ti-pin"></i> Pinned</span>' : ''}
+                            </div>
+                            <div class="ms-3 d-flex flex-column align-items-end">
+                                <a href="javascript:void(0);" class="ti ti-edit mb-2" title="Edit Note" data-id="${note.id}" data-action="edit"></a>
+                                <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Note" data-id="${note.id}" data-action="delete"></a>
+                            </div>
+                        </div>
+                    </div>`;
                     notesContainer.appendChild(col);
                 });
             }
@@ -383,18 +319,20 @@
             // Add Note
             saveNoteBtn.addEventListener('click', async () => {
                 const text = newNoteText.value.trim();
+                const isPinned = document.getElementById('pinNoteCheck').checked;
                 if (!text) return;
 
                 const res = await fetch(`/users/profile/${userId}/notes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
+                    body: JSON.stringify({ text, isPinned })
                 });
                 if (res.ok) {
                     const newNote = await res.json();
                     notes.unshift(newNote);
                     render();
                     newNoteText.value = '';
+                    document.getElementById('pinNoteCheck').checked = false;
                     bootstrap.Modal.getInstance(document.getElementById('addNoteModal')).hide();
                 }
             });
@@ -410,6 +348,7 @@
                 if (action === 'edit' && note) {
                     currentEditId = noteId;
                     editNoteText.value = note.text;
+                    document.getElementById('editPinNoteCheck').checked = !!note.isPinned;
                     new bootstrap.Modal(document.getElementById('editNoteModal')).show();
                 }
 
@@ -421,12 +360,13 @@
             // Update Note
             updateNoteBtn.addEventListener('click', async () => {
                 const text = editNoteText.value.trim();
+                const isPinned = document.getElementById('editPinNoteCheck').checked;
                 if (!text || !currentEditId) return;
 
                 const res = await fetch(`/users/profile/${userId}/notes/${currentEditId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
+                    body: JSON.stringify({ text, isPinned })
                 });
                 if (res.ok) {
                     const updatedNote = await res.json();

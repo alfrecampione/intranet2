@@ -1,0 +1,86 @@
+<div class="col-xl-4 col-lg-5 order-1 order-md-0">
+    <!-- Agent Card -->
+    <div class="card mb-6">
+        <div class="card-body pt-12">
+            <div class="user-avatar-section">
+                <div class="d-flex align-items-center flex-column">
+                    <% if (personalInfo && personalInfo.photoPath) { %>
+                        <img class="img-fluid rounded mb-4" src="/<%= personalInfo.photoPath %>" height="120"
+                            width="120" alt="Agent avatar" />
+                        <% } else { %>
+                            <span class="avatar-initial rounded-circle bg-label-primary"
+                                style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
+                                <%= profile.display_name ? profile.display_name[0] : (profile.email ? profile.email[0]
+                                    : "" ) %>
+                            </span>
+                            <% } %>
+                                <div class="user-info text-center">
+                                    <h5>
+                                        <%= profile.display_name ? profile.display_name : (profile.email ? profile.email
+                                            : "" ) %>
+                                    </h5>
+                                </div>
+                </div>
+            </div>
+            <h5 class="pb-4 border-bottom mb-4">Details</h5>
+            <div class="info-container">
+                <ul class="list-unstyled mb-6">
+                    <li class="mb-2">
+                        <span class="h6">Email:</span>
+                        <span>
+                            <%= profile?.email || "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">Name:</span>
+                        <span>
+                            <%= profile?.display_name || "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">Contact Type:</span>
+                        <span>
+                            <%= personalInfo?.contactType || "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">Phone:</span>
+                        <span>
+                            <%= contactInfo?.personalPhone || "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">NPN:</span>
+                        <span>
+                            <%= personalInfo?.npn || "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">Birthday:</span>
+                        <span>
+                            <%= personalInfo?.dateOfBirth ? new Date(personalInfo.dateOfBirth).toLocaleDateString()
+                                : "None" %>
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <span class="h6">Sex:</span>
+                        <span>
+                            <%= personalInfo?.legalSex || "None" %>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Agent Card -->
+    <!-- Extra Agent Details -->
+    <% if(extra_data) { %>
+        <div class="card mb-6">
+            <div class="card-body">
+                <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
+                <ul id="user-info-list" class="list-unstyled mb-4"></ul>
+            </div>
+        </div>
+        <% } %>
+            <!-- /Extra Agent Details -->
+</div>
