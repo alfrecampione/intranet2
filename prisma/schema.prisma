@@ -27,6 +27,7 @@ model User {
   registrationCompleted Boolean?            @default(false)
   display_name          String?
   isAgent               Boolean?            @default(true)
+  isReleased            Boolean?            @default(false)
   Agency                Agency?
   contactInfo           ContactInfo?
   documents             Documents?

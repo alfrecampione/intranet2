@@ -23,7 +23,7 @@ const passwordMail = async (req, res) => {
     );
     // Search in Prisma
     prismaUser = await prisma.user.findUnique({
-      where: { email: email },
+      where: { email: email, isReleased: false },
     });
     // Insert encrypted data
     result1 = await pool.query(

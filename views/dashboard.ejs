@@ -369,9 +369,27 @@
         ? 'All States by carriers'
         : `${stateAbbreviationMap[state] || state} by carriers`;
 
+      // Filter data by state
+      const filtered = state === 'all'
+        ? userCompanyStateData
+        : userCompanyStateData.filter(d => d.state === state);
 
-      const rawData = getDataByState(state);
-      const currentSum = rawData.reduce((a, b) => a + b, 0);
+      // --- DISTINCT COUNT PER COMPANY ---
+      const counts = {};
+      companies.forEach(c => counts[c.name] = new Set());
+
+      filtered.forEach(({ company, userId }) => {
+        if (company && counts[company]) {
+          counts[company].add(userId);
+        }
+      });
+
+      const rawData = companies.map(c => counts[c.name].size);
+
+      // --- DISTINCT TOTAL USERS ---
+      const uniqueUsers = new Set(filtered.map(d => d.userId));
+      const currentSum = uniqueUsers.size;
+
       const totalUsersDiv = document.getElementById('totalUsers');
 
       if (currentSum === 0) {
@@ -384,9 +402,8 @@
         return;
       }
 
-      let noneValue = 0;
-      const fullData = [...rawData, noneValue];
-
+      // Prepare chart data
+      const fullData = [...rawData, 0]; // last one for "None"
       const colors = generateColors(fullData.length);
 
       const zipped = fullData.map((value, i) => ({
@@ -395,19 +412,81 @@
         color: colors[i]
       }));
 
-      const filtered = zipped.filter(d => d.value > 0);
-      filtered.sort((a, b) => b.value - a.value);
+      const filteredZipped = zipped.filter(d => d.value > 0);
+      filteredZipped.sort((a, b) => b.value - a.value);
 
-      polarChart.data.labels = filtered.map(d => d.label);
-      polarChart.data.datasets[0].data = filtered.map(d => d.value);
-      polarChart.data.datasets[0].backgroundColor = filtered.map(d => d.color);
-
+      // Update chart
+      polarChart.data.labels = filteredZipped.map(d => d.label);
+      polarChart.data.datasets[0].data = filteredZipped.map(d => d.value);
+      polarChart.data.datasets[0].backgroundColor = filteredZipped.map(d => d.color);
       polarChart.options.rotation = -Math.PI / 2;
       polarChart.update();
 
+      // Update total users
       totalUsersDiv.className = 'mt-4 fw-bold text-secondary';
-      totalUsersDiv.innerText =
-        `${filtered.reduce((sum, d) => sum + d.value, 0)} agents`;
+      totalUsersDiv.innerText = `${currentSum} agents`;
+    } function updateChart(state) {
+      const chartTitle = document.getElementById('chartTitle');
+      chartTitle.innerText = (state === 'all')
+        ? 'All States by carriers'
+        : `${stateAbbreviationMap[state] || state} by carriers`;
+
+      // Filter data by state
+      const filtered = state === 'all'
+        ? userCompanyStateData
+        : userCompanyStateData.filter(d => d.state === state);
+
+      // --- DISTINCT COUNT PER COMPANY ---
+      const counts = {};
+      companies.forEach(c => counts[c.name] = new Set());
+
+      filtered.forEach(({ company, userId }) => {
+        if (company && counts[company]) {
+          counts[company].add(userId);
+        }
+      });
+
+      const rawData = companies.map(c => counts[c.name].size);
+
+      // --- DISTINCT TOTAL USERS ---
+      const uniqueUsers = new Set(filtered.map(d => d.userId));
+      const currentSum = uniqueUsers.size;
+
+      const totalUsersDiv = document.getElementById('totalUsers');
+
+      if (currentSum === 0) {
+        polarChart.data.labels = ['No Agents'];
+        polarChart.data.datasets[0].data = [1];
+        polarChart.data.datasets[0].backgroundColor = ['#CCCCCC'];
+        polarChart.update();
+        totalUsersDiv.className = 'mt-4 fw-bold text-danger';
+        totalUsersDiv.innerText = `No agents in ${state === 'all' ? 'all states' : state}`;
+        return;
+      }
+
+      // Prepare chart data
+      const fullData = [...rawData, 0]; // last one for "None"
+      const colors = generateColors(fullData.length);
+
+      const zipped = fullData.map((value, i) => ({
+        label: originalLabels[i],
+        value,
+        color: colors[i]
+      }));
+
+      const filteredZipped = zipped.filter(d => d.value > 0);
+      filteredZipped.sort((a, b) => b.value - a.value);
+
+      // Update chart
+      polarChart.data.labels = filteredZipped.map(d => d.label);
+      polarChart.data.datasets[0].data = filteredZipped.map(d => d.value);
+      polarChart.data.datasets[0].backgroundColor = filteredZipped.map(d => d.color);
+      polarChart.options.rotation = -Math.PI / 2;
+      polarChart.update();
+
+      // Update total users
+      totalUsersDiv.className = 'mt-4 fw-bold text-secondary';
+      totalUsersDiv.innerText = `${currentSum} agents`;
     }
 
     updateChart(selectedState);

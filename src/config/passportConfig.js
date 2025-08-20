@@ -5,9 +5,10 @@ import bcrypt from "bcrypt";
 const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
-      // Primero busca en Prisma
+      // Prisma
       const prismaUser = await prisma.user.findUnique({
-        where: { email }, include: {
+        where: { email, isReleased: false },
+        include: {
           personalInfo: {
             select: { photoPath: true, agency: true }
           }
@@ -23,7 +24,7 @@ const initialize = (passport) => {
         }
       }
 
-      // Si no está en Prisma, busca en PostgreSQL pool
+      // PostgreSQL pool
       const result = await pool.query(
         `SELECT * FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
         [email],
@@ -59,14 +60,14 @@ const initialize = (passport) => {
 
   passport.serializeUser((user, done) => done(null, user.user_id));
   passport.deserializeUser((user_id, done) => {
-    // Primero busca en Prisma
+    // Prisma
     prisma.user
       .findUnique({ where: { user_id } })
       .then((prismaUser) => {
         if (prismaUser) {
           return done(null, prismaUser);
         } else {
-          // Si no está en Prisma, busca en PostgreSQL pool
+          // PostgreSQL pool
           pool.query(
             `SELECT * FROM entra.users WHERE user_id = $1`,
             [user_id],

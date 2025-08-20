@@ -415,6 +415,35 @@ const getAgencies = async (req, res) => {
 
 const releaseAgent = async (req, res) => {
     const { id } = req.params;
+
+    console.log("Releasing agent with ID:", id);
+
+    try {
+        await prismaContext.run({ userId: req.user.user_id }, async () => {
+            const agent = await prisma.user.findUnique({
+                where: { user_id: id }
+            });
+
+            if (!agent) {
+                return res.status(404).json({ success: false, message: "Agent not found." });
+            }
+
+            await prisma.user.update({
+                where: { user_id: id },
+                data: { isReleased: true }
+            });
+
+            await prisma.statesANDCarriers.deleteMany({
+                where: { userId: id }
+            });
+
+            res.status(200).json({ success: true, message: "Agent released successfully." });
+        });
+
+    } catch (error) {
+        console.error("Error releasing agent:", error);
+        res.status(500).json({ success: false, message: "Failed to release agent." });
+    }
 }
 
 export {

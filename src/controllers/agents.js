@@ -2,11 +2,13 @@ import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import bcrypt from "bcrypt";
 
-// Renders all agents (view-only, no context needed)
 const renderAgents = async (req, res) => {
   const user = req.user;
 
   const users = await prisma.user.findMany({
+    where: {
+      isReleased: false,
+    },
     orderBy: [
       { display_name: 'asc' },
       { email: 'asc' }
@@ -27,7 +29,6 @@ const renderAgents = async (req, res) => {
   res.render("agents", { user, registeredUsers, activePage: 'agents' });
 };
 
-// Deletes a user (write operation – needs context)
 const deleteAgent = async (req, res) => {
   const { id } = req.params;
 
@@ -146,7 +147,7 @@ const massiveCreateAgents = async (req, res) => {
         commisions
       } = agent;
 
-      const existingUser = await prisma.user.findUnique({ where: { email } });
+      const existingUser = await prisma.user.findUnique({ where: { email, isReleased: false } });
       if (existingUser) {
         results.push({ email, status: "skipped", reason: "Agent already exists" });
         continue;

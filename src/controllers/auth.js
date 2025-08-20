@@ -40,7 +40,7 @@ const createAccount = async (req, res) => {
 
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
-      const result = await prisma.user.findUnique({ where: { email } });
+      const result = await prisma.user.findUnique({ where: { email, isReleased: false } });
 
       if (result) {
         return res
@@ -203,7 +203,7 @@ const resetPassword = async (req, res) => {
 
         await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
           try {
-            const prismaUser = await prisma.user.findUnique({ where: { email } });
+            const prismaUser = await prisma.user.findUnique({ where: { email, isReleased: false } });
             if (prismaUser) {
               await prisma.user.update({
                 where: { email },
