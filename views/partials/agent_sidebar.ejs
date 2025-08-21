@@ -58,8 +58,7 @@
                     <li class="mb-2">
                         <span class="h6">Birthday:</span>
                         <span>
-                            <%= personalInfo?.dateOfBirth ? new Date(personalInfo.dateOfBirth).toLocaleDateString()
-                                : "None" %>
+                            <%= personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : "None" %>
                         </span>
                     </li>
                     <li class="mb-2">

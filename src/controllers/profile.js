@@ -337,6 +337,17 @@ const saveSection = async (req, res) => {
         return res.status(400).json({ success: false, message: "Section key and values are required." });
     }
 
+    // Convert dateOfBirth to ISO string if present and not already
+    if (sectionKey === 'personalInfo' && values.dateOfBirth) {
+        // Accepts yyyy-mm-dd or Date object or ISO string
+        let dob = values.dateOfBirth;
+        if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+            values.dateOfBirth = new Date(dob).toISOString();
+        } else if (dob instanceof Date) {
+            values.dateOfBirth = dob.toISOString();
+        }
+    }
+
     try {
         await prismaContext.run({ requesterId }, async () => {
             const updatedSection = await prisma[sectionKey].upsert({
@@ -422,8 +433,6 @@ const getAgencies = async (req, res) => {
 
 const releaseAgent = async (req, res) => {
     const { id } = req.params;
-
-    console.log("Releasing agent with ID:", id);
 
     try {
         await prismaContext.run({ userId: req.user.user_id }, async () => {

@@ -929,13 +929,8 @@
                                 });
                             } else if (fieldName === 'dateOfBirth') {
                                 input.type = 'date';
-                                // Convert to yyyy-mm-dd for input value
-                                if (input.value) {
-                                    const d = new Date(input.value);
-                                    if (!isNaN(d)) {
-                                        input.value = d.toISOString().slice(0, 10);
-                                    }
-                                }
+                                const dobRaw = personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : '';
+                                input.value = dobRaw;
                             } else if (fieldName === 'personalEmail') {
                                 input.type = 'email';
                             } else if (fieldName === 'zipCode') {
@@ -1126,8 +1121,8 @@
             addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey);
             addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey);
         }
-        const dob = personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth) : null;
-        addListItem('DoB', dob ? dob.toLocaleDateString() : null, 'dateOfBirth', false, false, sectionKey);
+        const dobRaw = personalInfo.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : null;
+        addListItem('DoB', dobRaw, 'dateOfBirth', false, false, sectionKey);
         addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
         addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);

@@ -86,8 +86,6 @@ const leadToAgent = async (user, user_id) => {
       where: { email: user.email }
     });
 
-    console.log("Lead found for user:", lead);
-
     if (lead && lead.isAcepted) {
       await prismaContext.run({ userId: user_id ?? "anonymous" }, async () => {
         try {
