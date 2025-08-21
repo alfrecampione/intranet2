@@ -58,7 +58,8 @@
                     <li class="mb-2">
                         <span class="h6">Birthday:</span>
                         <span>
-                            <%= personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : "None" %>
+                            <%= personalInfo?.dateOfBirth ? new
+                                Date(personalInfo.dateOfBirth).toISOString().split("T")[0] : "None" %>
                         </span>
                     </li>
                     <li class="mb-2">
