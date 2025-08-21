@@ -29,6 +29,33 @@ const renderAgents = async (req, res) => {
   res.render("agents", { user, registeredUsers, activePage: 'agents' });
 };
 
+const renderReleasedAgents = async (req, res) => {
+  const user = req.user;
+
+  const users = await prisma.user.findMany({
+    where: {
+      isReleased: true,
+    },
+    orderBy: [
+      { display_name: 'asc' },
+      { email: 'asc' }
+    ],
+    include: {
+      personalInfo: {
+        select: { photoPath: true, agency: true }
+      }
+    }
+  });
+
+  const releasedUsers = users.map(u => ({
+    ...u,
+    photoPath: u.personalInfo?.photoPath || null,
+    agency: u.personalInfo?.agency || null,
+  }));
+
+  res.render("released_agents", { user, releasedUsers, activePage: 'releasedAgents' });
+};
+
 const deleteAgent = async (req, res) => {
   const { id } = req.params;
 
@@ -242,6 +269,7 @@ const massiveCreateAgents = async (req, res) => {
 
 export {
   renderAgents,
+  renderReleasedAgents,
   markDocsAsNecessary,
   deleteAgent,
   massiveCreateAgents

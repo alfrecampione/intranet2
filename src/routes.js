@@ -28,7 +28,7 @@ import { passwordMail, email_sender, new_user_notification } from "./controllers
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
+import { renderAgents, renderReleasedAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
@@ -106,6 +106,7 @@ router.get("/email-validation", renderEmailValidation);
 router.post("/email-validation", validateEmail);
 
 router.get("/users/agents", checkNotAuthenticated, renderAgents);
+router.get("/users/released-agents", checkNotAuthenticated, renderReleasedAgents);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 
