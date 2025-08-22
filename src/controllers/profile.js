@@ -224,15 +224,38 @@ async function createActivityEntry(log) {
         description = formatVal(description);
     }
 
+    function formatTime(createdAt) {
+        const date = new Date(createdAt);
+        const now = new Date();
+
+        const isSameDay =
+            date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth() &&
+            date.getDate() === now.getDate();
+
+        if (isSameDay) {
+            return timeAgo(date);
+        }
+
+        return date.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+
     return {
         variant,
         title,
         description,
-        timeAgo: timeAgo(new Date(log.createdAt)),
+        timeAgo: formatTime(log.createdAt),
         createdAt: log.createdAt,
         legalName,
     };
 }
+
 
 const renderNotes = async (req, res) => {
     const user = req.user;
