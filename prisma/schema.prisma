@@ -55,6 +55,7 @@ model PersonalInfo {
   agency        String?
   npn           String?
   user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  underAgency   Agency?   @relation(fields: [agency], references: [id], onDelete: SetNull)
 
   @@schema("health")
 }
@@ -181,10 +182,11 @@ model Commisions {
 }
 
 model Agency {
-  id    String  @id @default(uuid())
-  owner String? @unique
-  name  String
-  user  User?   @relation(fields: [owner], references: [user_id], onDelete: Cascade)
+  id           String         @id @default(uuid())
+  owner        String?        @unique
+  name         String
+  user         User?          @relation(fields: [owner], references: [user_id], onDelete: Cascade)
+  PersonalInfo PersonalInfo[]
 
   @@schema("health")
 }

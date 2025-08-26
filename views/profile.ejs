@@ -782,6 +782,7 @@
     <script>
         const data = JSON.parse(document.getElementById('user-data').textContent);
         const list = document.getElementById('user-info-list');
+        const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
 
         function addSectionHeader(title, sectionKey) {
             const header = document.createElement('li');
@@ -827,12 +828,11 @@
                             if (!currentValue || currentValue === 'None') noneOption.selected = true;
                             input.appendChild(noneOption);
 
-                            const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
                             agencies.forEach(a => {
                                 const option = document.createElement('option');
-                                option.value = a.name;
+                                option.value = a.id;
                                 option.textContent = a.name;
-                                if (option.value === currentValue) option.selected = true;
+                                if (personalInfo.agency == a.id) option.selected = true;
                                 input.appendChild(option);
                             });
                         }
@@ -1013,7 +1013,7 @@
                             }
                         }
                         else {
-                            const newValue = input.value;
+                            const newValue = input.value || null;
 
                             if (newValue !== originalValue) {
                                 updatedValues[fieldName] = newValue;
@@ -1145,7 +1145,11 @@
         addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
         addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
-        addListItem('Agency', personalInfo.agency, 'agency', false, false, sectionKey);
+        addListItem('Agency',
+            agencies?.find(a => a.id == personalInfo.agency)?.name || 'None',
+            'agency',
+            false, false, sectionKey
+        );
 
         // Contact Info
         sectionKey = 'contactInfo';
