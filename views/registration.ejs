@@ -316,43 +316,14 @@
 
 
                           <div class="col-sm-6" id="directHireGroup" style="display: none;">
-                            <label class="form-label d-block">
-                              Do you want to be hired directly to the company? <span class="text-danger">*</span>
-                            </label>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredYes"
-                                value="yes" required <%=personalInfo?.franchise===true ? 'checked' : '' %> />
-                              <label class="form-check-label" for="hiredYes">Yes</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="isDirectlyHired" id="hiredNo"
-                                value="no" required <%=personalInfo?.franchise===false ? 'checked' : '' %> />
-                              <label class="form-check-label" for="hiredNo">No</label>
-                            </div>
-
                             <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
                               <label class="form-label" for="companySelect">Select an agency</label>
-                              <select id="franchiseSelect" name="company" class="form-select" required>
+                              <select id="agencySelect" name="company" class="form-select" required>
                                 <option value="">Select an agency...</option>
-                                <% if (company && company.length) { %>
-                                  <% company.forEach(c=> { %>
-                                    <option value="<%= c.alias %>" <%=personalInfo?.agency===c.alias ? 'selected' : ''
-                                      %>>
-                                      <%= c.alias %>
-                                    </option>
-                                    <% }); %>
-                                      <% } %>
-                              </select>
-                            </div>
-
-                            <div id="referralSelectGroup" style="display: none; margin-top: 1rem;">
-                              <label class="form-label" for="referralSelect">Select an Agency</label>
-                              <select id="referralSelect" name="referralPartner" class="form-select" required>
-                                <option value="">Select an Agency...</option>
-                                <% if (external && external.length) { %>
-                                  <% external.forEach(a=> { %>
-                                    <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
-                                      <%= a.name %>
+                                <% if (agencies && agencies.length) { %>
+                                  <% agencies.forEach(a=> { %>
+                                    <option value="<%= a.name %>" <%=personalInfo?.agency===c.name ? 'selected' : '' %>>
+                                      <%= c.name %>
                                     </option>
                                     <% }); %>
                                       <% } %>
@@ -1127,23 +1098,8 @@
       const isDirectlyHiredValue = document.querySelector('input[name="isDirectlyHired"]:checked')?.value;
       const wantFranchise = isDirectlyHiredValue === "yes";
 
-      let agency;
-
-      if (wantFranchise) {
-        const franchiseSelect = document.getElementById("franchiseSelect");
-        if (franchiseSelect) {
-          agency = franchiseSelect.value || "";
-        } else {
-          throw new Error("Franchise selection is required.");
-        }
-      } else {
-        const referralSelect = document.getElementById("referralSelect");
-        if (referralSelect) {
-          agency = referralSelect.value || "";
-        } else {
-          throw new Error("Referral selection is required.");
-        }
-      }
+      const agencySelect = document.getElementById("agencySelect");
+      const agency = agencySelect ? agencySelect.value || "" : "";
 
       let uploadedPhoto = existingPhotoURL;
 
@@ -1163,7 +1119,6 @@
         photoPath: uploadedPhoto,
         businessName: businessName || null,
         companyEIN: companyEIN || null,
-        wantFranchise: wantFranchise,
         agency: agency || null
       };
 

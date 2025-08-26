@@ -775,6 +775,10 @@
         <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents, necesaryDocs}) %>
     </script>
 
+    <script id="agencies-data" type="application/json">
+        <%- JSON.stringify(allAgencies || []) %>
+    </script>
+
     <script>
         const data = JSON.parse(document.getElementById('user-data').textContent);
         const list = document.getElementById('user-info-list');
@@ -796,11 +800,6 @@
             editIcon.addEventListener('click', async () => {
                 const sectionItems = list.querySelectorAll(`li[data-section="${sectionKey}"] span[data-value]`);
 
-                async function fetchAgencies(franchiseValue) {
-                    const res = await fetch(`/users/profile/agencies/${franchiseValue}`);
-                    return res.ok ? (await res.json()).data : [];
-                }
-
                 if (!editing) {
                     for (const span of sectionItems) {
                         const li = span.closest('li');
@@ -815,55 +814,24 @@
 
                         let input;
 
-                        // Franchise
-                        if (fieldName === 'franchise') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-
-                            const isFranchise = currentValue.toLowerCase() === 'yes';
-
-                            ['Yes', 'No'].forEach(opt => {
-                                const option = document.createElement('option');
-                                option.value = (opt === 'Yes') ? true : false;
-                                option.textContent = opt;
-                                if ((opt === 'Yes' && isFranchise) || (opt === 'No' && !isFranchise)) {
-                                    option.selected = true;
-                                }
-                                input.appendChild(option);
-                            });
-
-                            input.dataset.original = isFranchise.toString();
-
-                            input.addEventListener('change', async () => {
-                                const agencySelect = list.querySelector('li[data-field="agency"] select');
-                                if (agencySelect) {
-                                    agencySelect.innerHTML = '';
-                                    const agencies = await fetchAgencies(input.value === 'true');
-                                    agencies.forEach(a => {
-                                        const opt = document.createElement('option');
-                                        opt.value = a.alias || a.name;
-                                        opt.textContent = a.alias || a.name;
-                                        agencySelect.appendChild(opt);
-                                    });
-                                }
-                            });
-                        }
-
                         // Agency
-                        else if (fieldName === 'agency') {
+                        if (fieldName === 'agency') {
                             input = document.createElement('select');
                             input.className = 'form-select form-select-sm';
 
                             input.dataset.original = currentValue;
 
-                            const franchiseValue = list
-                                .querySelector('li[data-field="franchise"] span[data-value]')?.textContent || 'No';
-                            const agencies = await fetchAgencies(franchiseValue);
+                            const noneOption = document.createElement('option');
+                            noneOption.value = '';
+                            noneOption.textContent = 'None';
+                            if (!currentValue || currentValue === 'None') noneOption.selected = true;
+                            input.appendChild(noneOption);
 
+                            const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
                             agencies.forEach(a => {
                                 const option = document.createElement('option');
-                                option.value = a.alias || a.name;
-                                option.textContent = a.alias || a.name;
+                                option.value = a.name;
+                                option.textContent = a.name;
                                 if (option.value === currentValue) option.selected = true;
                                 input.appendChild(option);
                             });
@@ -911,7 +879,6 @@
                             input.dataset.original = currentValue?.toLowerCase() || '';
                         }
 
-
                         else {
                             input = document.createElement('input');
                             input.value = currentValue === 'None' ? '' : currentValue;
@@ -949,12 +916,37 @@
                                 input.addEventListener('input', function () {
                                     this.value = this.value.replace(/[^0-9]/g, '');
                                 });
+                            } else if (fieldName === 'companyEIN') {
+                                input.type = 'text';
+                                input.inputMode = 'numeric';
+                                input.pattern = '\\d{9}';
+                                input.maxLength = 9;
+                                input.addEventListener('input', function () {
+                                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);
+                                });
                             } else {
                                 input.type = 'text';
                             }
                         }
 
                         span.replaceWith(input);
+                    }
+
+                    if (sectionKey === 'personalInfo') {
+                        const contactTypeSelect = list.querySelector('li[data-field="contactType"] select');
+                        const businessNameLi = list.querySelector('li[data-field="businessName"]');
+                        const companyEinLi = list.querySelector('li[data-field="companyEIN"]');
+
+                        function toggleBusinessFields() {
+                            const isBusiness = contactTypeSelect.value.toLowerCase() === 'business';
+                            if (businessNameLi) businessNameLi.classList.toggle('d-none', !isBusiness);
+                            if (companyEinLi) companyEinLi.classList.toggle('d-none', !isBusiness);
+                        }
+
+                        if (contactTypeSelect) {
+                            contactTypeSelect.addEventListener('change', toggleBusinessFields);
+                            toggleBusinessFields();
+                        }
                     }
 
                     editIcon.className = 'ti ti-device-floppy';
@@ -965,12 +957,39 @@
                     const updatedValues = {};
                     let hasEmpty = false;
 
+                    let contactTypeValue = null;
+                    let businessNameInput = null;
+                    let companyEinInput = null;
+
+                    if (sectionKey === 'personalInfo') {
+                        for (const input of inputs) {
+                            const fieldName = input.closest('li').dataset.field;
+                            if (fieldName === 'contactType') contactTypeValue = input.value;
+                            if (fieldName === 'businessName') businessNameInput = input;
+                            if (fieldName === 'companyEIN') companyEinInput = input;
+                        }
+                    }
+
                     for (const input of inputs) {
                         const fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
 
-                        // Check for empty (except file inputs)
-                        if (input.type !== 'file' && (!input.value || input.value.trim() === '')) {
+                        if (
+                            sectionKey === 'personalInfo' &&
+                            contactTypeValue === 'individual' &&
+                            (fieldName === 'businessName' || fieldName === 'companyEIN')
+                        ) {
+                            input.classList.remove('is-invalid');
+                            continue;
+                        }
+
+                        const optionalFields = ['agency', 'businessName', 'companyEIN'];
+
+                        if (
+                            input.type !== 'file' &&
+                            (!input.value || input.value.trim() === '') &&
+                            !optionalFields.includes(fieldName)
+                        ) {
                             hasEmpty = true;
                             input.classList.add('is-invalid');
                         } else {
@@ -996,16 +1015,10 @@
                         else {
                             const newValue = input.value;
 
-                            if (fieldName === "franchise") {
-                                const boolValue = (newValue === "true");
-                                if (boolValue.toString() !== originalValue) {
-                                    updatedValues[fieldName] = boolValue;
-                                }
-                            } else {
-                                if (newValue !== originalValue) {
-                                    updatedValues[fieldName] = newValue;
-                                }
+                            if (newValue !== originalValue) {
+                                updatedValues[fieldName] = newValue;
                             }
+
                         }
 
                         const span = document.createElement('span');
@@ -1014,6 +1027,13 @@
                             ? (input.files[0]?.name || 'None')
                             : (input.value || 'None');
                         input.replaceWith(span);
+                    }
+
+                    if (sectionKey === 'personalInfo' && contactTypeValue === 'individual') {
+                        updatedValues['businessName'] = null;
+                        updatedValues['companyEIN'] = null;
+                        if (businessNameInput) businessNameInput.value = '';
+                        if (companyEinInput) companyEinInput.value = '';
                     }
 
                     if (hasEmpty) {
@@ -1051,9 +1071,9 @@
             list.appendChild(header);
         }
 
-        function addListItem(label, value, fieldName, isLink = false, isSensitive = false, sectionKey = '') {
+        function addListItem(label, value, fieldName, isLink = false, isSensitive = false, sectionKey = '', hidden = false) {
             const li = document.createElement('li');
-            li.className = 'mb-2';
+            li.className = 'mb-2' + (hidden ? ' d-none' : '');
             li.dataset.section = sectionKey;
             li.dataset.label = label;
             li.dataset.field = fieldName;
@@ -1112,22 +1132,20 @@
 
         const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
 
-        // Personal Info
+        // ... Personal Info ...
         let sectionKey = 'personalInfo';
         addSectionHeader('Personal Info', sectionKey);
         addListItem('Preferred Name', personalInfo.preferredName, 'preferredName', false, false, sectionKey);
         addListItem('Contact Type', personalInfo.contactType, 'contactType', false, false, sectionKey);
-        if (personalInfo?.contactType?.toLowerCase() === 'business') {
-            addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey);
-            addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey);
-        }
+        const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';
+        addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey, !isBusiness);
+        addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey, !isBusiness);
         const dobRaw = personalInfo.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : null;
         addListItem('DoB', dobRaw, 'dateOfBirth', false, false, sectionKey);
         addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
         addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
         addListItem('Agency', personalInfo.agency, 'agency', false, false, sectionKey);
-        addListItem('Franchise', personalInfo?.franchise ? 'Yes' : 'No', 'franchise', false, false, sectionKey);
 
         // Contact Info
         sectionKey = 'contactInfo';

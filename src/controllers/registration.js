@@ -76,13 +76,17 @@ const register = async (req, res) => {
     const userId = req.user.user_id;
     const data = await getRegistrationData(userId, false, req.user);
 
-    const external = await prisma.agency.findMany({});
+    const allAgencies = await prisma.agency.findMany({
+      where: {
+        OR: [
+          { owner: { not: userId } },
+          { owner: null }
+        ]
+      },
+      orderBy: { name: 'asc' },
+    });
 
-    const company = await prisma.$queryRaw`
-      SELECT alias FROM qq.locations WHERE location_type = 2 or location_id = 1
-      ORDER BY location_id ASC
-    `;
-    res.render("registration", { ...data, US_STATES, company, external, activePage: "registration" });
+    res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
   } catch (error) {
     console.error("Error loading registration data:", error.message);
     res.status(500).send("Error loading registration data.");
@@ -95,14 +99,17 @@ const editRegister = async (req, res) => {
     const userId = req.params.id || user.user_id;
     const data = await getRegistrationData(userId, true, req.user);
 
-    const external = await prisma.agency.findMany({});
+    const allAgencies = await prisma.agency.findMany({
+      where: {
+        OR: [
+          { owner: { not: userId } },
+          { owner: null }
+        ]
+      },
+      orderBy: { name: 'asc' },
+    });
 
-    const company = await prisma.$queryRaw`
-      SELECT alias FROM qq.locations WHERE location_type = 2 or location_id = 1
-      ORDER BY location_id ASC
-    `;
-
-    res.render("registration", { ...data, US_STATES, company, external, activePage: "registration" });
+    res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
   } catch (error) {
     console.error("Error loading registration data:", error.message);
     res.status(500).send("Error loading registration data.");

@@ -17,7 +17,6 @@ export const createPersonalInfo = async (req, res) => {
         businessName,
         companyEIN,
         npn,
-        wantFranchise,
         agency,
       } = req.body;
 
@@ -33,8 +32,7 @@ export const createPersonalInfo = async (req, res) => {
         businessName: businessName || null,
         companyEIN: companyEIN || null,
         npn,
-        franchise: contactType === "business" ? false : wantFranchise || false,
-        agency: contactType === "business" ? null : agency || null,
+        agency: agency || null,
       };
 
       if (contactType === "business" && businessName) {

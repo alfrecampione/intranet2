@@ -53,7 +53,6 @@ model PersonalInfo {
   preferredName String?
   ssn           String?
   agency        String?
-  franchise     Boolean?
   npn           String?
   user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
@@ -182,10 +181,10 @@ model Commisions {
 }
 
 model Agency {
-  id    String @id @default(uuid())
-  owner String @unique
+  id    String  @id @default(uuid())
+  owner String? @unique
   name  String
-  user  User   @relation(fields: [owner], references: [user_id], onDelete: Cascade)
+  user  User?   @relation(fields: [owner], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
 }

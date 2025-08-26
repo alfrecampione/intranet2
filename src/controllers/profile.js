@@ -36,6 +36,16 @@ const renderProfile = async (req, res) => {
 
     const allCompanies = await prisma.company.findMany();
 
+    const allAgencies = await prisma.agency.findMany({
+        where: {
+            OR: [
+                { owner: { not: userId } },
+                { owner: null }
+            ]
+        },
+        orderBy: { name: 'asc' },
+    });
+
     const logs = await prisma.logs.findMany({
         where: {
             OR: [
@@ -68,6 +78,7 @@ const renderProfile = async (req, res) => {
         necesaryDocs,
         carriers,
         allCompanies,
+        allAgencies,
         activity,
         pinnedNotes,
         activePage: 'profile'
@@ -362,7 +373,6 @@ const saveSection = async (req, res) => {
 
     // Convert dateOfBirth to ISO string if present and not already
     if (sectionKey === 'personalInfo' && values.dateOfBirth) {
-        // Accepts yyyy-mm-dd or Date object or ISO string
         let dob = values.dateOfBirth;
         if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob)) {
             values.dateOfBirth = new Date(dob).toISOString();
@@ -373,6 +383,12 @@ const saveSection = async (req, res) => {
 
     try {
         await prismaContext.run({ requesterId }, async () => {
+            // Get previous personalInfo if updating
+            let prevPersonalInfo = null;
+            if (sectionKey === 'personalInfo') {
+                prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
+            }
+
             const updatedSection = await prisma[sectionKey].upsert({
                 where: { userId },
                 update: values,
@@ -381,6 +397,41 @@ const saveSection = async (req, res) => {
                     ...values
                 }
             });
+
+            // Agency logic for personalInfo
+            if (sectionKey === 'personalInfo') {
+                const contactType =
+                    values.contactType?.toLowerCase() ??
+                    prevPersonalInfo?.contactType?.toLowerCase();
+
+                const businessName =
+                    values.businessName ?? prevPersonalInfo?.businessName;
+
+                const existingAgency = await prisma.agency.findUnique({
+                    where: { owner: userId }
+                });
+
+                if (contactType === 'business') {
+                    if (!existingAgency && businessName) {
+                        await prisma.agency.create({
+                            data: {
+                                owner: userId,
+                                name: businessName
+                            }
+                        });
+                    } else if (existingAgency && existingAgency.name !== businessName) {
+                        await prisma.agency.update({
+                            where: { owner: userId },
+                            data: { name: businessName }
+                        });
+                    }
+                } else if (contactType === 'individual' && existingAgency) {
+                    await prisma.agency.delete({
+                        where: { owner: userId }
+                    });
+                }
+            }
+
             res.status(200).json({ success: true, data: updatedSection });
         });
     } catch (error) {
@@ -388,6 +439,7 @@ const saveSection = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to save section." });
     }
 };
+
 
 const addCarrierToUser = async (req, res) => {
     const { userId, company, state, status } = req.body;
