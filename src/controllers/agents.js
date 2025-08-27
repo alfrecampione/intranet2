@@ -351,11 +351,35 @@ const massiveCreateAgents = async (req, res) => {
   res.status(200).json({ results });
 };
 
+const recoverAgent = async (req, res) => {
+  const { id } = req.params;
+
+  console.log(id);
+
+  if (!id) {
+    return res.status(400).json({ message: "Agent ID is required." });
+  }
+
+  try {
+    await prismaContext.run({ userId: req.user.user_id }, async () => {
+      await prisma.user.update({
+        where: { user_id: id },
+        data: { isReleased: false }
+      });
+    });
+    res.status(200).json({ message: "Agent recovered successfully." });
+  }
+  catch (error) {
+    res.status(500).json({ message: "Error recovering agent.", error: error.message });
+  }
+}
+
 export {
   renderAgents,
   renderReleasedAgents,
   renderMyAgents,
   markDocsAsNecessary,
   deleteAgent,
+  recoverAgent,
   massiveCreateAgents
 };

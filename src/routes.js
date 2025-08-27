@@ -28,7 +28,7 @@ import { passwordMail, email_sender, new_user_notification } from "./controllers
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents, renderReleasedAgents, renderMyAgents, markDocsAsNecessary, deleteAgent } from "./controllers/agents.js";
+import { renderAgents, renderReleasedAgents, renderMyAgents, markDocsAsNecessary, deleteAgent, recoverAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
@@ -92,6 +92,7 @@ router.post(
 );
 router.get("/users/agency", checkNotAuthenticated, agency);
 router.delete("/users/agency/:id", checkNotAuthenticated, deleteAgent);
+router.post("/users/agency/recover/:id", checkNotAuthenticated, recoverAgent);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);
 
