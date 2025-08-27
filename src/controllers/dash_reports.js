@@ -6,14 +6,13 @@ const redirect_dashboard = (req, res) => {
 };
 
 const renderDashboard = async (req, res) => {
-  const registrationDone = await prisma.user.findUnique({
-    where: { user_id: req.user.user_id },
-    select: { registrationCompleted: true },
-  });
-  if (registrationDone && !registrationDone.registrationCompleted) {
-    register(req, res);
-    return;
-  }
+  // const user = await prisma.user.findUnique({
+  //   where: { user_id: req.user.user_id }
+  // });
+  // if (user && !user.registrationCompleted) {
+  //   register(req, res);
+  //   return;
+  // }
 
   try {
     const companies = await prisma.company.findMany();
