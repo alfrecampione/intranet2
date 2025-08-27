@@ -75,11 +75,11 @@ const addLead = async (req, res) => {
 }
 
 const deleteLead = async (req, res) => {
-    const { id } = req.params;
+    const { email } = req.params;
     try {
         await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
             const lead = await prisma.lead.delete({
-                where: { id: id },
+                where: { email: email },
             });
         });
         res.status(200).json({ success: true, message: "Lead deleted successfully" });

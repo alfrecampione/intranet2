@@ -416,7 +416,7 @@
                         const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById("add-new-record"));
                         if (offcanvas) offcanvas.hide();
 
-                        const deleteLead = await fetch(`/users/lead-center/${lead.id}`, {
+                        const deleteLead = await fetch(`/users/lead-center/${selectedEmail}`, {
                             method: "DELETE",
                             headers: { "Content-Type": "application/json" },
                         });
