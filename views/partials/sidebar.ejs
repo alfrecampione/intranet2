@@ -65,13 +65,6 @@
                     <div data-i18n="Config">Config</div>
                 </a>
             </li>
-            <!-- Reports -->
-            <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
-                <a href="/users/reports" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-chart-bar"></i>
-                    <div data-i18n="Reports">Reports</div>
-                </a>
-            </li>
             <% } else if(user && user.personalInfo?.contactType.toLowerCase()==='business' ) { %>
                 <!-- MyAgents -->
                 <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">

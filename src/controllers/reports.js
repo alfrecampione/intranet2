@@ -62,8 +62,6 @@ const renderReports = async (req, res) => {
 
     const processedAgents = await loadAgents(where);
 
-    console.log(processedAgents);
-
     const getUnique = (arr, key) => [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
 
     res.render("reports", {
