@@ -476,9 +476,26 @@ const deleteCarrierToUser = async (req, res) => {
     }
     try {
         await prismaContext.run({ requesterId }, async () => {
+            const userToUpdate = (await prisma.statesANDCarriers.findUnique({
+                where: { id: carrierId }
+            }))?.userId;
+
             await prisma.statesANDCarriers.delete({
                 where: { id: carrierId }
             });
+
+            const remainingCarriers = await prisma.statesANDCarriers.findMany({
+                where: {
+                    id: userToUpdate
+                }
+            });
+            if (remainingCarriers.length === 0) {
+                await prisma.user.update({
+                    where: { user_id: userToUpdate },
+                    data: { isReleased: true }
+                });
+            }
+
             res.status(200).json({ success: true, message: "Carrier deleted successfully." });
         });
     } catch (error) {
