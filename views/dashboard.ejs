@@ -561,9 +561,16 @@
       'WY': '/img/icons/states/variant1/Wyoming.png'
     };
 
+
+    // Count unique users per state (distinct userId)
+    const stateUserSets = {};
+    userCompanyStateData2.forEach(({ state, userId }) => {
+      if (!stateUserSets[state]) stateUserSets[state] = new Set();
+      stateUserSets[state].add(userId);
+    });
     const stateCounts = {};
-    userCompanyStateData2.forEach(({ state }) => {
-      stateCounts[state] = (stateCounts[state] || 0) + 1;
+    Object.keys(stateUserSets).forEach(state => {
+      stateCounts[state] = stateUserSets[state].size;
     });
 
     const totalUsersAllStates = Object.values(stateCounts).reduce((a, b) => a + b, 0);

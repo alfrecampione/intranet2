@@ -20,10 +20,21 @@ const renderAgents = async (req, res) => {
     }
   });
 
+  // Get all agency ids referenced by users' personalInfo.agency
+  const agencyIds = Array.from(new Set(users.map(u => u.personalInfo?.agency).filter(Boolean)));
+  let agenciesById = {};
+  if (agencyIds.length > 0) {
+    const agencies = await prisma.agency.findMany({
+      where: { id: { in: agencyIds } },
+      select: { id: true, name: true }
+    });
+    agenciesById = Object.fromEntries(agencies.map(a => [a.id, a.name]));
+  }
+
   const registeredUsers = users.map(u => ({
     ...u,
     photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.agency || null,
+    agency: u.personalInfo?.agency ? agenciesById[u.personalInfo.agency] || null : null,
   }));
 
   res.render("agents", { user, registeredUsers, activePage: 'agents' });
@@ -47,10 +58,21 @@ const renderReleasedAgents = async (req, res) => {
     }
   });
 
+  // Get all agency ids referenced by users' personalInfo.agency
+  const agencyIds = Array.from(new Set(users.map(u => u.personalInfo?.agency).filter(Boolean)));
+  let agenciesById = {};
+  if (agencyIds.length > 0) {
+    const agencies = await prisma.agency.findMany({
+      where: { id: { in: agencyIds } },
+      select: { id: true, name: true }
+    });
+    agenciesById = Object.fromEntries(agencies.map(a => [a.id, a.name]));
+  }
+
   const releasedUsers = users.map(u => ({
     ...u,
     photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.agency || null,
+    agency: u.personalInfo?.agency ? agenciesById[u.personalInfo.agency] || null : null,
   }));
 
   res.render("released_agents", { user, releasedUsers, activePage: 'releasedAgents' });
