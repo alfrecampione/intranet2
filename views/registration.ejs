@@ -320,10 +320,10 @@
                               <label class="form-label" for="companySelect">Select an agency</label>
                               <select id="agencySelect" name="company" class="form-select" required>
                                 <option value="">Select an agency...</option>
-                                <% if (agencies && agencies.length) { %>
-                                  <% agencies.forEach(a=> { %>
-                                    <option value="<%= a.name %>" <%=personalInfo?.agency===c.name ? 'selected' : '' %>>
-                                      <%= c.name %>
+                                <% if (allAgencies && allAgencies.length) { %>
+                                  <% allAgencies.forEach(a=> { %>
+                                    <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
+                                      <%= a.name %>
                                     </option>
                                     <% }); %>
                                       <% } %>
@@ -418,14 +418,6 @@
                               phoneInput.value = phoneInput.value.replace(/\D/g, "");
                             });
                           </script>
-
-                          <!-- 3. Country (Required) -->
-                          <div class="col-sm-6">
-                            <label class="form-label" for="country">Country <span class="text-danger">*</span></label>
-                            <input type="text" id="country" name="country" class="form-control"
-                              placeholder="e.g. United States" required value="<%= contactInfo?.country || '' %>" />
-                            <div class="invalid-feedback"></div>
-                          </div>
 
                           <!-- 4. Address Line 1 (Required) -->
                           <div class="col-md-12">
@@ -1135,7 +1127,6 @@
     async function saveContactInfo() {
       const personalEmail = document.getElementById("personalEmail")?.value || "";
       const personalPhone = document.getElementById("personalPhone")?.value || "";
-      const country = document.getElementById("country")?.value || "";
       const addressLine1 = document.getElementById("addressLine1")?.value || "";
       const addressLine2 = document.getElementById("addressLine2")?.value || "";
       const city = document.getElementById("city")?.value || "";
@@ -1145,7 +1136,6 @@
       const contactInfo = {
         personalEmail: personalEmail,
         personalPhone: personalPhone,
-        country: country,
         addressLine1: addressLine1,
         addressLine2: addressLine2 || null,
         city: city,

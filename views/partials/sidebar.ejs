@@ -22,7 +22,7 @@
             </a>
         </li>
 
-        <% if (user && (user.agency || !user.isAgent)) { %>
+        <% if (user && !user.isAgent) { %>
             <!-- Agents -->
             <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
                 <a href="/users/agents" class="menu-link">
@@ -46,14 +46,6 @@
                 </a>
             </li>
 
-            <!-- Reports -->
-            <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
-                <a href="/users/reports" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-chart-bar"></i>
-                    <div data-i18n="Reports">Reports</div>
-                </a>
-            </li>
-
             <!-- Admin header -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
@@ -66,6 +58,21 @@
                     <div data-i18n="Config">Config</div>
                 </a>
             </li>
-            <% } %>
+            <% } else if(user && user.personalInfo?.contactType.toLowerCase()==='business' ) { %>
+                <!-- MyAgents -->
+                <li class="menu-item <%= activePage === 'Agents' ? 'active' : '' %>">
+                    <a href="/users/agents" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-id-badge"></i>
+                        <div data-i18n="My Agents">My Agents</div>
+                    </a>
+                </li>
+                <% } %>
+                    <!-- Reports -->
+                    <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
+                        <a href="/users/reports" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-chart-bar"></i>
+                            <div data-i18n="Reports">Reports</div>
+                        </a>
+                    </li>
     </ul>
 </aside>

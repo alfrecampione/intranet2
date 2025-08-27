@@ -2,42 +2,86 @@ import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import bcrypt from "bcrypt";
 
-const renderAgents = async (req, res) => {
-  const user = req.user;
+async function getAllAgencyIds(agencyId) {
+  const result = [agencyId];
 
-  const users = await prisma.user.findMany({
+  const usersUnderAgency = await prisma.user.findMany({
     where: {
-      isReleased: false,
-    },
-    orderBy: [
-      { display_name: 'asc' },
-      { email: 'asc' }
-    ],
-    include: {
       personalInfo: {
-        select: { photoPath: true, agency: true }
+        agency: agencyId
       }
+    },
+    include: {
+      personalInfo: true
     }
   });
 
-  // Get all agency ids referenced by users' personalInfo.agency
-  const agencyIds = Array.from(new Set(users.map(u => u.personalInfo?.agency).filter(Boolean)));
-  let agenciesById = {};
-  if (agencyIds.length > 0) {
-    const agencies = await prisma.agency.findMany({
-      where: { id: { in: agencyIds } },
-      select: { id: true, name: true }
-    });
-    agenciesById = Object.fromEntries(agencies.map(a => [a.id, a.name]));
+  for (const u of usersUnderAgency) {
+    if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
+      const childAgency = await prisma.agency.findUnique({
+        where: { owner: u.user_id }
+      });
+      if (childAgency) {
+        const subAgencies = await getAllAgencyIds(childAgency.id);
+        result.push(...subAgencies);
+      }
+    }
   }
 
-  const registeredUsers = users.map(u => ({
-    ...u,
-    photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.agency ? agenciesById[u.personalInfo.agency] || null : null,
-  }));
+  return result;
+}
 
-  res.render("agents", { user, registeredUsers, activePage: 'agents' });
+const renderAgents = async (req, res) => {
+  const user = req.user;
+  let users = [];
+
+  try {
+    let where = { isReleased: false };
+
+    if (user && user.isAgent && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+
+      const agency = await prisma.agency.findUnique({
+        where: { owner: user.user_id },
+      });
+
+      if (agency) {
+        const allAgencyIds = await getAllAgencyIds(agency.id);
+        where = {
+          ...where,
+          personalInfo: { agency: { in: allAgencyIds } }
+        };
+      }
+    }
+
+    users = await prisma.user.findMany({
+      where,
+      orderBy: [
+        { display_name: 'asc' },
+        { email: 'asc' }
+      ],
+      include: {
+        personalInfo: {
+          select: {
+            photoPath: true,
+            agency: true,
+            underAgency: { select: { name: true } }
+          }
+        }
+      }
+    });
+
+    const registeredUsers = users.map(u => ({
+      ...u,
+      photoPath: u.personalInfo?.photoPath || null,
+      agency: u.personalInfo?.underAgency?.name || null,
+    }));
+
+    res.render("agents", { user, registeredUsers, activePage: 'agents' });
+
+  } catch (err) {
+    console.error("Error in renderAgents:", err);
+    res.status(500).send("Internal server error");
+  }
 };
 
 const renderReleasedAgents = async (req, res) => {

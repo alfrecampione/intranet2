@@ -72,27 +72,27 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "..", "assets")));
 app.use("/uploads", express.static("uploads"));
 
-app.post("/signatures", checkNotAuthenticated, async (req, res) => {
-  try {
-    const { signature } = req.body;
+// app.post("/signatures", checkNotAuthenticated, async (req, res) => {
+//   try {
+//     const { signature } = req.body;
 
-    // Guardar la firma como imagen
-    const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const fileName = `signature_${Date.now()}.png`;
-    const filePath = path.join(__dirname, "uploads/signatures", fileName);
+//     // Guardar la firma como imagen
+//     const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
+//     const buffer = Buffer.from(base64Data, "base64");
+//     const fileName = `signature_${Date.now()}.png`;
+//     const filePath = path.join(__dirname, "uploads/signatures", fileName);
 
-    fs.writeFileSync(filePath, buffer);
+//     fs.writeFileSync(filePath, buffer);
 
-    // Devolver solo el path (el backend lo guardará en TaxInfo)
-    res.json({
-      success: true,
-      path: `/uploads/signatures/${fileName}`,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al procesar firma" });
-  }
-});
+//     // Devolver solo el path (el backend lo guardará en TaxInfo)
+//     res.json({
+//       success: true,
+//       path: `/uploads/signatures/${fileName}`,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: "Error al procesar firma" });
+//   }
+// });
 
 // app.use(pino());
 

@@ -10,7 +10,7 @@ const initialize = (passport) => {
         where: { email, isReleased: false },
         include: {
           personalInfo: {
-            select: { photoPath: true, agency: true }
+            select: { photoPath: true, contactType: true }
           }
         }
       });
@@ -61,8 +61,14 @@ const initialize = (passport) => {
   passport.serializeUser((user, done) => done(null, user.user_id));
   passport.deserializeUser((user_id, done) => {
     // Prisma
-    prisma.user
-      .findUnique({ where: { user_id } })
+    prisma.user.findUnique({
+      where: { user_id },
+      include: {
+        personalInfo: {
+          select: { photoPath: true, contactType: true }
+        }
+      }
+    })
       .then((prismaUser) => {
         if (prismaUser) {
           return done(null, prismaUser);
