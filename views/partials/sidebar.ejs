@@ -45,6 +45,13 @@
                     <div data-i18n="Lead Center">Lead Center</div>
                 </a>
             </li>
+            <!-- Reports -->
+            <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
+                <a href="/users/reports" class="menu-link">
+                    <i class="menu-icon tf-icons ti ti-chart-bar"></i>
+                    <div data-i18n="Reports">Reports</div>
+                </a>
+            </li>
 
             <!-- Admin header -->
             <li class="menu-header small text-uppercase">
@@ -61,7 +68,7 @@
             <% } else if(user && user.personalInfo?.contactType.toLowerCase()==='business' ) { %>
                 <!-- MyAgents -->
                 <li class="menu-item <%= activePage === 'Agents' ? 'active' : '' %>">
-                    <a href="/users/agents" class="menu-link">
+                    <a href="/users/my-agents" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-id-badge"></i>
                         <div data-i18n="My Agents">My Agents</div>
                     </a>

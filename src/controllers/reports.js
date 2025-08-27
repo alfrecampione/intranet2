@@ -1,118 +1,116 @@
 import { prisma } from "../config/dbConfig.js";
 
+async function getAllAgencyIds(agencyId) {
+    const result = [agencyId];
 
+    const usersUnderAgency = await prisma.user.findMany({
+        where: { personalInfo: { agency: agencyId } },
+        include: { personalInfo: true }
+    });
 
-const renderReports = async (req, res) => {
-    const user = req.user;
+    for (const u of usersUnderAgency) {
+        if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
+            const childAgency = await prisma.agency.findUnique({
+                where: { owner: u.user_id }
+            });
+            if (childAgency) {
+                const subAgencies = await getAllAgencyIds(childAgency.id);
+                result.push(...subAgencies);
+            }
+        }
+    }
 
+    return result;
+}
+
+async function loadAgents(where = {}) {
     const agents = await prisma.user.findMany({
-        where: { isAgent: true },
+        where: { isAgent: true, ...where },
         include: {
-            Agency: {
-                select: { name: true }
-            },
+            Agency: { select: { name: true } },
             contactInfo: true,
             statesAndCarriers: true
         },
-        orderBy: {
-            display_name: 'asc'
+        orderBy: { display_name: 'asc' }
+    });
+
+    return agents.flatMap(agent =>
+        agent.statesAndCarriers.map(record => ({
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            state: record.state || '',
+            carrier: record.company || '',
+            status: record.status || '',
+            agency: agent.Agency?.name || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || ''
+        }))
+    );
+}
+
+const renderReports = async (req, res) => {
+    const user = req.user;
+    let where = {};
+
+    if (user && user.isAgent && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+        const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
+        if (agency) {
+            const allAgencyIds = await getAllAgencyIds(agency.id);
+            where = { personalInfo: { agency: { in: allAgencyIds } } };
         }
-    });
+    }
 
-    const processedAgents = [];
+    const processedAgents = await loadAgents(where);
 
-    agents.forEach(agent => {
-        agent.statesAndCarriers.forEach(record => {
-            processedAgents.push({
-                user_id: agent.user_id,
-                name: agent.display_name || '',
-                state: record.state || '',
-                carrier: record.company || '',
-                status: record.status || '',
-                agency: agent.Agency?.name || '',
-                email: agent.email || '',
-                number: agent.contactInfo?.personalPhone || ''
-            });
-        });
-    });
-
-    // Extract unique values for filters
-    const getUnique = (arr, key) => [...new Set(arr.map(item => item[key]).filter(Boolean))].sort();
-
-    const state = getUnique(processedAgents, 'state');
-    const carrier = getUnique(processedAgents, 'carrier');
-    const status = getUnique(processedAgents, 'status');
-    const agency = getUnique(processedAgents, 'agency');
+    const getUnique = (arr, key) => [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
 
     res.render("reports", {
         user,
         agents: processedAgents,
         filters: {
-            state,
-            carrier,
-            status,
-            agency
+            state: getUnique(processedAgents, 'state'),
+            carrier: getUnique(processedAgents, 'carrier'),
+            status: getUnique(processedAgents, 'status'),
+            agency: getUnique(processedAgents, 'agency')
         },
         activePage: 'reports'
     });
-}
+};
 
 const filterReport = async (req, res) => {
     const { filterType, filterValue, carrierValue } = req.query;
+    const user = req.user;
+    let where = {};
 
-    const agents = await prisma.user.findMany({
-        where: { isAgent: true },
-        include: {
-            Agency: {
-                select: { name: true }
-            },
-            contactInfo: true,
-            statesAndCarriers: true
-        },
-        orderBy: {
-            display_name: 'asc'
+    if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+        const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
+        if (agency) {
+            const allAgencyIds = await getAllAgencyIds(agency.id);
+            where = { personalInfo: { agency: { in: allAgencyIds } } };
         }
-    });
-
-    const processedAgents = [];
-
-    agents.forEach(agent => {
-        agent.statesAndCarriers.forEach(record => {
-            processedAgents.push({
-                user_id: agent.user_id,
-                name: agent.display_name || '',
-                state: record.state || '',
-                carrier: record.company || '',
-                status: record.status || '',
-                agency: agent.Agency?.name || '',
-                email: agent.email || '',
-                number: agent.contactInfo?.personalPhone || ''
-            });
-        });
-    });
-
-    // Filter logic
-    let filtered = processedAgents;
-
-    if (filterType === 'carrier & state' && filterValue && carrierValue) {
-        filtered = filtered.filter(item => item.state === filterValue && item.carrier === carrierValue);
-    } else if (filterType && filterType !== 'carrier & state' && filterValue) {
-        filtered = filtered.filter(item => item[filterType] === filterValue);
     }
 
-    // Deduplicate by user_id
+    let processedAgents = await loadAgents(where);
+
+    if (filterType === 'carrier & state' && filterValue && carrierValue) {
+        processedAgents = processedAgents.filter(
+            i => i.state === filterValue && i.carrier === carrierValue
+        );
+    } else if (filterType && filterType !== 'carrier & state' && filterValue) {
+        processedAgents = processedAgents.filter(i => i[filterType] === filterValue);
+    }
+
     const seen = new Set();
-    filtered = filtered.filter(item => {
-        if (seen.has(item.user_id)) return false;
-        seen.add(item.user_id);
+    processedAgents = processedAgents.filter(i => {
+        if (seen.has(i.user_id)) return false;
+        seen.add(i.user_id);
         return true;
     });
 
-    res.json({
-        data: filtered,
-        total: filtered.length
-    });
+    res.json({ data: processedAgents, total: processedAgents.length });
 };
+
+
 
 import ExcelJS from "exceljs";
 

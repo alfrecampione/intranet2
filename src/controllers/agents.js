@@ -31,26 +31,28 @@ async function getAllAgencyIds(agencyId) {
   return result;
 }
 
-const renderAgents = async (req, res) => {
+const renderMyAgents = async (req, res) => {
   const user = req.user;
   let users = [];
+
+  if (user && !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== 'business') {
+    res.status(403).send("Access denied");
+    return;
+  }
 
   try {
     let where = { isReleased: false };
 
-    if (user && user.isAgent && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+    const agency = await prisma.agency.findUnique({
+      where: { owner: user.user_id },
+    });
 
-      const agency = await prisma.agency.findUnique({
-        where: { owner: user.user_id },
-      });
-
-      if (agency) {
-        const allAgencyIds = await getAllAgencyIds(agency.id);
-        where = {
-          ...where,
-          personalInfo: { agency: { in: allAgencyIds } }
-        };
-      }
+    if (agency) {
+      const allAgencyIds = await getAllAgencyIds(agency.id);
+      where = {
+        ...where,
+        personalInfo: { agency: { in: allAgencyIds } }
+      };
     }
 
     users = await prisma.user.findMany({
@@ -82,6 +84,33 @@ const renderAgents = async (req, res) => {
     console.error("Error in renderAgents:", err);
     res.status(500).send("Internal server error");
   }
+}
+
+const renderAgents = async (req, res) => {
+  const user = req.user;
+
+  const users = await prisma.user.findMany({
+    where: {
+      isReleased: false,
+    },
+    orderBy: [
+      { display_name: 'asc' },
+      { email: 'asc' }
+    ],
+    include: {
+      personalInfo: {
+        select: { photoPath: true, underAgency: { select: { name: true } } }
+      }
+    }
+  });
+
+  const registeredUsers = users.map(u => ({
+    ...u,
+    photoPath: u.personalInfo?.photoPath || null,
+    agency: u.personalInfo?.underAgency?.name || null,
+  }));
+
+  res.render("agents", { user, registeredUsers, activePage: 'agents' });
 };
 
 const renderReleasedAgents = async (req, res) => {
@@ -97,26 +126,15 @@ const renderReleasedAgents = async (req, res) => {
     ],
     include: {
       personalInfo: {
-        select: { photoPath: true, agency: true }
+        select: { photoPath: true, underAgency: { select: { name: true } } }
       }
     }
   });
 
-  // Get all agency ids referenced by users' personalInfo.agency
-  const agencyIds = Array.from(new Set(users.map(u => u.personalInfo?.agency).filter(Boolean)));
-  let agenciesById = {};
-  if (agencyIds.length > 0) {
-    const agencies = await prisma.agency.findMany({
-      where: { id: { in: agencyIds } },
-      select: { id: true, name: true }
-    });
-    agenciesById = Object.fromEntries(agencies.map(a => [a.id, a.name]));
-  }
-
   const releasedUsers = users.map(u => ({
     ...u,
     photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.agency ? agenciesById[u.personalInfo.agency] || null : null,
+    agency: u.personalInfo?.underAgency?.name || null,
   }));
 
   res.render("released_agents", { user, releasedUsers, activePage: 'releasedAgents' });
@@ -336,6 +354,7 @@ const massiveCreateAgents = async (req, res) => {
 export {
   renderAgents,
   renderReleasedAgents,
+  renderMyAgents,
   markDocsAsNecessary,
   deleteAgent,
   massiveCreateAgents
