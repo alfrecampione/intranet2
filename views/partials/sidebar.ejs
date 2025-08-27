@@ -14,63 +14,36 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
-        <!-- Dashboard -->
-        <li class="menu-item <%= activePage === 'dashboard' ? 'active' : '' %>">
-            <a href="/users/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons ti ti-home"></i>
-                <div data-i18n="Dashboard">Dashboard</div>
-            </a>
-        </li>
-
-        <% if (user && !user.isAgent) { %>
-            <!-- Agents -->
-            <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
-                <a href="/users/agents" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-id-badge"></i>
-                    <div data-i18n="Agents">Agents</div>
+        <% if (user && user.registrationCompleted) { %>
+            <!-- Dashboard -->
+            <li class="menu-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+                <a href="/users/dashboard" class="menu-link">
+                    <i class="menu-icon tf-icons ti ti-home"></i>
+                    <div data-i18n="Dashboard">Dashboard</div>
                 </a>
             </li>
 
-            <li class="menu-item <%= activePage === 'releasedAgents' ? 'active' : '' %>">
-                <a href="/users/released-agents" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-id-badge"></i>
-                    <div data-i18n="Released Agents">Released Agents</div>
-                </a>
-            </li>
-
-            <!-- Lead Center -->
-            <li class="menu-item <%= activePage === 'lead-center' ? 'active' : '' %>">
-                <a href="/users/lead-center" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-users-group"></i>
-                    <div data-i18n="Lead Center">Lead Center</div>
-                </a>
-            </li>
-            <!-- Reports -->
-            <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
-                <a href="/users/reports" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-chart-bar"></i>
-                    <div data-i18n="Reports">Reports</div>
-                </a>
-            </li>
-
-            <!-- Admin header -->
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
-            </li>
-
-            <!-- Config -->
-            <li class="menu-item <%= activePage === 'config' ? 'active' : '' %>">
-                <a href="/users/config" class="menu-link">
-                    <i class="menu-icon tf-icons ti ti-settings"></i>
-                    <div data-i18n="Config">Config</div>
-                </a>
-            </li>
-            <% } else if(user && user.personalInfo?.contactType.toLowerCase()==='business' ) { %>
-                <!-- MyAgents -->
+            <% if (user && !user.isAgent) { %>
+                <!-- Agents -->
                 <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
-                    <a href="/users/my-agents" class="menu-link">
+                    <a href="/users/agents" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-id-badge"></i>
-                        <div data-i18n="My Agents">My Agents</div>
+                        <div data-i18n="Agents">Agents</div>
+                    </a>
+                </li>
+
+                <li class="menu-item <%= activePage === 'releasedAgents' ? 'active' : '' %>">
+                    <a href="/users/released-agents" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-id-badge"></i>
+                        <div data-i18n="Released Agents">Released Agents</div>
+                    </a>
+                </li>
+
+                <!-- Lead Center -->
+                <li class="menu-item <%= activePage === 'lead-center' ? 'active' : '' %>">
+                    <a href="/users/lead-center" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-users-group"></i>
+                        <div data-i18n="Lead Center">Lead Center</div>
                     </a>
                 </li>
                 <!-- Reports -->
@@ -80,6 +53,36 @@
                         <div data-i18n="Reports">Reports</div>
                     </a>
                 </li>
-                <% } %>
+
+                <!-- Admin header -->
+                <li class="menu-header small text-uppercase">
+                    <span class="menu-header-text" data-i18n="ADMIN">ADMIN</span>
+                </li>
+
+                <!-- Config -->
+                <li class="menu-item <%= activePage === 'config' ? 'active' : '' %>">
+                    <a href="/users/config" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-settings"></i>
+                        <div data-i18n="Config">Config</div>
+                    </a>
+                </li>
+                <% } else if(user && user.personalInfo && user.personalInfo.contactType.toLowerCase()==='business' ) {
+                    %>
+                    <!-- MyAgents -->
+                    <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
+                        <a href="/users/my-agents" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-id-badge"></i>
+                            <div data-i18n="My Agents">My Agents</div>
+                        </a>
+                    </li>
+                    <!-- Reports -->
+                    <li class="menu-item <%= activePage === 'reports' ? 'active' : '' %>">
+                        <a href="/users/reports" class="menu-link">
+                            <i class="menu-icon tf-icons ti ti-chart-bar"></i>
+                            <div data-i18n="Reports">Reports</div>
+                        </a>
+                    </li>
+                    <% } %>
+                        <% } %>
     </ul>
 </aside>
