@@ -51,7 +51,7 @@ const renderMyAgents = async (req, res) => {
       const allAgencyIds = await getAllAgencyIds(agency.id);
       where = {
         ...where,
-        personalInfo: { agency: { in: allAgencyIds } }
+        personalInfo: { agency: { in: allAgencyIds }, owner: { in: allAgencyIds } }
       };
     }
 
