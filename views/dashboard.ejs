@@ -152,7 +152,8 @@
                                     <%= user.personalInfo.contactType %>
                                   </li>
                                   <% } %>
-                                    <% if (user.personalInfo.businessName.toLowerCase()==='business' ) { %>
+                                    <% if (user.personalInfo.businessName &&
+                                      user.personalInfo.businessName.toLowerCase()==='business' ) { %>
                                       <li class="list-group-item"><strong>Business Name:</strong>
                                         <%= user.personalInfo.businessName %>
                                       </li>
