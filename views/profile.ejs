@@ -1112,7 +1112,7 @@
 
                         // Mask sensitive fields (payment info + ssn)
                         if (
-                            (sectionKey === 'paymentMethod' && (fieldName === 'accountNumber' || fieldName === 'routingNumber')) ||
+                            (sectionKey === 'paymentMethod' && (fieldName === 'bankAccountNum' || fieldName === 'bankRoutingNum')) ||
                             fieldName === 'ssn'
                         ) {
                             const hiddenValue = input.value ? '*'.repeat(input.value.length) : '****';
@@ -1281,9 +1281,9 @@
         // Payment Method
         sectionKey = 'paymentMethod';
         addSectionHeader('Payment Method', sectionKey);
-        addListItem('Account Type', paymentMethod.accountType, 'bankAccountType', false, false, sectionKey);
-        addListItem('Account Number', paymentMethod.accountNumber, 'bankAccountNum', false, true, sectionKey);
-        addListItem('Routing Number', paymentMethod.routingNumber, 'bankRoutingNum', false, false, sectionKey);
+        addListItem('Account Type', paymentMethod.bankAccountType, 'bankAccountType', false, false, sectionKey);
+        addListItem('Account Number', paymentMethod.bankAccountNum, 'bankAccountNum', false, true, sectionKey);
+        addListItem('Routing Number', paymentMethod.bankRoutingNum, 'bankRoutingNum', false, false, sectionKey);
 
         // Documents
         const documentFields = [
