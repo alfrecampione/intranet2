@@ -819,7 +819,6 @@
                         if (fieldName === 'agency') {
                             input = document.createElement('select');
                             input.className = 'form-select form-select-sm';
-
                             input.dataset.original = currentValue;
 
                             const noneOption = document.createElement('option');
@@ -836,6 +835,7 @@
                                 input.appendChild(option);
                             });
                         }
+
                         // State (contactInfo)
                         else if (fieldName === 'state' && sectionKey === 'contactInfo') {
                             input = document.createElement('select');
@@ -873,6 +873,7 @@
                                 input.appendChild(option);
                             });
                         }
+
                         // Documents
                         else if (sectionKey === 'documents') {
                             input = document.createElement('input');
@@ -880,6 +881,7 @@
                             input.className = 'form-control form-control-sm';
                             input.dataset.original = '';
                         }
+
                         // Sex
                         else if (fieldName === 'legalSex') {
                             input = document.createElement('select');
@@ -916,13 +918,62 @@
                             input.dataset.original = currentValue?.toLowerCase() || '';
                         }
 
+                        // Payment Method: Account Type
+                        else if (fieldName === 'accountType' && sectionKey === 'paymentMethod') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+                            input.dataset.original = currentValue;
+
+                            ['Savings', 'Checking'].forEach(opt => {
+                                const option = document.createElement('option');
+                                option.value = opt.toLowerCase();
+                                option.textContent = opt;
+                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
+                                    option.selected = true;
+                                }
+                                input.appendChild(option);
+                            });
+                        }
+
+                        // Payment Method: Account Number
+                        else if (fieldName === 'accountNumber' && sectionKey === 'paymentMethod') {
+                            input = document.createElement('input');
+                            input.type = 'text';
+                            input.inputMode = 'numeric';
+                            input.pattern = '\\d*';
+                            input.maxLength = 17;
+                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.required = true;
+                            input.dataset.original = input.value;
+                            input.className = 'form-control form-control-sm';
+                            input.addEventListener('input', function () {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                            });
+                        }
+
+                        // Payment Method: Routing Number
+                        else if (fieldName === 'routingNumber' && sectionKey === 'paymentMethod') {
+                            input = document.createElement('input');
+                            input.type = 'text';
+                            input.inputMode = 'numeric';
+                            input.pattern = '\\d*';
+                            input.maxLength = 9;
+                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.required = true;
+                            input.dataset.original = input.value;
+                            input.className = 'form-control form-control-sm';
+                            input.addEventListener('input', function () {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                            });
+                        }
+
+                        // Default input
                         else {
                             input = document.createElement('input');
                             input.value = currentValue === 'None' ? '' : currentValue;
                             input.dataset.original = input.value;
                             input.className = 'form-control form-control-sm';
 
-                            // Field-specific type and validation
                             if (fieldName === 'npn') {
                                 input.type = 'text';
                                 input.inputMode = 'numeric';
@@ -1051,18 +1102,48 @@
                         }
                         else {
                             const newValue = input.value || null;
-
                             if (newValue !== originalValue) {
                                 updatedValues[fieldName] = newValue;
                             }
-
                         }
 
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
-                        span.textContent = input.type === 'file'
-                            ? (input.files[0]?.name || 'None')
-                            : (input.value || 'None');
+
+                        // Mask sensitive fields (payment info + ssn)
+                        if (
+                            (sectionKey === 'paymentMethod' && (fieldName === 'accountNumber' || fieldName === 'routingNumber')) ||
+                            fieldName === 'ssn'
+                        ) {
+                            const hiddenValue = input.value ? '*'.repeat(input.value.length) : '****';
+                            const visibleValue = input.value || 'None';
+
+                            const sensitiveSpan = document.createElement('span');
+                            sensitiveSpan.textContent = hiddenValue;
+                            sensitiveSpan.dataset.visible = 'false';
+                            sensitiveSpan.dataset.full = visibleValue;
+
+                            const toggleIcon = document.createElement('i');
+                            toggleIcon.className = 'ti ti-eye ms-2';
+                            toggleIcon.style.cursor = 'pointer';
+                            toggleIcon.setAttribute('aria-hidden', 'true');
+                            toggleIcon.title = 'Show/Hide';
+
+                            toggleIcon.addEventListener('click', () => {
+                                const isVisible = sensitiveSpan.dataset.visible === 'true';
+                                sensitiveSpan.textContent = isVisible ? hiddenValue : visibleValue;
+                                sensitiveSpan.dataset.visible = (!isVisible).toString();
+                                toggleIcon.className = isVisible ? 'ti ti-eye ms-2' : 'ti ti-eye-off ms-2';
+                            });
+
+                            span.appendChild(sensitiveSpan);
+                            span.appendChild(toggleIcon);
+                        } else {
+                            span.textContent = input.type === 'file'
+                                ? (input.files[0]?.name || 'None')
+                                : (input.value || 'None');
+                        }
+
                         input.replaceWith(span);
                     }
 
@@ -1074,7 +1155,7 @@
                     }
 
                     if (hasEmpty) {
-                        alert('All fields must be filled out.');
+                        alert('All required fields must be filled out.');
                         return;
                     }
 
@@ -1196,6 +1277,13 @@
         addListItem('City', contactInfo.city, 'city', false, false, sectionKey);
         addListItem('Address', contactInfo.addressLine1, 'addressLine1', false, false, sectionKey);
         addListItem('Zip Code', contactInfo.zipCode, 'zipCode', false, false, sectionKey);
+
+        // Payment Method
+        sectionKey = 'paymentMethod';
+        addSectionHeader('Payment Method', sectionKey);
+        addListItem('Account Type', paymentMethod.accountType, 'accountType', false, false, sectionKey);
+        addListItem('Account Number', paymentMethod.accountNumber, 'accountNumber', false, true, sectionKey);
+        addListItem('Routing Number', paymentMethod.routingNumber, 'routingNumber', false, false, sectionKey);
 
         // Documents
         const documentFields = [
