@@ -36,16 +36,14 @@ const renderDashboard = async (req, res) => {
     let companies, userCompanyStateData, states;
     let user = req.user;
 
-    // If user is business and not active, filter by their agency tree
     if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
-      // Find the agency for this user
       const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
       if (agency) {
         const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
-        // Get users under these agencies
+
         const users = await prisma.user.findMany({
           where: {
-            personalInfo: { agency: { in: allAgencyIds }, owner: { in: allAgencyIds } }
+            personalInfo: { agency: { in: allAgencyIds } }
           },
           select: { user_id: true }
         });
