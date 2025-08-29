@@ -35,7 +35,8 @@ const renderMyAgents = async (req, res) => {
   const user = req.user;
   let users = [];
 
-  if (user && !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== 'business') {
+  // Chequeo de acceso con paréntesis correctos
+  if (!user || !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== 'business') {
     res.status(403).send("Access denied");
     return;
   }
@@ -51,8 +52,16 @@ const renderMyAgents = async (req, res) => {
       const allAgencyIds = await getAllAgencyIds(agency.id);
       where = {
         ...where,
-        personalInfo: { agency: { in: allAgencyIds } },
-        user_id: user.user_id
+        OR: [
+          {
+            personalInfo: {
+              is: {
+                agency: { in: allAgencyIds }
+              }
+            }
+          },
+          { user_id: user.user_id }
+        ]
       };
     }
 
@@ -85,7 +94,8 @@ const renderMyAgents = async (req, res) => {
     console.error("Error in renderAgents:", err);
     res.status(500).send("Internal server error");
   }
-}
+};
+
 
 const renderAgents = async (req, res) => {
   const user = req.user;

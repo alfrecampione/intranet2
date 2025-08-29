@@ -56,7 +56,17 @@ const renderReports = async (req, res) => {
         const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
         if (agency) {
             const allAgencyIds = await getAllAgencyIds(agency.id);
-            where = { personalInfo: { agency: { in: allAgencyIds } }, user_id: user.user_id };
+
+            where = {
+                OR: [
+                    {
+                        personalInfo: {
+                            is: { agency: { in: allAgencyIds } }
+                        }
+                    },
+                    { user_id: user.user_id }
+                ]
+            };
         }
     }
 
@@ -86,7 +96,17 @@ const filterReport = async (req, res) => {
         const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
         if (agency) {
             const allAgencyIds = await getAllAgencyIds(agency.id);
-            where = { personalInfo: { agency: { in: allAgencyIds } }, user_id: user.user_id };
+
+            where = {
+                OR: [
+                    {
+                        personalInfo: {
+                            is: { agency: { in: allAgencyIds } }
+                        }
+                    },
+                    { user_id: user.user_id }
+                ]
+            };
         }
     }
 

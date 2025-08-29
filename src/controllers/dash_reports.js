@@ -44,15 +44,22 @@ const renderDashboard = async (req, res) => {
 
         const users = await prisma.user.findMany({
           where: {
-            personalInfo: {
-              is: {
-                agency: { in: allAgencyIds }
+            OR: [
+              {
+                personalInfo: {
+                  is: {
+                    agency: { in: allAgencyIds }
+                  }
+                }
+              },
+              {
+                user_id: user.user_id
               }
-            },
-            user_id: user.user_id
+            ]
           },
           select: { user_id: true }
         });
+
 
         const userIds = users.map(u => u.user_id);
         userCompanyStateData = await prisma.statesANDCarriers.findMany({
