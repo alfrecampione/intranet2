@@ -186,8 +186,9 @@
                                             type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= idx %>"
                                             aria-expanded="<%= idx === 0 ? 'true' : 'false' %>"
                                             aria-controls="collapse<%= idx %>">
-                                            <strong>State:</strong>
-                                            <%= state %>
+                                            <strong>
+                                              <%= state %>
+                                            </strong>
                                           </button>
                                         </h2>
                                         <div id="collapse<%= idx %>"
@@ -271,7 +272,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Mapping of state abbreviations to full namesMapping of state abbreviations to full names -->
   <script>
     const stateAbbreviationMap = {
       "AL": "Alabama",
@@ -340,6 +340,14 @@
         el.textContent = replacedWords.join(' ');
       });
 
+      // 🔥 Added accordion headers too
+      document.querySelectorAll('.accordion-button strong').forEach(el => {
+        const text = el.textContent.trim();
+        if (stateAbbreviationMap[text]) {
+          el.textContent = stateAbbreviationMap[text];
+        }
+      });
+
       document.querySelectorAll('td, span, div').forEach(el => {
         const text = el.textContent.trim();
         if (stateAbbreviationMap[text]) {
@@ -354,6 +362,7 @@
       }, 500);
     });
   </script>
+
   <!--/ Mapping -->
 
   <script id="companies-data" type="application/json">
