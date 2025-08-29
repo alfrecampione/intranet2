@@ -37,16 +37,23 @@ const renderDashboard = async (req, res) => {
     let user = req.user;
 
     if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+      console.log('Business user detected for dashboard');
       const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
       if (agency) {
         const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
 
         const users = await prisma.user.findMany({
           where: {
-            personalInfo: { agency: { in: allAgencyIds } }
+            personalInfo: {
+              is: {
+                agency: { in: allAgencyIds }
+              }
+            },
+            user_id: user.user_id
           },
           select: { user_id: true }
         });
+
         const userIds = users.map(u => u.user_id);
         userCompanyStateData = await prisma.statesANDCarriers.findMany({
           where: { userId: { in: userIds } },
@@ -54,6 +61,8 @@ const renderDashboard = async (req, res) => {
         });
         companies = await prisma.company.findMany();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
+
+        console.log('Companies and states loaded for business user: ', companies.length, states.length);
       } else {
         // No agency found, show nothing
         companies = [];
