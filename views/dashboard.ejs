@@ -120,13 +120,115 @@
                     <!--/ Group by states -->
                   </div>
                   <% } else { %>
-                    <div class="row">
-                      <div class="row mt-4 mb-3">
-                        <div class="d-flex justify-content-center align-items-center" style="height: 300px">
-                          <div class="text-center">
-                            <h2 class="fw-bold">
-                              Welcome <%= user.display_name %> to GoldenHealth
-                            </h2>
+                    <!-- Welcome Section -->
+                    <div class="row mt-4 mb-3">
+                      <div class="d-flex justify-content-center align-items-center" style="height: 200px">
+                        <div class="text-center">
+                          <h2 class="fw-bold">
+                            👋 Welcome <%= user.display_name %> to <span class="text-primary">GoldenHealth</span>
+                          </h2>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- User Info Section -->
+                    <div class="row justify-content-center mb-4">
+                      <div class="col-md-6">
+                        <div class="card shadow-sm border-0 rounded-3">
+                          <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Your Information</h5>
+                          </div>
+                          <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                              <li class="list-group-item"><strong>Name:</strong>
+                                <%= user.display_name %>
+                              </li>
+                              <li class="list-group-item"><strong>Email:</strong>
+                                <%= user.email %>
+                              </li>
+                              <% if (user.personalInfo) { %>
+                                <% if (user.personalInfo.contactType) { %>
+                                  <li class="list-group-item"><strong>Contact Type:</strong>
+                                    <%= user.personalInfo.contactType %>
+                                  </li>
+                                  <% } %>
+                                    <% if (user.personalInfo.businessName.toLowerCase()==='business' ) { %>
+                                      <li class="list-group-item"><strong>Business Name:</strong>
+                                        <%= user.personalInfo.businessName %>
+                                      </li>
+                                      <% } %>
+                                        <% } %>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Carrier Status Section -->
+                    <div class="row justify-content-center">
+                      <div class="col-md-10">
+                        <div class="card mb-3 shadow-sm border-0 rounded-3">
+                          <div class="card-header d-flex justify-content-between align-items-center flex-wrap bg-light">
+                            <h5 class="mb-0">Agent's Carrier Status</h5>
+                          </div>
+                          <div class="card-body p-0">
+                            <% if (user.statesAndCarriers && user.statesAndCarriers.length> 0) { %>
+                              <%user.statesAndCarriers.forEach(c=> {
+                                if (!carriersByState[c.state]) carriersByState[c.state] = [];
+                                carriersByState[c.state].push(c);
+                                });
+                                %>
+
+                                <div class="accordion" id="carrierAccordion">
+                                  <% Object.keys(carriersByState).forEach((state, idx)=> { %>
+                                    <div class="accordion-item">
+                                      <h2 class="accordion-header" id="heading<%= idx %>">
+                                        <button class="accordion-button <%= idx > 0 ? 'collapsed' : '' %>" type="button"
+                                          data-bs-toggle="collapse" data-bs-target="#collapse<%= idx %>"
+                                          aria-expanded="<%= idx === 0 ? 'true' : 'false' %>"
+                                          aria-controls="collapse<%= idx %>">
+                                          <strong>State:</strong>
+                                          <%= state %>
+                                        </button>
+                                      </h2>
+                                      <div id="collapse<%= idx %>"
+                                        class="accordion-collapse collapse <%= idx === 0 ? 'show' : '' %>"
+                                        aria-labelledby="heading<%= idx %>" data-bs-parent="#carrierAccordion">
+                                        <div class="accordion-body p-0">
+                                          <table class="table table-hover table-bordered mb-0">
+                                            <thead class="table-light">
+                                              <tr>
+                                                <th>#</th>
+                                                <th>Carrier Name</th>
+                                                <th>Status</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              <% carriersByState[state].forEach((carrier, i)=> { %>
+                                                <tr>
+                                                  <td>
+                                                    <%= i+1 %>
+                                                  </td>
+                                                  <td>
+                                                    <%= carrier.company %>
+                                                  </td>
+                                                  <td>
+                                                    <span>
+                                                      <%=carrier.status %>
+                                                    </span>
+                                                  </td>
+                                                </tr>
+                                                <% }) %>
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                  <div class="p-4 text-center text-muted">No carrier information available.</div>
+                                  <% } %>
                           </div>
                         </div>
                       </div>
