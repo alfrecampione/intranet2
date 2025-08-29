@@ -36,16 +36,6 @@ const renderProfile = async (req, res) => {
 
     const allCompanies = await prisma.company.findMany();
 
-    const allAgencies = await prisma.agency.findMany({
-        where: {
-            OR: [
-                { owner: { not: userId } },
-                { owner: null }
-            ]
-        },
-        orderBy: { name: 'asc' },
-    });
-
     const logs = await prisma.logs.findMany({
         where: {
             OR: [
