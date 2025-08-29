@@ -1,3 +1,29 @@
+// Recursive function to get all agency IDs under a business agency
+async function getAllAgencyIds(agencyId, prisma) {
+  const result = [agencyId];
+  const usersUnderAgency = await prisma.user.findMany({
+    where: {
+      personalInfo: {
+        agency: agencyId
+      }
+    },
+    include: {
+      personalInfo: true
+    }
+  });
+  for (const u of usersUnderAgency) {
+    if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
+      const childAgency = await prisma.agency.findUnique({
+        where: { owner: u.user_id }
+      });
+      if (childAgency) {
+        const subAgencies = await getAllAgencyIds(childAgency.id, prisma);
+        result.push(...subAgencies);
+      }
+    }
+  }
+  return result;
+}
 import { pool, prisma } from "../config/dbConfig.js";
 import { register } from "./registration.js";
 
@@ -6,23 +32,54 @@ const redirect_dashboard = (req, res) => {
 };
 
 const renderDashboard = async (req, res) => {
-  // const user = await prisma.user.findUnique({
-  //   where: { user_id: req.user.user_id }
-  // });
-  // if (user && !user.registrationCompleted) {
-  //   register(req, res);
-  //   return;
-  // }
-
   try {
-    const companies = await prisma.company.findMany();
-    const userCompanyStateData = await prisma.statesANDCarriers.findMany({
-      select: { userId: true, company: true, state: true }
-    });
-    const states = [...new Set(userCompanyStateData.map(d => d.state))];
+    let companies, userCompanyStateData, states;
+    let user = req.user;
+
+    // If user is business and not active, filter by their agency tree
+    if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+      // Find the agency for this user
+      const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
+      if (agency) {
+        const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
+        // Get users under these agencies
+        const users = await prisma.user.findMany({
+          where: {
+            personalInfo: { agency: { in: allAgencyIds }, owner: { in: allAgencyIds } }
+          },
+          select: { user_id: true }
+        });
+        const userIds = users.map(u => u.user_id);
+        userCompanyStateData = await prisma.statesANDCarriers.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, company: true, state: true }
+        });
+        companies = await prisma.company.findMany();
+        states = [...new Set(userCompanyStateData.map(d => d.state))];
+      } else {
+        // No agency found, show nothing
+        companies = [];
+        userCompanyStateData = [];
+        states = [];
+      }
+    } else {
+      // Default: show all
+      if (user && user.isAgent) {
+        user = await prisma.user.findUnique({
+          where: { user_id: user.user_id },
+          include: { personalInfo: true, statesAndCarriers: true }
+        });
+      }
+
+      companies = await prisma.company.findMany();
+      userCompanyStateData = await prisma.statesANDCarriers.findMany({
+        select: { userId: true, company: true, state: true }
+      });
+      states = [...new Set(userCompanyStateData.map(d => d.state))];
+    }
 
     res.render('dashboard', {
-      user: req.user,
+      user: user,
       companies,
       userCompanyStateData,
       states,
