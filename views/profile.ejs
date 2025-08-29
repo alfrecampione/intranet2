@@ -919,7 +919,7 @@
                         }
 
                         // Payment Method: Account Type
-                        else if (fieldName === 'accountType' && sectionKey === 'paymentMethod') {
+                        else if (fieldName === 'bankAccountType' && sectionKey === 'paymentMethod') {
                             input = document.createElement('select');
                             input.className = 'form-select form-select-sm';
                             input.dataset.original = currentValue;
@@ -936,7 +936,7 @@
                         }
 
                         // Payment Method: Account Number
-                        else if (fieldName === 'accountNumber' && sectionKey === 'paymentMethod') {
+                        else if (fieldName === 'bankAccountNum' && sectionKey === 'paymentMethod') {
                             input = document.createElement('input');
                             input.type = 'text';
                             input.inputMode = 'numeric';
@@ -952,7 +952,7 @@
                         }
 
                         // Payment Method: Routing Number
-                        else if (fieldName === 'routingNumber' && sectionKey === 'paymentMethod') {
+                        else if (fieldName === 'bankRoutingNum' && sectionKey === 'paymentMethod') {
                             input = document.createElement('input');
                             input.type = 'text';
                             input.inputMode = 'numeric';
@@ -1281,9 +1281,9 @@
         // Payment Method
         sectionKey = 'paymentMethod';
         addSectionHeader('Payment Method', sectionKey);
-        addListItem('Account Type', paymentMethod.accountType, 'accountType', false, false, sectionKey);
-        addListItem('Account Number', paymentMethod.accountNumber, 'accountNumber', false, true, sectionKey);
-        addListItem('Routing Number', paymentMethod.routingNumber, 'routingNumber', false, false, sectionKey);
+        addListItem('Account Type', paymentMethod.accountType, 'bankAccountType', false, false, sectionKey);
+        addListItem('Account Number', paymentMethod.accountNumber, 'bankAccountNum', false, true, sectionKey);
+        addListItem('Routing Number', paymentMethod.routingNumber, 'bankRoutingNum', false, false, sectionKey);
 
         // Documents
         const documentFields = [
