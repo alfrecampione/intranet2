@@ -78,100 +78,107 @@
                             <div class="container-xxl flex-grow-1 container-p-y">
                                 <div class="row">
                                     <!-- Agent Sidebar -->
-                                    <%- include('partials/agent_sidebar', { profile: profile, personalInfo:
-                                        personalInfo, contactInfo: contactInfo, user: user, extra_data : true }) %>
-                                        <!--/ Agent Sidebar -->
+                                    <% let less=(user.isAgent)? false : true; %>
+                                        <%- include('partials/agent_sidebar', { profile: profile, personalInfo:
+                                            personalInfo, contactInfo: contactInfo, user: user, extra_data : less }) %>
+                                            <!--/ Agent Sidebar -->
 
-                                        <!-- Agent Content -->
-                                        <div class="col-xl-8 col-lg-7 order-0 order-md-1">
-                                            <!-- Agent Pills -->
-                                            <%- include('partials/agent_pills', {user: user, profile: profile,
-                                                open: 'account' }) %>
-                                                <!--/ Agent Pills -->
-                                                <!-- Project table -->
-                                                <!-- Carrier Status -->
-                                                <div class="card mb-3">
-                                                    <div class="card-datatable table-responsive pt-0">
-                                                        <div id="DataTables_Table_0_wrapper"
-                                                            class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                                            <div
-                                                                class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                                                                <div class="head-label">
-                                                                    <h5 class="card-title mb-0">Agent's Carrier Status
-                                                                    </h5>
-                                                                </div>
-
-                                                                <% if (!user?.isAgent) { %>
-                                                                    <div id="edit-controls" class="d-flex gap-2">
-                                                                        <a href="javascript:void(0)" id="add-carrier"
-                                                                            class="ti ti-plus fs-3 text-primary"
-                                                                            title="Add Carrier"></a>
-                                                                        <a href="javascript:void(0)" id="edit-toggle"
-                                                                            class="ti ti-edit fs-3 text-warning"
-                                                                            title="Edit status"></a>
-                                                                        <a href="javascript:void(0)" id="release"
-                                                                            class="ti ti-trash fs-3 text-danger"
-                                                                            title="Release agent"></a>
+                                            <!-- Agent Content -->
+                                            <div class="col-xl-8 col-lg-7 order-0 order-md-1">
+                                                <!-- Agent Pills -->
+                                                <%- include('partials/agent_pills', {user: user, profile: profile,
+                                                    open: 'account' }) %>
+                                                    <!--/ Agent Pills -->
+                                                    <!-- Project table -->
+                                                    <!-- Carrier Status -->
+                                                    <div class="card mb-3">
+                                                        <div class="card-datatable table-responsive pt-0">
+                                                            <div id="DataTables_Table_0_wrapper"
+                                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                                <div
+                                                                    class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                                                                    <div class="head-label">
+                                                                        <h5 class="card-title mb-0">Agent's Carrier
+                                                                            Status
+                                                                        </h5>
                                                                     </div>
-                                                                    <% } %>
 
+                                                                    <% if (!user?.isAgent) { %>
+                                                                        <div id="edit-controls" class="d-flex gap-2">
+                                                                            <a href="javascript:void(0)"
+                                                                                id="add-carrier"
+                                                                                class="ti ti-plus fs-3 text-primary"
+                                                                                title="Add Carrier"></a>
+                                                                            <a href="javascript:void(0)"
+                                                                                id="edit-toggle"
+                                                                                class="ti ti-edit fs-3 text-warning"
+                                                                                title="Edit status"></a>
+                                                                            <a href="javascript:void(0)" id="release"
+                                                                                class="ti ti-trash fs-3 text-danger"
+                                                                                title="Release agent"></a>
+                                                                        </div>
+                                                                        <% } %>
+
+                                                                </div>
+                                                                <table
+                                                                    class="datatables-basic table dataTable no-footer dtr-column table-bordered"
+                                                                    id="DataTables_Table_0"
+                                                                    aria-describedby="DataTables_Table_0_info"
+                                                                    style="width: 1396px">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th class="sorting_disabled"
+                                                                                aria-controls="DataTables_Table_0"
+                                                                                rowspan="1" colspan="1"
+                                                                                style="width: 30px" aria-label="#">#
+                                                                            </th>
+                                                                            <th class="sorting_disabled" tabindex="0"
+                                                                                aria-controls="DataTables_Table_0"
+                                                                                rowspan="1" colspan="1"
+                                                                                style="width: 144px">
+                                                                                State
+                                                                            </th>
+                                                                            <th class="sorting_disabled" tabindex="0"
+                                                                                aria-controls="DataTables_Table_0"
+                                                                                rowspan="1" colspan="1"
+                                                                                style="width: 144px">
+                                                                                Carrier Name
+                                                                            </th>
+                                                                            <th class="sorting_disabled" tabindex="2"
+                                                                                aria-controls="DataTables_Table_0"
+                                                                                rowspan="1" colspan="1"
+                                                                                style="width: 130px">
+                                                                                Status Progress
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr class="odd">
+                                                                            <td valign="top" colspan="4"
+                                                                                class="dataTables_empty">
+                                                                                Loading...
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
-                                                            <table
-                                                                class="datatables-basic table dataTable no-footer dtr-column table-bordered"
-                                                                id="DataTables_Table_0"
-                                                                aria-describedby="DataTables_Table_0_info"
-                                                                style="width: 1396px">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="sorting_disabled"
-                                                                            aria-controls="DataTables_Table_0"
-                                                                            rowspan="1" colspan="1" style="width: 30px"
-                                                                            aria-label="#">#
-                                                                        </th>
-                                                                        <th class="sorting_disabled" tabindex="0"
-                                                                            aria-controls="DataTables_Table_0"
-                                                                            rowspan="1" colspan="1"
-                                                                            style="width: 144px">
-                                                                            State
-                                                                        </th>
-                                                                        <th class="sorting_disabled" tabindex="0"
-                                                                            aria-controls="DataTables_Table_0"
-                                                                            rowspan="1" colspan="1"
-                                                                            style="width: 144px">
-                                                                            Carrier Name
-                                                                        </th>
-                                                                        <th class="sorting_disabled" tabindex="2"
-                                                                            aria-controls="DataTables_Table_0"
-                                                                            rowspan="1" colspan="1"
-                                                                            style="width: 130px">
-                                                                            Status Progress
-                                                                        </th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr class="odd">
-                                                                        <td valign="top" colspan="4"
-                                                                            class="dataTables_empty">
-                                                                            Loading...
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <!--/ Carrier Status -->
+                                                    <!--/ Carrier Status -->
 
-                                                <!-- Activity Timeline -->
-                                                <div class="card mb-3">
-                                                    <h5 class="card-header">Agent Activity Timeline</h5>
-                                                    <div class="card-body pt-1">
-                                                        <ul class="timeline mb-0" id="user-activity-timeline"></ul>
-                                                    </div>
-                                                </div>
-                                                <!--/ Activity Timeline -->
-                                        </div>
-                                        <!--/ Agent Content -->
+                                                    <% if (less) { %>
+                                                        <!-- Activity Timeline -->
+                                                        <div class="card mb-3">
+                                                            <h5 class="card-header">Agent Activity Timeline</h5>
+                                                            <div class="card-body pt-1">
+                                                                <ul class="timeline mb-0" id="user-activity-timeline">
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                        <!--/ Activity Timeline -->
+                                                        <% } %>
+                                            </div>
+                                            <!--/ Agent Content -->
                                 </div>
                             </div>
                             <!-- / Content -->
@@ -872,6 +879,55 @@
                                 if (currentValue === st.abbr || currentValue === st.name) option.selected = true;
                                 input.appendChild(option);
                             });
+                        }
+
+                        else if (fieldName === 'city' && sectionKey === 'contactInfo') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+                            input.dataset.original = currentValue;
+
+                            const noneOption = document.createElement('option');
+                            noneOption.value = '';
+                            noneOption.textContent = 'None';
+                            if (!currentValue || currentValue === 'None') noneOption.selected = true;
+                            input.appendChild(noneOption);
+
+                            async function loadCitiesForState(stateAbbr, selectedCity = null) {
+                                input.innerHTML = '';
+                                const none = document.createElement('option');
+                                none.value = '';
+                                none.textContent = 'None';
+                                input.appendChild(none);
+
+                                if (!stateAbbr) return;
+
+                                try {
+                                    const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
+                                    const cities = await res.json();
+
+                                    cities.forEach(city => {
+                                        const option = document.createElement('option');
+                                        option.value = city;
+                                        option.textContent = city;
+                                        if (selectedCity && selectedCity.toLowerCase() === city.toLowerCase()) {
+                                            option.selected = true;
+                                        }
+                                        input.appendChild(option);
+                                    });
+                                } catch (err) {
+                                    console.error("Error loading cities:", err);
+                                }
+                            }
+
+                            const selectedState = contactInfo.state;
+                            loadCitiesForState(selectedState, currentValue);
+
+                            const stateSelect = list.querySelector('li[data-field="state"] select');
+                            if (stateSelect) {
+                                stateSelect.addEventListener('change', () => {
+                                    loadCitiesForState(stateSelect.value);
+                                });
+                            }
                         }
 
                         // Documents

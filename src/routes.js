@@ -212,4 +212,7 @@ import { renderNewLead, loadLead } from "./controllers/lead_center.js";
 router.get("/lead-center/newLead", renderNewLead);
 router.get("/lead-center/loadLead/:id", checkNotAuthenticated, loadLead);
 
+import { getCity } from "./config/utils.js"
+router.get("/utils/get-city", checkNotAuthenticated, getCity);
+
 export default router;
