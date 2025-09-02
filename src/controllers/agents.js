@@ -261,7 +261,6 @@ const massiveCreateAgents = async (req, res) => {
         city,
         state,
         zip,
-        franchise,
         agency,
         companyEIN,
         contactType = "individual",
@@ -302,8 +301,7 @@ const massiveCreateAgents = async (req, res) => {
           businessName: agency || null,
           companyEIN: companyEIN || null,
           contactType,
-          franchise: !!franchise,
-          agency: (!!franchise) ? agency : null
+          agency: agency || null
         }
       });
 
