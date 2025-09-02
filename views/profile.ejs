@@ -195,7 +195,7 @@
                                             <form id="addCarrierForm">
                                                 <div class="mb-3">
                                                     <label for="modalStateSelect" class="form-label">State</label>
-                                                    <select class="form-select" id="modalStateSelect" required>
+                                                    <select class="form-select" id="modalStateSelect">
                                                         <option value="">-- Select a state --</option>
                                                         <!-- States options will be populated dynamically -->
                                                     </select>
@@ -203,7 +203,7 @@
                                                 <div class="mb-3">
                                                     <label for="modalCompanySelect" class="form-label">Carrier
                                                         Name</label>
-                                                    <select class="form-select" id="modalCompanySelect" required>
+                                                    <select class="form-select" id="modalCompanySelect">
                                                         <option value="">-- Select a carrier --</option>
                                                         <!-- Carrier options update dynamically based on state -->
                                                     </select>
@@ -211,7 +211,7 @@
                                                 <div class="mb-3">
                                                     <label for="modalStatusSelect" class="form-label">Status
                                                         Progress</label>
-                                                    <select class="form-select" id="modalStatusSelect" required>
+                                                    <select class="form-select" id="modalStatusSelect">
                                                         <!-- Status options -->
                                                     </select>
                                                 </div>
@@ -999,7 +999,6 @@
                             input.pattern = '\\d*';
                             input.maxLength = 17;
                             input.value = currentValue === 'None' ? '' : currentValue;
-                            input.required = true;
                             input.dataset.original = input.value;
                             input.className = 'form-control form-control-sm';
                             input.addEventListener('input', function () {
@@ -1015,7 +1014,6 @@
                             input.pattern = '\\d*';
                             input.maxLength = 9;
                             input.value = currentValue === 'None' ? '' : currentValue;
-                            input.required = true;
                             input.dataset.original = input.value;
                             input.className = 'form-control form-control-sm';
                             input.addEventListener('input', function () {
@@ -1099,7 +1097,6 @@
                 } else {
                     const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
                     const updatedValues = {};
-                    let hasEmpty = false;
 
                     let contactTypeValue = null;
                     let businessNameInput = null;
@@ -1134,7 +1131,6 @@
                             (!input.value || input.value.trim() === '') &&
                             !optionalFields.includes(fieldName)
                         ) {
-                            hasEmpty = true;
                             input.classList.add('is-invalid');
                         } else {
                             input.classList.remove('is-invalid');
@@ -1166,7 +1162,6 @@
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
 
-                        // Mask sensitive fields (payment info + ssn)
                         if (
                             (sectionKey === 'paymentMethod' && (fieldName === 'bankAccountNum' || fieldName === 'bankRoutingNum')) ||
                             fieldName === 'ssn'
@@ -1208,11 +1203,6 @@
                         updatedValues['companyEIN'] = null;
                         if (businessNameInput) businessNameInput.value = '';
                         if (companyEinInput) companyEinInput.value = '';
-                    }
-
-                    if (hasEmpty) {
-                        alert('All required fields must be filled out.');
-                        return;
                     }
 
                     if (Object.keys(updatedValues).length > 0) {
@@ -1309,6 +1299,7 @@
         // ... Personal Info ...
         let sectionKey = 'personalInfo';
         addSectionHeader('Personal Info', sectionKey);
+        addListItem('Full name', personalInfo.legalName, 'legalName', false, false, sectionKey);
         addListItem('Preferred Name', personalInfo.preferredName, 'preferredName', false, false, sectionKey);
         addListItem('Contact Type', personalInfo.contactType, 'contactType', false, false, sectionKey);
         const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';

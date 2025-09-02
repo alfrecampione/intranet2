@@ -43,31 +43,39 @@
                             <%= personalInfo?.contactType || "None" %>
                         </span>
                     </li>
-                    <li class="mb-2">
-                        <span class="h6">Phone:</span>
-                        <span>
-                            <%= contactInfo?.personalPhone || "None" %>
-                        </span>
-                    </li>
-                    <li class="mb-2">
-                        <span class="h6">NPN:</span>
-                        <span>
-                            <%= personalInfo?.npn || "None" %>
-                        </span>
-                    </li>
-                    <li class="mb-2">
-                        <span class="h6">Birthday:</span>
-                        <span>
-                            <%= personalInfo?.dateOfBirth ? new
-                                Date(personalInfo.dateOfBirth).toISOString().split("T")[0] : "None" %>
-                        </span>
-                    </li>
-                    <li class="mb-2">
-                        <span class="h6">Sex:</span>
-                        <span>
-                            <%= personalInfo?.legalSex || "None" %>
-                        </span>
-                    </li>
+                    <% if(personalInfo?.contactType && personalInfo?.contactType.toLowerCase()==='business' ) { %>
+                        <li class="mb-2">
+                            <span class="h6">Business Name:</span>
+                            <span>
+                                <%= personalInfo?.businessName || "None" %>
+                            </span>
+                        </li>
+                        <% } %>
+                            <li class="mb-2">
+                                <span class="h6">Phone:</span>
+                                <span>
+                                    <%= contactInfo?.personalPhone || "None" %>
+                                </span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="h6">NPN:</span>
+                                <span>
+                                    <%= personalInfo?.npn || "None" %>
+                                </span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="h6">Birthday:</span>
+                                <span>
+                                    <%= personalInfo?.dateOfBirth ? new
+                                        Date(personalInfo.dateOfBirth).toISOString().split("T")[0] : "None" %>
+                                </span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="h6">Sex:</span>
+                                <span>
+                                    <%= personalInfo?.legalSex || "None" %>
+                                </span>
+                            </li>
                 </ul>
             </div>
         </div>

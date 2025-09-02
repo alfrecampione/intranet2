@@ -1,4 +1,4 @@
-import { pool, prisma } from "../config/dbConfig.js";
+import { prisma } from "../config/dbConfig.js";
 
 const dataSearch = async (req, res) => {
   const { query } = req.body;
@@ -23,7 +23,8 @@ const dataSearch = async (req, res) => {
           },
           {
             personalInfo: {
-              legalName: { contains: query, mode: "insensitive" }
+              legalName: { contains: query, mode: "insensitive" },
+              businessName: { contains: query, mode: "insensitive" }
             }
           }
         ]
