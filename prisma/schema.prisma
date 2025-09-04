@@ -235,3 +235,13 @@ model Lead {
 
   @@schema("health")
 }
+
+model News {
+  id       String   @id @default(uuid())
+  title    String
+  content  String
+  sender   String
+  sendedAt DateTime
+
+  @@schema("health")
+}
