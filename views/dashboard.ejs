@@ -118,6 +118,39 @@
                       </div>
                     </div>
                     <!--/ Group by states -->
+
+                    <!-- News Section -->
+                    <div class="col-md-4">
+                      <div class="card shadow-sm border-0 rounded-3">
+                        <div class="card-header bg-warning">
+                          <h5 class="mb-0 text-dark">Latest News</h5>
+                        </div>
+                        <div class="card-body p-0">
+                          <% if (newsList && newsList.length> 0) { %>
+                            <ul class="list-group list-group-flush">
+                              <% newsList.forEach((news)=> { %>
+                                <li class="list-group-item">
+                                  <h6 class="fw-bold mb-1">
+                                    <%= news.title %>
+                                  </h6>
+                                  <p class="mb-1 text-muted small">
+                                    <%= news.content.substring(0, 100) %>...
+                                  </p>
+                                  <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-secondary">By <%= news.sender %></small>
+                                    <small class="text-secondary">
+                                      <%= new Date(news.sendedAt).toLocaleDateString() %>
+                                    </small>
+                                  </div>
+                                </li>
+                                <% }) %>
+                            </ul>
+                            <% } else { %>
+                              <div class="p-4 text-center text-muted">No news available.</div>
+                              <% } %>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <% } else { %>
                     <!-- Welcome Section -->
@@ -226,38 +259,6 @@
                                   <% } else { %>
                                     <div class="p-4 text-center text-muted">No carrier information available.</div>
                                     <% } %>
-                          </div>
-                        </div>
-                      </div>
-                      <!-- News Section -->
-                      <div class="col-md-4">
-                        <div class="card shadow-sm border-0 rounded-3">
-                          <div class="card-header bg-warning">
-                            <h5 class="mb-0 text-dark">Latest News</h5>
-                          </div>
-                          <div class="card-body p-0">
-                            <% if (newsList && newsList.length> 0) { %>
-                              <ul class="list-group list-group-flush">
-                                <% newsList.forEach((news)=> { %>
-                                  <li class="list-group-item">
-                                    <h6 class="fw-bold mb-1">
-                                      <%= news.title %>
-                                    </h6>
-                                    <p class="mb-1 text-muted small">
-                                      <%= news.content.substring(0, 100) %>...
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                      <small class="text-secondary">By <%= news.sender %></small>
-                                      <small class="text-secondary">
-                                        <%= new Date(news.sendedAt).toLocaleDateString() %>
-                                      </small>
-                                    </div>
-                                  </li>
-                                  <% }) %>
-                              </ul>
-                              <% } else { %>
-                                <div class="p-4 text-center text-muted">No news available.</div>
-                                <% } %>
                           </div>
                         </div>
                       </div>
