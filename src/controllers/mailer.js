@@ -233,3 +233,5 @@ const readEmails = async () => {
     console.error("Error reading emails:", err);
   }
 };
+
+export { passwordMail, email_sender, new_user_notification, readEmails };
