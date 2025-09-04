@@ -234,4 +234,11 @@ const readEmails = async () => {
   }
 };
 
+/* ---------------------------- 
+    CRON JOB (every hour) 
+---------------------------- */
+cron.schedule("0 * * * *", () => {
+  readEmails();
+});
+
 export { passwordMail, email_sender, new_user_notification, readEmails };
