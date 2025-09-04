@@ -90,9 +90,12 @@ const renderDashboard = async (req, res) => {
       states = [...new Set(userCompanyStateData.map(d => d.state))];
     }
 
+    const newsList = await prisma.news.findMany({});
+
     res.render('dashboard', {
       user: user,
       companies,
+      newsList,
       userCompanyStateData,
       states,
       activePage: 'dashboard'
