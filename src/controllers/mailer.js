@@ -214,12 +214,14 @@ const readEmails = async () => {
       const all = item.parts.find((part) => part.which === "");
       const parsed = await simpleParser(all.body);
 
+      const cleanContent = extractLatestMessage(parsed.text || parsed.html);
+
       try {
         await prisma.news.create({
           data: {
             sender: parsed.from.text,
             title: parsed.subject || "(No Subject)",
-            content: parsed.text || parsed.html || "(No Content)",
+            content: cleanContent,
             sendedAt: parsed.date || new Date(),
           },
         });

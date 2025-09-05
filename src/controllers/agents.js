@@ -148,7 +148,57 @@ const renderReleasedAgents = async (req, res) => {
     agency: u.personalInfo?.underAgency?.name || null,
   }));
 
-  res.render("released_agents", { user, releasedUsers, activePage: 'releasedAgents' });
+  res.render("agents_released", { user, releasedUsers, activePage: 'releasedAgents' });
+};
+
+const renderReferingAgents = async (req, res) => {
+  const user = req.user;
+
+  const users = await prisma.user.findMany({
+    where: {
+      isReleased: false,
+      statesAndCarriers: {
+        some: {
+          status: {
+            equals: "refering",
+            mode: "insensitive"   // 👈 case-insensitive match
+          }
+        }
+      }
+    },
+    orderBy: [
+      { display_name: "asc" },
+      { email: "asc" }
+    ],
+    include: {
+      personalInfo: {
+        select: {
+          photoPath: true,
+          underAgency: { select: { name: true } }
+        }
+      },
+      statesAndCarriers: {
+        where: {
+          status: {
+            equals: "refering",
+            mode: "insensitive"
+          }
+        }
+      }
+    }
+  });
+
+  const referingUsers = users.map(u => ({
+    ...u,
+    photoPath: u.personalInfo?.photoPath || null,
+    agency: u.personalInfo?.underAgency?.name || null,
+  }));
+
+  res.render("agents_refering", {
+    user,
+    referingUsers,
+    activePage: "referingAgents"
+  });
 };
 
 const deleteAgent = async (req, res) => {
@@ -385,6 +435,7 @@ const recoverAgent = async (req, res) => {
 export {
   renderAgents,
   renderReleasedAgents,
+  renderReferingAgents,
   renderMyAgents,
   markDocsAsNecessary,
   deleteAgent,
