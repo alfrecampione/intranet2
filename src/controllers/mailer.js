@@ -186,53 +186,122 @@ const imapConfig = {
   },
 };
 
+
+import crypto from "crypto";
+
+const VECTOR_SIZE = 512;
+
+function textToVector(text) {
+  const vector = new Array(VECTOR_SIZE).fill(0);
+  if (!text) return vector;
+
+  const tokens = text
+    .toLowerCase()
+    .replace(/[^a-z0-9áéíóúüñ]+/gi, " ")
+    .split(" ")
+    .filter(Boolean);
+
+  for (const token of tokens) {
+    const hash = crypto.createHash("md5").update(token).digest("hex");
+    const index = parseInt(hash.substring(0, 8), 16) % VECTOR_SIZE;
+    vector[index] += 1;
+  }
+
+  return vector;
+}
+
+function cosineSimilarity(vecA, vecB) {
+  const dot = vecA.reduce((acc, v, i) => acc + v * vecB[i], 0);
+  const normA = Math.sqrt(vecA.reduce((acc, v) => acc + v * v, 0));
+  const normB = Math.sqrt(vecB.reduce((acc, v) => acc + v * v, 0));
+  return normA && normB ? dot / (normA * normB) : 0;
+}
+
 /* ----------------------------
    READ EMAILS FUNCTION
 ---------------------------- */
+function extractLatestMessage(content) {
+  if (!content) return "(No Content)";
+  const patterns = [
+    /^On .* wrote:/mi,
+    /^De:/mi,
+    /^From:/mi,
+    /-----Original Message-----/i,
+    /----- Mensaje original -----/i,
+  ];
+
+  for (let pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      return content.substring(0, match.index).trim();
+    }
+  }
+  return content.trim();
+}
+
 const readEmails = async () => {
   try {
     const connection = await Imap.connect(imapConfig);
     await connection.openBox("INBOX");
 
-    // ONLY 48 hours ago
     const sinceDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
-
-    const imapDate = sinceDate.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).replace(/ /g, "-");
+    const imapDate = sinceDate
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+      .replace(/ /g, "-");
 
     const searchCriteria = [["SINCE", imapDate]];
-    const fetchOptions = { bodies: [""], markSeen: false };
+    const fetchOptions = { bodies: [""], struct: true, markSeen: false };
 
     const messages = await connection.search(searchCriteria, fetchOptions);
 
-    await prisma.news.deleteMany({});
+    const seenIds = [];
 
     for (let item of messages) {
       const all = item.parts.find((part) => part.which === "");
       const parsed = await simpleParser(all.body);
 
-      const cleanContent = extractLatestMessage(parsed.text || parsed.html);
+      const uniqueId = parsed.messageId || item.attributes.uid.toString();
+      seenIds.push(uniqueId);
 
-      try {
-        await prisma.news.create({
-          data: {
-            sender: parsed.from.text,
-            title: parsed.subject || "(No Subject)",
-            content: cleanContent,
-            sendedAt: parsed.date || new Date(),
-          },
-        });
-      } catch (error) {
-        console.error("DB Insert Error:", error);
-      }
+      const cleanContent = extractLatestMessage(parsed.text || parsed.html);
+      const textToEmbed = `${parsed.subject || ""} ${cleanContent}`;
+      const embedding = textToVector(textToEmbed);
+
+      await prisma.news.upsert({
+        where: { externalId: uniqueId },
+        update: {
+          sender: parsed.from?.text || "Unknown",
+          title: parsed.subject || "(No Subject)",
+          content: cleanContent,
+          sendedAt: parsed.date || new Date(),
+          embedding,
+        },
+        create: {
+          externalId: uniqueId,
+          sender: parsed.from?.text || "Unknown",
+          title: parsed.subject || "(No Subject)",
+          content: cleanContent,
+          sendedAt: parsed.date || new Date(),
+          embedding,
+        },
+      });
+    }
+
+    const dbNews = await prisma.news.findMany({ select: { externalId: true } });
+    const dbIds = dbNews.map((n) => n.externalId);
+    const toDelete = dbIds.filter((id) => !seenIds.includes(id));
+
+    if (toDelete.length > 0) {
+      await prisma.news.deleteMany({ where: { externalId: { in: toDelete } } });
     }
 
     connection.end();
   } catch (err) {
-    console.error("Error reading emails:", err);
+    console.error("❌ Error reading emails: ", err);
   }
 };
 
@@ -243,4 +312,63 @@ cron.schedule("0 * * * *", () => {
   readEmails();
 });
 
-export { sendMail, passwordMail, email_sender, new_user_notification, readEmails };
+
+
+const searchNews = async (req, res) => {
+  const query = req.query.q
+
+  if (!query || query === '') {
+    const all = await prisma.news.findMany({ orderBy: { sendedAt: "desc" } });
+    return res.status(200).json({ results: all });
+  }
+
+  const limit = parseInt(req.query.limit) || 5;
+
+  if (!query || query.trim().length === 0) return [];
+
+  const queryEmbedding = textToVector(query);
+
+  const textMatches = await prisma.news.findMany({
+    where: {
+      OR: [
+        { title: { contains: query, mode: "insensitive" } },
+        { content: { contains: query, mode: "insensitive" } },
+      ],
+    },
+    take: limit,
+  });
+
+  // Embeddings from DB
+  const allWithEmbeddings = await prisma.news.findMany({
+    where: { embedding: { not: null } },
+  });
+
+  const vectorMatches = allWithEmbeddings
+    .map((news) => ({
+      ...news,
+      similarity: cosineSimilarity(queryEmbedding, news.embedding),
+    }))
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, limit);
+
+  // 5. Combinar resultados
+  const combined = [...textMatches, ...vectorMatches];
+  const seen = new Map();
+
+  const merged = combined
+    .map((row) => {
+      if (!seen.has(row.id)) {
+        seen.set(row.id, { ...row, score: row.similarity || 0.5 });
+      } else {
+        seen.get(row.id).score += 0.5;
+      }
+      return seen.get(row.id);
+    })
+    .filter((v, i, arr) => arr.findIndex((a) => a.id === v.id) === i)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  return res.status(200).json({ results: merged });
+};
+
+export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, searchNews };

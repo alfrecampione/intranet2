@@ -237,11 +237,13 @@ model Lead {
 }
 
 model News {
-  id       String   @id @default(uuid())
-  title    String
-  content  String
-  sender   String
-  sendedAt DateTime
+  id         String   @id @default(uuid())
+  externalId String   @unique
+  title      String
+  content    String
+  sender     String
+  sendedAt   DateTime
+  embedding  Json?
 
   @@schema("health")
 }

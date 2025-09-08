@@ -78,7 +78,7 @@
                             <div class="container-xxl flex-grow-1 container-p-y">
                                 <div class="row">
                                     <!-- Agent Sidebar -->
-                                    <% let less=(user.isAgent)? false : true; %>
+                                    <% let less=!user.isAgent%>
                                         <%- include('partials/agent_sidebar', { profile: profile, personalInfo:
                                             personalInfo, contactInfo: contactInfo, user: user, extra_data : less }) %>
                                             <!--/ Agent Sidebar -->

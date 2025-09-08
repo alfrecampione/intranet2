@@ -213,155 +213,156 @@
                             </div>
                         </div>
                 </div>
-
-                <!-- Overlay -->
-                <div class="layout-overlay layout-menu-toggle"></div>
-
-                <!-- Drag Target Area To SlideIn Menu On Small Screens -->
-                <div class="drag-target"></div>
         </div>
-        <!-- / Layout wrapper -->
 
-        <script src="/vendor/libs/jquery/jquery.js"></script>
-        <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
-        <script src="/vendor/libs/select2/select2.js"></script>
+        <!-- Overlay -->
+        <div class="layout-overlay layout-menu-toggle"></div>
 
-        <script src="/vendor/libs/popper/popper.js"></script>
-        <script src="/vendor/js/bootstrap.js"></script>
-        <script src="/vendor/libs/node-waves/node-waves.js"></script>
-        <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-        <script src="/vendor/libs/hammer/hammer.js"></script>
-        <script src="/vendor/libs/i18n/i18n.js"></script>
-        <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
-        <script src="/vendor/js/menu.js"></script>
+        <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+        <div class="drag-target"></div>
+    </div>
+    <!-- / Layout wrapper -->
 
-        <!-- endbuild -->
+    <script src="/vendor/libs/jquery/jquery.js"></script>
+    <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
+    <script src="/vendor/libs/select2/select2.js"></script>
 
-        <!-- Vendors JS -->
-        <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-        <!-- Flat Picker -->
-        <script src="/vendor/libs/moment/moment.js"></script>
-        <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
-        <!-- Form Validation -->
-        <script src="/vendor/libs/@form-validation/popular.js"></script>
-        <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
-        <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+    <script src="/vendor/libs/popper/popper.js"></script>
+    <script src="/vendor/js/bootstrap.js"></script>
+    <script src="/vendor/libs/node-waves/node-waves.js"></script>
+    <script src="/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/vendor/libs/hammer/hammer.js"></script>
+    <script src="/vendor/libs/i18n/i18n.js"></script>
+    <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
+    <script src="/vendor/js/menu.js"></script>
 
-        <!-- Main JS -->
-        <script src="/js/main.js"></script>
+    <!-- endbuild -->
 
-        <script type="application/json" id="users-data">
+    <!-- Vendors JS -->
+    <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <!-- Flat Picker -->
+    <script src="/vendor/libs/moment/moment.js"></script>
+    <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+    <!-- Form Validation -->
+    <script src="/vendor/libs/@form-validation/popular.js"></script>
+    <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    <script type="application/json" id="users-data">
             <%- JSON.stringify(emails) %>
         </script>
-        <script type="application/json" id="admins-data">
+    <script type="application/json" id="admins-data">
             <%- JSON.stringify(admins) %>
         </script>
 
-        <script>
-            $(document).ready(function () {
-                $('#select2Primary').select2({
-                    placeholder: "Select email(s)",
-                    width: '100%',
-                    dropdownParent: $('#add-new-record')
+    <script>
+        $(document).ready(function () {
+            $('#select2Primary').select2({
+                placeholder: "Select email(s)",
+                width: '100%',
+                dropdownParent: $('#add-new-record')
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.querySelector('#DataTables_Table_0_filter input[type="search"]');
+            const table = document.getElementById("DataTables_Table_0");
+            const rows = table.querySelectorAll("tbody tr");
+
+            searchInput.addEventListener("input", function () {
+                const query = this.value.toLowerCase();
+
+                rows.forEach(row => {
+                    const cells = Array.from(row.querySelectorAll("td"));
+                    const text = cells.map(cell => cell.textContent.toLowerCase()).join(" ");
+                    const matches = text.includes(query);
+                    row.style.display = matches ? "" : "none";
                 });
             });
-        </script>
+        });
+    </script>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const searchInput = document.querySelector('#DataTables_Table_0_filter input[type="search"]');
-                const table = document.getElementById("DataTables_Table_0");
-                const rows = table.querySelectorAll("tbody tr");
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("addEmailBtn").addEventListener("click", async function () {
+                const select = document.getElementById("select2Primary");
+                const emails = Array.from(select.selectedOptions).map(option => option.value);
 
-                searchInput.addEventListener("input", function () {
-                    const query = this.value.toLowerCase();
-
-                    rows.forEach(row => {
-                        const cells = Array.from(row.querySelectorAll("td"));
-                        const text = cells.map(cell => cell.textContent.toLowerCase()).join(" ");
-                        const matches = text.includes(query);
-                        row.style.display = matches ? "" : "none";
-                    });
+                if (!emails.length) {
+                    alert("Please select at least one email.");
+                    return;
+                }
+                const admins = emails.map(email => {
+                    const admin = JSON.parse(document.getElementById("admins-data").textContent)
+                        .find(admin => admin.mail === email);
+                    return {
+                        mail: email,
+                        display_name: admin ? admin.display_name : email
+                    };
                 });
-            });
-        </script>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                document.getElementById("addEmailBtn").addEventListener("click", async function () {
-                    const select = document.getElementById("select2Primary");
-                    const emails = Array.from(select.selectedOptions).map(option => option.value);
+                const existingAdmins = Array.from(document.querySelectorAll("table .delete-email-btn"))
+                    .map(btn => btn.getAttribute("data-email"));
 
-                    if (!emails.length) {
-                        alert("Please select at least one email.");
-                        return;
-                    }
-                    const admins = emails.map(email => {
-                        const admin = JSON.parse(document.getElementById("admins-data").textContent)
-                            .find(admin => admin.mail === email);
-                        return {
-                            mail: email,
-                            display_name: admin ? admin.display_name : email
-                        };
+                const newAdmins = admins.filter(admin => !existingAdmins.includes(admin));
+
+                if (!newAdmins.length) {
+                    alert("Selected email(s) already exist in the list.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${url}/users/config_emails`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ admins: newAdmins })
                     });
 
-                    const existingAdmins = Array.from(document.querySelectorAll("table .delete-email-btn"))
-                        .map(btn => btn.getAttribute("data-email"));
-
-                    const newAdmins = admins.filter(admin => !existingAdmins.includes(admin));
-
-                    if (!newAdmins.length) {
-                        alert("Selected email(s) already exist in the list.");
-                        return;
+                    if (!response.ok) {
+                        throw new Error("Error adding email(s)");
                     }
+
+                    location.reload();
+                } catch (err) {
+                    alert("Error adding email(s): " + err.message);
+                }
+            });
+
+            document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
+                btn.addEventListener("click", async function () {
+                    const email = this.getAttribute("data-email");
+                    if (!email) return;
+
+                    if (!confirm("Are you sure you want to delete this email?")) return;
 
                     try {
                         const response = await fetch(`${url}/users/config_emails`, {
-                            method: "POST",
+                            method: "DELETE",
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ admins: newAdmins })
+                            body: JSON.stringify({ email })
                         });
 
                         if (!response.ok) {
-                            throw new Error("Error adding email(s)");
+                            throw new Error("Error deleting email");
                         }
 
                         location.reload();
                     } catch (err) {
-                        alert("Error adding email(s): " + err.message);
+                        alert("Error deleting email: " + err.message);
                     }
                 });
-
-                document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
-                    btn.addEventListener("click", async function () {
-                        const email = this.getAttribute("data-email");
-                        if (!email) return;
-
-                        if (!confirm("Are you sure you want to delete this email?")) return;
-
-                        try {
-                            const response = await fetch(`${url}/users/config_emails`, {
-                                method: "DELETE",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({ email })
-                            });
-
-                            if (!response.ok) {
-                                throw new Error("Error deleting email");
-                            }
-
-                            location.reload();
-                        } catch (err) {
-                            alert("Error deleting email: " + err.message);
-                        }
-                    });
-                });
             });
-        </script>
+        });
+    </script>
 </body>
 
 </html>

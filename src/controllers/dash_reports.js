@@ -59,7 +59,6 @@ const renderDashboard = async (req, res) => {
           select: { user_id: true }
         });
 
-
         const userIds = users.map(u => u.user_id);
         userCompanyStateData = await prisma.statesANDCarriers.findMany({
           where: { userId: { in: userIds } },
@@ -67,9 +66,7 @@ const renderDashboard = async (req, res) => {
         });
         companies = await prisma.company.findMany();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
-
       } else {
-        // No agency found, show nothing
         companies = [];
         userCompanyStateData = [];
         states = [];
@@ -81,13 +78,40 @@ const renderDashboard = async (req, res) => {
           where: { user_id: user.user_id },
           include: { personalInfo: true, statesAndCarriers: true }
         });
-      }
+        companies = await prisma.company.findMany();
 
-      companies = await prisma.company.findMany();
-      userCompanyStateData = await prisma.statesANDCarriers.findMany({
-        select: { userId: true, company: true, state: true }
-      });
-      states = [...new Set(userCompanyStateData.map(d => d.state))];
+        userCompanyStateData = await prisma.statesANDCarriers.findMany({
+          where: { OR: [{}, { userId: user.user_id }] },
+          select: { userId: true, company: true, state: true }
+        });
+
+        if (user?.statesAndCarriers?.length) {
+          userCompanyStateData = [
+            ...userCompanyStateData,
+            ...user.statesAndCarriers.map(c => ({
+              userId: user.user_id,
+              company: c.company,
+              state: c.state
+            }))
+          ];
+        }
+
+        const seen = new Set();
+        userCompanyStateData = userCompanyStateData.filter(d => {
+          const key = `${d.userId}-${d.company}-${d.state}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        states = [...new Set(userCompanyStateData.map(d => d.state))];
+      } else {
+        companies = await prisma.company.findMany();
+        userCompanyStateData = await prisma.statesANDCarriers.findMany({
+          select: { userId: true, company: true, state: true }
+        });
+        states = [...new Set(userCompanyStateData.map(d => d.state))];
+      }
     }
 
     const newsList = await prisma.news.findMany({

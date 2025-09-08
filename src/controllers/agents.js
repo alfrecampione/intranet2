@@ -35,7 +35,6 @@ const renderMyAgents = async (req, res) => {
   const user = req.user;
   let users = [];
 
-  // Chequeo de acceso con paréntesis correctos
   if (!user || !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== 'business') {
     res.status(403).send("Access denied");
     return;
