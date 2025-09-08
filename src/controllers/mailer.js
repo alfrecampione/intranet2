@@ -338,7 +338,6 @@ const searchNews = async (req, res) => {
     take: limit,
   });
 
-  // Embeddings from DB
   const allWithEmbeddings = await prisma.news.findMany({
     where: { embedding: { not: null } },
   });
@@ -351,7 +350,6 @@ const searchNews = async (req, res) => {
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, limit);
 
-  // 5. Combinar resultados
   const combined = [...textMatches, ...vectorMatches];
   const seen = new Map();
 

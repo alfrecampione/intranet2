@@ -729,13 +729,17 @@
     </script>
     <!--/ Group by states -->
     <% } %>
+
+      <!-- News -->
       <script>
         async function searchNews(query = "") {
-          const res = await fetch(`/search_news?q=${encodeURIComponent(query)}`);
+          const res = await fetch(`/search-news?q=${encodeURIComponent(query)}`);
           const data = await res.json();
 
           const listEl = document.getElementById("news-list");
           listEl.innerHTML = "";
+
+          document.querySelectorAll('[id^="newsModal-dyn-"]').forEach(el => el.remove());
 
           if (!data.results || data.results.length === 0) {
             listEl.innerHTML =
@@ -783,6 +787,7 @@
           searchNews();
         });
       </script>
+      <!--/ News -->
 </body>
 
 </html>

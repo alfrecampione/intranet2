@@ -24,7 +24,7 @@ import {
 } from "./controllers/dash_reports.js";
 import { agency } from "./controllers/agency_reports.js";
 import { dataSearch } from "./controllers/search.js";
-import { passwordMail, email_sender, new_user_notification, searchNews } from "./controllers/mailer.js";
+import { passwordMail, email_sender, new_user_notification, searchNews, readEmails } from "./controllers/mailer.js";
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
@@ -112,7 +112,8 @@ router.get("/users/refering-agents", checkNotAuthenticated, renderReferingAgents
 router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
-router.get("/search_news", checkNotAuthenticated, searchNews);
+router.get("/search-news", checkNotAuthenticated, searchNews);
+router.get("/start-search", readEmails)
 
 router.post("/necessaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
