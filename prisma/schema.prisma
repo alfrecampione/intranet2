@@ -243,7 +243,6 @@ model News {
   content    String
   sender     String
   sendedAt   DateTime
-  embedding  Json?
 
   @@schema("health")
 }
