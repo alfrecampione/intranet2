@@ -186,37 +186,6 @@ const imapConfig = {
   },
 };
 
-
-import crypto from "crypto";
-
-const VECTOR_SIZE = 512;
-
-function textToVector(text) {
-  const vector = new Array(VECTOR_SIZE).fill(0);
-  if (!text) return vector;
-
-  const tokens = text
-    .toLowerCase()
-    .replace(/[^a-z0-9áéíóúüñ]+/gi, " ")
-    .split(" ")
-    .filter(Boolean);
-
-  for (const token of tokens) {
-    const hash = crypto.createHash("md5").update(token).digest("hex");
-    const index = parseInt(hash.substring(0, 8), 16) % VECTOR_SIZE;
-    vector[index] += 1;
-  }
-
-  return vector;
-}
-
-function cosineSimilarity(vecA, vecB) {
-  const dot = vecA.reduce((acc, v, i) => acc + v * vecB[i], 0);
-  const normA = Math.sqrt(vecA.reduce((acc, v) => acc + v * v, 0));
-  const normB = Math.sqrt(vecB.reduce((acc, v) => acc + v * v, 0));
-  return normA && normB ? dot / (normA * normB) : 0;
-}
-
 /* ----------------------------
    READ EMAILS FUNCTION
 ---------------------------- */
@@ -268,8 +237,6 @@ const readEmails = async () => {
       seenIds.push(uniqueId);
 
       const cleanContent = extractLatestMessage(parsed.text || parsed.html);
-      const textToEmbed = `${parsed.subject || ""} ${cleanContent}`;
-      const embedding = textToVector(textToEmbed);
 
       await prisma.news.upsert({
         where: { externalId: uniqueId },
@@ -278,7 +245,6 @@ const readEmails = async () => {
           title: parsed.subject || "(No Subject)",
           content: cleanContent,
           sendedAt: parsed.date || new Date(),
-          embedding,
         },
         create: {
           externalId: uniqueId,
@@ -286,7 +252,6 @@ const readEmails = async () => {
           title: parsed.subject || "(No Subject)",
           content: cleanContent,
           sendedAt: parsed.date || new Date(),
-          embedding,
         },
       });
     }
@@ -312,8 +277,6 @@ cron.schedule("0 * * * *", () => {
   readEmails();
 });
 
-
-
 const searchNews = async (req, res) => {
   const query = req.query.q
 
@@ -322,11 +285,7 @@ const searchNews = async (req, res) => {
     return res.status(200).json({ results: all });
   }
 
-  const limit = parseInt(req.query.limit) || 5;
-
   if (!query || query.trim().length === 0) return [];
-
-  const queryEmbedding = textToVector(query);
 
   const textMatches = await prisma.news.findMany({
     where: {
@@ -334,39 +293,10 @@ const searchNews = async (req, res) => {
         { title: { contains: query, mode: "insensitive" } },
         { content: { contains: query, mode: "insensitive" } },
       ],
-    },
-    take: limit,
+    }
   });
 
-  const allWithEmbeddings = await prisma.news.findMany({
-    where: { embedding: { not: null } },
-  });
-
-  const vectorMatches = allWithEmbeddings
-    .map((news) => ({
-      ...news,
-      similarity: cosineSimilarity(queryEmbedding, news.embedding),
-    }))
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, limit);
-
-  const combined = [...textMatches, ...vectorMatches];
-  const seen = new Map();
-
-  const merged = combined
-    .map((row) => {
-      if (!seen.has(row.id)) {
-        seen.set(row.id, { ...row, score: row.similarity || 0.5 });
-      } else {
-        seen.get(row.id).score += 0.5;
-      }
-      return seen.get(row.id);
-    })
-    .filter((v, i, arr) => arr.findIndex((a) => a.id === v.id) === i)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
-
-  return res.status(200).json({ results: merged });
+  return res.status(200).json({ results: textMatches });
 };
 
 export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, searchNews };
