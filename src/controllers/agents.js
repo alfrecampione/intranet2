@@ -200,6 +200,95 @@ const renderReferingAgents = async (req, res) => {
   });
 };
 
+const addAgent = async (req, res) => {
+  const { email, legalName, phone, npn } = req.body
+
+  try {
+    const {
+      password = "12345678",
+      cellPhone = phone,
+      contactType = "individual",
+    } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required." });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser && !existingUser.isReleased) {
+      return res.status(400).json({ message: "Agent already exists." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        display_name: legalName,
+        registrationCompleted: false
+      }
+    });
+
+    await prisma.necesaryDocuments.create({
+      data: { email: user.email }
+    });
+
+    await prisma.personalInfo.create({
+      data: {
+        userId: user.user_id,
+        legalName: legalName,
+        preferredName: null,
+        legalSex: null,
+        dateOfBirth: null,
+        ssn: ssn || null,
+        npn: npn || null,
+        businessName: null,
+        companyEIN: null,
+        contactType,
+        agency: null
+      }
+    });
+
+    await prisma.contactInfo.create({
+      data: {
+        userId: user.user_id,
+        personalEmail: email,
+        personalPhone: cellPhone || null,
+        city: "",
+        state: "",
+        zipCode: "",
+        addressLine1: "",
+        addressLine2: null
+      }
+    });
+
+    await prisma.paymentMethod.create({
+      data: {
+        userId: user.user_id,
+        bankAccountType: null,
+        bankAccountNum: null,
+        bankRoutingNum: null,
+        accountNickname: null,
+        assignToGTI: true,
+      }
+    });
+
+    return res.status(201).json({
+      message: "Agent created successfully",
+      userId: user.user_id,
+      email: user.email
+    });
+
+  } catch (error) {
+    console.error("Error creating agent:", error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 const deleteAgent = async (req, res) => {
   const { id } = req.params;
 
@@ -437,6 +526,7 @@ export {
   renderReferingAgents,
   renderMyAgents,
   markDocsAsNecessary,
+  addAgent,
   deleteAgent,
   recoverAgent,
   massiveCreateAgents

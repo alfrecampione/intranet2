@@ -453,6 +453,11 @@ const addCarrierToUser = async (req, res) => {
                     status
                 }
             });
+            await prisma.user.update({
+                where: { user_id: userId },
+                data: { isReleased: false }
+            })
+
             res.status(201).json({ success: true, data: newCarrier });
         });
     } catch (error) {

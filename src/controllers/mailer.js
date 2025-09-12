@@ -2,12 +2,10 @@ import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import dotenv from "dotenv";
 import { pool, prisma } from "../config/dbConfig.js";
-import { prismaContext } from "../config/prismaContext.js";
 import { encrypt } from "./crypto.js";
-import { decrypt } from "./crypto.js";
 import Imap from "imap-simple";
 import { simpleParser } from "mailparser";
-import cron from "node-cron";
+
 
 dotenv.config();
 
@@ -213,19 +211,9 @@ const readEmails = async () => {
     const connection = await Imap.connect(imapConfig);
     await connection.openBox("INBOX");
 
-    const sinceDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    const imapDate = sinceDate
-      .toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-      .replace(/ /g, "-");
-
-    const searchCriteria = [["SINCE", imapDate]];
     const fetchOptions = { bodies: [""], struct: true, markSeen: false };
 
-    const messages = await connection.search(searchCriteria, fetchOptions);
+    const messages = await connection.search(fetchOptions);
 
     const seenIds = [];
 
@@ -269,13 +257,6 @@ const readEmails = async () => {
     console.error("❌ Error reading emails: ", err);
   }
 };
-
-/* ---------------------------- 
-    CRON JOB (every hour) 
----------------------------- */
-cron.schedule("0 * * * *", () => {
-  readEmails();
-});
 
 const searchNews = async (req, res) => {
   const query = req.query.q
