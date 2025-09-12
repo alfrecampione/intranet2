@@ -244,7 +244,7 @@ const addAgent = async (req, res) => {
         preferredName: null,
         legalSex: null,
         dateOfBirth: null,
-        ssn: ssn || null,
+        ssn: null,
         npn: npn || null,
         businessName: null,
         companyEIN: null,
@@ -298,9 +298,17 @@ const deleteAgent = async (req, res) => {
 
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     try {
+      const user = await prisma.user.findUnique({
+        where: { user_id: id }
+      })
+
       await prisma.user.delete({
         where: { user_id: id }
       });
+
+      await prisma.necesaryDocuments.delete({
+        where: { email: user.email }
+      })
 
       res.status(200).json({ message: "Agent deleted successfully." });
     } catch (error) {
