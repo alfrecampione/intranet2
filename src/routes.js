@@ -28,7 +28,7 @@ import { passwordMail, email_sender, new_user_notification, searchNews, readEmai
 import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, deleteAgent, recoverAgent } from "./controllers/agents.js";
+import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, deleteAgent, recoverAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
@@ -91,8 +91,6 @@ router.post(
   cnSalesStatistics,
 );
 router.get("/users/agency", checkNotAuthenticated, agency);
-router.delete("/users/agency/:id", checkNotAuthenticated, deleteAgent);
-router.post("/users/agency/recover/:id", checkNotAuthenticated, recoverAgent);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);
 
@@ -107,6 +105,9 @@ router.get("/email-validation", renderEmailValidation);
 router.post("/email-validation", validateEmail);
 
 router.get("/users/agents", checkNotAuthenticated, renderAgents);
+router.post("/users/agents", checkNotAuthenticated, addAgent)
+router.delete("/users/agents/:id", checkNotAuthenticated, deleteAgent);
+router.post("/users/agents/recover/:id", checkNotAuthenticated, recoverAgent);
 router.get("/users/released-agents", checkNotAuthenticated, renderReleasedAgents);
 router.get("/users/refering-agents", checkNotAuthenticated, renderReferingAgents);
 router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
