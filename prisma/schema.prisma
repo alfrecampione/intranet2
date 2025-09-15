@@ -53,6 +53,7 @@ model PersonalInfo {
   preferredName String?
   ssn           String?
   agency        String?
+  franchise     String?
   npn           String?
   user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   underAgency   Agency?   @relation(fields: [agency], references: [id], onDelete: SetNull)

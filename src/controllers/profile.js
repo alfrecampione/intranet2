@@ -36,9 +36,7 @@ const renderProfile = async (req, res) => {
 
     const allCompanies = await prisma.company.findMany();
 
-    const allAgencies = await prisma.agency.findMany({
-        orderBy: { name: 'asc' },
-    });
+    const allAgencies = await getAgencies();
 
     const logs = await prisma.logs.findMany({
         where: {
@@ -365,35 +363,34 @@ const saveSection = async (req, res) => {
         return res.status(400).json({ success: false, message: "Section key and values are required." });
     }
 
-    // Convert dateOfBirth to ISO string if present and not already
-    if (sectionKey === 'personalInfo' && values.dateOfBirth) {
+    if (sectionKey === "personalInfo" && values.dateOfBirth) {
         let dob = values.dateOfBirth;
-        if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+        if (typeof dob === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dob)) {
             values.dateOfBirth = new Date(dob).toISOString();
         } else if (dob instanceof Date) {
             values.dateOfBirth = dob.toISOString();
         }
     }
 
+    if (sectionKey === "personalInfo") {
+        if ("agency" in values) values.agency = values.agency ?? null;
+        if ("franchise" in values) values.franchise = values.franchise ?? null;
+    }
+
     try {
         await prismaContext.run({ requesterId }, async () => {
-            // Get previous personalInfo if updating
             let prevPersonalInfo = null;
-            if (sectionKey === 'personalInfo') {
+            if (sectionKey === "personalInfo") {
                 prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
             }
 
             const updatedSection = await prisma[sectionKey].upsert({
                 where: { userId },
                 update: values,
-                create: {
-                    userId,
-                    ...values
-                }
+                create: { userId, ...values },
             });
 
-            // Agency logic for personalInfo
-            if (sectionKey === 'personalInfo') {
+            if (sectionKey === "personalInfo") {
                 const contactType =
                     values.contactType?.toLowerCase() ??
                     prevPersonalInfo?.contactType?.toLowerCase();
@@ -402,27 +399,22 @@ const saveSection = async (req, res) => {
                     values.businessName ?? prevPersonalInfo?.businessName;
 
                 const existingAgency = await prisma.agency.findUnique({
-                    where: { owner: userId }
+                    where: { owner: userId },
                 });
 
-                if (contactType === 'business') {
+                if (contactType === "business") {
                     if (!existingAgency && businessName) {
                         await prisma.agency.create({
-                            data: {
-                                owner: userId,
-                                name: businessName
-                            }
+                            data: { owner: userId, name: businessName },
                         });
                     } else if (existingAgency && existingAgency.name !== businessName) {
                         await prisma.agency.update({
                             where: { owner: userId },
-                            data: { name: businessName }
+                            data: { name: businessName },
                         });
                     }
-                } else if (contactType === 'individual' && existingAgency) {
-                    await prisma.agency.delete({
-                        where: { owner: userId }
-                    });
+                } else if (contactType === "individual" && existingAgency) {
+                    await prisma.agency.delete({ where: { owner: userId } });
                 }
             }
 
@@ -503,22 +495,37 @@ const deleteCarrierToUser = async (req, res) => {
     }
 }
 
-const getAgencies = async (req, res) => {
-    const { franchise } = req.params;
-
-    if (!franchise) {
-        return res.status(400).json({ success: false, message: "Franchise is required." });
-    }
+async function getAgencies() {
     try {
-        const external = await prisma.agency.findMany({});
-        const company = await prisma.$queryRaw`
-      SELECT alias FROM qq.locations WHERE location_type = 2 or location_id = 1
-      ORDER BY location_id ASC
+        const agencies = await prisma.agency.findMany({
+            orderBy: { name: 'asc' }
+        });
+
+        const franchise = await prisma.$queryRaw`
+      SELECT * 
+      FROM qq.locations 
+      WHERE location_type = 2 OR location_id = 1
+      ORDER BY alias ASC
     `;
-        res.status(200).json({ success: true, data: (franchise.toLowerCase() === 'yes') ? external : company });
-    } catch (error) {
-        console.error("Error fetching agencies:", error);
-        res.status(500).json({ success: false, message: "Failed to fetch agencies." });
+
+        const agencyOptions = agencies.map(a => ({
+            id: a.id,
+            name: a.name,
+            isAgency: true,
+        }));
+
+        const franchiseOptions = franchise.map(f => ({
+            id: f.id,
+            name: f.alias,
+            isAgency: false,
+        }));
+
+        const allOptions = [...agencyOptions, ...franchiseOptions];
+
+        return allOptions
+    }
+    catch (error) {
+        console.log(error)
     }
 }
 
@@ -562,6 +569,5 @@ export {
     saveSection,
     addCarrierToUser,
     deleteCarrierToUser,
-    getAgencies,
     releaseAgent
 };

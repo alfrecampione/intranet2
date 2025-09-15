@@ -29,7 +29,7 @@ import passport from "passport";
 import { authenticate } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
 import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, deleteAgent, recoverAgent } from "./controllers/agents.js";
-import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, getAgencies, releaseAgent } from "./controllers/profile.js";
+import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
 
@@ -52,7 +52,6 @@ router.delete("/users/profile/:id/notes/:noteId", checkNotAuthenticated, deleteN
 router.post("/users/profile/save-section", checkNotAuthenticated, saveSection);
 router.post("/users/profile/add-carrier", checkNotAuthenticated, addCarrierToUser);
 router.delete("/users/profile/carrier/:carrierId", checkNotAuthenticated, deleteCarrierToUser);
-router.get("/users/profile/agencies/:franchise", checkNotAuthenticated, getAgencies);
 router.delete("/users/profile/release-agent/:id", checkNotAuthenticated, releaseAgent);
 
 router.post(

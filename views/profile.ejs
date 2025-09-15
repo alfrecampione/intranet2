@@ -832,6 +832,7 @@
                             const noneOption = document.createElement('option');
                             noneOption.value = '';
                             noneOption.textContent = 'None';
+                            noneOption.dataset.isAgency = '';
                             if (!currentValue || currentValue === 'None') noneOption.selected = true;
                             input.appendChild(noneOption);
 
@@ -839,7 +840,10 @@
                                 const option = document.createElement('option');
                                 option.value = a.id;
                                 option.textContent = a.name;
-                                if (personalInfo.agency == a.id) option.selected = true;
+                                option.dataset.isAgency = a.isAgency ? "true" : "false";
+                                if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
+                                    option.selected = true;
+                                }
                                 input.appendChild(option);
                             });
                         }
@@ -1155,7 +1159,18 @@
                         }
                         else {
                             const newValue = input.value || null;
-                            if (newValue !== originalValue) {
+                            if (fieldName === 'agency') {
+                                const selectedOption = input.options[input.selectedIndex];
+                                const isAgency = selectedOption.dataset.isAgency === "true";
+
+                                if (isAgency) {
+                                    updatedValues['agency'] = newValue;
+                                    updatedValues['franchise'] = null;
+                                } else {
+                                    updatedValues['franchise'] = newValue;
+                                    updatedValues['agency'] = null;
+                                }
+                            } else if (newValue !== originalValue) {
                                 updatedValues[fieldName] = newValue;
                             }
                         }
@@ -1312,7 +1327,7 @@
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
         addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
         addListItem('Agency',
-            agencies?.find(a => a.id == personalInfo.agency)?.name || 'None',
+            agencies?.find(a => (a.id == personalInfo.agency) || (a.id == personalInfo.franchise))?.name || 'None',
             'agency',
             false, false, sectionKey
         );
