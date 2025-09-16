@@ -38,11 +38,14 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
   }
 
   if (personalInfo?.franchise) {
-    const result = await pool.query(
-      `SELECT alias FROM qq.locations WHERE location_id = $1`,
-      [personalInfo.franchise]
-    );
-    return result.rows[0]?.alias || null;
+    const franchiseId = parseInt(personalInfo.franchise, 10);
+    if (!isNaN(franchiseId)) {
+      const result = await pool.query(
+        `SELECT alias FROM qq.locations WHERE location_id = $1`,
+        [franchiseId]
+      );
+      return result.rows[0]?.alias || null;
+    }
   }
 
   return null;
