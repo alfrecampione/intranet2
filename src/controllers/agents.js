@@ -1,4 +1,4 @@
-import { prisma } from "../config/dbConfig.js";
+import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import bcrypt from "bcrypt";
 
@@ -31,11 +31,31 @@ async function getAllAgencyIds(agencyId) {
   return result;
 }
 
+// Helper function to resolve agency/franchise name
+const getAgencyOrFranchiseName = async (personalInfo) => {
+  if (personalInfo?.underAgency?.name) {
+    return personalInfo.underAgency.name;
+  }
+
+  if (personalInfo?.franchise) {
+    const result = await pool.query(
+      `SELECT alias FROM qq.locations WHERE location_id = $1`,
+      [personalInfo.franchise]
+    );
+    return result.rows[0]?.alias || null;
+  }
+
+  return null;
+};
+
+// ===============================
+// Render Functions
+// ===============================
+
 const renderMyAgents = async (req, res) => {
   const user = req.user;
-  let users = [];
 
-  if (!user || !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== 'business') {
+  if (!user || !user.isAgent || user.personalInfo?.contactType?.toLowerCase() !== "business") {
     res.status(403).send("Access denied");
     return;
   }
@@ -52,102 +72,100 @@ const renderMyAgents = async (req, res) => {
       where = {
         ...where,
         OR: [
-          {
-            personalInfo: {
-              is: {
-                agency: { in: allAgencyIds }
-              }
-            }
-          },
+          { personalInfo: { is: { agency: { in: allAgencyIds } } } },
           { user_id: user.user_id }
         ]
       };
     }
 
-    users = await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       where,
-      orderBy: [
-        { display_name: 'asc' },
-        { email: 'asc' }
-      ],
+      orderBy: [{ display_name: "asc" }, { email: "asc" }],
       include: {
         personalInfo: {
           select: {
             photoPath: true,
             agency: true,
-            underAgency: { select: { name: true } }
+            underAgency: { select: { name: true } },
+            franchise: true
           }
         }
       }
     });
 
-    const registeredUsers = users.map(u => ({
-      ...u,
-      photoPath: u.personalInfo?.photoPath || null,
-      agency: u.personalInfo?.underAgency?.name || null,
+    const registeredUsers = await Promise.all(users.map(async u => {
+      const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+      return {
+        ...u,
+        photoPath: u.personalInfo?.photoPath || null,
+        agency: agencyName
+      };
     }));
 
-    res.render("agents", { user, registeredUsers, activePage: 'agents' });
+    res.render("agents", { user, registeredUsers, activePage: "agents" });
 
   } catch (err) {
-    console.error("Error in renderAgents:", err);
+    console.error("Error in renderMyAgents:", err);
     res.status(500).send("Internal server error");
   }
 };
-
 
 const renderAgents = async (req, res) => {
   const user = req.user;
 
   const users = await prisma.user.findMany({
-    where: {
-      isReleased: false,
-    },
-    orderBy: [
-      { display_name: 'asc' },
-      { email: 'asc' }
-    ],
+    where: { isReleased: false },
+    orderBy: [{ display_name: "asc" }, { email: "asc" }],
     include: {
       personalInfo: {
-        select: { photoPath: true, underAgency: { select: { name: true } } }
+        select: {
+          photoPath: true,
+          underAgency: { select: { name: true } },
+          franchise: true
+        }
       }
     }
   });
 
-  const registeredUsers = users.map(u => ({
-    ...u,
-    photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.underAgency?.name || null,
+  const registeredUsers = await Promise.all(users.map(async u => {
+    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+    return {
+      ...u,
+      photoPath: u.personalInfo?.photoPath || null,
+      agency: agencyName
+    };
   }));
 
-  res.render("agents", { user, registeredUsers, activePage: 'agents' });
+  res.render("agents", { user, registeredUsers, activePage: "agents" });
 };
 
 const renderReleasedAgents = async (req, res) => {
   const user = req.user;
 
   const users = await prisma.user.findMany({
-    where: {
-      isReleased: true,
-    },
-    orderBy: [
-      { display_name: 'asc' },
-      { email: 'asc' }
-    ],
+    where: { isReleased: true },
+    orderBy: [{ display_name: "asc" }, { email: "asc" }],
     include: {
       personalInfo: {
-        select: { photoPath: true, underAgency: { select: { name: true } } }
+        select: {
+          photoPath: true,
+          underAgency: { select: { name: true } },
+          franchise: true
+        }
       }
     }
   });
 
-  const releasedUsers = users.map(u => ({
-    ...u,
-    photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.underAgency?.name || null,
+  const releasedUsers = await Promise.all(users.map(async u => {
+    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+    return {
+      ...u,
+      photoPath: u.personalInfo?.photoPath || null,
+      agency: agencyName
+    };
   }));
 
-  res.render("agents_released", { user, releasedUsers, activePage: 'releasedAgents' });
+  res.render("agents_released", { user, releasedUsers, activePage: "releasedAgents" });
 };
 
 const renderReferingAgents = async (req, res) => {
@@ -158,46 +176,35 @@ const renderReferingAgents = async (req, res) => {
       isReleased: false,
       statesAndCarriers: {
         some: {
-          status: {
-            equals: "refering",
-            mode: "insensitive"   // 👈 case-insensitive match
-          }
+          status: { equals: "refering", mode: "insensitive" }
         }
       }
     },
-    orderBy: [
-      { display_name: "asc" },
-      { email: "asc" }
-    ],
+    orderBy: [{ display_name: "asc" }, { email: "asc" }],
     include: {
       personalInfo: {
         select: {
           photoPath: true,
-          underAgency: { select: { name: true } }
+          underAgency: { select: { name: true } },
+          franchise: true
         }
       },
       statesAndCarriers: {
-        where: {
-          status: {
-            equals: "refering",
-            mode: "insensitive"
-          }
-        }
+        where: { status: { equals: "refering", mode: "insensitive" } }
       }
     }
   });
 
-  const referingUsers = users.map(u => ({
-    ...u,
-    photoPath: u.personalInfo?.photoPath || null,
-    agency: u.personalInfo?.underAgency?.name || null,
+  const referingUsers = await Promise.all(users.map(async u => {
+    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+    return {
+      ...u,
+      photoPath: u.personalInfo?.photoPath || null,
+      agency: agencyName
+    };
   }));
 
-  res.render("agents_refering", {
-    user,
-    referingUsers,
-    activePage: "referingAgents"
-  });
+  res.render("agents_refering", { user, referingUsers, activePage: "referingAgents" });
 };
 
 const addAgent = async (req, res) => {
@@ -317,7 +324,6 @@ const deleteAgent = async (req, res) => {
   });
 };
 
-// Upserts necessary document requirements (write – needs context)
 const markDocsAsNecessary = async (req, res) => {
   const { email, ...requiredDocuments } = req.body;
 
@@ -507,8 +513,6 @@ const massiveCreateAgents = async (req, res) => {
 
 const recoverAgent = async (req, res) => {
   const { id } = req.params;
-
-  console.log(id);
 
   if (!id) {
     return res.status(400).json({ message: "Agent ID is required." });
