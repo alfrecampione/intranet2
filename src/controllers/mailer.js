@@ -211,9 +211,10 @@ const readEmails = async () => {
     const connection = await Imap.connect(imapConfig);
     await connection.openBox("INBOX");
 
+    const searchCriteria = ["ALL"];
     const fetchOptions = { bodies: [""], struct: true, markSeen: false };
 
-    const messages = await connection.search(fetchOptions);
+    const messages = await connection.search(searchCriteria, fetchOptions);
 
     const seenIds = [];
 
