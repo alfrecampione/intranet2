@@ -7,7 +7,7 @@ import { prisma } from "../config/dbConfig.js";
 ---------------------------- */
 cron.schedule("0 * * * *", () => {
     readEmails();
-    checkReleasedToNot_Agents();
+    // checkReleasedToNot_Agents();
     checkNotToReleased_Agents();
 });
 
