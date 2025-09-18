@@ -1118,7 +1118,7 @@
                     const updatedValues = {};
 
                     for (const input of inputs) {
-                        const fieldName = input.closest('li').dataset.field;
+                        let fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
 
                         const optionalFields = ['agency', 'businessName', 'companyEIN'];
@@ -1134,7 +1134,19 @@
                             input.classList.remove('is-invalid');
                         }
 
-                        const newValue = input.value || null;
+                        let newValue = input.value || null;
+
+                        if (fieldName === 'agency') {
+                            const selectedOption = input.options[input.selectedIndex];
+                            const isAgency = selectedOption.dataset.isAgency === "true";
+
+                            if (isAgency) {
+                                fieldName = "agency";
+                            } else {
+                                fieldName = "franchise";
+                            }
+                        }
+
                         if (newValue !== originalValue) {
                             updatedValues[fieldName] = newValue;
                         }
