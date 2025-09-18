@@ -62,16 +62,18 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  personalEmail String? @unique
-  personalPhone String? @unique
-  city          String?
-  state         String?
-  zipCode       String?
-  id            String  @id @default(uuid())
-  userId        String  @unique
-  addressLine1  String?
-  addressLine2  String?
-  user          User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  personalEmail  String? @unique
+  personalPhone  String? @unique
+  secondaryPhone String?
+  secondaryEmail String?
+  city           String?
+  state          String?
+  zipCode        String?
+  id             String  @id @default(uuid())
+  userId         String  @unique
+  addressLine1   String?
+  addressLine2   String?
+  user           User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
 }

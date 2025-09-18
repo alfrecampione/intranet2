@@ -886,6 +886,7 @@
                             });
                         }
 
+                        // City (dynamic load)
                         else if (fieldName === 'city' && sectionKey === 'contactInfo') {
                             input = document.createElement('select');
                             input.className = 'form-select form-select-sm';
@@ -979,6 +980,46 @@
                             input.dataset.original = currentValue?.toLowerCase() || '';
                         }
 
+                        // Phone numbers (formatting)
+                        else if ((fieldName === 'phoneNumber' || fieldName === 'secondaryPhone') && sectionKey === 'contactInfo') {
+                            input = document.createElement('input');
+                            input.type = 'tel';
+                            input.className = 'form-control form-control-sm';
+                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.dataset.original = input.value;
+                            input.maxLength = 14;
+
+                            input.addEventListener('input', function () {
+                                let digits = this.value.replace(/\D/g, '');
+                                if (digits.length > 10) digits = digits.slice(0, 10);
+                                let formatted = digits;
+                                if (digits.length > 6) {
+                                    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+                                } else if (digits.length > 3) {
+                                    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+                                }
+                                this.value = formatted;
+                            });
+                        }
+
+                        // Email validation
+                        else if (fieldName === 'personalEmail' || fieldName === 'secondaryEmail') {
+                            input = document.createElement('input');
+                            input.type = 'email';
+                            input.className = 'form-control form-control-sm';
+                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.dataset.original = input.value;
+
+                            input.addEventListener('input', function () {
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (this.value && !emailRegex.test(this.value)) {
+                                    this.classList.add('is-invalid');
+                                } else {
+                                    this.classList.remove('is-invalid');
+                                }
+                            });
+                        }
+
                         // Payment Method: Account Type
                         else if (fieldName === 'bankAccountType' && sectionKey === 'paymentMethod') {
                             input = document.createElement('select');
@@ -1045,8 +1086,6 @@
                                 input.type = 'date';
                                 const dobRaw = personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : '';
                                 input.value = dobRaw;
-                            } else if (fieldName === 'personalEmail') {
-                                input.type = 'email';
                             } else if (fieldName === 'zipCode') {
                                 input.type = 'text';
                                 input.inputMode = 'numeric';
@@ -1054,23 +1093,6 @@
                                 input.maxLength = 10;
                                 input.addEventListener('input', function () {
                                     this.value = this.value.replace(/[^0-9]/g, '');
-                                });
-                            } else if (fieldName === 'ssn') {
-                                input.type = 'text';
-                                input.inputMode = 'numeric';
-                                input.maxLength = 11;
-                                input.value = currentValue || '';
-
-                                input.addEventListener('input', function () {
-                                    let value = this.value.replace(/\D/g, '');
-                                    if (value.length > 9) value = value.slice(0, 9);
-                                    let formatted = value;
-                                    if (value.length > 5) {
-                                        formatted = value.replace(/(\d{3})(\d{2})(\d{0,4})/, "$1-$2-$3");
-                                    } else if (value.length > 3) {
-                                        formatted = value.replace(/(\d{3})(\d{0,2})/, "$1-$2");
-                                    }
-                                    this.value = formatted;
                                 });
                             } else if (fieldName === 'companyEIN') {
                                 input.type = 'text';
@@ -1088,23 +1110,6 @@
                         span.replaceWith(input);
                     }
 
-                    if (sectionKey === 'personalInfo') {
-                        const contactTypeSelect = list.querySelector('li[data-field="contactType"] select');
-                        const businessNameLi = list.querySelector('li[data-field="businessName"]');
-                        const companyEinLi = list.querySelector('li[data-field="companyEIN"]');
-
-                        function toggleBusinessFields() {
-                            const isBusiness = contactTypeSelect.value.toLowerCase() === 'business';
-                            if (businessNameLi) businessNameLi.classList.toggle('d-none', !isBusiness);
-                            if (companyEinLi) companyEinLi.classList.toggle('d-none', !isBusiness);
-                        }
-
-                        if (contactTypeSelect) {
-                            contactTypeSelect.addEventListener('change', toggleBusinessFields);
-                            toggleBusinessFields();
-                        }
-                    }
-
                     editIcon.className = 'ti ti-device-floppy';
                     editing = true;
 
@@ -1112,31 +1117,9 @@
                     const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
                     const updatedValues = {};
 
-                    let contactTypeValue = null;
-                    let businessNameInput = null;
-                    let companyEinInput = null;
-
-                    if (sectionKey === 'personalInfo') {
-                        for (const input of inputs) {
-                            const fieldName = input.closest('li').dataset.field;
-                            if (fieldName === 'contactType') contactTypeValue = input.value;
-                            if (fieldName === 'businessName') businessNameInput = input;
-                            if (fieldName === 'companyEIN') companyEinInput = input;
-                        }
-                    }
-
                     for (const input of inputs) {
                         const fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
-
-                        if (
-                            sectionKey === 'personalInfo' &&
-                            contactTypeValue === 'individual' &&
-                            (fieldName === 'businessName' || fieldName === 'companyEIN')
-                        ) {
-                            input.classList.remove('is-invalid');
-                            continue;
-                        }
 
                         const optionalFields = ['agency', 'businessName', 'companyEIN'];
 
@@ -1146,93 +1129,20 @@
                             !optionalFields.includes(fieldName)
                         ) {
                             input.classList.add('is-invalid');
+                            continue;
                         } else {
                             input.classList.remove('is-invalid');
                         }
 
-                        if (input.type === 'file' && input.files.length > 0) {
-                            const formData = new FormData();
-                            formData.append('file', input.files[0]);
-
-                            const uploadRes = await fetch('/upload', {
-                                method: 'POST',
-                                body: formData
-                            });
-
-                            const uploadData = await uploadRes.json();
-                            if (uploadData.path) {
-                                updatedValues[fieldName] = uploadData.path;
-                            } else {
-                                showToast('Error', `Error uploading document: ${fieldName}`);
-                            }
-                        }
-                        else {
-                            const newValue = input.value || null;
-                            if (fieldName === 'agency') {
-                                const selectedOption = input.options[input.selectedIndex];
-                                const isAgency = selectedOption.dataset.isAgency === "true";
-
-                                if (isAgency) {
-                                    updatedValues['agency'] = newValue;
-                                    updatedValues['franchise'] = null;
-                                } else {
-                                    updatedValues['franchise'] = newValue;
-                                    updatedValues['agency'] = null;
-                                }
-                            } else if (fieldName === 'ssn') {
-                                newValue = newValue ? newValue.replace(/\D/g, '') : null;
-                                if (newValue !== originalValue) {
-                                    updatedValues[fieldName] = newValue;
-                                }
-                            } else if (newValue !== originalValue) {
-                                updatedValues[fieldName] = newValue;
-                            }
+                        const newValue = input.value || null;
+                        if (newValue !== originalValue) {
+                            updatedValues[fieldName] = newValue;
                         }
 
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
-
-                        if (
-                            (sectionKey === 'paymentMethod' && (fieldName === 'bankAccountNum' || fieldName === 'bankRoutingNum')) ||
-                            fieldName === 'ssn'
-                        ) {
-                            const hiddenValue = input.value ? '*'.repeat(input.value.length) : '****';
-                            const visibleValue = input.value || 'None';
-
-                            const sensitiveSpan = document.createElement('span');
-                            sensitiveSpan.textContent = hiddenValue;
-                            sensitiveSpan.dataset.visible = 'false';
-                            sensitiveSpan.dataset.full = visibleValue;
-
-                            const toggleIcon = document.createElement('i');
-                            toggleIcon.className = 'ti ti-eye ms-2';
-                            toggleIcon.style.cursor = 'pointer';
-                            toggleIcon.setAttribute('aria-hidden', 'true');
-                            toggleIcon.title = 'Show/Hide';
-
-                            toggleIcon.addEventListener('click', () => {
-                                const isVisible = sensitiveSpan.dataset.visible === 'true';
-                                sensitiveSpan.textContent = isVisible ? hiddenValue : visibleValue;
-                                sensitiveSpan.dataset.visible = (!isVisible).toString();
-                                toggleIcon.className = isVisible ? 'ti ti-eye ms-2' : 'ti ti-eye-off ms-2';
-                            });
-
-                            span.appendChild(sensitiveSpan);
-                            span.appendChild(toggleIcon);
-                        } else {
-                            span.textContent = input.type === 'file'
-                                ? (input.files[0]?.name || 'None')
-                                : (input.value || 'None');
-                        }
-
+                        span.textContent = input.value || 'None';
                         input.replaceWith(span);
-                    }
-
-                    if (sectionKey === 'personalInfo' && contactTypeValue === 'individual') {
-                        updatedValues['businessName'] = null;
-                        updatedValues['companyEIN'] = null;
-                        if (businessNameInput) businessNameInput.value = '';
-                        if (companyEinInput) companyEinInput.value = '';
                     }
 
                     if (Object.keys(updatedValues).length > 0) {
@@ -1291,29 +1201,6 @@
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
                 contentSpan.appendChild(link);
-            } else if (isSensitive) {
-                const hiddenValue = value ? '*'.repeat(value.length) : '****';
-                const visibleValue = value || 'None';
-                const sensitiveSpan = document.createElement('span');
-                sensitiveSpan.textContent = hiddenValue;
-                sensitiveSpan.dataset.visible = 'false';
-                sensitiveSpan.dataset.full = visibleValue;
-
-                const toggleIcon = document.createElement('i');
-                toggleIcon.className = 'ti ti-eye ms-2';
-                toggleIcon.style.cursor = 'pointer';
-                toggleIcon.setAttribute('aria-hidden', 'true');
-                toggleIcon.title = 'Show/Hide';
-
-                toggleIcon.addEventListener('click', () => {
-                    const isVisible = sensitiveSpan.dataset.visible === 'true';
-                    sensitiveSpan.textContent = isVisible ? hiddenValue : visibleValue;
-                    sensitiveSpan.dataset.visible = (!isVisible).toString();
-                    toggleIcon.className = isVisible ? 'ti ti-eye ms-2' : 'ti ti-eye-off ms-2';
-                });
-
-                contentSpan.appendChild(sensitiveSpan);
-                contentSpan.appendChild(toggleIcon);
             } else {
                 contentSpan.textContent = value || 'None';
             }
@@ -1350,6 +1237,9 @@
         sectionKey = 'contactInfo';
         addSectionHeader('Contact Info', sectionKey);
         addListItem('Email', contactInfo.personalEmail, 'personalEmail', false, false, sectionKey);
+        addListItem('Alt Email', contactInfo.secondaryEmail, 'secondaryEmail', false, false, sectionKey);
+        addListItem('Phone', contactInfo.phoneNumber, 'phoneNumber', false, false, sectionKey);
+        addListItem('Alt Phone', contactInfo.altPhoneNumber, 'secondaryPhone', false, false, sectionKey);
         addListItem('State', contactInfo.state, 'state', false, false, sectionKey);
         addListItem('City', contactInfo.city, 'city', false, false, sectionKey);
         addListItem('Address', contactInfo.addressLine1, 'addressLine1', false, false, sectionKey);
