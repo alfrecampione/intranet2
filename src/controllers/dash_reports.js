@@ -37,6 +37,7 @@ const renderDashboard = async (req, res) => {
     let user = req.user;
 
     if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
+      // Case 1: Business Agent
       const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
       if (agency) {
         const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
@@ -44,16 +45,9 @@ const renderDashboard = async (req, res) => {
         const users = await prisma.user.findMany({
           where: {
             OR: [
-              {
-                personalInfo: {
-                  is: {
-                    agency: { in: allAgencyIds }
-                  }
-                }
-              },
-              {
-                user_id: user.user_id
-              }
+              { personalInfo: { is: { agency: { in: allAgencyIds } } } },
+              { personalInfo: { is: { franchise: { in: allAgencyIds } } } },
+              { user_id: user.user_id }
             ]
           },
           select: { user_id: true }
@@ -64,6 +58,7 @@ const renderDashboard = async (req, res) => {
           where: { userId: { in: userIds } },
           select: { userId: true, company: true, state: true }
         });
+
         companies = await prisma.company.findMany();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
       } else {
@@ -71,55 +66,48 @@ const renderDashboard = async (req, res) => {
         userCompanyStateData = [];
         states = [];
       }
+    } else if (user && user.isAgent) {
+      // Case 2: Individual Agent
+      user = await prisma.user.findUnique({
+        where: { user_id: user.user_id },
+        include: { personalInfo: true, statesAndCarriers: true }
+      });
+
+      companies = await prisma.company.findMany();
+
+      userCompanyStateData = user.statesAndCarriers.map(c => ({
+        userId: user.user_id,
+        company: c.company,
+        state: c.state
+      }));
+
+      states = [...new Set(userCompanyStateData.map(d => d.state))];
     } else {
-      // Default: show all
-      if (user && user.isAgent) {
-        user = await prisma.user.findUnique({
-          where: { user_id: user.user_id },
-          include: { personalInfo: true, statesAndCarriers: true }
-        });
-        companies = await prisma.company.findMany();
+      // Caso 3: User not Agent (admin / staff)
+      companies = await prisma.company.findMany();
 
-        userCompanyStateData = await prisma.statesANDCarriers.findMany({
-          where: { OR: [{}, { userId: user.user_id }] },
-          select: { userId: true, company: true, state: true }
-        });
+      const agents = await prisma.user.findMany({
+        where: { isAgent: true },
+        include: { statesAndCarriers: true }
+      });
 
-        if (user?.statesAndCarriers?.length) {
-          userCompanyStateData = [
-            ...userCompanyStateData,
-            ...user.statesAndCarriers.map(c => ({
-              userId: user.user_id,
-              company: c.company,
-              state: c.state
-            }))
-          ];
-        }
+      userCompanyStateData = agents.flatMap(agent =>
+        agent.statesAndCarriers.map(c => ({
+          userId: agent.user_id,
+          company: c.company,
+          state: c.state
+        }))
+      );
 
-        const seen = new Set();
-        userCompanyStateData = userCompanyStateData.filter(d => {
-          const key = `${d.userId}-${d.company}-${d.state}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-
-        states = [...new Set(userCompanyStateData.map(d => d.state))];
-      } else {
-        companies = await prisma.company.findMany();
-        userCompanyStateData = await prisma.statesANDCarriers.findMany({
-          select: { userId: true, company: true, state: true }
-        });
-        states = [...new Set(userCompanyStateData.map(d => d.state))];
-      }
+      states = [...new Set(userCompanyStateData.map(d => d.state))];
     }
 
     const newsList = await prisma.news.findMany({
-      orderBy: { sendedAt: 'desc' },
+      orderBy: { sendedAt: 'desc' }
     });
 
     res.render('dashboard', {
-      user: user,
+      user,
       companies,
       newsList,
       userCompanyStateData,

@@ -1058,10 +1058,19 @@
                             } else if (fieldName === 'ssn') {
                                 input.type = 'text';
                                 input.inputMode = 'numeric';
-                                input.pattern = '\\d*';
-                                input.maxLength = 9;
+                                input.maxLength = 11;
+                                input.value = currentValue || '';
+
                                 input.addEventListener('input', function () {
-                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                    let value = this.value.replace(/\D/g, '');
+                                    if (value.length > 9) value = value.slice(0, 9);
+                                    let formatted = value;
+                                    if (value.length > 5) {
+                                        formatted = value.replace(/(\d{3})(\d{2})(\d{0,4})/, "$1-$2-$3");
+                                    } else if (value.length > 3) {
+                                        formatted = value.replace(/(\d{3})(\d{0,2})/, "$1-$2");
+                                    }
+                                    this.value = formatted;
                                 });
                             } else if (fieldName === 'companyEIN') {
                                 input.type = 'text';
@@ -1169,6 +1178,11 @@
                                 } else {
                                     updatedValues['franchise'] = newValue;
                                     updatedValues['agency'] = null;
+                                }
+                            } else if (fieldName === 'ssn') {
+                                newValue = newValue ? newValue.replace(/\D/g, '') : null;
+                                if (newValue !== originalValue) {
+                                    updatedValues[fieldName] = newValue;
                                 }
                             } else if (newValue !== originalValue) {
                                 updatedValues[fieldName] = newValue;

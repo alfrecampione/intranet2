@@ -51,10 +51,10 @@ model PersonalInfo {
   legalSex      String?
   photoPath     String?
   preferredName String?
-  ssn           String?
+  ssn           String?   @unique
   agency        String?
   franchise     String?
-  npn           String?
+  npn           String?   @unique
   user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   underAgency   Agency?   @relation(fields: [agency], references: [id], onDelete: SetNull)
 
@@ -62,8 +62,8 @@ model PersonalInfo {
 }
 
 model ContactInfo {
-  personalEmail String?
-  personalPhone String?
+  personalEmail String? @unique
+  personalPhone String? @unique
   city          String?
   state         String?
   zipCode       String?
