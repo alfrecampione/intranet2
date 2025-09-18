@@ -18,6 +18,8 @@ const dataSearch = async (req, res) => {
               OR: [
                 { personalEmail: { contains: query, mode: "insensitive" } },
                 { personalPhone: { contains: query, mode: "insensitive" } },
+                { secondaryEmail: { contains: query, mode: "insensitive" } },
+                { secondaryPhone: { contains: query, mode: "insensitive" } },
               ]
             }
           },
