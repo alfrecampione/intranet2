@@ -943,16 +943,29 @@
                             sensitiveSpan.dataset.full = newValue;
                             sensitiveSpan.textContent = maskSSN(newValue);
 
-                            const showBtn = document.createElement("button");
-                            showBtn.textContent = "Ver";
-                            showBtn.className = "btn btn-link btn-sm ms-2";
-                            showBtn.type = "button";
-                            showBtn.addEventListener("click", () => {
-                                sensitiveSpan.textContent = formatSSN(newValue);
+                            const toggleIcon = document.createElement("i");
+                            toggleIcon.className = "ti ti-eye ms-2";
+                            toggleIcon.style.cursor = "pointer";
+                            toggleIcon.title = "Mostrar SSN";
+
+                            let showing = false;
+                            toggleIcon.addEventListener("click", () => {
+                                if (!showing) {
+                                    sensitiveSpan.textContent = formatSSN(newValue);
+                                    toggleIcon.className = "ti ti-eye-off ms-2";
+                                    toggleIcon.title = "Ocultar SSN";
+                                    showing = true;
+                                } else {
+                                    sensitiveSpan.textContent = maskSSN(newValue);
+                                    toggleIcon.className = "ti ti-eye ms-2";
+                                    toggleIcon.title = "Mostrar SSN";
+                                    showing = false;
+                                }
                             });
 
                             span.appendChild(sensitiveSpan);
-                            span.appendChild(showBtn);
+                            span.appendChild(toggleIcon);
+
                         } else if (fieldName === 'phoneNumber' || fieldName === 'secondaryPhone') {
                             span.textContent = formatPhone(newValue);
                         } else {
@@ -1029,16 +1042,28 @@
                 sensitiveSpan.dataset.full = value || "";
                 sensitiveSpan.textContent = maskSSN(value);
 
-                const showBtn = document.createElement("button");
-                showBtn.textContent = "Ver";
-                showBtn.className = "btn btn-link btn-sm ms-2";
-                showBtn.type = "button";
-                showBtn.addEventListener("click", () => {
-                    sensitiveSpan.textContent = formatSSN(value);
+                const toggleIcon = document.createElement("i");
+                toggleIcon.className = "ti ti-eye ms-2";
+                toggleIcon.style.cursor = "pointer";
+                toggleIcon.title = "Mostrar SSN";
+
+                let showing = false;
+                toggleIcon.addEventListener("click", () => {
+                    if (!showing) {
+                        sensitiveSpan.textContent = formatSSN(value);
+                        toggleIcon.className = "ti ti-eye-off ms-2";
+                        toggleIcon.title = "Ocultar SSN";
+                        showing = true;
+                    } else {
+                        sensitiveSpan.textContent = maskSSN(value);
+                        toggleIcon.className = "ti ti-eye ms-2";
+                        toggleIcon.title = "Mostrar SSN";
+                        showing = false;
+                    }
                 });
 
                 contentSpan.appendChild(sensitiveSpan);
-                contentSpan.appendChild(showBtn);
+                contentSpan.appendChild(toggleIcon);
             }
             else {
                 contentSpan.textContent = value || 'None';
