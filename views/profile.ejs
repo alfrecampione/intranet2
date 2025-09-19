@@ -792,6 +792,31 @@
         const list = document.getElementById('user-info-list');
         const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
 
+        function formatPhone(number) {
+            const digits = (number || "").replace(/\D/g, "");
+            if (digits.length === 10) {
+                return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+            }
+            return number || "None";
+        }
+
+        function formatSSN(value) {
+            const digits = (value || "").replace(/\D/g, "");
+            if (digits.length === 9) {
+                return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+            }
+            return value || "";
+        }
+
+        function maskSSN(value) {
+            if (!value) return "None";
+            const digits = (value || "").replace(/\D/g, "");
+            if (digits.length === 9) {
+                return `***-**-${digits.slice(5)}`;
+            }
+            return value;
+        }
+
         function addSectionHeader(title, sectionKey) {
             const header = document.createElement('li');
             header.className = 'fw-bold mt-3 mb-2 d-flex align-items-center justify-content-between';
@@ -823,169 +848,33 @@
 
                         let input;
 
-                        // Agency
-                        if (fieldName === 'agency') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-                            input.dataset.original = currentValue;
-
-                            const noneOption = document.createElement('option');
-                            noneOption.value = '';
-                            noneOption.textContent = 'None';
-                            noneOption.dataset.isAgency = '';
-                            if (!currentValue || currentValue === 'None') noneOption.selected = true;
-                            input.appendChild(noneOption);
-
-                            agencies.forEach(a => {
-                                const option = document.createElement('option');
-                                option.value = a.id;
-                                option.textContent = a.name;
-                                option.dataset.isAgency = a.isAgency ? "true" : "false";
-                                if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
-                                    option.selected = true;
-                                }
-                                input.appendChild(option);
-                            });
-                        }
-
-                        // State (contactInfo)
-                        else if (fieldName === 'state' && sectionKey === 'contactInfo') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-                            input.dataset.original = currentValue;
-                            const US_STATES = [
-                                { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
-                                { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
-                                { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
-                                { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
-                                { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
-                                { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
-                                { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
-                                { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
-                                { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
-                                { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
-                                { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
-                                { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
-                                { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
-                                { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
-                                { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
-                                { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
-                                { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
-                            ];
-                            const noneOption = document.createElement('option');
-                            noneOption.value = '';
-                            noneOption.textContent = 'None';
-                            if (!currentValue || currentValue === 'None') noneOption.selected = true;
-                            input.appendChild(noneOption);
-                            US_STATES.forEach(st => {
-                                const option = document.createElement('option');
-                                option.value = st.abbr;
-                                option.textContent = st.name;
-                                if (currentValue === st.abbr || currentValue === st.name) option.selected = true;
-                                input.appendChild(option);
-                            });
-                        }
-
-                        // City (dynamic load)
-                        else if (fieldName === 'city' && sectionKey === 'contactInfo') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-                            input.dataset.original = currentValue;
-
-                            const noneOption = document.createElement('option');
-                            noneOption.value = '';
-                            noneOption.textContent = 'None';
-                            if (!currentValue || currentValue === 'None') noneOption.selected = true;
-                            input.appendChild(noneOption);
-
-                            async function loadCitiesForState(stateAbbr, selectedCity = null) {
-                                input.innerHTML = '';
-                                const none = document.createElement('option');
-                                none.value = '';
-                                none.textContent = 'None';
-                                input.appendChild(none);
-
-                                if (!stateAbbr) return;
-
-                                try {
-                                    const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
-                                    const cities = await res.json();
-
-                                    cities.forEach(city => {
-                                        const option = document.createElement('option');
-                                        option.value = city;
-                                        option.textContent = city;
-                                        if (selectedCity && selectedCity.toLowerCase() === city.toLowerCase()) {
-                                            option.selected = true;
-                                        }
-                                        input.appendChild(option);
-                                    });
-                                } catch (err) {
-                                    console.error("Error loading cities:", err);
-                                }
-                            }
-
-                            const selectedState = contactInfo.state;
-                            loadCitiesForState(selectedState, currentValue);
-
-                            const stateSelect = list.querySelector('li[data-field="state"] select');
-                            if (stateSelect) {
-                                stateSelect.addEventListener('change', () => {
-                                    loadCitiesForState(stateSelect.value);
-                                });
-                            }
-                        }
-
-                        // Documents
-                        else if (sectionKey === 'documents') {
+                        // SSN
+                        if (fieldName === 'ssn') {
                             input = document.createElement('input');
-                            input.type = 'file';
+                            input.type = 'text';
                             input.className = 'form-control form-control-sm';
-                            input.dataset.original = '';
-                        }
+                            input.maxLength = 11; // formato XXX-XX-XXXX
+                            input.value = formatSSN(currentValue);
+                            input.dataset.original = input.value;
 
-                        // Sex
-                        else if (fieldName === 'legalSex') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-
-                            ['Male', 'Female'].forEach(opt => {
-                                const option = document.createElement('option');
-                                option.value = opt.toLowerCase();
-                                option.textContent = opt;
-                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
-                                    option.selected = true;
+                            input.addEventListener('input', function () {
+                                let digits = this.value.replace(/\D/g, '').slice(0, 9);
+                                let formatted = digits;
+                                if (digits.length > 5) {
+                                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                                } else if (digits.length > 3) {
+                                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
                                 }
-                                input.appendChild(option);
+                                this.value = formatted;
                             });
-
-                            input.dataset.original = currentValue?.toLowerCase() || '';
                         }
 
-                        // Contact Type
-                        else if (fieldName === 'contactType') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-
-                            ['Individual', 'Business'].forEach(opt => {
-                                const option = document.createElement('option');
-                                option.value = opt.toLowerCase();
-                                option.textContent = opt;
-                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
-                                    option.selected = true;
-                                }
-                                input.appendChild(option);
-                            });
-
-                            input.dataset.original = currentValue?.toLowerCase() || '';
-                        }
-
-                        // Phone numbers (formatting)
+                        // Phone
                         else if ((fieldName === 'phoneNumber' || fieldName === 'secondaryPhone') && sectionKey === 'contactInfo') {
                             input = document.createElement('input');
                             input.type = 'tel';
                             input.className = 'form-control form-control-sm';
-                            input.value = currentValue === 'None' ? '' : currentValue;
+                            input.value = formatPhone(currentValue);
                             input.dataset.original = input.value;
                             input.maxLength = 14;
 
@@ -1002,109 +891,11 @@
                             });
                         }
 
-                        // Email validation
-                        else if (fieldName === 'personalEmail' || fieldName === 'secondaryEmail') {
-                            input = document.createElement('input');
-                            input.type = 'email';
-                            input.className = 'form-control form-control-sm';
-                            input.value = currentValue === 'None' ? '' : currentValue;
-                            input.dataset.original = input.value;
-
-                            input.addEventListener('input', function () {
-                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                if (this.value && !emailRegex.test(this.value)) {
-                                    this.classList.add('is-invalid');
-                                } else {
-                                    this.classList.remove('is-invalid');
-                                }
-                            });
-                        }
-
-                        // Payment Method: Account Type
-                        else if (fieldName === 'bankAccountType' && sectionKey === 'paymentMethod') {
-                            input = document.createElement('select');
-                            input.className = 'form-select form-select-sm';
-                            input.dataset.original = currentValue;
-
-                            ['Savings', 'Checking'].forEach(opt => {
-                                const option = document.createElement('option');
-                                option.value = opt.toLowerCase();
-                                option.textContent = opt;
-                                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
-                                    option.selected = true;
-                                }
-                                input.appendChild(option);
-                            });
-                        }
-
-                        // Payment Method: Account Number
-                        else if (fieldName === 'bankAccountNum' && sectionKey === 'paymentMethod') {
-                            input = document.createElement('input');
-                            input.type = 'text';
-                            input.inputMode = 'numeric';
-                            input.pattern = '\\d*';
-                            input.maxLength = 17;
-                            input.value = currentValue === 'None' ? '' : currentValue;
-                            input.dataset.original = input.value;
-                            input.className = 'form-control form-control-sm';
-                            input.addEventListener('input', function () {
-                                this.value = this.value.replace(/[^0-9]/g, '');
-                            });
-                        }
-
-                        // Payment Method: Routing Number
-                        else if (fieldName === 'bankRoutingNum' && sectionKey === 'paymentMethod') {
-                            input = document.createElement('input');
-                            input.type = 'text';
-                            input.inputMode = 'numeric';
-                            input.pattern = '\\d*';
-                            input.maxLength = 9;
-                            input.value = currentValue === 'None' ? '' : currentValue;
-                            input.dataset.original = input.value;
-                            input.className = 'form-control form-control-sm';
-                            input.addEventListener('input', function () {
-                                this.value = this.value.replace(/[^0-9]/g, '');
-                            });
-                        }
-
-                        // Default input
                         else {
                             input = document.createElement('input');
                             input.value = currentValue === 'None' ? '' : currentValue;
                             input.dataset.original = input.value;
                             input.className = 'form-control form-control-sm';
-
-                            if (fieldName === 'npn') {
-                                input.type = 'text';
-                                input.inputMode = 'numeric';
-                                input.pattern = '\\d*';
-                                input.maxLength = 10;
-                                input.addEventListener('input', function () {
-                                    this.value = this.value.replace(/[^0-9]/g, '');
-                                });
-                            } else if (fieldName === 'dateOfBirth') {
-                                input.type = 'date';
-                                const dobRaw = personalInfo?.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : '';
-                                input.value = dobRaw;
-                            } else if (fieldName === 'zipCode') {
-                                input.type = 'text';
-                                input.inputMode = 'numeric';
-                                input.pattern = '\\d*';
-                                input.maxLength = 10;
-                                input.addEventListener('input', function () {
-                                    this.value = this.value.replace(/[^0-9]/g, '');
-                                });
-                            } else if (fieldName === 'companyEIN') {
-                                input.type = 'text';
-                                input.inputMode = 'numeric';
-                                input.pattern = '\\d{9}';
-                                input.maxLength = 9;
-                                input.addEventListener('input', function () {
-                                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);
-                                });
-                            } else {
-                                input.type = 'text';
-                            }
                         }
 
                         span.replaceWith(input);
@@ -1136,15 +927,8 @@
 
                         let newValue = input.value || null;
 
-                        if (fieldName === 'agency') {
-                            const selectedOption = input.options[input.selectedIndex];
-                            const isAgency = selectedOption.dataset.isAgency === "true";
-
-                            if (isAgency) {
-                                fieldName = "agency";
-                            } else {
-                                fieldName = "franchise";
-                            }
+                        if (fieldName === 'ssn') {
+                            newValue = input.value.replace(/\D/g, '');
                         }
 
                         if (newValue !== originalValue) {
@@ -1153,7 +937,28 @@
 
                         const span = document.createElement('span');
                         span.dataset.value = 'true';
-                        span.textContent = input.value || 'None';
+
+                        if (fieldName === 'ssn') {
+                            const sensitiveSpan = document.createElement("span");
+                            sensitiveSpan.dataset.full = newValue;
+                            sensitiveSpan.textContent = maskSSN(newValue);
+
+                            const showBtn = document.createElement("button");
+                            showBtn.textContent = "Ver";
+                            showBtn.className = "btn btn-link btn-sm ms-2";
+                            showBtn.type = "button";
+                            showBtn.addEventListener("click", () => {
+                                sensitiveSpan.textContent = formatSSN(newValue);
+                            });
+
+                            span.appendChild(sensitiveSpan);
+                            span.appendChild(showBtn);
+                        } else if (fieldName === 'phoneNumber' || fieldName === 'secondaryPhone') {
+                            span.textContent = formatPhone(newValue);
+                        } else {
+                            span.textContent = newValue || 'None';
+                        }
+
                         input.replaceWith(span);
                     }
 
@@ -1213,7 +1018,29 @@
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
                 contentSpan.appendChild(link);
-            } else {
+            }
+            // Phones
+            else if ((fieldName === "phoneNumber" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
+                contentSpan.textContent = formatPhone(value);
+            }
+            // SSN
+            else if (isSensitive && fieldName === "ssn") {
+                const sensitiveSpan = document.createElement("span");
+                sensitiveSpan.dataset.full = value || "";
+                sensitiveSpan.textContent = maskSSN(value);
+
+                const showBtn = document.createElement("button");
+                showBtn.textContent = "Ver";
+                showBtn.className = "btn btn-link btn-sm ms-2";
+                showBtn.type = "button";
+                showBtn.addEventListener("click", () => {
+                    sensitiveSpan.textContent = formatSSN(value);
+                });
+
+                contentSpan.appendChild(sensitiveSpan);
+                contentSpan.appendChild(showBtn);
+            }
+            else {
                 contentSpan.textContent = value || 'None';
             }
 
@@ -1225,7 +1052,7 @@
 
         const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
 
-        // ... Personal Info ...
+        // Personal Info
         let sectionKey = 'personalInfo';
         addSectionHeader('Personal Info', sectionKey);
         addListItem('Full name', personalInfo.legalName, 'legalName', false, false, sectionKey);
