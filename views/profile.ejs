@@ -864,6 +864,8 @@
                                 const option = document.createElement('option');
                                 option.value = a.id;
                                 option.textContent = a.name;
+                                option.dataset.isAgency = a.isAgency ? "true" : "false";
+
                                 if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
                                     option.selected = true;
                                 }
@@ -1079,7 +1081,22 @@
                         }
 
                         if (newValue !== originalValue) {
-                            updatedValues[fieldName] = newValue;
+                            if (fieldName === 'agency') {
+                                if (newValue) {
+                                    const selectedOption = input.options[input.selectedIndex];
+                                    const isAgency = selectedOption.dataset.isAgency === "true";
+                                    if (isAgency) {
+                                        updatedValues.agency = newValue;
+                                    } else {
+                                        updatedValues.franchise = newValue;
+                                    }
+                                } else {
+                                    updatedValues.agency = null;
+                                    updatedValues.franchise = null;
+                                }
+                            } else {
+                                updatedValues[fieldName] = newValue;
+                            }
                         }
 
                         const span = document.createElement('span');
