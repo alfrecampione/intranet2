@@ -13,10 +13,12 @@ dotenv.config();
    SMTP CONFIG (for sending)
 ---------------------------- */
 const mailConfig = {
-  service: "gmail",
+  host: "smtp.office365.com",
+  port: 587,
+  secure: false, // TLS
   auth: {
-    user: process.env.G_EMAIL,
-    pass: process.env.G_PASSWORD,
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASSWORD,
   },
 };
 
@@ -174,9 +176,9 @@ const new_user_notification = async (req, res) => {
 ---------------------------- */
 const imapConfig = {
   imap: {
-    user: process.env.G_EMAIL,
-    password: process.env.G_PASSWORD,
-    host: "imap.gmail.com",
+    user: process.env.EMAIL,
+    password: process.env.EMAIL_PASSWORD,
+    host: "outlook.office365.com",
     port: 993,
     tls: true,
     tlsOptions: { rejectUnauthorized: false },
