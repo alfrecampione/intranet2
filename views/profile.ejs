@@ -1070,18 +1070,7 @@
                         let fieldName = input.closest('li').dataset.field;
                         const originalValue = input.dataset.original;
 
-                        const optionalFields = ['agency', 'businessName', 'companyEIN'];
-
-                        if (
-                            input.type !== 'file' &&
-                            (!input.value || input.value.trim() === '') &&
-                            !optionalFields.includes(fieldName)
-                        ) {
-                            input.classList.add('is-invalid');
-                            continue;
-                        } else {
-                            input.classList.remove('is-invalid');
-                        }
+                        input.classList.remove('is-invalid');
 
                         let newValue = input.value || null;
 
