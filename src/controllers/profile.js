@@ -358,6 +358,8 @@ const deleteNote = async (req, res) => {
 const saveSection = async (req, res) => {
     const { userId, sectionKey, values } = req.body;
 
+    console.log("Received saveSection request:", { userId, sectionKey, values });
+
     const requesterId = req.user.user_id;
 
     if (!sectionKey || !values) {
