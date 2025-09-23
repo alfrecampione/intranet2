@@ -753,7 +753,7 @@
                             outro: "If you have questions, you can reply to this email."
                         };
 
-                        const response = await fetch(`${url}/sendEmail/${email}`, {
+                        const response = await fetch(`/sendEmail/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -777,7 +777,6 @@
                             if (bsOffcanvas) bsOffcanvas.hide();
                         } else {
                             showToast("Error", responseData.message || "Error sending email.");
-                            console.log(err);
                         }
                     } catch (err) {
                         showToast("Error", "Error sending email.")

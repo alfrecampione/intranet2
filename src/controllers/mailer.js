@@ -13,12 +13,10 @@ dotenv.config();
    SMTP CONFIG (for sending)
 ---------------------------- */
 const mailConfig = {
-  host: "smtp.office365.com",
-  port: 587,
-  secure: false, // TLS
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.G_EMAIL,
+    pass: process.env.G_PASSWORD,
   },
 };
 
@@ -73,13 +71,11 @@ const passwordMail = async (req, res) => {
       where: { email: email, isReleased: false },
     });
 
-    await prisma.crypto.create({
-      data: {
-        encrypted_data: encryptedData,
-        key: key,
-        id: iv
-      }
-    })
+    // Insert encrypted data
+    await pool.query(
+      `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
+      [encryptedData, key, iv],
+    );
   } catch (error) {
     console.log("POSTGRESQL/PRISMA:", error);
     return res.status(500).json({ msg: "Data Access Error" });
@@ -178,9 +174,9 @@ const new_user_notification = async (req, res) => {
 ---------------------------- */
 const imapConfig = {
   imap: {
-    user: process.env.EMAIL,
-    password: process.env.EMAIL_PASSWORD,
-    host: "outlook.office365.com",
+    user: process.env.G_EMAIL,
+    password: process.env.G_PASSWORD,
+    host: "imap.gmail.com",
     port: 993,
     tls: true,
     tlsOptions: { rejectUnauthorized: false },
