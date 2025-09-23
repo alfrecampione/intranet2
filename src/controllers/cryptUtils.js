@@ -35,13 +35,13 @@ const decryptEmail = async (req, res) => {
     try {
         const result = await prisma.crypto.findFirst({
             where: { encrypted_data: encrypted_email }
-        })
+        });
 
         if (!result) {
             return res.status(404).json({ success: false, message: "Email not found" });
         }
 
-        const { encrypted_data, key, iv } = result.rows[0];
+        const { encrypted_data, key, id: iv } = result;
 
         const email = decrypt(encrypted_data, key, iv);
 
