@@ -777,9 +777,11 @@
                             if (bsOffcanvas) bsOffcanvas.hide();
                         } else {
                             showToast("Error", responseData.message || "Error sending email.");
+                            console.log(err);
                         }
                     } catch (err) {
                         showToast("Error", "Error sending email.")
+                        console.log(err);
                     } finally {
                         overlay.style.display = "none";
                     }
