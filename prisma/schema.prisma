@@ -18,6 +18,14 @@ model session {
   @@schema("health")
 }
 
+model crypto {
+  id             String @id
+  encrypted_data String
+  key            String @unique
+
+  @@schema("health")
+}
+
 model User {
   email                 String?             @unique
   password              String?
