@@ -315,7 +315,7 @@
                           </script>
 
 
-                          <div class="col-sm-6" id="directHireGroup" style="display: none;">
+                          <div class="col-sm-6" id="UnderSelect">
                             <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
                               <label class="form-label" for="companySelect">Select an agency</label>
                               <select id="agencySelect" name="company" class="form-select" required>
@@ -714,7 +714,6 @@
   </div>
 
   <script>
-
     function showToast(headerText, bodyText) {
       const toast = document.querySelector('.toast-ex1');
       toast.querySelector('.toast-header small').textContent = headerText;
@@ -722,6 +721,10 @@
       const bsToast = new bootstrap.Toast(toast);
       bsToast.show();
     }
+  </script>
+
+  <!-- Personal Info -->
+  <script>
     document.addEventListener('DOMContentLoaded', function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
@@ -751,7 +754,15 @@
       }
     });
   </script>
+  <!--/ Personal Info -->
 
+  <!-- Contact Info -->
+  <!--/ Contact Info -->
+  <!-- Commisions -->
+  <!--/ Commisions -->
+  <!-- Documents -->
+  <!--/ Documents -->
+  <!-- States & Carriers -->
   <script type="application/json" id="companies-data">
     <%- JSON.stringify(allCompanies || []) %>
   </script>
@@ -948,6 +959,9 @@
       document.addEventListener('DOMContentLoaded', renderUI);
     })();
   </script>
+  <!--/ States & Carriers -->
+
+
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -990,44 +1004,6 @@
           updateStatusVisual(this);
         });
       });
-    });
-  </script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const contactType = document.getElementById('contactType');
-      const directHireGroup = document.getElementById('directHireGroup');
-      const hiredYes = document.getElementById('hiredYes');
-      const hiredNo = document.getElementById('hiredNo');
-      const companySelectGroup = document.getElementById('companySelectGroup');
-      const referralSelectGroup = document.getElementById('referralSelectGroup');
-
-      function toggleHireOptions() {
-        const isIndividual = contactType.value === 'individual';
-        directHireGroup.style.display = isIndividual ? 'block' : 'none';
-
-        if (!isIndividual) {
-          companySelectGroup.style.display = 'none';
-          referralSelectGroup.style.display = 'none';
-        }
-      }
-
-      function toggleSelects() {
-        if (hiredYes.checked) {
-          companySelectGroup.style.display = 'block';
-          referralSelectGroup.style.display = 'none';
-        } else if (hiredNo.checked) {
-          referralSelectGroup.style.display = 'block';
-          companySelectGroup.style.display = 'none';
-        }
-      }
-
-      contactType.addEventListener('change', toggleHireOptions);
-      hiredYes.addEventListener('change', toggleSelects);
-      hiredNo.addEventListener('change', toggleSelects);
-
-      toggleHireOptions();
-      toggleSelects();
     });
   </script>
 
