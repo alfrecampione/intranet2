@@ -73,11 +73,13 @@ const passwordMail = async (req, res) => {
       where: { email: email, isReleased: false },
     });
 
-    // Insert encrypted data
-    await pool.query(
-      `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
-      [encryptedData, key, iv],
-    );
+    await prisma.crypto.create({
+      data: {
+        encrypted_data: encryptedData,
+        key: key,
+        id: iv
+      }
+    })
   } catch (error) {
     console.log("POSTGRESQL/PRISMA:", error);
     return res.status(500).json({ msg: "Data Access Error" });

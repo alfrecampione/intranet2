@@ -208,21 +208,13 @@ const resetPassword = async (req, res) => {
                 data: { password: hashedPassword }
               });
             }
+            await prisma.crypto.delete({
+              where: { encrypted_data: encrypted }
+            })
           } catch (prismaErr) {
             console.log(`resetPassword Prisma error`, prismaErr);
           }
         });
-
-        pool.query(
-          `DELETE FROM admin.crypto WHERE encrypted_data = $1`,
-          [encrypted],
-          (err) => {
-            if (err) {
-              console.log(`resetPassword function error`, err);
-            }
-          }
-        );
-
         res.redirect("/login");
       }
     );

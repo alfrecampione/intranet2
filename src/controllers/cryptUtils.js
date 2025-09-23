@@ -1,4 +1,4 @@
-import { pool } from "../config/dbConfig.js";
+import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt, decrypt } from "./crypto.js";
 
 const encryptEmail = async (req, res) => {
@@ -10,12 +10,13 @@ const encryptEmail = async (req, res) => {
 
     try {
         const { encryptedData, key, iv } = encrypt(email);
-
-        await pool.query(
-            `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
-            [encryptedData, key, iv],
-        );
-
+        await prisma.crypto.create({
+            data: {
+                encrypted_data: encryptedData,
+                key: key,
+                id: iv
+            }
+        })
         return res.status(200).json({ success: true, message: "Email encrypted successfully", data: { encryptedData } });
     } catch (error) {
         console.error("Error encrypting email:", error);
@@ -32,10 +33,9 @@ const decryptEmail = async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            `SELECT encrypted_data, key, iv FROM admin.crypto WHERE encrypted_data = $1;`,
-            [encrypted_email],
-        );
+        const result = await prisma.crypto.findFirst({
+            where: { encrypted_data: encrypted_email }
+        })
 
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, message: "Email not found" });
@@ -54,10 +54,9 @@ const decryptEmail = async (req, res) => {
 
 const deleteEncryptedEmail = async (encryptedEmail) => {
     try {
-        await pool.query(
-            `DELETE FROM admin.crypto WHERE encrypted_data = $1;`,
-            [encryptedEmail]
-        );
+        await prisma.crypto.delete({
+            where: { encrypted_data: encryptedEmail }
+        })
         console.log(`Encrypted email ${encryptedEmail} deleted from database.`);
     } catch (error) {
         console.error("Error deleting encrypted email:", error);
