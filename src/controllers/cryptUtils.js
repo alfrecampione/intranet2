@@ -37,7 +37,7 @@ const decryptEmail = async (req, res) => {
             where: { encrypted_data: encrypted_email }
         })
 
-        if (result.rows.length === 0) {
+        if (!result) {
             return res.status(404).json({ success: false, message: "Email not found" });
         }
 
