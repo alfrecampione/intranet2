@@ -54,9 +54,16 @@ const decryptEmail = async (req, res) => {
 
 const deleteEncryptedEmail = async (encryptedEmail) => {
     try {
-        await prisma.crypto.delete({
+        const record = await prisma.crypto.findFirst({
             where: { encrypted_data: encryptedEmail }
-        })
+        });
+        if (!record) {
+            console.log(`Encrypted email ${encryptedEmail} not found in database.`);
+            return;
+        }
+        await prisma.crypto.delete({
+            where: { id: record.id }
+        });
         console.log(`Encrypted email ${encryptedEmail} deleted from database.`);
     } catch (error) {
         console.error("Error deleting encrypted email:", error);
