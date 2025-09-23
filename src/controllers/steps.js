@@ -1,6 +1,9 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 
+
+// TODO: Update to the new system of franchise/agency
+
 // Step 1: Personal Info
 export const createPersonalInfo = async (req, res) => {
   prismaContext.run({ userId: req.user.user_id }, async () => {
