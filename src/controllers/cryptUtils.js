@@ -64,7 +64,6 @@ const deleteEncryptedEmail = async (encryptedEmail) => {
         await prisma.crypto.delete({
             where: { id: record.id }
         });
-        console.log(`Encrypted email ${encryptedEmail} deleted from database.`);
     } catch (error) {
         console.error("Error deleting encrypted email:", error);
     }
