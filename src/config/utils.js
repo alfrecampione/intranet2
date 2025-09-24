@@ -1,4 +1,5 @@
 import fs from "fs";
+import { prisma, pool } from "../config/dbConfig.js";
 
 const citiesByState = JSON.parse(
     fs.readFileSync("./src/config/US_States_and_Cities.json", "utf8")
