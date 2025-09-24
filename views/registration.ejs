@@ -747,7 +747,7 @@
     });
   </script>
 
-  <script id="companies-data" type="application/json">
+  <script id="agencies-data" type="application/json">
     <%- JSON.stringify(allAgencies || []) %>
   </script>
 
@@ -757,7 +757,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const agencies = JSON.parse(document.getElementById('companies-data').textContent);
+      const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
       const personalInfo = JSON.parse(document.getElementById('personalInfo-data').textContent);
       const input = document.getElementById('agencySelect');
 
