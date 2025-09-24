@@ -74,7 +74,7 @@
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
                         <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                            <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
+                            <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
                             <% } else { %>
                                 <span class="avatar-initial rounded-circle bg-label-primary">
                                     <%= user && user.display_name ? user.display_name[0] : (user && user.email ?
