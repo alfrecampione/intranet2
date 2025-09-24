@@ -91,7 +91,7 @@
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
                                         <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                                            <img src="<%= user.personalInfo.photoPath %>" alt="User Avatar"
+                                            <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
                                                 class="rounded-circle" />
                                             <% } else { %>
                                                 <span class="avatar-initial rounded-circle bg-label-primary">
