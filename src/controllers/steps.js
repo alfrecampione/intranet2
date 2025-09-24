@@ -1,9 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 
-
-// TODO: Update to the new system of franchise/agency
-
 // Step 1: Personal Info
 export const createPersonalInfo = async (req, res) => {
   prismaContext.run({ userId: req.user.user_id }, async () => {
@@ -21,6 +18,7 @@ export const createPersonalInfo = async (req, res) => {
         companyEIN,
         npn,
         agency,
+        franchise,
       } = req.body;
 
       const data = {
@@ -28,7 +26,7 @@ export const createPersonalInfo = async (req, res) => {
         legalName,
         preferredName: preferredName || null,
         legalSex,
-        dateOfBirth: new Date(dateOfBirth),
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         ssn,
         userId,
         photoPath: photoPath || null,
@@ -36,6 +34,7 @@ export const createPersonalInfo = async (req, res) => {
         companyEIN: companyEIN || null,
         npn,
         agency: agency || null,
+        franchise: franchise || null,
       };
 
       if (contactType === "business" && businessName) {

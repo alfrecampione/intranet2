@@ -1,4 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
+import { getAgencies } from "../config/utils.js";
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
   const user = reqUser;
@@ -76,15 +77,7 @@ const register = async (req, res) => {
     const userId = req.user.user_id;
     const data = await getRegistrationData(userId, false, req.user);
 
-    const allAgencies = await prisma.agency.findMany({
-      where: {
-        OR: [
-          { owner: { not: userId } },
-          { owner: null }
-        ]
-      },
-      orderBy: { name: 'asc' },
-    });
+    const allAgencies = await getAgencies();
 
     res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
   } catch (error) {
@@ -99,15 +92,7 @@ const editRegister = async (req, res) => {
     const userId = req.params.id || user.user_id;
     const data = await getRegistrationData(userId, true, req.user);
 
-    const allAgencies = await prisma.agency.findMany({
-      where: {
-        OR: [
-          { owner: { not: userId } },
-          { owner: null }
-        ]
-      },
-      orderBy: { name: 'asc' },
-    });
+    const allAgencies = await getAgencies();
 
     res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
   } catch (error) {

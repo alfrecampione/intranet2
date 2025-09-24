@@ -1,5 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { getAgencies } from "../config/utils.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -493,40 +494,6 @@ const deleteCarrierToUser = async (req, res) => {
     } catch (error) {
         console.error("Error deleting carrier:", error);
         res.status(500).json({ success: false, message: "Failed to delete carrier." });
-    }
-}
-
-async function getAgencies() {
-    try {
-        const agencies = await prisma.agency.findMany({
-            orderBy: { name: 'asc' }
-        });
-
-        const franchise = await prisma.$queryRaw`
-      SELECT * 
-      FROM qq.locations 
-      WHERE location_type = 2 OR location_id = 1
-      ORDER BY alias ASC
-    `;
-
-        const agencyOptions = agencies.map(a => ({
-            id: a.id,
-            name: a.name,
-            isAgency: true,
-        }));
-
-        const franchiseOptions = franchise.map(f => ({
-            id: f.location_id,
-            name: f.alias,
-            isAgency: false,
-        }));
-
-        const allOptions = [...agencyOptions, ...franchiseOptions];
-
-        return allOptions
-    }
-    catch (error) {
-        console.log(error)
     }
 }
 

@@ -39,4 +39,67 @@ const getCity = async (req, res) => {
     }
 };
 
-export { getCity };
+async function getAgencies() {
+    try {
+        const agencies = await prisma.agency.findMany({
+            orderBy: { name: 'asc' }
+        });
+
+        const franchise = await prisma.$queryRaw`
+      SELECT * 
+      FROM qq.locations 
+      WHERE location_type = 2 OR location_id = 1
+      ORDER BY alias ASC
+    `;
+
+        const agencyOptions = agencies.map(a => ({
+            id: a.id,
+            name: a.name,
+            isAgency: true,
+        }));
+
+        const franchiseOptions = franchise.map(f => ({
+            id: f.location_id,
+            name: f.alias,
+            isAgency: false,
+        }));
+
+        const allOptions = [...agencyOptions, ...franchiseOptions];
+
+        return allOptions
+    }
+    catch (error) {
+        console.log(error)
+    }
+};
+
+async function getAllAgencyIds(agencyId) {
+    const result = [agencyId];
+
+    const usersUnderAgency = await prisma.user.findMany({
+        where: {
+            personalInfo: {
+                agency: agencyId
+            }
+        },
+        include: {
+            personalInfo: true
+        }
+    });
+
+    for (const u of usersUnderAgency) {
+        if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
+            const childAgency = await prisma.agency.findUnique({
+                where: { owner: u.user_id }
+            });
+            if (childAgency) {
+                const subAgencies = await getAllAgencyIds(childAgency.id);
+                result.push(...subAgencies);
+            }
+        }
+    }
+
+    return result;
+};
+
+export { getCity, getAgencies, getAllAgencyIds };

@@ -155,7 +155,7 @@ const validateEmail = async (req, res, next) => {
           console.error("Login error:", err);
           return next(err);
         }
-        return res.status(200).json({ success: true, redirect: "/users/dashboard" });
+        return res.status(200).json({ success: true, redirect: "/users/registration" });
       });
     } catch (err) {
       console.error("validateEmail function error:", err);

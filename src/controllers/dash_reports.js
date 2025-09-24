@@ -1,30 +1,5 @@
-// Recursive function to get all agency IDs under a business agency
-async function getAllAgencyIds(agencyId, prisma) {
-  const result = [agencyId];
-  const usersUnderAgency = await prisma.user.findMany({
-    where: {
-      personalInfo: {
-        agency: agencyId
-      }
-    },
-    include: {
-      personalInfo: true
-    }
-  });
-  for (const u of usersUnderAgency) {
-    if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
-      const childAgency = await prisma.agency.findUnique({
-        where: { owner: u.user_id }
-      });
-      if (childAgency) {
-        const subAgencies = await getAllAgencyIds(childAgency.id, prisma);
-        result.push(...subAgencies);
-      }
-    }
-  }
-  return result;
-}
 import { pool, prisma } from "../config/dbConfig.js";
+import { getAllAgencyIds } from "../config/utils.js";
 import { register } from "./registration.js";
 
 const redirect_dashboard = (req, res) => {

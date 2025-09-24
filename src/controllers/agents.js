@@ -1,35 +1,9 @@
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { getAllAgencyIds } from "../config/utils.js";
 import bcrypt from "bcrypt";
 
-async function getAllAgencyIds(agencyId) {
-  const result = [agencyId];
 
-  const usersUnderAgency = await prisma.user.findMany({
-    where: {
-      personalInfo: {
-        agency: agencyId
-      }
-    },
-    include: {
-      personalInfo: true
-    }
-  });
-
-  for (const u of usersUnderAgency) {
-    if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
-      const childAgency = await prisma.agency.findUnique({
-        where: { owner: u.user_id }
-      });
-      if (childAgency) {
-        const subAgencies = await getAllAgencyIds(childAgency.id);
-        result.push(...subAgencies);
-      }
-    }
-  }
-
-  return result;
-}
 
 // Helper function to resolve agency/franchise name
 const getAgencyOrFranchiseName = async (personalInfo) => {

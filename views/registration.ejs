@@ -314,19 +314,11 @@
                             });
                           </script>
 
-
                           <div class="col-sm-6" id="UnderSelect">
                             <div id="companySelectGroup" style="display: none; margin-top: 1rem;">
                               <label class="form-label" for="companySelect">Select an agency</label>
                               <select id="agencySelect" name="company" class="form-select" required>
                                 <option value="">Select an agency...</option>
-                                <% if (allAgencies && allAgencies.length) { %>
-                                  <% allAgencies.forEach(a=> { %>
-                                    <option value="<%= a.name %>" <%=personalInfo?.agency===a.name ? 'selected' : '' %>>
-                                      <%= a.name %>
-                                    </option>
-                                    <% }); %>
-                                      <% } %>
                               </select>
                             </div>
                           </div>
@@ -754,6 +746,34 @@
       }
     });
   </script>
+
+  <script id="companies-data" type="application/json">
+    <%- JSON.stringify(allCompanies || []) %>
+  </script>
+
+  <script id="personalInfo-data" type="application/json">
+    <%- JSON.stringify(personalInfo || {}) %>
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const agencies = JSON.parse(document.getElementById('companies-data').textContent);
+      const personalInfo = JSON.parse(document.getElementById('personalInfo-data').textContent);
+      const input = document.getElementById('agencySelect');
+
+      agencies.forEach(a => {
+        const option = document.createElement('option');
+        option.value = a.id;
+        option.textContent = a.name;
+        option.dataset.isAgency = a.isAgency ? "true" : "false";
+
+        if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
+          option.selected = true;
+        }
+        input.appendChild(option);
+      });
+    });
+  </script>
   <!--/ Personal Info -->
 
   <!-- Contact Info -->
@@ -1063,31 +1083,40 @@
       const isMale = document.getElementById("legalSexMale")?.checked;
       const legalSex = isMale ? "male" : "female";
 
-      const isDirectlyHiredValue = document.querySelector('input[name="isDirectlyHired"]:checked')?.value;
-      const wantFranchise = isDirectlyHiredValue === "yes";
-
       const agencySelect = document.getElementById("agencySelect");
-      const agency = agencySelect ? agencySelect.value || "" : "";
+      let agency = null;
+      let franchise = null;
+
+      if (agencySelect && agencySelect.value) {
+        const selectedOption = agencySelect.options[agencySelect.selectedIndex];
+        const isAgency = selectedOption.dataset.isAgency === "true";
+
+        if (isAgency) {
+          agency = selectedOption.value;
+        } else {
+          franchise = selectedOption.value;
+        }
+      }
 
       let uploadedPhoto = existingPhotoURL;
-
       if (photoFile) {
         uploadedPhoto = await uploadFile(photoFile);
       }
 
       const personalInfo = {
-        contactType: contactType,
-        legalName: legalName,
-        preferredName: preferredFirstName,
-        dateOfBirth: dateOfBirth,
-        ssn: ssn,
-        npn,
-        legalSex: legalSex,
+        contactType: contactType || null,
+        legalName: legalName || null,
+        preferredName: preferredFirstName || null,
+        dateOfBirth: dateOfBirth || null,
+        ssn: ssn || null,
+        npn: npn || null,
+        legalSex: legalSex || null,
         userId: currentUserId,
-        photoPath: uploadedPhoto,
+        photoPath: uploadedPhoto || null,
         businessName: businessName || null,
         companyEIN: companyEIN || null,
-        agency: agency || null
+        agency: agency,
+        franchise: franchise
       };
 
       const response = await fetch(`${url}/steps/personal-info`, {
