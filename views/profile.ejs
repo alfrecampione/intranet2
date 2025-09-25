@@ -1094,7 +1094,8 @@
                         let newValue = input.value || null;
 
                         if (fieldName === 'ssn') {
-                            newValue = input.value.replace(/\D/g, '');
+                            const rawDigits = input.value.replace(/\D/g, '');
+                            newValue = rawDigits || originalValue;
                         }
 
                         if (fieldName === 'dateOfBirth') {
@@ -1108,20 +1109,23 @@
 
                         if (newValue !== originalValue) {
                             if (fieldName === 'agency') {
-                                if (newValue) {
-                                    const selectedOption = input.options[input.selectedIndex];
-                                    const isAgency = selectedOption.dataset.isAgency === "true";
+                                const selectedOption = input.options[input.selectedIndex];
+                                const isAgency = selectedOption.dataset.isAgency === "true";
 
+                                let selectedAgency = null;
+                                let selectedFranchise = null;
+
+                                if (newValue) {
                                     if (isAgency) {
-                                        updatedValues.agency = newValue;
-                                        updatedValues.franchise = null;
+                                        selectedAgency = newValue;
                                     } else {
-                                        updatedValues.franchise = newValue;
-                                        updatedValues.agency = null;
+                                        selectedFranchise = newValue;
                                     }
-                                } else {
-                                    updatedValues.agency = null;
-                                    updatedValues.franchise = null;
+                                }
+
+                                if (selectedAgency != personalInfo.agency || selectedFranchise != personalInfo.franchise) {
+                                    updatedValues.agency = selectedAgency;
+                                    updatedValues.franchise = selectedFranchise;
                                 }
                             }
                         }
