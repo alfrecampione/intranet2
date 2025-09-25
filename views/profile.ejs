@@ -1111,17 +1111,18 @@
                                 if (newValue) {
                                     const selectedOption = input.options[input.selectedIndex];
                                     const isAgency = selectedOption.dataset.isAgency === "true";
+
                                     if (isAgency) {
                                         updatedValues.agency = newValue;
+                                        updatedValues.franchise = null;
                                     } else {
                                         updatedValues.franchise = newValue;
+                                        updatedValues.agency = null;
                                     }
                                 } else {
                                     updatedValues.agency = null;
                                     updatedValues.franchise = null;
                                 }
-                            } else {
-                                updatedValues[fieldName] = newValue;
                             }
                         }
 
@@ -1291,8 +1292,6 @@
         } else if (personalInfo.franchise) {
             agencyName = agencies?.find(a => a.id == personalInfo.franchise)?.name || "None";
         }
-
-        console.log("Selected agency/franchise: ", personalInfo.agency, personalInfo.franchise, agencyName);
         addListItem("Agency", agencyName, "agency", false, false, sectionKey);
 
         // Contact Info
