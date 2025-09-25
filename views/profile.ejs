@@ -1409,6 +1409,7 @@
             const isRequired = necesaryDocs?.[key];
             if (isRequired) {
                 const filePath = documents?.[key];
+                console.log(`Document ${key}:`, filePath);
                 if (filePath) {
                     addListItem(label, filePath, key, true, false, sectionKey);
                 } else {
