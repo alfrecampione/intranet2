@@ -31,10 +31,9 @@ const getCity = async (req, res) => {
         }
 
         const stateName = STATE_ABBR_TO_NAME[stateAbbr];
-        const rawCities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
-        const cities = Array.isArray(rawCities) ? rawCities : Object.keys(rawCities);
+        const cities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
 
-        return res.json(cities.sort());
+        return res.json(cities);
     } catch (err) {
         console.error("Error fetching cities:", err);
         return res.status(500).json({ error: "Server error" });
