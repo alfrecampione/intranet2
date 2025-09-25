@@ -1094,8 +1094,16 @@
                         let newValue = input.value || null;
 
                         if (fieldName === 'ssn') {
-                            const rawDigits = input.value.replace(/\D/g, '');
-                            newValue = rawDigits || originalValue;
+                            console.log("Processing SSN:", newValue);
+                            console.log("Original SSN:", originalValue);
+
+                            const rawDigits = (input.value || '').replace(/\D/g, '').slice(0, 9);
+                            const originalDigits = (originalValue || '').replace(/\D/g, '');
+                            newValue = rawDigits;
+
+                            if (rawDigits !== originalDigits) {
+                                updatedValues[fieldName] = rawDigits;
+                            }
                         }
 
                         if (fieldName === 'dateOfBirth') {
@@ -1161,6 +1169,9 @@
                             span.appendChild(sensitiveSpan);
                             span.appendChild(toggleIcon);
 
+                        } else if (fieldName === 'agency') {
+                            const selectedOption = input.options[input.selectedIndex];
+                            span.textContent = selectedOption ? selectedOption.textContent : 'None';
                         } else if (fieldName === 'phoneNumber' || fieldName === 'secondaryPhone') {
                             span.textContent = formatPhone(newValue);
                         } else {
