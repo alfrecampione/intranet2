@@ -1175,15 +1175,16 @@
                                         newValue = uploadResult.filePath;
                                     } else {
                                         showToast("Error", "Error uploading document.");
+                                        newValue = input.dataset.original;
                                     }
                                 } catch (err) {
-                                    showToast("Error", "Upload failed by: " + err.message);
+                                    showToast("Error", "Upload failed: " + err.message);
+                                    newValue = input.dataset.original;
                                 }
                             } else {
-                                newValue = originalValue;
+                                newValue = input.dataset.original;
                             }
                         }
-
                         else {
                             if (newValue !== originalValue) {
                                 updatedValues[fieldName] = newValue;
@@ -1227,18 +1228,6 @@
 
                         } else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
                             span.textContent = formatPhone(newValue);
-
-                        } else if (sectionKey === 'documents') {
-                            if (newValue && newValue !== 'Missing') {
-                                const link = document.createElement('a');
-                                link.href = getDocumentUrl(newValue);
-                                link.textContent = 'View Current';
-                                link.target = '_blank';
-                                link.rel = 'noopener noreferrer';
-                                li.appendChild(link);
-                            } else {
-                                span.textContent = 'Missing';
-                            }
 
                         } else {
                             span.textContent = newValue || 'None';
