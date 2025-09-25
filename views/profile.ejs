@@ -978,15 +978,6 @@
                             input.type = 'file';
                             input.className = 'form-control form-control-sm';
                             input.dataset.original = currentValue || '';
-
-                            if (currentValue && currentValue !== 'Missing') {
-                                const link = document.createElement('a');
-                                link.href = getDocumentUrl(currentValue);
-                                link.textContent = 'View Current';
-                                link.target = '_blank';
-                                link.rel = 'noopener noreferrer';
-                                li.appendChild(link);
-                            }
                         }
 
                         // Sex
