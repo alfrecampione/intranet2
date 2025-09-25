@@ -1159,6 +1159,7 @@
                                         method: 'POST',
                                         body: formData
                                     });
+                                    const uploadResult = await uploadRes.json();
 
                                     if (uploadResult.success && uploadResult.path) {
                                         updatedValues[fieldName] = uploadResult.path;
