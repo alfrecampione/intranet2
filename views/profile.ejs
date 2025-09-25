@@ -1160,8 +1160,10 @@
                                         body: formData
                                     });
                                     const uploadResult = await uploadRes.json();
+                                    console.log(uploadResult);
 
                                     if (uploadResult.success && uploadResult.path) {
+                                        console.log("File uploaded to:", uploadResult.filePath);
                                         updatedValues[fieldName] = uploadResult.filePath;
                                         newValue = uploadResult.filePath;
                                     } else {
