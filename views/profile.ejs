@@ -1094,9 +1094,6 @@
                         let newValue = input.value || null;
 
                         if (fieldName === 'ssn') {
-                            console.log("Processing SSN:", newValue);
-                            console.log("Original SSN:", originalValue);
-
                             const rawDigits = (input.value || '').replace(/\D/g, '').slice(0, 9);
                             const originalDigits = (originalValue || '').replace(/\D/g, '');
                             newValue = rawDigits;
