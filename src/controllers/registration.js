@@ -104,7 +104,7 @@ const editRegister = async (req, res) => {
 const handleFileUpload = (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+      return res.status(400).json({ success: false, error: "No file uploaded" });
     }
 
     const normalizedPath = req.file.path.replace(/\\/g, "/");
@@ -112,10 +112,14 @@ const handleFileUpload = (req, res) => {
       ? normalizedPath.substring(normalizedPath.indexOf("uploads/"))
       : `uploads/${req.file.filename}`;
 
-    res.json({ path: relativePath });
+    res.json({
+      success: true,
+      path: relativePath,
+    });
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({
+      success: false,
       error: "Upload failed",
       details: error.message,
     });
