@@ -972,6 +972,23 @@
                             }, 0);
                         }
 
+                        // --- Account Type ---
+                        else if (fieldName === 'bankAccountType') {
+                            input = document.createElement('select');
+                            input.className = 'form-select form-select-sm';
+                            input.dataset.original = currentValue || '';
+
+                            ['checking', 'saving'].forEach(opt => {
+                                const option = document.createElement('option');
+                                option.value = opt;
+                                option.textContent = opt;
+                                if ((currentValue || '').toLowerCase() === opt) {
+                                    option.selected = true;
+                                }
+                                input.appendChild(option);
+                            });
+                        }
+
                         // Documents
                         else if (sectionKey === 'documents') {
                             input = document.createElement('input');
