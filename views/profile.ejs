@@ -1080,6 +1080,15 @@
                             newValue = input.value.replace(/\D/g, '');
                         }
 
+                        if (fieldName === 'dateOfBirth') {
+                            if (newValue) {
+                                const dateObj = new Date(newValue);
+                                if (!isNaN(dateObj.getTime())) {
+                                    newValue = dateObj.toISOString();
+                                }
+                            }
+                        }
+
                         if (newValue !== originalValue) {
                             if (fieldName === 'agency') {
                                 if (newValue) {
@@ -1250,7 +1259,9 @@
         const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';
         addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey, !isBusiness);
         addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey, !isBusiness);
-        const dobRaw = personalInfo.dateOfBirth ? personalInfo.dateOfBirth.split("T")[0] : null;
+        const dobRaw = personalInfo.dateOfBirth
+            ? new Date(personalInfo.dateOfBirth).toISOString().split("T")[0]
+            : null;
         addListItem('DoB', dobRaw, 'dateOfBirth', false, false, sectionKey);
         addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);

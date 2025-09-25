@@ -268,8 +268,7 @@
                                 SSN <span class="text-danger">*</span>
                               </label>
                               <input type="text" name="ssn" id="ssn" class="form-control" placeholder="XXX-XX-XXXX"
-                                aria-label="Social Security Number" required maxlength="9"
-                                value="<%= personalInfo?.ssn || '' %>" />
+                                aria-label="Social Security Number" required value="<%= personalInfo?.ssn || '' %>" />
                             </div>
 
                             <!-- NPN -->
@@ -283,27 +282,38 @@
                             </div>
                           </div>
                           <script>
-                            document.getElementById("ssn").addEventListener("input", function (e) {
-                              let value = e.target.value.replace(/\D/g, "");
-                              if (value.length > 5) {
-                                e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}-${value.slice(5, 9)}`;
-                              } else if (value.length > 3) {
-                                e.target.value = `${value.slice(0, 3)}-${value.slice(3, 5)}`;
-                              } else {
-                                e.target.value = value.slice(0, 9); // Limitar a 9 dígitos máx
+                            const ssnInput = document.getElementById("ssn");
+                            ssnInput.maxLength = 11;
+
+                            function formatSSN(val) {
+                              let digits = (val || '').replace(/\D/g, '').slice(0, 9);
+                              if (digits.length > 5) {
+                                return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                              } else if (digits.length > 3) {
+                                return `${digits.slice(0, 3)}-${digits.slice(3)}`;
                               }
+                              return digits;
+                            }
+
+                            ssnInput.value = formatSSN(ssnInput.value);
+
+                            ssnInput.addEventListener('input', function () {
+                              this.value = formatSSN(this.value);
                             });
+
                             document.querySelector("form").addEventListener("submit", function (e) {
                               const ssnInput = document.getElementById("ssn");
                               if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
                                 ssnInput.classList.add("is-invalid");
                                 e.preventDefault();
+                                return;
                               }
+                              ssnInput.value = ssnInput.value.replace(/\D/g, "");
                             });
 
                             document.getElementById("npn").addEventListener("input", function (e) {
-                              let value = e.target.value.replace(/\D/g, ""); // solo números
-                              e.target.value = value.slice(0, 8); // máximo 8 dígitos
+                              let value = e.target.value.replace(/\D/g, "");
+                              e.target.value = value.slice(0, 8);
                             });
                             document.querySelector("form").addEventListener("submit", function (e) {
                               const npnInput = document.getElementById("npn");
