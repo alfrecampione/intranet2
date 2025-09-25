@@ -31,7 +31,8 @@ const getCity = async (req, res) => {
         }
 
         const stateName = STATE_ABBR_TO_NAME[stateAbbr];
-        const cities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
+        const rawCities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
+        const cities = Array.isArray(rawCities) ? rawCities : Object.keys(rawCities);
 
         return res.json(cities.sort());
     } catch (err) {
