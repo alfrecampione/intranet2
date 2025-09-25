@@ -1291,6 +1291,8 @@
         } else if (personalInfo.franchise) {
             agencyName = agencies?.find(a => a.id == personalInfo.franchise)?.name || "None";
         }
+
+        console.log("Selected agency/franchise: ", personalInfo.agency, personalInfo.franchise, agencyName);
         addListItem("Agency", agencyName, "agency", false, false, sectionKey);
 
         // Contact Info
