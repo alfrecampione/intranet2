@@ -1276,6 +1276,7 @@
         const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';
         addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey, !isBusiness);
         addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey, !isBusiness);
+
         const dobRaw = personalInfo.dateOfBirth
             ? new Date(personalInfo.dateOfBirth).toISOString().split("T")[0]
             : null;
@@ -1283,11 +1284,14 @@
         addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
         addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
         addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
-        addListItem('Agency',
-            agencies?.find(a => (a.id == personalInfo.agency) || (a.id == personalInfo.franchise))?.name || 'None',
-            'agency',
-            false, false, sectionKey
-        );
+
+        let agencyName = "None";
+        if (personalInfo.agency) {
+            agencyName = agencies?.find(a => a.id == personalInfo.agency)?.name || "None";
+        } else if (personalInfo.franchise) {
+            agencyName = agencies?.find(a => a.id == personalInfo.franchise)?.name || "None";
+        }
+        addListItem("Agency", agencyName, "agency", false, false, sectionKey);
 
         // Contact Info
         sectionKey = 'contactInfo';
