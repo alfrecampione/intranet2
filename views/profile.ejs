@@ -936,6 +936,8 @@
                                     const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
                                     const cities = await res.json();
 
+                                    consoel.log("Loaded cities:", cities);
+
                                     cities.forEach(city => {
                                         const option = document.createElement('option');
                                         option.value = city;
