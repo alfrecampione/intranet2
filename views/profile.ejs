@@ -973,6 +973,7 @@
                             input.dataset.original = currentValue || '';
 
                             if (currentValue && currentValue !== 'Missing') {
+                                console.log('Current Value:', currentValue);
                                 const link = document.createElement('a');
                                 link.href = `${window.location.protocol}//${window.location.host}/${currentValue}`;
                                 link.textContent = 'View Current';
@@ -1163,6 +1164,8 @@
                                     });
                                     const uploadResult = await uploadRes.json();
 
+                                    console.log("Upload result:", uploadResult);
+
                                     if (uploadResult.success && uploadResult.path) {
                                         updatedValues[fieldName] = uploadResult.filePath;
                                         newValue = uploadResult.filePath;
@@ -1223,7 +1226,7 @@
 
                         } else if (sectionKey === 'documents') {
                             if (newValue && newValue !== 'Missing') {
-                                console.log("Document link:", newValue);
+                                console.log("New value:", newValue);
                                 const link = document.createElement('a');
                                 link.href = `${window.location.protocol}//${window.location.host}/${newValue}`;
                                 link.textContent = 'View Document';
@@ -1290,6 +1293,7 @@
             contentSpan.dataset.value = 'true';
 
             if (isLink && value) {
+                console.log("Document link:", value);
                 const fullUrl = `${window.location.protocol}//${window.location.host}/${value}`;
                 const link = document.createElement('a');
                 link.href = fullUrl;
