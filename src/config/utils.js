@@ -33,7 +33,7 @@ const getCity = async (req, res) => {
         const stateName = STATE_ABBR_TO_NAME[stateAbbr];
         const cities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
 
-        return res.json(cities);
+        return res.json(cities.sort());
     } catch (err) {
         console.error("Error fetching cities:", err);
         return res.status(500).json({ error: "Server error" });

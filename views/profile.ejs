@@ -930,13 +930,13 @@
                                 none.textContent = 'None';
                                 input.appendChild(none);
 
-                                if (!stateAbbr) return;
+                                if (!stateAbbr || stateAbbr === 'None') return;
 
                                 try {
                                     const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
                                     const cities = await res.json();
 
-                                    console.log("Loaded cities:", cities);
+                                    if (!Array.isArray(cities)) return;
 
                                     cities.forEach(city => {
                                         const option = document.createElement('option');
@@ -1223,6 +1223,7 @@
 
                         } else if (sectionKey === 'documents') {
                             if (newValue && newValue !== 'Missing') {
+                                console.log("Document link:", newValue);
                                 const link = document.createElement('a');
                                 link.href = `${window.location.protocol}//${window.location.host}/${newValue}`;
                                 link.textContent = 'View Document';
