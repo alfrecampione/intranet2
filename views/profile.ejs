@@ -788,6 +788,13 @@
     </script>
 
     <script>
+        function getDocumentUrl(path) {
+            if (!path) return '';
+            return `${window.location.protocol}//${window.location.host}/${path.replace(/^\/+/, '')}`;
+        }
+    </script>
+
+    <script>
         const data = JSON.parse(document.getElementById('user-data').textContent);
         const list = document.getElementById('user-info-list');
         const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
@@ -948,7 +955,7 @@
                                         input.appendChild(option);
                                     });
                                 } catch (err) {
-                                    console.error("Error loading cities:", err);
+                                    showToast("Error", "Failed to load cities: " + err.message);
                                 }
                             }
 
@@ -973,9 +980,8 @@
                             input.dataset.original = currentValue || '';
 
                             if (currentValue && currentValue !== 'Missing') {
-                                console.log('Current Value:', currentValue);
                                 const link = document.createElement('a');
-                                link.href = `${window.location.protocol}//${window.location.host}/${currentValue}`;
+                                link.href = getDocumentUrl(currentValue);
                                 link.textContent = 'View Current';
                                 link.target = '_blank';
                                 link.rel = 'noopener noreferrer';
@@ -1164,8 +1170,6 @@
                                     });
                                     const uploadResult = await uploadRes.json();
 
-                                    console.log("Upload result:", uploadResult);
-
                                     if (uploadResult.success && uploadResult.path) {
                                         updatedValues[fieldName] = uploadResult.filePath;
                                         newValue = uploadResult.filePath;
@@ -1225,14 +1229,13 @@
                             span.textContent = formatPhone(newValue);
 
                         } else if (sectionKey === 'documents') {
-                            if (newValue && newValue !== 'Missing') {
-                                console.log("New value:", newValue);
+                            if (currentValue && currentValue !== 'Missing') {
                                 const link = document.createElement('a');
-                                link.href = `${window.location.protocol}//${window.location.host}/${newValue}`;
-                                link.textContent = 'View Document';
+                                link.href = getDocumentUrl(currentValue);
+                                link.textContent = 'View Current';
                                 link.target = '_blank';
                                 link.rel = 'noopener noreferrer';
-                                span.appendChild(link);
+                                li.appendChild(link);
                             } else {
                                 span.textContent = 'Missing';
                             }
@@ -1293,8 +1296,7 @@
             contentSpan.dataset.value = 'true';
 
             if (isLink && value) {
-                console.log("Document link:", value);
-                const fullUrl = `${window.location.protocol}//${window.location.host}/${value}`;
+                const fullUrl = getDocumentUrl(value);
                 const link = document.createElement('a');
                 link.href = fullUrl;
                 link.textContent = 'View Document';
@@ -1302,6 +1304,7 @@
                 link.rel = 'noopener noreferrer';
                 contentSpan.appendChild(link);
             }
+
             // Phones
             else if ((fieldName === "phoneNumber" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
                 contentSpan.textContent = formatPhone(value);
@@ -1413,7 +1416,6 @@
             const isRequired = necesaryDocs?.[key];
             if (isRequired) {
                 const filePath = documents?.[key];
-                console.log(`Document ${key}:`, filePath);
                 if (filePath) {
                     addListItem(label, filePath, key, true, false, sectionKey);
                 } else {
