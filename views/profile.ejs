@@ -1229,9 +1229,9 @@
                             span.textContent = formatPhone(newValue);
 
                         } else if (sectionKey === 'documents') {
-                            if (currentValue && currentValue !== 'Missing') {
+                            if (newValue && newValue !== 'Missing') {
                                 const link = document.createElement('a');
-                                link.href = getDocumentUrl(currentValue);
+                                link.href = getDocumentUrl(newValue);
                                 link.textContent = 'View Current';
                                 link.target = '_blank';
                                 link.rel = 'noopener noreferrer';
