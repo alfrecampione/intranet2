@@ -1,12 +1,12 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import { pool, prisma } from "./dbConfig.js";
 import bcrypt from "bcrypt";
+import { cca, SCOPES } from "./msalConfig.js";
 
 const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
-      // Prisma
-      const prismaUser = await prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { email, isReleased: false },
         include: {
           personalInfo: {
@@ -14,35 +14,19 @@ const initialize = (passport) => {
           }
         }
       });
-      if (prismaUser) {
-        const isMatch = await bcrypt.compare(password, prismaUser.password);
-        if (isMatch) {
-          return done(null, prismaUser);
-        } else {
-          console.log(`Login failed for ${email}: Password is not correct (Prisma)`);
-          return done(null, false, { msg: "Password is not correct" });
-        }
-      }
-
-      // PostgreSQL pool
-      const result = await pool.query(
-        `SELECT * FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
-        [email],
-      );
-
-      if (result.rows.length > 0) {
-        const user = result.rows[0];
+      if (user) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
           return done(null, user);
         } else {
-          console.log(`Login failed for ${email}: Password is not correct(PostgreSQL)`);
+          console.log(`Login failed for ${email}: Password is not correct`);
           return done(null, false, { msg: "Password is not correct" });
         }
       }
-
-      console.log(`Login failed for ${email}: Email is not registered`);
-      return done(null, false, { msg: "Email is not registered" });
+      else {
+        console.log(`Login failed for ${email}: Email is not registered`);
+        return done(null, false, { msg: "Email is not registered" });
+      }
     } catch (err) {
       return done(err);
     }
@@ -59,51 +43,55 @@ const initialize = (passport) => {
   );
 
   passport.serializeUser((user, done) => done(null, user.user_id));
-  passport.deserializeUser((user_id, done) => {
-    // Prisma
-    prisma.user.findUnique({
-      where: { user_id },
-      include: {
-        personalInfo: {
-          select: { photoPath: true, contactType: true }
+  passport.deserializeUser(async (user_id, done) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { user_id },
+        include: {
+          personalInfo: {
+            select: { photoPath: true, contactType: true }
+          }
         }
+      });
+
+      if (user) {
+        return done(null, user);
       }
-    })
-      .then((prismaUser) => {
-        if (prismaUser) {
-          return done(null, prismaUser);
-        } else {
-          // PostgreSQL pool
-          pool.query(
-            `SELECT * FROM entra.users WHERE user_id = $1`,
-            [user_id],
-            async (err, result) => {
-              if (err) {
-                return done(err);
-              }
-              if (result.rows.length > 0) {
-                let user = result.rows[0];
-                try {
-                  const locResult = await pool.query(
-                    `SELECT location_type, alias FROM qq.locations WHERE location_id = $1`,
-                    [user.location_id],
-                  );
-                  user.location_type = locResult.rows[0]?.location_type;
-                  user.location_alias = locResult.rows[0]?.alias;
-                  return done(null, user);
-                } catch (error) {
-                  user.location_type = 0;
-                  return done(null, user);
-                }
-              } else {
-                return done(null, false);
-              }
-            },
-          );
-        }
-      })
-      .catch((err) => done(err));
+      else {
+        return done(null, false);
+      }
+    }
+    catch (err) {
+      return done(err)
+    }
   });
+};
+
+import passport from "passport";
+
+const postLogin = async (req, res, next) => {
+  const { email } = req.body;
+  if (email.endsWith("@goldentrust.com")) {
+    try {
+      const authCodeUrlParameters = {
+        scopes: SCOPES,
+        redirectUri: process.env.REDIRECT_URI,
+        loginHint: email,
+      };
+
+      const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
+      return res.redirect(authCodeUrl);
+    } catch (err) {
+      console.error("MS login redirect error:", err);
+      return next(err);
+    }
+  } else {
+    passport.authenticate("local", {
+      successRedirect: "/users/dashboard",
+      failureRedirect: "/login",
+      failureFlash: true,
+    })(req, res, next);
+  }
 };
 
 const authenticate = (passport) => {
@@ -114,4 +102,4 @@ const authenticate = (passport) => {
   });
 };
 
-export { initialize, authenticate };
+export { initialize, authenticate, postLogin };

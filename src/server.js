@@ -7,10 +7,7 @@ import passport from "passport";
 import { initialize } from "./config/passportConfig.js";
 import { sessionStore } from "./config/dbConfig.js";
 import http from "http";
-// import https from "https";
-import fs from "fs";
 import cors from "cors";
-import { checkNotAuthenticated } from "./controllers/auth.js";
 
 import router from "./routes.js";
 
@@ -19,13 +16,6 @@ const PORT = process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// SSL Configuration
-// const options = {
-//   key: fs.readFileSync("./src/config/ssl/server.key"),
-//   cert: fs.readFileSync("./src/config/ssl/4779dbccdf63510b.crt"),
-//   ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2-g1.crt"),
-// };
 
 app.use(
   cors({
@@ -42,7 +32,7 @@ initialize(passport);
 
 app.use(
   session({
-    secret: "your_session_secret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
@@ -72,37 +62,8 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "..", "assets")));
 app.use("/uploads", express.static("uploads"));
 
-// app.post("/signatures", checkNotAuthenticated, async (req, res) => {
-//   try {
-//     const { signature } = req.body;
-
-//     // Guardar la firma como imagen
-//     const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
-//     const buffer = Buffer.from(base64Data, "base64");
-//     const fileName = `signature_${Date.now()}.png`;
-//     const filePath = path.join(__dirname, "uploads/signatures", fileName);
-
-//     fs.writeFileSync(filePath, buffer);
-
-//     // Devolver solo el path (el backend lo guardará en TaxInfo)
-//     res.json({
-//       success: true,
-//       path: `/uploads/signatures/${fileName}`,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: "Error al procesar firma" });
-//   }
-// });
-
-// app.use(pino());
-
 app.use("/", router);
 
-/** -MIDDLEWARES- */
-
-// https.createServer(options, app).listen(PORT, () => {
-//   console.log(`Server started at port ${PORT}`);
-// });
 http.createServer(app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
 });

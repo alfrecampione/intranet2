@@ -1,8 +1,9 @@
-import { pool, prisma } from "../config/dbConfig.js";
+import { prisma } from "../config/dbConfig.js";
 import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
 import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { cca, SCOPES } from "../config/msalConfig.js";
 
 const login = (req, res) => {
   res.render("login");
@@ -191,47 +192,49 @@ const resetPassword = async (req, res) => {
     const email = emailResult.data.email;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    pool.query(
-      `UPDATE entra.users SET password=$1 WHERE mail=$2`,
-      [hashedPassword, email],
-      async (err) => {
-        if (err) {
-          console.log(`resetPassword function error`, err);
+    await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
+      try {
+        const prismaUser = await prisma.user.findUnique({ where: { email, isReleased: false } });
+        if (prismaUser) {
+          await prisma.user.update({
+            where: { email },
+            data: { password: hashedPassword }
+          });
         }
-
-        await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
-          try {
-            const prismaUser = await prisma.user.findUnique({ where: { email, isReleased: false } });
-            if (prismaUser) {
-              await prisma.user.update({
-                where: { email },
-                data: { password: hashedPassword }
-              });
-            }
-            await prisma.crypto.delete({
-              where: { encrypted_data: encrypted }
-            })
-          } catch (prismaErr) {
-            console.log(`resetPassword Prisma error`, prismaErr);
-          }
-        });
-        res.redirect("/login");
+        await prisma.crypto.delete({
+          where: { encrypted_data: encrypted }
+        })
+      } catch (prismaErr) {
+        console.log(`resetPassword Prisma error`, prismaErr);
       }
-    );
+    });
+    res.redirect("/login");
   } catch (error) {
     console.log(`resetPassword function error`, error);
     return res.status(500).redirect("/login");
   }
 };
 
-const logout = (req, res) => {
+const logout = (req, res, next) => {
+  const isMicrosoftLogin = req.session.isMicrosoftLogin;
+
   req.logout((err) => {
     if (err) {
       return next(err);
     }
+
+    req.session.destroy(() => {
+      if (isMicrosoftLogin) {
+        // Microsoft Logout
+        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${process.env.BASE_URL}/login`;
+        return res.redirect(msLogoutUrl);
+      }
+
+      // Local Logout
+      req.flash("success_msg", "You have logged out");
+      return res.redirect("/login");
+    });
   });
-  req.flash("success_msg", "You have logged out");
-  res.redirect("/login");
 };
 
 const checkAuthenticated = (req, res, next) => {
@@ -248,6 +251,63 @@ const checkNotAuthenticated = (req, res, next) => {
   res.redirect("/login");
 };
 
+const microsoftLogin = async (req, res, next) => {
+  const { email } = req.body;
+
+  console.log("Login with microsoft");
+
+  if (!email.endsWith("@goldentrust.com")) {
+    return next("route");
+  }
+
+  try {
+    const authCodeUrlParameters = {
+      scopes: SCOPES,
+      redirectUri: process.env.REDIRECT_URI,
+      loginHint: email,
+    };
+
+    const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
+    return res.redirect(authCodeUrl);
+  } catch (err) {
+    console.error("MS login redirect error:", err);
+    return next(err);
+  }
+};
+
+const microsoftCallback = async (req, res, next) => {
+  const tokenRequest = {
+    code: req.query.code,
+    scopes: SCOPES,
+    redirectUri: process.env.REDIRECT_URI,
+  };
+
+  try {
+    const response = await cca.acquireTokenByCode(tokenRequest);
+
+    const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+      headers: { Authorization: `Bearer ${response.accessToken}` },
+    });
+    const userProfile = await graphResponse.json();
+
+    const msUser = {
+      id: response.account.homeAccountId,
+      name: userProfile.displayName,
+      email: userProfile.userPrincipalName,
+      tenantId: response.account.tenantId,
+      isMicrosoftLogin: true,
+    };
+
+    req.login(msUser, (err) => {
+      if (err) return next(err);
+      return res.redirect("/users/dashboard");
+    });
+  } catch (err) {
+    console.error("Microsoft callback error:", err);
+    return res.redirect("/login");
+  }
+};
+
 export {
   login,
   index,
@@ -260,4 +320,6 @@ export {
   signUp,
   validateEmail,
   renderEmailValidation,
+  microsoftLogin,
+  microsoftCallback,
 };

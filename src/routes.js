@@ -25,18 +25,16 @@ import {
 import { agency } from "./controllers/agency_reports.js";
 import { dataSearch } from "./controllers/search.js";
 import { passwordMail, email_sender, new_user_notification, searchNews, readEmails } from "./controllers/mailer.js";
-import passport from "passport";
-import { authenticate } from "./config/passportConfig.js";
+import { postLogin } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
 import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, deleteAgent, recoverAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
 
-/**HTML REQUEST */
 
 router.get("/login", checkAuthenticated, login);
-router.post("/login", authenticate(passport));
+router.post("/login", postLogin);
 router.post("/users/auth/send/:email", passwordMail);
 router.get("/users/auth/reset-password/:email", renderResetPassword);
 router.post("/users/auth/reset-password/:email", resetPassword);
