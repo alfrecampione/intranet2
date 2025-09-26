@@ -254,8 +254,6 @@ const checkNotAuthenticated = (req, res, next) => {
 const microsoftLogin = async (req, res, next) => {
   const { email } = req.body;
 
-  console.log("Login with microsoft");
-
   if (!email.endsWith("@goldentrust.com")) {
     return next("route");
   }
