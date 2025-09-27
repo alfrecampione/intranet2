@@ -42,27 +42,39 @@ const initialize = (passport) => {
     ),
   );
 
-  passport.serializeUser((user, done) => done(null, user.user_id));
-  passport.deserializeUser(async (user_id, done) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { user_id },
-        include: {
-          personalInfo: {
-            select: { photoPath: true, contactType: true }
-          }
-        }
+  passport.serializeUser((user, done) => {
+    if (user.isMicrosoftLogin) {
+      done(null, {
+        type: "ms",
+        ...user
       });
-
-      if (user) {
-        return done(null, user);
-      }
-      else {
-        return done(null, false);
-      }
+    } else {
+      done(null, { type: "local", id: user.user_id });
     }
-    catch (err) {
-      return done(err)
+  });
+
+  passport.deserializeUser(async (obj, done) => {
+    try {
+      if (obj.type === "local") {
+        const user = await prisma.user.findUnique({
+          where: { user_id: obj.user_id },
+          include: {
+            personalInfo: { select: { photoPath: true, contactType: true } }
+          }
+        });
+        return done(null, user || false);
+      } else if (obj.type === "ms") {
+        return done(null, {
+          user_id: obj.user_id,
+          email: obj.email,
+          display_name: obj.display_name,
+          tenantId: obj.tenantId,
+          isMicrosoftLogin: true,
+        });
+      }
+      return done(null, false);
+    } catch (err) {
+      done(err);
     }
   });
 };

@@ -10,6 +10,8 @@ import {
   createAccount,
   validateEmail,
   renderEmailValidation,
+  microsoftCallback,
+  microsoftLogout,
 } from "./controllers/auth.js";
 import {
   redirect_dashboard,
@@ -35,10 +37,12 @@ const router = express.Router();
 
 router.get("/login", checkAuthenticated, login);
 router.post("/login", postLogin);
+router.get("/auth/redirect", microsoftCallback);
 router.post("/users/auth/send/:email", passwordMail);
 router.get("/users/auth/reset-password/:email", renderResetPassword);
 router.post("/users/auth/reset-password/:email", resetPassword);
 router.get("/users/logout", logout);
+router.get('/auth/logout-complete', microsoftLogout);
 router.get("/", checkNotAuthenticated, redirect_dashboard);
 router.get("/users/dashboard", checkNotAuthenticated, renderDashboard);
 

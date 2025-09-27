@@ -101,6 +101,13 @@
                                                 <% } %>
                                     </div>
                                 </div>
+                                <script id="user-data" type="application/json">
+                                    <%- JSON.stringify(user) %>
+                                </script>
+                                <script>
+                                    const user = JSON.parse(document.getElementById("user-data").textContent);
+                                    console.log("User :", user);
+                                </script>
                                 <div class="flex-grow-1">
                                     <span class="fw-medium d-block">
                                         <%= user ? user.display_name : "" %>

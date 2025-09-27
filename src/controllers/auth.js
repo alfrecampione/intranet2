@@ -216,25 +216,26 @@ const resetPassword = async (req, res) => {
 };
 
 const logout = (req, res, next) => {
-  const isMicrosoftLogin = req.session.isMicrosoftLogin;
-
   req.logout((err) => {
-    if (err) {
-      return next(err);
-    }
+    if (err) return next(err);
 
-    req.session.destroy(() => {
-      if (isMicrosoftLogin) {
-        // Microsoft Logout
-        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${process.env.BASE_URL}/login`;
+    const isMicrosoftLogin = req.user?.isMicrosoftLogin;
+
+    if (isMicrosoftLogin) {
+      req.session.destroy(() => {
+        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${process.env.POST_LOGOUT_REDIRECT_URI}`;
         return res.redirect(msLogoutUrl);
-      }
-
-      // Local Logout
+      });
+    } else {
       req.flash("success_msg", "You have logged out");
-      return res.redirect("/login");
-    });
+      req.session.destroy(() => {
+        return res.redirect("/login");
+      });
+    }
   });
+};
+const microsoftLogout = (req, res) => {
+  return res.redirect("/login");
 };
 
 const checkAuthenticated = (req, res, next) => {
@@ -289,8 +290,8 @@ const microsoftCallback = async (req, res, next) => {
     const userProfile = await graphResponse.json();
 
     const msUser = {
-      id: response.account.homeAccountId,
-      name: userProfile.displayName,
+      user_id: response.account.homeAccountId,
+      display_name: userProfile.displayName,
       email: userProfile.userPrincipalName,
       tenantId: response.account.tenantId,
       isMicrosoftLogin: true,
@@ -320,4 +321,5 @@ export {
   renderEmailValidation,
   microsoftLogin,
   microsoftCallback,
+  microsoftLogout
 };
