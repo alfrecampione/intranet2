@@ -7,6 +7,7 @@ import passport from "passport";
 import { initialize } from "./config/passportConfig.js";
 import { sessionStore } from "./config/dbConfig.js";
 import http from "http";
+import https from "https"
 import cors from "cors";
 
 import router from "./routes.js";
@@ -16,6 +17,13 @@ const PORT = process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// SSL Configuration
+const options = {
+  key: fs.readFileSync("./src/config/ssl/server.key"),
+  cert: fs.readFileSync("./src/config/ssl/4779dbccdf63510b.crt"),
+  ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2-g1.crt"),
+};
 
 app.use(
   cors({
@@ -38,7 +46,7 @@ app.use(
     store: sessionStore,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000,
-      secure: false, // Required for HTTPS
+      secure: true, // Required for HTTPS
     },
   }),
 );
@@ -64,6 +72,10 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/", router);
 
-http.createServer(app).listen(PORT, () => {
+https.createServer(options, app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
 });
+
+// http.createServer(app).listen(PORT, () => {
+//   console.log(`Server started at port ${PORT}`);
+// });
