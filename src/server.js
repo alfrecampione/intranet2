@@ -21,8 +21,8 @@ const __dirname = path.dirname(__filename);
 // SSL Configuration
 const options = {
   key: fs.readFileSync("./src/config/ssl/server.key"),
-  cert: fs.readFileSync("./src/config/ssl/4779dbccdf63510b.crt"),
-  ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2-g1.crt"),
+  cert: fs.readFileSync("./src/config/ssl/31e810c645f53345.crt"),
+  ca: fs.readFileSync("./src/config/ssl/gd_bundle-g2.crt"),
 };
 
 app.use(
