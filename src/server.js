@@ -9,6 +9,7 @@ import { sessionStore } from "./config/dbConfig.js";
 import http from "http";
 import https from "https"
 import cors from "cors";
+import fs from "fs";
 
 import router from "./routes.js";
 
