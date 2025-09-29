@@ -12,13 +12,6 @@
     </div>
 
     <div class="menu-inner-shadow"></div>
-    <script id="user-data" type="application/json">
-    <%- JSON.stringify(user) %>
-  </script>
-    <script>
-        const data = JSON.parse(document.getElementById('user-data').textContent);
-        console.log(data)
-    </script>
     <ul class="menu-inner py-1">
         <% if (user && (user.registrationCompleted || user.active) ) { %>
             <!-- Dashboard -->
