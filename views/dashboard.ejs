@@ -288,6 +288,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <script id="user-data" type="application/json">
+    <%- JSON.stringify(user) %>
+  </script>
+  <script>
+    const data = JSON.parse(document.getElementById('user-data').textContent);
+    console.log(data)
+  </script>
+
   <script>
     const stateAbbreviationMap = {
       "AL": "Alabama",
