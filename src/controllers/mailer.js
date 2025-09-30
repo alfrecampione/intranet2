@@ -67,7 +67,7 @@ async function sendMail(email, subject, body) {
 // ----------------------------
 // PASSWORD MAIL
 // ----------------------------
-export const passwordMail = async (req, res) => {
+const passwordMail = async (req, res) => {
   const email = req.params.email;
   const baseUrl = process.env.BASE_URL;
   const { encryptedData, key, iv } = encrypt(email);
@@ -125,7 +125,7 @@ export const passwordMail = async (req, res) => {
 // ----------------------------
 // GENERIC EMAIL SENDER
 // ----------------------------
-export const email_sender = async (req, res) => {
+const email_sender = async (req, res) => {
   const { subject, body } = req.body;
   const email = req.params.email;
 
@@ -147,7 +147,7 @@ export const email_sender = async (req, res) => {
 // ----------------------------
 // NEW USER NOTIFICATION
 // ----------------------------
-export const new_user_notification = async (req, res) => {
+const new_user_notification = async (req, res) => {
   const { email, recommendation } = req.body;
 
   if (!email) {
