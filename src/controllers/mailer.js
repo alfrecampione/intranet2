@@ -42,7 +42,7 @@ async function getAccessToken() {
   const json = await res.json();
 
   if (json.error) {
-    throw new Error(`Error token: ${json.error_description}`);
+    throw new Error('Error token: ${json.error_description}');
   }
 
   return json.access_token;
@@ -141,7 +141,7 @@ const passwordMail = async (req, res) => {
 
   const body = {
     name: email,
-    intro: `Welcome to GoldenHealth! We're very excited to have you on board.`,
+    intro: "Welcome to GoldenHealth! We're very excited to have you on board.",
     action: {
       instructions: "To get started, please click here:",
       button: {
@@ -239,8 +239,6 @@ async function getAllMessages(userEmail) {
       if (response.value) {
         messages = messages.concat(response.value);
       }
-
-      // Graph devuelve @odata.nextLink si hay más páginas
       nextLink = response["@odata.nextLink"] ? response["@odata.nextLink"] : null;
     }
   } catch (err) {
@@ -252,14 +250,12 @@ async function getAllMessages(userEmail) {
 
 const readEmails = async () => {
   try {
-    const messagesResponse = await getAllMessages(process.env.G_EMAIL);
+    const messages = await getAllMessages(process.env.G_EMAIL);
 
-    const messages = messagesResponse.value || [];
-    const seenIds = [];
+    const seenIds = new Set();
 
     for (const msg of messages) {
-      const uniqueId = msg.id;
-      seenIds.push(uniqueId);
+      seenIds.add(msg.id);
 
       const cleanContent = msg.bodyPreview?.trim() || "(No Content)";
 
@@ -283,7 +279,7 @@ const readEmails = async () => {
 
     const dbNews = await prisma.news.findMany({ select: { externalId: true } });
     const dbIds = dbNews.map((n) => n.externalId);
-    const toDelete = dbIds.filter((id) => !seenIds.includes(id));
+    const toDelete = dbIds.filter((id) => !seenIds.has(id));
 
     if (toDelete.length > 0) {
       await prisma.news.deleteMany({ where: { externalId: { in: toDelete } } });
