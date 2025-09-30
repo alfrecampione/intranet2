@@ -184,6 +184,20 @@
 
   <!-- Page JS -->
   <script src="/js/login.js"></script>
+
+  <script>
+    document.getElementById("email").addEventListener("input", function () {
+      const email = this.value.trim();
+      const passwordField = document.getElementById("password");
+
+      if (email.endsWith("@goldentrust.com")) {
+        passwordField.value = "";
+        passwordField.setAttribute("disabled", "true");
+      } else {
+        passwordField.removeAttribute("disabled");
+      }
+    });
+  </script>
 </body>
 
 </html>

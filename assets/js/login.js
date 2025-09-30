@@ -124,6 +124,19 @@ document.addEventListener('DOMContentLoaded', function (e) {
           });
         }
       });
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      emailInput.addEventListener('input', function () {
+        if (this.value.trim().endsWith('@goldentrust.com')) {
+          passwordInput.value = '';
+          passwordInput.setAttribute('disabled', 'true');
+          fv.disableValidator('password'); // desactiva validación
+        } else {
+          passwordInput.removeAttribute('disabled');
+          fv.enableValidator('password'); // activa validación
+        }
+      });
     }
 
     //  Two Steps Verification

@@ -34,7 +34,6 @@ import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection
 
 const router = express.Router();
 
-
 router.get("/login", checkAuthenticated, login);
 router.post("/login", postLogin);
 router.get("/auth/redirect", microsoftCallback);
@@ -91,6 +90,7 @@ router.post(
   checkNotAuthenticated,
   cnSalesStatistics,
 );
+
 router.get("/users/agency", checkNotAuthenticated, agency);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);

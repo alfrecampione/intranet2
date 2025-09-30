@@ -1,34 +1,37 @@
-import nodemailer from "nodemailer";
-import Mailgen from "mailgen";
 import dotenv from "dotenv";
+import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
-import Imap from "imap-simple";
-import { simpleParser } from "mailparser";
-
+import { Client } from "@microsoft/microsoft-graph-client";
+import { ClientSecretCredential } from "@azure/identity";
 
 dotenv.config();
 
 /* ----------------------------
-   SMTP CONFIG (for sending)
+   GRAPH CONFIG (for sending)
 ---------------------------- */
-const mailConfig = {
-  service: "gmail",
-  auth: {
-    user: process.env.G_EMAIL,
-    pass: process.env.G_PASSWORD,
+const credential = new ClientSecretCredential(
+  process.env.MS_TENANT_ID,
+  process.env.MS_CLIENT_ID,
+  process.env.MS_CLIENT_SECRET
+);
+
+const graphClient = Client.initWithMiddleware({
+  authProvider: {
+    getAccessToken: async () => {
+      const tokenResponse = await credential.getToken("https://graph.microsoft.com/.default");
+      return tokenResponse.token;
+    },
   },
-};
+});
 
 /* ----------------------------
-   SEND EMAILS
+   SEND EMAILS (Graph)
 ---------------------------- */
 const sendMail = async (email, subject, body) => {
   if (!email || !body || !subject) {
     throw new Error("Email, subject and body are required");
   }
-
-  let transporter = nodemailer.createTransport(mailConfig);
 
   let mailGenerator = new Mailgen({
     theme: "default",
@@ -39,43 +42,60 @@ const sendMail = async (email, subject, body) => {
   });
 
   let response = { body };
-  let mail = mailGenerator.generate(response);
+  let mailHtml = mailGenerator.generate(response);
 
-  let message = {
-    from: `GTI <${process.env.G_EMAIL}>`,
-    to: email,
-    subject,
-    html: mail,
+  const message = {
+    message: {
+      subject,
+      body: {
+        contentType: "HTML",
+        content: mailHtml,
+      },
+      toRecipients: [
+        {
+          emailAddress: {
+            address: email,
+          },
+        },
+      ],
+      from: {
+        emailAddress: {
+          address: process.env.G_EMAIL,
+        },
+      },
+    },
   };
 
-  await transporter.sendMail(message);
+  await graphClient.api(`/users/${process.env.G_EMAIL}/sendMail`).post(message);
 };
-/* ----------------------------
-   PASSWORD MAIL
----------------------------- */
+
+//* ----------------------------
+// PASSWORD MAIL
+// ---------------------------- */
 const passwordMail = async (req, res) => {
   const email = req.params.email;
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const baseUrl = process.env.BASE_URL
   const { encryptedData, key, iv } = encrypt(email);
 
   let result, prismaUser;
   try {
-    // Search in Postgres
     result = await pool.query(
       `SELECT display_name FROM entra.users WHERE mail = $1 AND active = true AND location_id > 0`,
-      [email],
+      [email]
     );
 
-    // Search in Prisma
     prismaUser = await prisma.user.findUnique({
       where: { email: email, isReleased: false },
     });
 
-    // Insert encrypted data
-    await pool.query(
-      `INSERT INTO admin.crypto(encrypted_data, key, iv) VALUES ($1, $2, $3);`,
-      [encryptedData, key, iv],
-    );
+    await prisma.crypto.create({
+      data: {
+        encrypted_data: encryptedData,
+        key: key,
+        id: iv
+      }
+    });
+
   } catch (error) {
     console.log("POSTGRESQL/PRISMA:", error);
     return res.status(500).json({ msg: "Data Access Error" });
@@ -96,13 +116,14 @@ const passwordMail = async (req, res) => {
         link: `${baseUrl}/users/auth/reset-password/${encryptedData}`,
       },
     },
-    outro: `Need help, or have questions? Just reply to this email, we'd love to help.`,
+    outro: ``,
   };
 
   try {
     await sendMail(email, "Create your password", body);
-    return res.status(201).json({ msg: "You should receive an email" });
+    return res.status(201).json({ msg: "Email sent" });
   } catch (err) {
+    console.error("GRAPH SEND ERROR:", err);
     return res.status(500).json({ err });
   }
 };
@@ -156,7 +177,7 @@ const new_user_notification = async (req, res) => {
 
     for (const alert of alerts) {
       try {
-        await sendMail(alert.email, subject, body);
+        await sendMail(alert.email, subject, body); // ← usa Graph
       } catch (err) {
         console.error(`Error sending notification to ${alert.email}:`, err);
       }
@@ -170,77 +191,58 @@ const new_user_notification = async (req, res) => {
 };
 
 /* ----------------------------
-   IMAP CONFIG (for reading)
+   READ EMAILS FUNCTION (Graph)
 ---------------------------- */
-const imapConfig = {
-  imap: {
-    user: process.env.G_EMAIL,
-    password: process.env.G_PASSWORD,
-    host: "imap.gmail.com",
-    port: 993,
-    tls: true,
-    tlsOptions: { rejectUnauthorized: false },
-    authTimeout: 3000,
-  },
-};
 
-/* ----------------------------
-   READ EMAILS FUNCTION
----------------------------- */
-function extractLatestMessage(content) {
-  if (!content) return "(No Content)";
-  const patterns = [
-    /^On .* wrote:/mi,
-    /^De:/mi,
-    /^From:/mi,
-    /-----Original Message-----/i,
-    /----- Mensaje original -----/i,
-  ];
+async function getAllMessages(userEmail) {
+  let messages = [];
+  let nextLink = `/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId`;
 
-  for (let pattern of patterns) {
-    const match = content.match(pattern);
-    if (match) {
-      return content.substring(0, match.index).trim();
+  try {
+    while (nextLink) {
+      const response = await graphClient.api(nextLink).get();
+
+      if (response.value) {
+        messages = messages.concat(response.value);
+      }
+
+      // Graph devuelve @odata.nextLink si hay más páginas
+      nextLink = response["@odata.nextLink"] ? response["@odata.nextLink"] : null;
     }
+  } catch (err) {
+    console.error("Error fetching messages from Graph:", err);
   }
-  return content.trim();
+
+  return messages;
 }
 
 const readEmails = async () => {
   try {
-    const connection = await Imap.connect(imapConfig);
-    await connection.openBox("INBOX");
+    const messagesResponse = await getAllMessages(process.env.G_EMAIL);
 
-    const searchCriteria = ["ALL"];
-    const fetchOptions = { bodies: [""], struct: true, markSeen: false };
-
-    const messages = await connection.search(searchCriteria, fetchOptions);
-
+    const messages = messagesResponse.value || [];
     const seenIds = [];
 
-    for (let item of messages) {
-      const all = item.parts.find((part) => part.which === "");
-      const parsed = await simpleParser(all.body);
-
-      const uniqueId = parsed.messageId || item.attributes.uid.toString();
+    for (const msg of messages) {
+      const uniqueId = msg.id;
       seenIds.push(uniqueId);
 
-      const cleanContent = extractLatestMessage(parsed.text || parsed.html);
+      const cleanContent = msg.bodyPreview?.trim() || "(No Content)";
 
       await prisma.news.upsert({
         where: { externalId: uniqueId },
         update: {
-          sender: parsed.from?.text || "Unknown",
-          title: parsed.subject || "(No Subject)",
+          sender: msg.from?.emailAddress?.address || "Unknown",
+          title: msg.subject || "(No Subject)",
           content: cleanContent,
-          sendedAt: parsed.date || new Date(),
+          sendedAt: new Date(msg.sentDateTime),
         },
         create: {
           externalId: uniqueId,
-          sender: parsed.from?.text || "Unknown",
-          title: parsed.subject || "(No Subject)",
+          sender: msg.from?.emailAddress?.address || "Unknown",
+          title: msg.subject || "(No Subject)",
           content: cleanContent,
-          sendedAt: parsed.date || new Date(),
+          sendedAt: new Date(msg.sentDateTime),
         },
       });
     }
@@ -252,22 +254,21 @@ const readEmails = async () => {
     if (toDelete.length > 0) {
       await prisma.news.deleteMany({ where: { externalId: { in: toDelete } } });
     }
-
-    connection.end();
   } catch (err) {
-    console.error("❌ Error reading emails: ", err);
+    console.error("❌ Error reading emails via Graph: ", err);
   }
 };
 
+/* ----------------------------
+   SEARCH NEWS
+---------------------------- */
 const searchNews = async (req, res) => {
-  const query = req.query.q
+  const query = req.query.q;
 
-  if (!query || query === '') {
+  if (!query || query === "") {
     const all = await prisma.news.findMany({ orderBy: { sendedAt: "desc" } });
     return res.status(200).json({ results: all });
   }
-
-  if (!query || query.trim().length === 0) return [];
 
   const textMatches = await prisma.news.findMany({
     where: {
@@ -275,7 +276,7 @@ const searchNews = async (req, res) => {
         { title: { contains: query, mode: "insensitive" } },
         { content: { contains: query, mode: "insensitive" } },
       ],
-    }
+    },
   });
 
   return res.status(200).json({ results: textMatches });
