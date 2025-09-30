@@ -10,6 +10,8 @@ const config = {
 
 const cca = new ConfidentialClientApplication(config);
 
-const SCOPES = ["user.read", "email", "openid", "profile"];
+const APP_SCOPES = ["https://graph.microsoft.com/.default"];
 
-export { cca, SCOPES };
+const LOGIN_SCOPES = ["user.read", "email", "openid", "profile"];
+
+export { cca, APP_SCOPES, LOGIN_SCOPES };

@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
 import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { cca, SCOPES } from "../config/msalConfig.js";
+import { cca, LOGIN_SCOPES } from "../config/msalConfig.js";
 
 const login = (req, res) => {
   res.render("login");
@@ -221,19 +221,17 @@ const logout = (req, res, next) => {
 
     const isMicrosoftLogin = req.user?.isMicrosoftLogin;
 
-    if (isMicrosoftLogin) {
-      req.session.destroy(() => {
-        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${process.env.POST_LOGOUT_REDIRECT_URI}`;
+    req.session.destroy(() => {
+      if (isMicrosoftLogin) {
+        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(process.env.POST_LOGOUT_REDIRECT_URI)}`;
         return res.redirect(msLogoutUrl);
-      });
-    } else {
-      req.flash("success_msg", "You have logged out");
-      req.session.destroy(() => {
+      } else {
         return res.redirect("/login");
-      });
-    }
+      }
+    });
   });
 };
+
 const microsoftLogout = (req, res) => {
   return res.redirect("/login");
 };
@@ -261,7 +259,7 @@ const microsoftLogin = async (req, res, next) => {
 
   try {
     const authCodeUrlParameters = {
-      scopes: SCOPES,
+      scopes: LOGIN_SCOPES,
       redirectUri: process.env.REDIRECT_URI,
       loginHint: email,
     };
@@ -277,7 +275,7 @@ const microsoftLogin = async (req, res, next) => {
 const microsoftCallback = async (req, res, next) => {
   const tokenRequest = {
     code: req.query.code,
-    scopes: SCOPES,
+    scopes: LOGIN_SCOPES,
     redirectUri: process.env.REDIRECT_URI,
   };
 

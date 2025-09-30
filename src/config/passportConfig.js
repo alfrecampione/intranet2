@@ -1,7 +1,7 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import { pool, prisma } from "./dbConfig.js";
 import bcrypt from "bcrypt";
-import { cca, SCOPES } from "./msalConfig.js";
+import { cca, LOGIN_SCOPES } from "./msalConfig.js";
 
 const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
@@ -86,7 +86,7 @@ const postLogin = async (req, res, next) => {
   if (email.endsWith("@goldentrust.com")) {
     try {
       const authCodeUrlParameters = {
-        scopes: SCOPES,
+        scopes: LOGIN_SCOPES,
         redirectUri: process.env.REDIRECT_URI,
         loginHint: email,
       };

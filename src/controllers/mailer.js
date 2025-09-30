@@ -4,6 +4,7 @@ import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { ClientSecretCredential } from "@azure/identity";
+import { APP_SCOPES } from "../config/msalConfig.js";
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ const credential = new ClientSecretCredential(
 const graphClient = Client.initWithMiddleware({
   authProvider: {
     getAccessToken: async () => {
-      const tokenResponse = await credential.getToken("https://graph.microsoft.com/.default");
+      const tokenResponse = await credential.getToken(APP_SCOPES.join(" "));
       return tokenResponse.token;
     },
   },
