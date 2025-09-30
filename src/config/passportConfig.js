@@ -7,7 +7,7 @@ const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
       const user = await prisma.user.findUnique({
-        where: { email, isReleased: false },
+        where: { email },
         include: {
           personalInfo: {
             select: { photoPath: true, contactType: true }
