@@ -3,112 +3,73 @@ import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { ClientSecretCredential } from "@azure/identity";
-import { APP_SCOPES } from "../config/msalConfig.js";
+import { cca, APP_SCOPES } from "../config/msalConfig.js";
 
 dotenv.config();
 
 /* ----------------------------
    GRAPH CONFIG (for sending)
 ---------------------------- */
-const credential = new ClientSecretCredential(
-  process.env.MS_TENANT_ID,
-  process.env.MS_CLIENT_ID,
-  process.env.MS_CLIENT_SECRET
-);
-
-const graphClient = Client.initWithMiddleware({
-  authProvider: {
-    getAccessToken: async () => {
-      const tokenResponse = await credential.getToken(APP_SCOPES.join(" "));
-      return tokenResponse.token;
-    },
+const graphClient = Client.init({
+  authProvider: async (done) => {
+    try {
+      const result = await cca.acquireTokenByClientCredential({
+        scopes: APP_SCOPES,
+      });
+      done(null, result.accessToken);
+    } catch (err) {
+      done(err, null);
+    }
   },
 });
 
+
 /* ----------------------------
    SEND EMAILS (Graph)
 ---------------------------- */
-async function getAccessToken() {
-  const url = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/token`;
+async function sendMail(email, subject, body) {
+  try {
+    if (!email || !subject || !body) {
+      throw new Error("Email, subject and body are required");
+    }
 
-  const params = new URLSearchParams();
-  params.append("client_id", process.env.MS_CLIENT_ID);
-  params.append("client_secret", process.env.MS_CLIENT_SECRET);
-  params.append("scope", "https://graph.microsoft.com/.default");
-  params.append("grant_type", "client_credentials");
+    const mailGenerator = new Mailgen({
+      theme: "default",
+      product: {
+        name: `GoldenTrust Insurance's Intranet`,
+        link: "https://goldentrustinsurance.com/",
+      },
+    });
 
-  const res = await fetch(url, { method: "POST", body: params });
-  const json = await res.json();
+    const mailHtml = mailGenerator.generate({ body });
 
-  if (json.error) {
-    throw new Error('Error token: ${json.error_description}');
+    const message = {
+      message: {
+        subject,
+        body: {
+          contentType: "HTML",
+          content: mailHtml,
+        },
+        toRecipients: [{ emailAddress: { address: email } }],
+      },
+      saveToSentItems: "true",
+    };
+
+    await graphClient
+      .api(`/users/${process.env.G_EMAIL}/sendMail`)
+      .post(message);
   }
-
-  return json.access_token;
+  catch (err) {
+    console.log("Error sending email: " + err)
+  }
 }
 
-/* ----------------------------
-   SEND EMAILS (Graph)
----------------------------- */
-const sendMail = async (email, subject, body) => {
-  if (!email || !body || !subject) {
-    throw new Error("Email, subject and body are required");
-  }
-
-  // Mailgen para HTML
-  const mailGenerator = new Mailgen({
-    theme: "default",
-    product: {
-      name: `GoldenTrust Insurance's Intranet`,
-      link: "https://goldentrustinsurance.com/",
-    },
-  });
-
-  const mailHtml = mailGenerator.generate({ body });
-
-  const message = {
-    message: {
-      subject,
-      body: {
-        contentType: "HTML",
-        content: mailHtml,
-      },
-      toRecipients: [
-        {
-          emailAddress: { address: email },
-        },
-      ],
-    },
-    saveToSentItems: "true",
-  };
-
-  const token = await getAccessToken();
-
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${process.env.G_EMAIL}/sendMail`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(message),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Error sending email: ${err}`);
-  }
-};
-
-//* ----------------------------
+// ----------------------------
 // PASSWORD MAIL
-// ---------------------------- */
-const passwordMail = async (req, res) => {
+// ----------------------------
+export const passwordMail = async (req, res) => {
   const email = req.params.email;
-  const baseUrl = process.env.BASE_URL
+  const baseUrl = process.env.BASE_URL;
   const { encryptedData, key, iv } = encrypt(email);
 
   let result, prismaUser;
@@ -126,10 +87,9 @@ const passwordMail = async (req, res) => {
       data: {
         encrypted_data: encryptedData,
         key: key,
-        id: iv
-      }
+        id: iv,
+      },
     });
-
   } catch (error) {
     console.log("POSTGRESQL/PRISMA:", error);
     return res.status(500).json({ msg: "Data Access Error" });
@@ -162,26 +122,32 @@ const passwordMail = async (req, res) => {
   }
 };
 
-/* ----------------------------
-   GENERIC EMAIL SENDER
----------------------------- */
-const email_sender = async (req, res) => {
+// ----------------------------
+// GENERIC EMAIL SENDER
+// ----------------------------
+export const email_sender = async (req, res) => {
   const { subject, body } = req.body;
   const email = req.params.email;
 
   try {
     await sendMail(email, subject, body);
-    return res.status(200).json({ success: true, message: "Email sent successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "Email sent successfully",
+    });
   } catch (error) {
     console.error("Error sending email:", error);
-    return res.status(500).json({ success: false, message: "Failed to send email" });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send email",
+    });
   }
 };
 
-/* ----------------------------
-   NEW USER NOTIFICATION
----------------------------- */
-const new_user_notification = async (req, res) => {
+// ----------------------------
+// NEW USER NOTIFICATION
+// ----------------------------
+export const new_user_notification = async (req, res) => {
   const { email, recommendation } = req.body;
 
   if (!email) {
@@ -191,7 +157,9 @@ const new_user_notification = async (req, res) => {
   try {
     const alerts = await prisma.newUserAlerts.findMany({});
     if (!alerts || alerts.length === 0) {
-      return res.status(200).json({ message: "No notification emails configured." });
+      return res
+        .status(200)
+        .json({ message: "No notification emails configured." });
     }
 
     const subject = "New user created";
@@ -206,12 +174,13 @@ const new_user_notification = async (req, res) => {
           },
         },
       }),
-      outro: "This is an automated message from the GoldenTrust Insurance's Intranet.",
+      outro:
+        "This is an automated message from the GoldenTrust Insurance's Intranet.",
     };
 
     for (const alert of alerts) {
       try {
-        await sendMail(alert.email, subject, body); // ← usa Graph
+        await sendMail(alert.email, subject, body);
       } catch (err) {
         console.error(`Error sending notification to ${alert.email}:`, err);
       }
@@ -227,22 +196,24 @@ const new_user_notification = async (req, res) => {
 /* ----------------------------
    READ EMAILS FUNCTION (Graph)
 ---------------------------- */
-
 async function getAllMessages(userEmail) {
   let messages = [];
-  let nextLink = `/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId`;
+  let page = await graphClient
+    .api(`/users/${userEmail}/messages`)
+    .orderby("sentDateTime DESC")
+    .select("id,subject,bodyPreview,from,sentDateTime,conversationId")
+    .top(50)
+    .get();
 
-  try {
-    while (nextLink) {
-      const response = await graphClient.api(nextLink).get();
-
-      if (response.value) {
-        messages = messages.concat(response.value);
-      }
-      nextLink = response["@odata.nextLink"] ? response["@odata.nextLink"] : null;
+  while (page) {
+    if (page.value) {
+      messages = messages.concat(page.value);
     }
-  } catch (err) {
-    console.error("Error fetching messages from Graph:", err);
+    if (page["@odata.nextLink"]) {
+      page = await graphClient.api(page["@odata.nextLink"]).get();
+    } else {
+      break;
+    }
   }
 
   return messages;
