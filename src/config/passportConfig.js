@@ -89,6 +89,7 @@ const postLogin = async (req, res, next) => {
         scopes: LOGIN_SCOPES,
         redirectUri: process.env.REDIRECT_URI,
         loginHint: email,
+        prompt: "login",
       };
 
       const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
