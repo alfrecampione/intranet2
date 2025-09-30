@@ -6,7 +6,6 @@ import { cca, LOGIN_SCOPES } from "./msalConfig.js";
 const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
-      console.log(email)
       const user = await prisma.user.findUnique({
         where: { email: email },
         include: {
