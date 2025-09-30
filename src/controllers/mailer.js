@@ -29,12 +29,35 @@ const graphClient = Client.initWithMiddleware({
 /* ----------------------------
    SEND EMAILS (Graph)
 ---------------------------- */
+async function getAccessToken() {
+  const url = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/token`;
+
+  const params = new URLSearchParams();
+  params.append("client_id", process.env.MS_CLIENT_ID);
+  params.append("client_secret", process.env.MS_CLIENT_SECRET);
+  params.append("scope", "https://graph.microsoft.com/.default");
+  params.append("grant_type", "client_credentials");
+
+  const res = await fetch(url, { method: "POST", body: params });
+  const json = await res.json();
+
+  if (json.error) {
+    throw new Error(`Error token: ${json.error_description}`);
+  }
+
+  return json.access_token;
+}
+
+/* ----------------------------
+   SEND EMAILS (Graph)
+---------------------------- */
 const sendMail = async (email, subject, body) => {
   if (!email || !body || !subject) {
     throw new Error("Email, subject and body are required");
   }
 
-  let mailGenerator = new Mailgen({
+  // Mailgen para HTML
+  const mailGenerator = new Mailgen({
     theme: "default",
     product: {
       name: `GoldenTrust Insurance's Intranet`,
@@ -42,8 +65,7 @@ const sendMail = async (email, subject, body) => {
     },
   });
 
-  let response = { body };
-  let mailHtml = mailGenerator.generate(response);
+  const mailHtml = mailGenerator.generate({ body });
 
   const message = {
     message: {
@@ -54,20 +76,31 @@ const sendMail = async (email, subject, body) => {
       },
       toRecipients: [
         {
-          emailAddress: {
-            address: email,
-          },
+          emailAddress: { address: email },
         },
       ],
-      from: {
-        emailAddress: {
-          address: process.env.G_EMAIL,
-        },
-      },
     },
+    saveToSentItems: "true",
   };
 
-  await graphClient.api(`/users/${process.env.G_EMAIL}/sendMail`).post(message);
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${process.env.G_EMAIL}/sendMail`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Error sending email: ${err}`);
+  }
 };
 
 //* ----------------------------
