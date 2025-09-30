@@ -57,7 +57,7 @@ const initialize = (passport) => {
   passport.deserializeUser(async (obj, done) => {
     try {
       if (obj.type === "local") {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
           where: { user_id: obj.user_id },
           include: {
             personalInfo: { select: { photoPath: true, contactType: true } }
