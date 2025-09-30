@@ -90,8 +90,6 @@ const renderMyAgents = async (req, res) => {
 const renderAgents = async (req, res) => {
   const user = req.user;
 
-  console.log(user);
-
   const users = await prisma.user.findMany({
     where: { isReleased: false },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
