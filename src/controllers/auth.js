@@ -223,7 +223,7 @@ const logout = (req, res, next) => {
 
     req.session.destroy(() => {
       if (isMicrosoftLogin) {
-        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(process.env.POST_LOGOUT_REDIRECT_URI)}`;
+        const msLogoutUrl = `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${process.env.POST_LOGOUT_REDIRECT_URI}`;
         return res.redirect(msLogoutUrl);
       } else {
         return res.redirect("/login");
