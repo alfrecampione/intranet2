@@ -7,9 +7,9 @@ import { encrypt } from "./crypto.js";
 dotenv.config();
 
 // Variables para Microsoft Graph
-const tenantId = process.env.TENANT_ID;
-const clientId = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET;
+const tenantId = process.env.MS_TENANT_ID;
+const clientId = process.env.MS_CLIENT_ID;
+const clientSecret = process.env.MS_CLIENT_SECRET;
 const senderEmail = process.env.G_EMAIL;
 
 /* ----------------------------
