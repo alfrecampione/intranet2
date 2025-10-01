@@ -1,31 +1,41 @@
+import fetch from "node-fetch";
 import dotenv from "dotenv";
 import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
-import { Client } from "@microsoft/microsoft-graph-client";
-import { cca, APP_SCOPES } from "../config/msalConfig.js";
 
 dotenv.config();
 
+// Variables para Microsoft Graph
+const tenantId = process.env.TENANT_ID;
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+const senderEmail = process.env.G_EMAIL;
+
 /* ----------------------------
-   GRAPH CONFIG (for sending)
+   TOKEN MANAGEMENT
 ---------------------------- */
-const graphClient = Client.init({
-  authProvider: async (done) => {
-    try {
-      const result = await cca.acquireTokenByClientCredential({
-        scopes: APP_SCOPES,
-      });
-      done(null, result.accessToken);
-    } catch (err) {
-      done(err, null);
-    }
-  },
-});
+async function getAccessToken() {
+  const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
 
+  const params = new URLSearchParams();
+  params.append("client_id", clientId);
+  params.append("client_secret", clientSecret);
+  params.append("scope", "https://graph.microsoft.com/.default");
+  params.append("grant_type", "client_credentials");
+
+  const res = await fetch(url, { method: "POST", body: params });
+  const json = await res.json();
+
+  if (json.error) {
+    throw new Error(`Error getting token: ${json.error_description}`);
+  }
+
+  return json.access_token;
+}
 
 /* ----------------------------
-   SEND EMAILS (Graph)
+   SEND EMAILS (Graph with Fetch)
 ---------------------------- */
 async function sendMail(email, subject, body) {
   try {
@@ -55,12 +65,64 @@ async function sendMail(email, subject, body) {
       saveToSentItems: "true",
     };
 
-    await graphClient
-      .api(`/users/${process.env.G_EMAIL}/sendMail`)
-      .post(message);
+    const token = await getAccessToken();
+
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/users/${senderEmail}/sendMail`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Graph API error: ${response.status} - ${errorText}`);
+    }
+  } catch (err) {
+    console.log("Error sending email: " + err);
+    throw err;
   }
-  catch (err) {
-    console.log("Error sending email: " + err)
+}
+
+/* ----------------------------
+   READ EMAILS FUNCTION (Graph with Fetch)
+---------------------------- */
+async function getAllMessages(userEmail) {
+  try {
+    const token = await getAccessToken();
+    let messages = [];
+    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$top=50`;
+
+    while (url) {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Graph API error: ${response.status}`);
+      }
+
+      const page = await response.json();
+
+      if (page.value) {
+        messages = messages.concat(page.value);
+      }
+
+      url = page["@odata.nextLink"] || null;
+    }
+
+    return messages;
+  } catch (err) {
+    console.error("Error getting messages:", err);
+    throw err;
   }
 }
 
@@ -193,42 +255,16 @@ const new_user_notification = async (req, res) => {
   }
 };
 
-/* ----------------------------
-   READ EMAILS FUNCTION (Graph)
----------------------------- */
-async function getAllMessages(userEmail) {
-  let messages = [];
-  let page = await graphClient
-    .api(`/users/${userEmail}/messages`)
-    .orderby("sentDateTime DESC")
-    .select("id,subject,bodyPreview,from,sentDateTime,conversationId")
-    .top(50)
-    .get();
-
-  while (page) {
-    if (page.value) {
-      messages = messages.concat(page.value);
-    }
-    if (page["@odata.nextLink"]) {
-      page = await graphClient.api(page["@odata.nextLink"]).get();
-    } else {
-      break;
-    }
-  }
-
-  return messages;
-}
-
 const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
-
     const seenIds = new Set();
 
     for (const msg of messages) {
       seenIds.add(msg.id);
 
       const cleanContent = msg.bodyPreview?.trim() || "(No Content)";
+      const uniqueId = msg.id; // Fixed: define uniqueId
 
       await prisma.news.upsert({
         where: { externalId: uniqueId },
