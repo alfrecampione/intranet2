@@ -288,18 +288,29 @@ const microsoftCallback = async (req, res, next) => {
     });
     const userProfile = await graphResponse.json();
 
-    const msUser = {
-      user_id: response.account.homeAccountId,
-      display_name: userProfile.displayName,
-      email: userProfile.userPrincipalName,
-      tenantId: response.account.tenantId,
-      isMicrosoftLogin: true,
-    };
-
-    req.login(msUser, (err) => {
-      if (err) return next(err);
-      return res.redirect("/users/dashboard");
+    const prismaUser = await prisma.user.findUnique({
+      where: { email: userProfile.userPrincipalName }
     });
+
+    if (prismaUser) {
+      req.login(prismaUser, (err) => {
+        if (err) return next(err);
+        return res.redirect("/users/dashboard");
+      });
+    } else {
+      const msUser = {
+        user_id: response.account.homeAccountId,
+        display_name: userProfile.displayName,
+        email: userProfile.userPrincipalName,
+        tenantId: response.account.tenantId,
+        isMicrosoftLogin: true,
+      };
+
+      req.login(msUser, (err) => {
+        if (err) return next(err);
+        return res.redirect("/users/dashboard");
+      });
+    }
   } catch (err) {
     console.error("Microsoft callback error:", err);
     return res.redirect("/login");

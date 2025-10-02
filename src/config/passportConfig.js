@@ -44,10 +44,7 @@ const initialize = (passport) => {
 
   passport.serializeUser((user, done) => {
     if (user.isMicrosoftLogin) {
-      done(null, {
-        type: "ms",
-        ...user
-      });
+      done(null, { type: "ms", ...user });
     } else {
       done(null, { type: "local", user_id: user.user_id });
     }

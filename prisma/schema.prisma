@@ -257,3 +257,21 @@ model News {
 
   @@schema("health")
 }
+
+model Right {
+  id          String        @id @default(uuid())
+  name        String
+  AgentRights AgentRights[]
+
+  @@schema("health")
+}
+
+model AgentRights {
+  id      String @id @default(uuid())
+  email   String
+  rightId String
+
+  right Right @relation(fields: [rightId], references: [id])
+
+  @@schema("health")
+}
