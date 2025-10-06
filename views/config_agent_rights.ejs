@@ -84,16 +84,19 @@
                                                     <div class="head-label text-center">
                                                         <h5 class="card-title mb-0">Agents</h5>
                                                     </div>
-                                                    <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                                        <div class="d-flex justify-content-end flex-wrap gap-2">
-                                                            <button class="btn btn-success waves-effect waves-light"
-                                                                type="button" data-bs-toggle="modal"
-                                                                data-bs-target="#addAgentModal">
-                                                                <i class="ti ti-user-plus me-sm-1"></i>
-                                                                <span class="d-none d-sm-inline-block">Add Agent</span>
-                                                            </button>
+                                                    <% if (user && user.rights && user.rights.includes(2)) { %>
+                                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                            <div class="d-flex justify-content-end flex-wrap gap-2">
+                                                                <button class="btn btn-success waves-effect waves-light"
+                                                                    type="button" data-bs-toggle="modal"
+                                                                    data-bs-target="#addAgentModal">
+                                                                    <i class="ti ti-user-plus me-sm-1"></i>
+                                                                    <span class="d-none d-sm-inline-block">Add
+                                                                        Agent</span>
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                        <% } %>
                                                 </div>
                                                 <table class="datatables-basic table dataTable no-footer dtr-column"
                                                     id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
@@ -241,6 +244,8 @@
             const agents = JSON.parse(document.getElementById("allowedAgents-data").textContent);
             const rights = JSON.parse(document.getElementById("rights-data").textContent);
 
+            const canEdit = user && user.rights && user.rights.includes(2);
+
             let currentAgentId = null;
 
             function renderAgents() {
@@ -257,11 +262,9 @@
                         .join(", ");
 
                     const row = document.createElement("tr");
-                    row.innerHTML = `
-                      <td>${index + 1}</td>
-                      <td>${agent.email}</td>
-                      <td>${assignedRights || "-"}</td>
-                      <td>
+
+                    const actionsHtml = canEdit
+                        ? `
                         <a href="javascript:void(0);"
                            class="ti ti-edit text-warning edit-rights-btn me-3"
                            title="Edit Rights"
@@ -272,12 +275,19 @@
                            title="Delete User"
                            data-id="${agent.id}">
                         </a>
-                      </td>
-                    `;
+                      `
+                        : `<span class="text-muted">-</span>`;
+
+                    row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td>${agent.email}</td>
+                  <td>${assignedRights || "-"}</td>
+                  <td>${actionsHtml}</td>
+                `;
+
                     tableBody.appendChild(row);
                 });
             }
-
             function loadRights(agentId) {
                 const agent = agents.find(a => a.id === agentId);
                 rightsContainer.innerHTML = "";
@@ -322,6 +332,8 @@
             });
 
             document.body.addEventListener("click", async e => {
+                if (!canEdit) return;
+
                 const editBtn = e.target.closest(".edit-rights-btn");
                 const deleteBtn = e.target.closest(".delete-agent-btn");
 
@@ -353,6 +365,7 @@
             });
 
             rightsForm.addEventListener("submit", async e => {
+                if (!canEdit) return;
                 e.preventDefault();
                 const checked = [...rightsForm.querySelectorAll("input[name='rights']:checked")].map(i => Number(i.value));
 
