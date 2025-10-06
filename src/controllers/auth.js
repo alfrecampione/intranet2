@@ -250,6 +250,20 @@ const checkNotAuthenticated = (req, res, next) => {
   res.redirect("/login");
 };
 
+const checkReadRight = (req, res, next) => {
+  if (req.user && req.user.rights && req.user.rights.includes(0)) {
+    return next();
+  }
+  return res.status(403).send("Forbidden");
+}
+
+const checkWriteRight = (req, res, next) => {
+  if (req.user && req.user.rights && req.user.rights.includes(1)) {
+    return next();
+  }
+  return res.status(403).send("Forbidden");
+}
+
 const microsoftLogin = async (req, res, next) => {
   const { email } = req.body;
 
@@ -331,5 +345,7 @@ export {
   renderEmailValidation,
   microsoftLogin,
   microsoftCallback,
-  microsoftLogout
+  microsoftLogout,
+  checkReadRight,
+  checkWriteRight,
 };

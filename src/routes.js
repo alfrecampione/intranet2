@@ -12,6 +12,8 @@ import {
   renderEmailValidation,
   microsoftCallback,
   microsoftLogout,
+  checkReadRight,
+  checkWriteRight,
 } from "./controllers/auth.js";
 import {
   redirect_dashboard,
@@ -50,10 +52,10 @@ router.get("/users/profile/:id/notes", checkNotAuthenticated, renderNotes);
 router.post("/users/profile/:id/notes", checkNotAuthenticated, postNote);
 router.put("/users/profile/:id/notes/:noteId", checkNotAuthenticated, editNote);
 router.delete("/users/profile/:id/notes/:noteId", checkNotAuthenticated, deleteNote);
-router.post("/users/profile/save-section", checkNotAuthenticated, saveSection);
-router.post("/users/profile/add-carrier", checkNotAuthenticated, addCarrierToUser);
-router.delete("/users/profile/carrier/:carrierId", checkNotAuthenticated, deleteCarrierToUser);
-router.delete("/users/profile/release-agent/:id", checkNotAuthenticated, releaseAgent);
+router.post("/users/profile/save-section", checkNotAuthenticated, checkWriteRight, saveSection);
+router.post("/users/profile/add-carrier", checkNotAuthenticated, checkWriteRight, addCarrierToUser);
+router.delete("/users/profile/carrier/:carrierId", checkNotAuthenticated, checkWriteRight, deleteCarrierToUser);
+router.delete("/users/profile/release-agent/:id", checkNotAuthenticated, checkWriteRight, releaseAgent);
 
 router.post(
   "/users/dashboard/lastQuarter",
@@ -105,12 +107,12 @@ router.post("/signUp", createAccount);
 router.get("/email-validation", renderEmailValidation);
 router.post("/email-validation", validateEmail);
 
-router.get("/users/agents", checkNotAuthenticated, renderAgents);
+router.get("/users/agents", checkNotAuthenticated, checkReadRight, renderAgents);
 router.post("/users/agents", checkNotAuthenticated, addAgent)
 router.delete("/users/agents/:id", checkNotAuthenticated, deleteAgent);
 router.post("/users/agents/recover/:id", checkNotAuthenticated, recoverAgent);
-router.get("/users/released-agents", checkNotAuthenticated, renderReleasedAgents);
-router.get("/users/refering-agents", checkNotAuthenticated, renderReferingAgents);
+router.get("/users/released-agents", checkNotAuthenticated, checkReadRight, renderReleasedAgents);
+router.get("/users/refering-agents", checkNotAuthenticated, checkReadRight, renderReferingAgents);
 router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
@@ -123,7 +125,7 @@ router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
 import { renderCarrierStatus, updateCarrierStatus } from "./controllers/carrier_status.js";
 router.get("/users/carrrier_status/:id", checkNotAuthenticated, renderCarrierStatus);
-router.post("/users/carrrier_status", checkNotAuthenticated, updateCarrierStatus);
+router.post("/users/carrrier_status", checkNotAuthenticated, checkWriteRight, updateCarrierStatus);
 
 // STEPS ROUTES
 import {
@@ -178,21 +180,21 @@ router.get("/email/decrypt/:encrypted_email", checkNotAuthenticated, decryptEmai
 
 import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
-router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
+router.post("/upload", checkNotAuthenticated, checkWriteRight, upload.single("file"), handleFileUpload);
 
 import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert, addCarrier } from "./controllers/config.js";
-router.get("/users/config", checkNotAuthenticated, renderConfigEmails)
+router.get("/users/config", checkNotAuthenticated, checkReadRight, renderConfigEmails)
 router.post("/users/config_emails", checkNotAuthenticated, postAdminToAlert);
 router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);
 
 import { renderConfigCarriers, postCompany, updateCompany, deleteCompany } from "./controllers/config.js";
-router.get("/users/config_carriers", checkNotAuthenticated, renderConfigCarriers);
+router.get("/users/config_carriers", checkNotAuthenticated, checkReadRight, renderConfigCarriers);
 router.post("/users/config_carriers", checkNotAuthenticated, postCompany);
 router.put("/users/config_carriers", checkNotAuthenticated, updateCompany);
 router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
 import { renderConfigCommisions, updateCommisions } from "./controllers/config.js";
-router.get("/users/config_commisions", checkNotAuthenticated, renderConfigCommisions);
+router.get("/users/config_commisions", checkNotAuthenticated, checkReadRight, renderConfigCommisions);
 router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
 
 import { massiveCreateAgents } from "./controllers/agents.js";
@@ -203,12 +205,12 @@ router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);
 
 
 import { renderReports, filterReport, exportData } from "./controllers/reports.js";
-router.get("/users/reports", checkNotAuthenticated, renderReports);
+router.get("/users/reports", checkNotAuthenticated, checkReadRight, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
 router.get("/users/reports/export", checkNotAuthenticated, exportData);
 
 import { renderLeadCenter, addLead, acceptAsAgent, deleteLead } from "./controllers/lead_center.js";
-router.get("/users/lead-center", checkNotAuthenticated, renderLeadCenter);
+router.get("/users/lead-center", checkNotAuthenticated, checkReadRight, renderLeadCenter);
 router.post("/users/lead-center", checkNotAuthenticated, addLead);
 router.post("/users/lead-center/accept/:email", checkNotAuthenticated, acceptAsAgent);
 router.delete("/users/lead-center/:id", checkNotAuthenticated, deleteLead);

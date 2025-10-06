@@ -59,6 +59,14 @@ const initialize = (passport) => {
             personalInfo: { select: { photoPath: true, contactType: true } }
           }
         });
+
+        const userRights = await prisma.allowedAgents.findUnique({
+          where: { email: user.email },
+          include: { AgentRights: true }
+        });
+
+        user.rights = userRights ? userRights.AgentRights.map(ar => ar.idRight) : [];
+
         return done(null, user || false);
       } else if (obj.type === "ms") {
         return done(null, {
@@ -82,6 +90,14 @@ const postLogin = async (req, res, next) => {
   const { email } = req.body;
   if (email.endsWith("@goldentrust.com")) {
     try {
+      const isAllowed = await prisma.allowedAgents.findUnique({
+        where: { email: email },
+      });
+
+      if (!isAllowed) {
+        return res.redirect("/login");
+      }
+
       const authCodeUrlParameters = {
         scopes: LOGIN_SCOPES,
         redirectUri: process.env.REDIRECT_URI,

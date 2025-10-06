@@ -258,8 +258,16 @@ model News {
   @@schema("health")
 }
 
-model Right {
+model AllowedAgents {
   id          String        @id @default(uuid())
+  email       String        @unique
+  AgentRights AgentRights[]
+
+  @@schema("health")
+}
+
+model Right {
+  id          Int           @id @default(autoincrement())
   name        String
   AgentRights AgentRights[]
 
@@ -268,10 +276,11 @@ model Right {
 
 model AgentRights {
   id      String @id @default(uuid())
-  email   String
-  rightId String
+  idAgent String
+  idRight Int
 
-  right Right @relation(fields: [rightId], references: [id])
+  right Right         @relation(fields: [idRight], references: [id])
+  agent AllowedAgents @relation(fields: [idAgent], references: [id])
 
   @@schema("health")
 }

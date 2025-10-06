@@ -81,14 +81,17 @@
         </div>
     </div>
     <!-- /Agent Card -->
-    <!-- Extra Agent Details -->
-    <% if(extra_data) { %>
-        <div class="card mb-6">
-            <div class="card-body">
-                <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
-                <ul id="user-info-list" class="list-unstyled mb-4"></ul>
+
+    <% if (user && user.rights && user.rights.includes(0)) { %>
+        <!-- Extra Agent Details -->
+        <% if(extra_data) { %>
+            <div class="card mb-6">
+                <div class="card-body">
+                    <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
+                    <ul id="user-info-list" class="list-unstyled mb-4"></ul>
+                </div>
             </div>
-        </div>
-        <% } %>
-            <!-- /Extra Agent Details -->
+            <% } %>
+                <!-- /Extra Agent Details -->
+                <% } %>
 </div>

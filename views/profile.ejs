@@ -322,17 +322,27 @@
         }
     </script>
 
-    <!-- Carrier Status JS -->
+    <script id="user-data" type="application/json">
+        <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents, necesaryDocs}) %>
+    </script>
+    <script id="agencies-data" type="application/json">
+        <%- JSON.stringify(allAgencies || []) %>
+    </script>
     <script id="carriers-data" type="application/json">
-      <%- JSON.stringify(carriers) %>
+        <%- JSON.stringify(carriers) %>
     </script>
     <script id="profile" type="application/json">
-      <%- JSON.stringify(profile) %>
+        <%- JSON.stringify(profile) %>
     </script>
     <script id="user" type="application/json">
-      <%- JSON.stringify(user) %>
+        <%- JSON.stringify(user) %>
+    </script>
+    <script id="activity-data" type="application/json">
+        <%- JSON.stringify(activity) %>
     </script>
 
+
+    <!-- Carrier Status JS -->
     <script>
         const normalStatusOptions = [
             "Request Received from Agent",
@@ -385,6 +395,8 @@
                 return;
             }
 
+            const canEdit = user && user.rights && user.rights.includes(1);
+
             const grouped = carriers.reduce((acc, carrier) => {
                 const key = carrier.state;
                 if (!acc[key]) acc[key] = [];
@@ -418,7 +430,7 @@
                     tdStatusProgress.dataset.company = carrier.company;
                     tdStatusProgress.dataset.state = carrier.state;
 
-                    if (isEditing) {
+                    if (isEditing && canEdit) {
                         const wrapper = document.createElement("div");
                         wrapper.className = "d-flex align-items-center";
 
@@ -535,6 +547,11 @@
             renderCarrierTable(carriersData);
 
             const editButton = document.getElementById("edit-toggle");
+
+            if (!(user && user.rights && user.rights.includes(1))) {
+                editButton.style.display = "none";
+                return;
+            }
 
             editButton.addEventListener("click", async () => {
                 if (!isEditing) {
@@ -779,14 +796,6 @@
     <!-- / Carrier Status -->
 
     <!-- User Data-->
-    <script id="user-data" type="application/json">
-        <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents, necesaryDocs}) %>
-    </script>
-
-    <script id="agencies-data" type="application/json">
-        <%- JSON.stringify(allAgencies || []) %>
-    </script>
-
     <script>
         function getDocumentUrl(path) {
             if (!path) return '';
@@ -830,6 +839,14 @@
 
             const text = document.createElement('span');
             text.textContent = title;
+            header.appendChild(text);
+
+            const canEdit = user && user.rights && user.rights.includes(1);
+
+            if (!canEdit) {
+                list.appendChild(header);
+                return;
+            }
 
             const editIcon = document.createElement('i');
             editIcon.className = 'ti ti-edit';
@@ -1269,7 +1286,6 @@
                 }
             });
 
-            header.appendChild(text);
             header.appendChild(editIcon);
             list.appendChild(header);
         }
@@ -1424,10 +1440,6 @@
     <!-- /User Data-->
 
     <!-- Timeline-->
-    <script id="activity-data" type="application/json">
-      <%- JSON.stringify(activity) %>
-    </script>
-
     <script>
         function renderTimeLine(timelineItems) {
             const ul = document.querySelector('#user-activity-timeline');
