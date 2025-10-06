@@ -186,9 +186,12 @@
   <script src="/js/login.js"></script>
 
   <script>
-    document.getElementById("password-container").addEventListener("input", function () {
+    const emailInput = document.getElementById("email");
+    const passwordContainer = document.getElementById("password-container");
+
+    emailInput.addEventListener("input", async e => {
+      e.preventDefault();
       const email = this.value.trim();
-      const passwordContainer = document.getElementById("password-container");
 
       if (email.endsWith("@goldentrust.com")) {
         passwordContainer.style.display = "none";
