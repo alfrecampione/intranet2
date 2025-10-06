@@ -237,9 +237,10 @@ const microsoftLogout = (req, res) => {
 };
 
 const checkAuthenticated = (req, res, next) => {
-  console.log(req)
   if (req.user && (!req.user.registrationCompleted)) {
-    console.log("Redirecting")
+    if (req.path === '/users/registration') {
+      return next();
+    }
     return res.redirect("/users/registration");
   }
   if (req.isAuthenticated()) {
@@ -249,9 +250,11 @@ const checkAuthenticated = (req, res, next) => {
 };
 
 const checkNotAuthenticated = (req, res, next) => {
-  if (req.user && (!req.user.registrationCompleted)) {
-    console.log("Redirecting")
-    return res.redirect("/users/registration");
+  if (req.user && !req.user.registrationCompleted) {
+    if (req.path === '/users/registration') {
+      return next();
+    }
+    return res.redirect('/users/registration');
   }
   if (req.isAuthenticated()) {
     return next();
