@@ -186,15 +186,14 @@
   <script src="/js/login.js"></script>
 
   <script>
-    document.getElementById("email").addEventListener("input", function () {
+    document.getElementById("form-password-toggle").addEventListener("input", function () {
       const email = this.value.trim();
-      const passwordField = document.getElementById("password");
+      const passwordContainer = document.getElementById("password-container");
 
       if (email.endsWith("@goldentrust.com")) {
-        passwordField.value = "";
-        passwordField.setAttribute("disabled", "true");
+        passwordContainer.style.display = "none";
       } else {
-        passwordField.removeAttribute("disabled");
+        passwordContainer.style.display = "block";
       }
     });
   </script>
