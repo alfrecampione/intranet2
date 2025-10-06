@@ -73,6 +73,13 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/", router);
 
+app.use((err, req, res, next) => {
+  if (err instanceof URIError) {
+    return res.status(400).send("Bad Request");
+  }
+  next(err);
+});
+
 https.createServer(options, app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
 });
