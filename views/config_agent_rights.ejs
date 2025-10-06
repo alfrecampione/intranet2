@@ -74,90 +74,92 @@
                     <%- include('partials/navbar', {user: user}) %>
                         <div class="content-wrapper">
                             <div class="container-xxl flex-grow-1 container-p-y">
-                                <!-- DataTable with Buttons -->
-                                <div class="card">
-                                    <div class="card-datatable table-responsive pt-0">
-                                        <div id="DataTables_Table_0_wrapper"
-                                            class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                            <div class="card-header flex-column flex-md-row">
-                                                <div class="head-label text-center">
-                                                    <h5 class="card-title mb-0">Agents</h5>
-                                                </div>
-                                                <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                                    <div class="d-flex justify-content-end flex-wrap gap-2">
-                                                        <button class="btn btn-success waves-effect waves-light"
-                                                            type="button" data-bs-toggle="modal"
-                                                            data-bs-target="#addAgentModal">
-                                                            <i class="ti ti-user-plus me-sm-1"></i>
-                                                            <span class="d-none d-sm-inline-block">Add Agent</span>
-                                                        </button>
+                                <%- include('partials/config_nav', { user: user, open: open}) %>
+                                    <!-- DataTable with Buttons -->
+                                    <div class="card">
+                                        <div class="card-datatable table-responsive pt-0">
+                                            <div id="DataTables_Table_0_wrapper"
+                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                <div class="card-header flex-column flex-md-row">
+                                                    <div class="head-label text-center">
+                                                        <h5 class="card-title mb-0">Agents</h5>
+                                                    </div>
+                                                    <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                        <div class="d-flex justify-content-end flex-wrap gap-2">
+                                                            <button class="btn btn-success waves-effect waves-light"
+                                                                type="button" data-bs-toggle="modal"
+                                                                data-bs-target="#addAgentModal">
+                                                                <i class="ti ti-user-plus me-sm-1"></i>
+                                                                <span class="d-none d-sm-inline-block">Add Agent</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
+                                                    style="width: 1396px">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Email</th>
+                                                            <th>Rights</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="agentsTableBody">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">Loading...</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                            <table class="datatables-basic table dataTable no-footer dtr-column"
-                                                id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                style="width: 1396px">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Email</th>
-                                                        <th>Rights</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="agentsTableBody">
-                                                    <tr>
-                                                        <td colspan="4" class="text-center">Loading...</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
                                         </div>
                                     </div>
-                                </div>
-                                <!-- Modal to change rights -->
-                                <!-- Modal: Add Agent -->
-                                <div class="modal fade" id="addAgentModal" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <form id="addAgentForm">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Add New Agent</h5>
-                                                    <button type="button" class="btn-close"
-                                                        data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="agentEmail" class="form-label">Email</label>
-                                                        <input type="email" class="form-control" id="agentEmail"
-                                                            name="email" required />
+                                    <!-- Modal to change rights -->
+                                    <!-- Modal: Add Agent -->
+                                    <div class="modal fade" id="addAgentModal" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <form id="addAgentForm">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Add New Agent</h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
                                                     </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-success">Save</button>
-                                                </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label for="agentEmail" class="form-label">Email</label>
+                                                            <input type="email" class="form-control" id="agentEmail"
+                                                                name="email" required />
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-success">Save</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--/ Modal to send onboarding -->
+                                    <!-- Modal to Edit Rights -->
+                                    <div class="offcanvas offcanvas-end" id="edit-right">
+                                        <div class="offcanvas-header border-bottom">
+                                            <h5 class="offcanvas-title">Change Rights</h5>
+                                            <button type="button" class="btn-close text-reset"
+                                                data-bs-dismiss="offcanvas"></button>
+                                        </div>
+                                        <div class="offcanvas-body">
+                                            <form id="rightsForm">
+                                                <div id="rightsContainer" class="mb-4"></div>
+                                                <button type="submit" class="btn btn-primary w-100">Save
+                                                    Changes</button>
                                             </form>
                                         </div>
                                     </div>
-                                </div>
-                                <!--/ Modal to send onboarding -->
-                                <!-- Modal to Edit Rights -->
-                                <div class="offcanvas offcanvas-end" id="edit-right">
-                                    <div class="offcanvas-header border-bottom">
-                                        <h5 class="offcanvas-title">Change Rights</h5>
-                                        <button type="button" class="btn-close text-reset"
-                                            data-bs-dismiss="offcanvas"></button>
-                                    </div>
-                                    <div class="offcanvas-body">
-                                        <form id="rightsForm">
-                                            <div id="rightsContainer" class="mb-4"></div>
-                                            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
-                                        </form>
-                                    </div>
-                                </div>
-                                <!--/ Modal to Edit Rights -->
-                                <!--/ DataTable with Buttons -->
+                                    <!--/ Modal to Edit Rights -->
+                                    <!--/ DataTable with Buttons -->
                             </div>
                             <div class="content-backdrop fade"></div>
                         </div>
@@ -260,17 +262,15 @@
                       <td>${agent.email}</td>
                       <td>${assignedRights || "-"}</td>
                       <td>
-                        <a href="javascript:void(0);" 
-                           class="btn btn-sm btn-warning me-2 edit-rights-btn" 
-                           title="Edit Rights" 
+                        <a href="javascript:void(0);"
+                           class="ti ti-edit text-warning edit-rights-btn me-3"
+                           title="Edit Rights"
                            data-id="${agent.id}">
-                           <i class="ti ti-edit"></i>
                         </a>
-                        <a href="javascript:void(0);" 
-                           class="btn btn-sm btn-danger delete-agent-btn" 
-                           title="Delete User" 
+                        <a href="javascript:void(0);"
+                           class="ti ti-trash text-danger delete-agent-btn"
+                           title="Delete User"
                            data-id="${agent.id}">
-                           <i class="ti ti-trash"></i>
                         </a>
                       </td>
                     `;
