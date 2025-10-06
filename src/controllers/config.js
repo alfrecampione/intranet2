@@ -269,6 +269,106 @@ const updateCommisions = async (req, res) => {
   }
 };
 
+const renderConfigAgentRights = async (req, res) => {
+  try {
+    const agents = await prisma.allowedAgents.findMany({
+      include: { AgentRights: true },
+      orderBy: { email: 'asc' }
+    });
+    const rights = await prisma.right.findMany({ orderBy: { name: 'asc' } });
+
+    const formattedAgents = agents.map(agent => ({
+      id: agent.id,
+      email: agent.email,
+      display_name: agent.display_name,
+      rights: agent.AgentRights.map(ar => ar.idRight)
+    }));
+
+    res.render("config_agent_rights", { user: req.user, agents: formattedAgents, rights, activePage: 'config', open: 'agent_rights' });
+  } catch (error) {
+    console.error("Error rendering agent rights config:", error);
+  }
+};
+
+const addAllowedAgent = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+  try {
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.allowedAgents.create({
+        data: { email }
+      });
+    });
+    res.status(201).json({ message: "Agent added successfully" });
+  }
+  catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ message: "Agent already exists" });
+    }
+    console.error("Error adding allowed agent:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const deleteAllowedAgent = async (req, res) => {
+  const { agentId } = req.body;
+  if (!agentId) {
+    return res.status(400).json({ message: "Agent ID is required" });
+  }
+  try {
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.allowedAgents.delete({
+        where: { id: agentId },
+      });
+    });
+    res.status(200).json({ message: "Agent deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting allowed agent:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateAgentRights = async (req, res) => {
+  const { agentId, rights } = req.body;
+  if (!agentId || !Array.isArray(rights)) {
+    return res.status(400).json({ message: "Agent ID and rights array are required" });
+  }
+  try {
+    const agent = await prisma.allowedAgents.findUnique({
+      where: { id: agentId },
+      include: { AgentRights: true }
+    });
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    const currentRights = new Set(agent.AgentRights.map(ar => ar.idRight));
+    const newRights = new Set(rights);
+    const rightsToAdd = rights.filter(r => !currentRights.has(r));
+    const rightsToRemove = agent.AgentRights.filter(ar => !newRights.has(ar.idRight)).map(ar => ar.idRight);
+
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+      await prisma.$transaction(async (tx) => {
+        if (rightsToAdd.length > 0) {
+          const addData = rightsToAdd.map(r => ({ idAgent: agentId, idRight: r }));
+          await tx.agentRights.createMany({ data: addData, skipDuplicates: true });
+        }
+        if (rightsToRemove.length > 0) {
+          await tx.agentRights.deleteMany({
+            where: { idAgent: agentId, idRight: { in: rightsToRemove } }
+          });
+        }
+      });
+    });
+
+    res.status(200).json({ message: "Agent rights updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent rights:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 const headcarrier = async (req, res) => {
   let data = {};
@@ -403,4 +503,8 @@ export {
   deleteCompany,
   renderConfigCommisions,
   updateCommisions,
+  renderConfigAgentRights,
+  addAllowedAgent,
+  deleteAllowedAgent,
+  updateAgentRights,
 };

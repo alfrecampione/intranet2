@@ -182,20 +182,24 @@ import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
 router.post("/upload", checkNotAuthenticated, checkWriteRight, upload.single("file"), handleFileUpload);
 
-import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert, addCarrier } from "./controllers/config.js";
+import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert, addCarrier, renderConfigCarriers, postCompany, updateCompany, deleteCompany, renderConfigCommisions, updateCommisions } from "./controllers/config.js";
 router.get("/users/config", checkNotAuthenticated, checkReadRight, renderConfigEmails)
 router.post("/users/config_emails", checkNotAuthenticated, postAdminToAlert);
 router.delete("/users/config_emails", checkNotAuthenticated, deleteEmailToAlert);
 
-import { renderConfigCarriers, postCompany, updateCompany, deleteCompany } from "./controllers/config.js";
 router.get("/users/config_carriers", checkNotAuthenticated, checkReadRight, renderConfigCarriers);
 router.post("/users/config_carriers", checkNotAuthenticated, postCompany);
 router.put("/users/config_carriers", checkNotAuthenticated, updateCompany);
 router.delete("/users/config_carriers", checkNotAuthenticated, deleteCompany);
 
-import { renderConfigCommisions, updateCommisions } from "./controllers/config.js";
 router.get("/users/config_commisions", checkNotAuthenticated, checkReadRight, renderConfigCommisions);
 router.put("/users/config_commisions", checkNotAuthenticated, updateCommisions);
+
+import { renderConfigAgentRights, addAllowedAgent, deleteAllowedAgent, updateAgentRights } from "./controllers/config.js";
+router.get("/users/config_agent_rights", checkNotAuthenticated, checkReadRight, renderConfigAgentRights);
+router.post("/users/config/allowed-agents/add", checkNotAuthenticated, checkWriteRight, addAllowedAgent);
+router.delete("/users/config/allowed-agents/delete", checkNotAuthenticated, checkWriteRight, deleteAllowedAgent);
+router.put("/users/config/agent-rights", checkNotAuthenticated, checkWriteRight, updateAgentRights);
 
 import { massiveCreateAgents } from "./controllers/agents.js";
 router.post("/agents/massiveCreate", massiveCreateAgents);
