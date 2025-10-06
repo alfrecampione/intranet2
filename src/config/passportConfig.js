@@ -59,22 +59,21 @@ const initialize = (passport) => {
             personalInfo: { select: { photoPath: true, contactType: true } }
           }
         });
+        return done(null, user || false);
+      } else if (obj.type === "ms") {
 
         const userRights = await prisma.allowedAgents.findUnique({
-          where: { email: user.email },
+          where: { email: obj.email },
           include: { AgentRights: true }
         });
 
-        user.rights = userRights ? userRights.AgentRights.map(ar => ar.idRight) : [];
-
-        return done(null, user || false);
-      } else if (obj.type === "ms") {
         return done(null, {
           user_id: obj.user_id,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
           isMicrosoftLogin: true,
+          rights: userRights ? userRights.AgentRights.map(ar => ar.idRight) : []
         });
       }
       return done(null, false);
