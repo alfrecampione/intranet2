@@ -224,6 +224,10 @@
         <%- JSON.stringify(rights) %>
     </script>
 
+    <script id="user-data" type="application/json">
+        <%- JSON.stringify(user) %>
+    </script>
+
     <script>
         function showToast(headerText, bodyText) {
             const toast = document.querySelector('.toast-ex1');
@@ -246,8 +250,6 @@
             const user = JSON.parse(document.getElementById("user-data")?.textContent || "null");
 
             const canEdit = user && user.rights && user.rights.includes(2);
-
-            console.log(canEdit);
 
             let currentAgentId = null;
 
