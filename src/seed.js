@@ -7,10 +7,11 @@ async function main() {
     let allRights = [];
 
     for (const right of RIGHTS) {
-        let createdRight = await prisma.right.findUnique({ where: { name: right } });
-        if (!createdRight) {
-            createdRight = await prisma.right.create({ data: { name: right } });
-        }
+        let createdRight = await prisma.right.upsert({
+            where: { name: right },
+            update: {},
+            create: { name: name }
+        });
         allRights.push(createdRight);
     }
 

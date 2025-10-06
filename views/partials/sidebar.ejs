@@ -23,7 +23,7 @@
                 </a>
             </li>
 
-            <% if (user && user.rights && user.rights.includes(0)) { %>
+            <% if (user && user.rights && user.rights.includes(1)) { %>
                 <!-- Agents -->
                 <li class="menu-item <%= activePage === 'agents' ? 'active' : '' %>">
                     <a href="/users/agents" class="menu-link">

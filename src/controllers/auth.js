@@ -251,14 +251,14 @@ const checkNotAuthenticated = (req, res, next) => {
 };
 
 const checkReadRight = (req, res, next) => {
-  if (req.user && req.user.rights && req.user.rights.includes(0)) {
+  if (req.user && req.user.rights && req.user.rights.includes(1)) {
     return next();
   }
   return res.status(403).send("Forbidden");
 }
 
 const checkWriteRight = (req, res, next) => {
-  if (req.user && req.user.rights && req.user.rights.includes(1)) {
+  if (req.user && req.user.rights && req.user.rights.includes(2)) {
     return next();
   }
   return res.status(403).send("Forbidden");

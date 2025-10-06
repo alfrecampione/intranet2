@@ -395,7 +395,7 @@
                 return;
             }
 
-            const canEdit = user && user.rights && user.rights.includes(1);
+            const canEdit = user && user.rights && user.rights.includes(2);
 
             const grouped = carriers.reduce((acc, carrier) => {
                 const key = carrier.state;
@@ -548,7 +548,7 @@
 
             const editButton = document.getElementById("edit-toggle");
 
-            if (!(user && user.rights && user.rights.includes(1))) {
+            if (!(user && user.rights && user.rights.includes(2))) {
                 editButton.style.display = "none";
                 return;
             }
@@ -841,7 +841,7 @@
             text.textContent = title;
             header.appendChild(text);
 
-            const canEdit = user && user.rights && user.rights.includes(1);
+            const canEdit = user && user.rights && user.rights.includes(2);
 
             if (!canEdit) {
                 list.appendChild(header);
