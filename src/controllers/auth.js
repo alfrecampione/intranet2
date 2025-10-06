@@ -254,7 +254,7 @@ const checkNotAuthenticated = (req, res, next) => {
     if (req.path === '/users/registration') {
       return next();
     }
-    console.log(res.path)
+    console.log(req.path)
     return res.redirect('/users/registration');
   }
   if (req.isAuthenticated()) {
