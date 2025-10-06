@@ -134,7 +134,7 @@
               <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email"
                 autofocus />
             </div>
-            <div class="mb-3 form-password-toggle">
+            <div class="mb-3 form-password-toggle" id="password-container">
               <div class="d-flex justify-content-between">
                 <label class="form-label" for="password">Password</label>
                 <a href="#" id="showToastAnimation">
@@ -186,7 +186,7 @@
   <script src="/js/login.js"></script>
 
   <script>
-    document.getElementById("form-password-toggle").addEventListener("input", function () {
+    document.getElementById("password-container").addEventListener("input", function () {
       const email = this.value.trim();
       const passwordContainer = document.getElementById("password-container");
 
