@@ -256,18 +256,24 @@
 
                     const row = document.createElement("tr");
                     row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${agent.email}</td>
-        <td>${assignedRights || "-"}</td>
-        <td>
-          <button class="btn btn-sm btn-primary me-2 edit-rights-btn" data-id="${agent.id}">
-            <i class="ti ti-shield"></i> Rights
-          </button>
-          <button class="btn btn-sm btn-danger delete-agent-btn" data-id="${agent.id}">
-            <i class="ti ti-trash"></i> Delete
-          </button>
-        </td>
-      `;
+                      <td>${index + 1}</td>
+                      <td>${agent.email}</td>
+                      <td>${assignedRights || "-"}</td>
+                      <td>
+                        <a href="javascript:void(0);" 
+                           class="btn btn-sm btn-warning me-2 edit-rights-btn" 
+                           title="Edit Rights" 
+                           data-id="${agent.id}">
+                           <i class="ti ti-edit"></i>
+                        </a>
+                        <a href="javascript:void(0);" 
+                           class="btn btn-sm btn-danger delete-agent-btn" 
+                           title="Delete User" 
+                           data-id="${agent.id}">
+                           <i class="ti ti-trash"></i>
+                        </a>
+                      </td>
+                    `;
                     tableBody.appendChild(row);
                 });
             }
