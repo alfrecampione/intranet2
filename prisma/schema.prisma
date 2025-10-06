@@ -282,5 +282,6 @@ model AgentRights {
   right Right         @relation(fields: [idRight], references: [id])
   agent AllowedAgents @relation(fields: [idAgent], references: [id])
 
+  @@unique([idAgent, idRight])
   @@schema("health")
 }
