@@ -279,8 +279,8 @@ model AgentRights {
   idAgent String
   idRight Int
 
-  right Right         @relation(fields: [idRight], references: [id])
-  agent AllowedAgents @relation(fields: [idAgent], references: [id])
+  right Right         @relation(fields: [idRight], references: [id], onDelete: Cascade)
+  agent AllowedAgents @relation(fields: [idAgent], references: [id], onDelete: Cascade)
 
   @@unique([idAgent, idRight])
   @@schema("health")
