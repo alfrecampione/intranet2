@@ -71,7 +71,6 @@
 
 <body>
   <!-- Content -->
-
   <div class="authentication-wrapper authentication-cover authentication-bg">
     <!-- Toast with Animation -->
     <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
@@ -186,18 +185,19 @@
   <script src="/js/login.js"></script>
 
   <script>
-    const emailInput = document.getElementById("email");
-    const passwordContainer = document.getElementById("password-container");
+    document.addEventListener("DOMContentLoaded", function () {
+      const emailInput = document.getElementById("email");
+      const passwordContainer = document.getElementById("password-container");
 
-    emailInput.addEventListener("input", async e => {
-      e.preventDefault();
-      const email = this.value.trim();
+      emailInput.addEventListener("input", function () {
+        const email = (this.value || "").trim();
 
-      if (email.endsWith("@goldentrust.com")) {
-        passwordContainer.style.display = "none";
-      } else {
-        passwordContainer.style.display = "block";
-      }
+        if (email.endsWith("@goldentrust.com")) {
+          passwordContainer.style.display = "none";
+        } else {
+          passwordContainer.style.display = "block";
+        }
+      });
     });
   </script>
 </body>
