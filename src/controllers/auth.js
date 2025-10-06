@@ -249,6 +249,10 @@ const checkAuthenticated = (req, res, next) => {
 };
 
 const checkNotAuthenticated = (req, res, next) => {
+  if (req.user && (!req.user.registrationCompleted)) {
+    console.log("Redirecting")
+    return res.redirect("/users/registration");
+  }
   if (req.isAuthenticated()) {
     return next();
   }
