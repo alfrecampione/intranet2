@@ -266,7 +266,7 @@ const checkNotAuthenticated = (req, res, next) => {
 };
 
 const checkReadRight = (req, res, next) => {
-  if (req.user && req.user.rights && req.user.rights.includes(1)) {
+  if (req.user && ((req.user.rights && req.user.rights.includes(1)) || req.user.registrationCompleted)) {
     return next();
   }
   return res.status(403).send("Forbidden");
