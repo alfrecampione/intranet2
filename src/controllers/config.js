@@ -300,6 +300,9 @@ const addAllowedAgent = async (req, res) => {
       await prisma.allowedAgents.create({
         data: { email }
       });
+      await prisma.agentRights.create({
+        data: { idAgent: (await prisma.allowedAgents.findUnique({ where: { email } })).id, idRight: 'read' }
+      });
     });
     res.status(201).json({ message: "Agent added successfully" });
   }
