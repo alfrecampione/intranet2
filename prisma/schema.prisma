@@ -268,7 +268,7 @@ model AllowedAgents {
 
 model Right {
   id          Int           @id @default(autoincrement())
-  name        String
+  name        String        @unique
   AgentRights AgentRights[]
 
   @@schema("health")
