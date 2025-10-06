@@ -243,6 +243,7 @@
 
             const agents = JSON.parse(document.getElementById("allowedAgents-data").textContent);
             const rights = JSON.parse(document.getElementById("rights-data").textContent);
+            const user = JSON.parse(document.getElementById("user-data")?.textContent || "null");
 
             const canEdit = user && user.rights && user.rights.includes(2);
 
@@ -288,6 +289,7 @@
                     tableBody.appendChild(row);
                 });
             }
+
             function loadRights(agentId) {
                 const agent = agents.find(a => a.id === agentId);
                 rightsContainer.innerHTML = "";
@@ -297,10 +299,10 @@
                     const div = document.createElement("div");
                     div.classList.add("form-check");
                     div.innerHTML = `
-        <input class="form-check-input" type="checkbox" id="right-${r.id}" 
-               name="rights" value="${r.id}" ${hasRight ? "checked" : ""}>
-        <label class="form-check-label" for="right-${r.id}">${r.name}</label>
-      `;
+                    <input class="form-check-input" type="checkbox" id="right-${r.id}" 
+                        name="rights" value="${r.id}" ${hasRight ? "checked" : ""}>
+                    <label class="form-check-label" for="right-${r.id}">${r.name}</label>
+                `;
                     rightsContainer.appendChild(div);
                 });
             }
@@ -322,9 +324,7 @@
                     if (!res.ok) throw new Error(result.message || "Error adding agent");
 
                     bootstrap.Modal.getInstance(document.getElementById("addAgentModal")).hide();
-
                     addForm.reset();
-
                     window.location.reload();
                 } catch (err) {
                     showToast("Error", "Error adding the new agent: " + err.message);
@@ -355,17 +355,16 @@
                         });
 
                         const result = await res.json();
-                        if (!res.ok) showToast("Error", "Error deleting the new agent: " + err.message);
+                        if (!res.ok) showToast("Error", "Error deleting agent: " + result.message);
 
                         window.location.reload();
                     } catch (err) {
-                        showToast("Error", "Error deleting the new agent: " + err.message);
+                        showToast("Error", "Error deleting the agent: " + err.message);
                     }
                 }
             });
 
             rightsForm.addEventListener("submit", async e => {
-                if (!canEdit) return;
                 e.preventDefault();
                 const checked = [...rightsForm.querySelectorAll("input[name='rights']:checked")].map(i => Number(i.value));
 
@@ -377,10 +376,9 @@
                     });
 
                     const result = await res.json();
-                    if (!res.ok) showToast("Error", "Error updating rights: " + err.message);
+                    if (!res.ok) showToast("Error", "Error updating rights: " + result.message);
 
                     bootstrap.Offcanvas.getInstance(document.getElementById("edit-right")).hide();
-
                     window.location.reload();
                 } catch (err) {
                     showToast("Error", "Error updating rights: " + err.message);
