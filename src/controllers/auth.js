@@ -237,6 +237,7 @@ const microsoftLogout = (req, res) => {
 };
 
 const checkAuthenticated = (req, res, next) => {
+  console.log(req.user)
   if (req.user && (req.user.registrationCompleted === false)) {
     if (req.path === '/users/registration') {
       return next();
