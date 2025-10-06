@@ -81,6 +81,8 @@ const renderDashboard = async (req, res) => {
       orderBy: { sendedAt: 'desc' }
     });
 
+    console.log(req.user);
+
     res.render('dashboard', {
       user,
       companies,
