@@ -297,12 +297,19 @@ const addAllowedAgent = async (req, res) => {
   }
   try {
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
-      await prisma.allowedAgents.create({
+      const newAgent = await prisma.allowedAgents.create({
         data: { email }
       });
-      await prisma.agentRights.create({
-        data: { idAgent: (await prisma.allowedAgents.findUnique({ where: { email } })).id, idRight: 'read' }
+      const defaultRight = await prisma.right.findUnique({
+        where: { name: 'read' }
       });
+      if (defaultRight)
+        await prisma.agentRights.create({
+          data: {
+            idAgent: newAgent.id,
+            idRight: defaultRight.id
+          }
+        })
     });
     res.status(201).json({ message: "Agent added successfully" });
   }
