@@ -352,7 +352,7 @@
 
                 try {
                     const res = await fetch("/users/config/agent-rights", {
-                        method: "POST",
+                        method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ agentId: currentAgentId, rights: checked })
                     });
