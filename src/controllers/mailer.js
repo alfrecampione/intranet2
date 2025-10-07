@@ -258,6 +258,8 @@ const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
 
+    console.log(`Fetched ${messages.length} messages from Graph.`);
+
     const newsMessages = messages.filter(
       (msg) => msg.subject && msg.subject.trim().startsWith("[NEWS]")
     );
