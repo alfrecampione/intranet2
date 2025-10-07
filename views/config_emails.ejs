@@ -80,95 +80,99 @@
                                 <%- include('partials/config_nav', { user: user, open: open}) %>
                                     <!-- DataTable with Buttons -->
                                     <div class="card">
-                                        <div class="card-datatable table-responsive pt-0">
-                                            <div id="DataTables_Table_0_wrapper"
-                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                                <div class="card-header flex-column flex-md-row">
-                                                    <div class="head-label text-center">
-                                                        <h5 class="card-title mb-0">Emails</h5>
-                                                    </div>
-                                                    <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                                        <div class="dt-buttons btn-group flex-wrap">
-                                                            <button
-                                                                class="btn btn-secondary create-new btn-primary waves-effect waves-light"
-                                                                tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button" data-bs-toggle="offcanvas"
-                                                                data-bs-target="#add-new-record">
-                                                                <span>
-                                                                    <i class="ti ti-plus me-sm-1"></i>
-                                                                    <span class="d-none d-sm-inline-block">Add New
-                                                                        Email</span>
-                                                                </span>
-                                                            </button>
+                                        <div class="card-body">
+                                            <div class="card-datatable table-responsive pt-0">
+                                                <div id="DataTables_Table_0_wrapper"
+                                                    class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                    <div class="card-header flex-column flex-md-row">
+                                                        <div class="head-label text-center">
+                                                            <h5 class="card-title mb-0">Emails</h5>
+                                                        </div>
+                                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                            <div class="dt-buttons btn-group flex-wrap">
+                                                                <button
+                                                                    class="btn btn-secondary create-new btn-primary waves-effect waves-light"
+                                                                    tabindex="0" aria-controls="DataTables_Table_0"
+                                                                    type="button" data-bs-toggle="offcanvas"
+                                                                    data-bs-target="#add-new-record">
+                                                                    <span>
+                                                                        <i class="ti ti-plus me-sm-1"></i>
+                                                                        <span class="d-none d-sm-inline-block">Add New
+                                                                            Email</span>
+                                                                    </span>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div
-                                                        class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
-                                                        <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                                                            <label>Search:<input type="search" class="form-control"
-                                                                    placeholder=""
-                                                                    aria-controls="DataTables_Table_0" /></label>
+                                                    <div class="row">
+                                                        <div
+                                                            class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
+                                                            <div id="DataTables_Table_0_filter"
+                                                                class="dataTables_filter">
+                                                                <label>Search:<input type="search" class="form-control"
+                                                                        placeholder=""
+                                                                        aria-controls="DataTables_Table_0" /></label>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                        id="DataTables_Table_0"
+                                                        aria-describedby="DataTables_Table_0_info"
+                                                        style="width: 1396px">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 147px"
+                                                                    aria-label="Email: activate to sort column ascending">
+                                                                    Name
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 147px"
+                                                                    aria-label="Email: activate to sort column ascending">
+                                                                    Email
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 130px"
+                                                                    aria-label="Created_at: activate to sort column ascending">
+                                                                    Inserted at
+                                                                </th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1"
+                                                                    style="width: 174px" aria-label="Actions">
+                                                                    Actions
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% if (emails && emails.length> 0) { %>
+                                                                <% emails.forEach(function(email) { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <%= email.display_name %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= email.email %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= email.insertedAt %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <a href="javascript:void(0);"
+                                                                                class="ti ti-trash btn-outline-danger delete-email-btn"
+                                                                                data-email="<%= email.email %>"></a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                        <% } else { %>
+                                                                            <tr>
+                                                                                <td colspan="4">No emails found.</td>
+                                                                            </tr>
+                                                                            <% } %>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <table class="datatables-basic table dataTable no-footer dtr-column"
-                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                    style="width: 1396px">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 147px"
-                                                                aria-label="Email: activate to sort column ascending">
-                                                                Name
-                                                            </th>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 147px"
-                                                                aria-label="Email: activate to sort column ascending">
-                                                                Email
-                                                            </th>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 130px"
-                                                                aria-label="Created_at: activate to sort column ascending">
-                                                                Inserted at
-                                                            </th>
-                                                            <th class="sorting_disabled" rowspan="1" colspan="1"
-                                                                style="width: 174px" aria-label="Actions">
-                                                                Actions
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <% if (emails && emails.length> 0) { %>
-                                                            <% emails.forEach(function(email) { %>
-                                                                <tr>
-                                                                    <td>
-                                                                        <%= email.display_name %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= email.email %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= email.insertedAt %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <a href="javascript:void(0);"
-                                                                            class="ti ti-trash btn-outline-danger delete-email-btn"
-                                                                            data-email="<%= email.email %>"></a>
-                                                                    </td>
-                                                                </tr>
-                                                                <% }); %>
-                                                                    <% } else { %>
-                                                                        <tr>
-                                                                            <td colspan="4">No emails found.</td>
-                                                                        </tr>
-                                                                        <% } %>
-                                                    </tbody>
-                                                </table>
                                             </div>
                                         </div>
                                     </div>

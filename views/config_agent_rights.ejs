@@ -77,44 +77,48 @@
                                 <%- include('partials/config_nav', { user: user, open: open}) %>
                                     <!-- DataTable with Buttons -->
                                     <div class="card">
-                                        <div class="card-datatable table-responsive pt-0">
-                                            <div id="DataTables_Table_0_wrapper"
-                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                                <div class="card-header flex-column flex-md-row">
-                                                    <div class="head-label text-center">
-                                                        <h5 class="card-title mb-0">Agents</h5>
-                                                    </div>
-                                                    <% if (user && user.rights && user.rights.includes(2)) { %>
-                                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                                            <div class="d-flex justify-content-end flex-wrap gap-2">
-                                                                <button class="btn btn-success waves-effect waves-light"
-                                                                    type="button" data-bs-toggle="modal"
-                                                                    data-bs-target="#addAgentModal">
-                                                                    <i class="ti ti-user-plus me-sm-1"></i>
-                                                                    <span class="d-none d-sm-inline-block">Add
-                                                                        Agent</span>
-                                                                </button>
-                                                            </div>
+                                        <div class="card-body">
+                                            <div class="card-datatable table-responsive pt-0">
+                                                <div id="DataTables_Table_0_wrapper"
+                                                    class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                    <div class="card-header flex-column flex-md-row">
+                                                        <div class="head-label text-center">
+                                                            <h5 class="card-title mb-0">Agents</h5>
                                                         </div>
-                                                        <% } %>
+                                                        <% if (user && user.rights && user.rights.includes(2)) { %>
+                                                            <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                                <div class="d-flex justify-content-end flex-wrap gap-2">
+                                                                    <button
+                                                                        class="btn btn-success waves-effect waves-light"
+                                                                        type="button" data-bs-toggle="modal"
+                                                                        data-bs-target="#addAgentModal">
+                                                                        <i class="ti ti-user-plus me-sm-1"></i>
+                                                                        <span class="d-none d-sm-inline-block">Add
+                                                                            Agent</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <% } %>
+                                                    </div>
+                                                    <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                        id="DataTables_Table_0"
+                                                        aria-describedby="DataTables_Table_0_info"
+                                                        style="width: 1396px">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Email</th>
+                                                                <th>Rights</th>
+                                                                <th>Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="agentsTableBody">
+                                                            <tr>
+                                                                <td colspan="4" class="text-center">Loading...</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <table class="datatables-basic table dataTable no-footer dtr-column"
-                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                    style="width: 1396px">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>#</th>
-                                                            <th>Email</th>
-                                                            <th>Rights</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="agentsTableBody">
-                                                        <tr>
-                                                            <td colspan="4" class="text-center">Loading...</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
                                             </div>
                                         </div>
                                     </div>

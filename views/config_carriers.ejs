@@ -80,120 +80,124 @@
                                 <%- include('partials/config_nav', { user: user, open: open}) %>
                                     <!-- DataTable with Buttons -->
                                     <div class="card">
-                                        <div class="card-datatable table-responsive pt-0">
-                                            <div id="DataTables_Table_0_wrapper"
-                                                class="dataTables_wrapper dt-bootstrap5 no-footer">
-                                                <div class="card-header flex-column flex-md-row">
-                                                    <div class="head-label text-center">
-                                                        <h5 class="card-title mb-0">Carriers</h5>
-                                                    </div>
-                                                    <div class="dt-action-buttons text-end pt-6 pt-md-0">
-                                                        <div class="dt-buttons btn-group flex-wrap">
-                                                            <button
-                                                                class="btn btn-secondary create-new btn-primary waves-effect waves-light"
-                                                                tabindex="0" aria-controls="DataTables_Table_0"
-                                                                type="button" data-bs-toggle="offcanvas"
-                                                                data-bs-target="#add-new-record">
-                                                                <span>
-                                                                    <i class="ti ti-plus me-sm-1"></i>
-                                                                    <span class="d-none d-sm-inline-block">Add New
-                                                                        Carrier</span>
-                                                                </span>
-                                                            </button>
+                                        <div class="card-body">
+                                            <div class="card-datatable table-responsive pt-0">
+                                                <div id="DataTables_Table_0_wrapper"
+                                                    class="dataTables_wrapper dt-bootstrap5 no-footer">
+                                                    <div class="card-header flex-column flex-md-row">
+                                                        <div class="head-label text-center">
+                                                            <h5 class="card-title mb-0">Carriers</h5>
+                                                        </div>
+                                                        <div class="dt-action-buttons text-end pt-6 pt-md-0">
+                                                            <div class="dt-buttons btn-group flex-wrap">
+                                                                <button
+                                                                    class="btn btn-secondary create-new btn-primary waves-effect waves-light"
+                                                                    tabindex="0" aria-controls="DataTables_Table_0"
+                                                                    type="button" data-bs-toggle="offcanvas"
+                                                                    data-bs-target="#add-new-record">
+                                                                    <span>
+                                                                        <i class="ti ti-plus me-sm-1"></i>
+                                                                        <span class="d-none d-sm-inline-block">Add New
+                                                                            Carrier</span>
+                                                                    </span>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div
-                                                        class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
-                                                        <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                                                            <label>Search:<input type="search" class="form-control"
-                                                                    placeholder=""
-                                                                    aria-controls="DataTables_Table_0" /></label>
+                                                    <div class="row">
+                                                        <div
+                                                            class="col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0">
+                                                            <div id="DataTables_Table_0_filter"
+                                                                class="dataTables_filter">
+                                                                <label>Search:<input type="search" class="form-control"
+                                                                        placeholder=""
+                                                                        aria-controls="DataTables_Table_0" /></label>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <table class="datatables-basic table dataTable no-footer dtr-column"
+                                                        id="DataTables_Table_0"
+                                                        aria-describedby="DataTables_Table_0_info"
+                                                        style="width: 1396px">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width: 40px;">#</th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 147px"
+                                                                    aria-label="Carrier: activate to sort column ascending">
+                                                                    Carrier
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 147px"
+                                                                    aria-label="Phone: activate to sort column ascending">
+                                                                    Phone
+                                                                </th>
+                                                                <th class="sorting_disabled" tabindex="0"
+                                                                    aria-controls="DataTables_Table_0" rowspan="1"
+                                                                    colspan="1" style="width: 130px"
+                                                                    aria-label="Created_at: activate to sort column ascending">
+                                                                    States
+                                                                </th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1"
+                                                                    style="width: 174px" aria-label="Actions">
+                                                                    Actions
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% if (companies && companies.length> 0) { %>
+                                                                <% companies.forEach(function(company, idx) { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <%= idx + 1 %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= company.name %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= company.phone %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <% const
+                                                                                allStates=company.states.split('|').map(s=>
+                                                                                s.trim()).filter(s => s);
+                                                                                const visibleStates = allStates.slice(0,
+                                                                                5).join('| ');
+                                                                                const hasMore = allStates.length > 5;
+                                                                                %>
+                                                                                <% if (hasMore) { %>
+                                                                                    <span data-bs-toggle="tooltip"
+                                                                                        data-bs-placement="top"
+                                                                                        title="<%= allStates.join(', ') %>">
+                                                                                        <%= visibleStates %> ...
+                                                                                    </span>
+                                                                                    <% } else { %>
+                                                                                        <%= visibleStates %>
+                                                                                            <% } %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <a href="javascript:void(0)"
+                                                                                class="btn-outline-warning edit-company-btn ti ti-edit"
+                                                                                data-company="<%= company.name %>"
+                                                                                data-phone="<%= company.phone %>"
+                                                                                data-states='<%= JSON.stringify(company.states) %>'>
+                                                                            </a>
+                                                                            <a href="javascript:void(0)"
+                                                                                class="btn-outline-danger delete-email-btn ti ti-trash"
+                                                                                data-company="<%= company.name %>"></a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                        <% } else { %>
+                                                                            <tr>
+                                                                                <td colspan="5">No carriers found.</td>
+                                                                            </tr>
+                                                                            <% } %>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
-                                                <table class="datatables-basic table dataTable no-footer dtr-column"
-                                                    id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info"
-                                                    style="width: 1396px">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 40px;">#</th>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 147px"
-                                                                aria-label="Carrier: activate to sort column ascending">
-                                                                Carrier
-                                                            </th>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 147px"
-                                                                aria-label="Phone: activate to sort column ascending">
-                                                                Phone
-                                                            </th>
-                                                            <th class="sorting_disabled" tabindex="0"
-                                                                aria-controls="DataTables_Table_0" rowspan="1"
-                                                                colspan="1" style="width: 130px"
-                                                                aria-label="Created_at: activate to sort column ascending">
-                                                                States
-                                                            </th>
-                                                            <th class="sorting_disabled" rowspan="1" colspan="1"
-                                                                style="width: 174px" aria-label="Actions">
-                                                                Actions
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <% if (companies && companies.length> 0) { %>
-                                                            <% companies.forEach(function(company, idx) { %>
-                                                                <tr>
-                                                                    <td>
-                                                                        <%= idx + 1 %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= company.name %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= company.phone %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <% const
-                                                                            allStates=company.states.split('|').map(s=>
-                                                                            s.trim()).filter(s => s);
-                                                                            const visibleStates = allStates.slice(0,
-                                                                            5).join('| ');
-                                                                            const hasMore = allStates.length > 5;
-                                                                            %>
-                                                                            <% if (hasMore) { %>
-                                                                                <span data-bs-toggle="tooltip"
-                                                                                    data-bs-placement="top"
-                                                                                    title="<%= allStates.join(', ') %>">
-                                                                                    <%= visibleStates %> ...
-                                                                                </span>
-                                                                                <% } else { %>
-                                                                                    <%= visibleStates %>
-                                                                                        <% } %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <a href="javascript:void(0)"
-                                                                            class="btn-outline-warning edit-company-btn ti ti-edit"
-                                                                            data-company="<%= company.name %>"
-                                                                            data-phone="<%= company.phone %>"
-                                                                            data-states='<%= JSON.stringify(company.states) %>'>
-                                                                        </a>
-                                                                        <a href="javascript:void(0)"
-                                                                            class="btn-outline-danger delete-email-btn ti ti-trash"
-                                                                            data-company="<%= company.name %>"></a>
-                                                                    </td>
-                                                                </tr>
-                                                                <% }); %>
-                                                                    <% } else { %>
-                                                                        <tr>
-                                                                            <td colspan="5">No carriers found.</td>
-                                                                        </tr>
-                                                                        <% } %>
-                                                    </tbody>
-                                                </table>
                                             </div>
                                         </div>
                                     </div>
