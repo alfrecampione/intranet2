@@ -95,7 +95,7 @@ async function getAllMessages(userEmail) {
   try {
     const token = await getAccessToken();
     let messages = [];
-    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$top=50`;
+    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$filter=startswith(subject, '[NEWS]')&$top=50`;
 
     while (url) {
       const response = await fetch(url, {
