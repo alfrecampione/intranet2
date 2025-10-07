@@ -95,8 +95,8 @@ async function getAllMessages(userEmail) {
   try {
     const token = await getAccessToken();
     let messages = [];
-    let filter = encodeURIComponent("startswith(subject,'[NEWS]')");
-    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$filter=${filter}&$top=50`;
+    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$top=50`;
+
     while (url) {
       const response = await fetch(url, {
         headers: {
@@ -257,13 +257,18 @@ const new_user_notification = async (req, res) => {
 const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
+
+    const newsMessages = messages.filter(
+      (msg) => msg.subject && msg.subject.trim().startsWith("[NEWS]")
+    );
+
     const seenIds = new Set();
 
-    for (const msg of messages) {
+    for (const msg of newsMessages) {
       seenIds.add(msg.id);
 
       const cleanContent = msg.bodyPreview?.trim() || "(No Content)";
-      const uniqueId = msg.id; // Fixed: define uniqueId
+      const uniqueId = msg.id;
 
       await prisma.news.upsert({
         where: { externalId: uniqueId },
