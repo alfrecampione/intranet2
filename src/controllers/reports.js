@@ -164,25 +164,12 @@ const exportData = async (req, res) => {
             const item = {
                 user_id: agent.user_id,
                 name: agent.display_name || '',
-                state: record.state || '',
-                carrier: record.company || '',
-                status: record.status || '',
-                agency: agent.Agency?.name || '',
                 email: agent.email || '',
                 number: agent.contactInfo?.personalPhone || ''
             };
-
             processedAgents.push(item);
         });
     });
-
-    // Additional filtering if needed
-    if (filterType === "status" && filterValue) {
-        processedAgents = processedAgents.filter(a => a.status === filterValue);
-    }
-    if (filterType === "agency" && filterValue) {
-        processedAgents = processedAgents.filter(a => a.agency === filterValue);
-    }
 
     // Create Excel file
     const workbook = new ExcelJS.Workbook();
@@ -192,10 +179,6 @@ const exportData = async (req, res) => {
         { header: "Name", key: "name", width: 25 },
         { header: "Email", key: "email", width: 30 },
         { header: "Phone Number", key: "number", width: 20 },
-        { header: "State", key: "state", width: 15 },
-        { header: "Carrier", key: "carrier", width: 25 },
-        { header: "Status", key: "status", width: 15 },
-        { header: "Agency", key: "agency", width: 25 }
     ];
 
     worksheet.addRows(processedAgents);
