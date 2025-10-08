@@ -72,36 +72,6 @@
 <body>
   <!-- Content -->
   <div class="authentication-wrapper authentication-cover authentication-bg">
-    <!-- Toast with Animation -->
-    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
-      aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-      <div class="toast-header">
-        <i class="ti ti-bell ti-xs me-2"></i>
-        <div class="me-auto fw-medium text-primary">GTI</div>
-        <small class="text-warning">Create password</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body bg-light text-primary">
-        You should receive an email, please check it.
-      </div>
-    </div>
-    <!--/ Toast with Animation -->
-
-    <!-- Toast wrong email -->
-    <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex2" role="alert"
-      aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-      <div class="toast-header">
-        <i class="ti ti-bell ti-xs me-2"></i>
-        <div class="me-auto fw-medium text-primary">GTI</div>
-        <small class="text-warning">Wrong Email</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body bg-light text-primary">
-        Please enter a valid email address
-      </div>
-    </div>
-    <!--/ Toast wrong email -->
-
     <div class="authentication-inner row">
       <!-- /Left Text -->
       <div class="d-none d-lg-flex col-lg-7 p-0">
@@ -181,8 +151,24 @@
   <!-- Main JS -->
   <script src="/js/main.js"></script>
 
-  <!-- Page JS -->
-  <script src="/js/login.js"></script>
+  <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+    aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+    <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+      <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Login</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+  </div>
+
+  <script>
+    function showToast(headerText, bodyText) {
+      const toast = document.querySelector('.toast-ex1');
+      toast.querySelector('.toast-header small').textContent = headerText;
+      toast.querySelector('.toast-body').textContent = bodyText;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
+  </script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -198,6 +184,85 @@
           passwordContainer.style.display = "block";
         }
       });
+    });
+  </script>
+  <script>
+    const formAuthentication = document.querySelector('#formAuthentication');
+    const url = `${window.location.protocol}//${window.location.host}`;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      (function () {
+        if (formAuthentication) {
+          const fv = FormValidation.formValidation(formAuthentication, {
+            fields: {
+              email: {
+                validators: {
+                  notEmpty: {
+                    message: 'Please enter your email'
+                  },
+                  emailAddress: {
+                    message: 'Please enter a valid email address'
+                  }
+                }
+              },
+              password: {
+                validators: {
+                  notEmpty: {
+                    message: 'Please enter your password'
+                  },
+                  stringLength: {
+                    min: 6,
+                    message: 'Password must be more than 6 characters'
+                  }
+                }
+              }
+            },
+            plugins: {
+              trigger: new FormValidation.plugins.Trigger(),
+              bootstrap5: new FormValidation.plugins.Bootstrap5({
+                eleValidClass: '',
+                rowSelector: '.mb-3'
+              }),
+              submitButton: new FormValidation.plugins.SubmitButton(),
+              defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+              autoFocus: new FormValidation.plugins.AutoFocus()
+            },
+            init: instance => {
+              instance.on('plugins.message.placed', function (e) {
+                if (e.element.parentElement.classList.contains('input-group')) {
+                  e.element.parentElement.insertAdjacentElement('afterend', e.messageElement);
+                }
+              });
+            }
+          });
+        }
+
+        const toastAnimationBtn = document.getElementById('showToastAnimation');
+        if (toastAnimationBtn) {
+          toastAnimationBtn.addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const data = { url };
+
+            if (email) {
+              fetch(`${url}/users/auth/send/${email}`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+              }).then(res => {
+                if (!res.ok) {
+                  showToast('Wrong Email', 'Please enter a valid email address');
+                } else {
+                  showToast('Create password', 'You should receive an email, please check it.');
+                }
+              }).catch(() => {
+                showToast('Error', 'Unable to connect to the server.');
+              });
+            } else {
+              showToast('Wrong Email', 'Please enter a valid email address');
+            }
+          });
+        }
+      })();
     });
   </script>
 </body>

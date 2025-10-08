@@ -139,18 +139,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
       });
     }
 
-    //  Two Steps Verification
-    const numeralMask = document.querySelectorAll('.numeral-mask');
-
-    // Verification masking
-    if (numeralMask.length) {
-      numeralMask.forEach(e => {
-        new Cleave(e, {
-          numeral: true
-        });
-      });
-    }
-
     // Bootstrap toasts example
     // --------------------------------------------------------------------
     const toastAnimation1 = document.querySelector('.toast-ex1'),
