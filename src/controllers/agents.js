@@ -1,3 +1,4 @@
+import { get } from "https";
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAllAgencyIds } from "../config/utils.js";
@@ -24,6 +25,19 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
 
   return null;
 };
+
+const getData = async (users) => {
+  const registeredUsers = await Promise.all(users.map(async u => {
+    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+    return {
+      ...u,
+      photoPath: u.personalInfo?.photoPath || null,
+      agency: u.personalInfo.contactType === 'business' ? u.personalInfo.businessName : agencyName
+    };
+  }));
+
+  return registeredUsers;
+}
 
 // ===============================
 // Render Functions
@@ -58,26 +72,10 @@ const renderMyAgents = async (req, res) => {
     const users = await prisma.user.findMany({
       where,
       orderBy: [{ display_name: "asc" }, { email: "asc" }],
-      include: {
-        personalInfo: {
-          select: {
-            photoPath: true,
-            agency: true,
-            underAgency: { select: { name: true } },
-            franchise: true
-          }
-        }
-      }
+      include: { personalInfo: true }
     });
 
-    const registeredUsers = await Promise.all(users.map(async u => {
-      const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-      return {
-        ...u,
-        photoPath: u.personalInfo?.photoPath || null,
-        agency: agencyName
-      };
-    }));
+    const registeredUsers = await getData(users);
 
     res.render("agents", { user, registeredUsers, activePage: "agents" });
 
@@ -93,25 +91,10 @@ const renderAgents = async (req, res) => {
   const users = await prisma.user.findMany({
     where: { isReleased: false },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
-    include: {
-      personalInfo: {
-        select: {
-          photoPath: true,
-          underAgency: { select: { name: true } },
-          franchise: true
-        }
-      }
-    }
+    include: { personalInfo: true }
   });
 
-  const registeredUsers = await Promise.all(users.map(async u => {
-    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-    return {
-      ...u,
-      photoPath: u.personalInfo?.photoPath || null,
-      agency: agencyName
-    };
-  }));
+  const registeredUsers = await getData(users);
 
   res.render("agents", { user, registeredUsers, activePage: "agents" });
 };
@@ -122,25 +105,10 @@ const renderReleasedAgents = async (req, res) => {
   const users = await prisma.user.findMany({
     where: { isReleased: true },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
-    include: {
-      personalInfo: {
-        select: {
-          photoPath: true,
-          underAgency: { select: { name: true } },
-          franchise: true
-        }
-      }
-    }
+    include: { personalInfo: true }
   });
 
-  const releasedUsers = await Promise.all(users.map(async u => {
-    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-    return {
-      ...u,
-      photoPath: u.personalInfo?.photoPath || null,
-      agency: agencyName
-    };
-  }));
+  const releasedUsers = await getData(users);
 
   res.render("agents_released", { user, releasedUsers, activePage: "releasedAgents" });
 };
@@ -159,27 +127,14 @@ const renderReferingAgents = async (req, res) => {
     },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
     include: {
-      personalInfo: {
-        select: {
-          photoPath: true,
-          underAgency: { select: { name: true } },
-          franchise: true
-        }
-      },
+      personalInfo: true,
       statesAndCarriers: {
         where: { status: { equals: "refering", mode: "insensitive" } }
       }
     }
   });
 
-  const referingUsers = await Promise.all(users.map(async u => {
-    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-    return {
-      ...u,
-      photoPath: u.personalInfo?.photoPath || null,
-      agency: agencyName
-    };
-  }));
+  const referingUsers = await getData(users);
 
   res.render("agents_refering", { user, referingUsers, activePage: "referingAgents" });
 };
