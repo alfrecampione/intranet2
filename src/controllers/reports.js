@@ -160,15 +160,13 @@ const exportData = async (req, res) => {
     let processedAgents = [];
 
     agents.forEach(agent => {
-        agent.statesAndCarriers.forEach(record => {
-            const item = {
-                user_id: agent.user_id,
-                name: agent.display_name || '',
-                email: agent.email || '',
-                number: agent.contactInfo?.personalPhone || ''
-            };
-            processedAgents.push(item);
-        });
+        const item = {
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || ''
+        };
+        processedAgents.push(item);
     });
 
     // Create Excel file
