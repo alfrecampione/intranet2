@@ -125,9 +125,14 @@
   </div>
 
   <!-- / Content -->
-
-  <!-- Core JS -->
-  <!-- build:js assets/vendor/js/core.js -->
+  <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+    aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+    <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+      <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Agents</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+  </div>
 
   <script src="/vendor/libs/jquery/jquery.js"></script>
   <script src="/vendor/libs/popper/popper.js"></script>
@@ -142,23 +147,17 @@
   <!-- endbuild -->
 
   <!-- Vendors JS -->
+  <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+  <!-- Flat Picker -->
+  <script src="/vendor/libs/moment/moment.js"></script>
+  <script src="/vendor/libs/flatpickr/flatpickr.js"></script>
+  <!-- Form Validation -->
   <script src="/vendor/libs/@form-validation/popular.js"></script>
   <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
   <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
-  <script src="/vendor/libs/select2/select2.js"></script>
-  <script src="/vendor/libs/toastr/toastr.js"></script>
 
   <!-- Main JS -->
   <script src="/js/main.js"></script>
-
-  <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
-    aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-    <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
-      <div class="me-auto fw-medium text-primary">GTI</div> <small class="text-warning">Login</small>
-      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    <div class="toast-body text-primary"> You should receive an email, please check it. </div>
-  </div>
 
   <script>
     function showToast(headerText, bodyText) {
