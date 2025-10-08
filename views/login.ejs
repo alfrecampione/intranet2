@@ -168,10 +168,13 @@
 
   <script>
     const formAuthentication = document.querySelector('#formAuthentication');
+
     document.addEventListener('DOMContentLoaded', function () {
       (function () {
+        let fv;
+
         if (formAuthentication) {
-          const fv = FormValidation.formValidation(formAuthentication, {
+          fv = FormValidation.formValidation(formAuthentication, {
             fields: {
               email: {
                 validators: {
@@ -215,6 +218,7 @@
           });
         }
 
+        // Hide/show password + enable/disable validator
         const emailInput = document.getElementById("email");
         const passwordContainer = document.getElementById("password-container");
 
@@ -229,34 +233,34 @@
             if (fv) fv.enableValidator('password');
           }
         });
-      });
 
-      const toastAnimationBtn = document.getElementById('showToastAnimation');
-      if (toastAnimationBtn) {
-        toastAnimationBtn.addEventListener('click', () => {
-          const email = document.getElementById('email').value;
-          const data = { url };
+        // Toast logic
+        const toastAnimationBtn = document.getElementById('showToastAnimation');
+        if (toastAnimationBtn) {
+          toastAnimationBtn.addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const data = { url };
 
-          if (email) {
-            fetch(`/users/auth/send/${email}`, {
-              method: 'POST',
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data)
-            }).then(res => {
-              if (!res.ok) {
-                showToast('Wrong Email', 'Please enter a valid email address');
-              } else {
-                showToast('Create password', 'You should receive an email, please check it.');
-              }
-            }).catch(() => {
-              showToast('Error', 'Unable to connect to the server.');
-            });
-          } else {
-            showToast('Wrong Email', 'Please enter a valid email address');
-          }
-        });
-      }
-    })();
+            if (email) {
+              fetch(`/users/auth/send/${email}`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+              }).then(res => {
+                if (!res.ok) {
+                  showToast('Wrong Email', 'Please enter a valid email address');
+                } else {
+                  showToast('Create password', 'You should receive an email, please check it.');
+                }
+              }).catch(() => {
+                showToast('Error', 'Unable to connect to the server.');
+              });
+            } else {
+              showToast('Wrong Email', 'Please enter a valid email address');
+            }
+          });
+        }
+      })();
     });
   </script>
 </body>
