@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     const toastAnimation1 = document.querySelector('.toast-ex1'),
       toastAnimation2 = document.querySelector('.toast-ex2'),
       toastAnimationBtn = document.getElementById('showToastAnimation');
-    let emailSended, wrongEmail
+    let emailSended, wrongEmailf
 
     // Animation Button click
     if (toastAnimationBtn) {
