@@ -28,7 +28,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
     <!--<link rel="manifest" href="/img/favicon/manifest.json">-->
 
-    <title>Agents | Golden Health</title>
+    <title>Agents | GoldenHealth</title>
 
     <meta name="description" content="" />
 
@@ -85,22 +85,22 @@
                                                 </div>
                                                 <div class="dt-action-buttons text-end pt-6 pt-md-0">
                                                     <div class="d-flex justify-content-end flex-wrap gap-2">
+                                                        <% if (user && user.rights && user.rights.includes(2)) { %>
+                                                            <button class="btn btn-success waves-effect waves-light"
+                                                                type="button" data-bs-toggle="modal"
+                                                                data-bs-target="#addAgentModal">
+                                                                <i class="ti ti-user-plus me-sm-1"></i>
+                                                                <span class="d-none d-sm-inline-block">Add Agent</span>
+                                                            </button>
 
-                                                        <button class="btn btn-success waves-effect waves-light"
-                                                            type="button" data-bs-toggle="modal"
-                                                            data-bs-target="#addAgentModal">
-                                                            <i class="ti ti-user-plus me-sm-1"></i>
-                                                            <span class="d-none d-sm-inline-block">Add Agent</span>
-                                                        </button>
-
-                                                        <button
-                                                            class="btn btn-secondary create-new btn-primary waves-effect waves-light"
-                                                            type="button" data-bs-toggle="offcanvas"
-                                                            data-bs-target="#add-new-record">
-                                                            <i class="ti ti-plus me-sm-1"></i>
-                                                            <span class="d-none d-sm-inline-block">Onboarding</span>
-                                                        </button>
-
+                                                            <button
+                                                                class="btn btn-secondary create-new btn-primary waves-effect waves-light"
+                                                                type="button" data-bs-toggle="offcanvas"
+                                                                data-bs-target="#add-new-record">
+                                                                <i class="ti ti-plus me-sm-1"></i>
+                                                                <span class="d-none d-sm-inline-block">Onboarding</span>
+                                                            </button>
+                                                            <% } %>
                                                     </div>
                                                 </div>
                                             </div>
