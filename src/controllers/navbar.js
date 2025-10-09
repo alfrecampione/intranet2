@@ -88,7 +88,7 @@ async function createMessage(log) {
 }
 
 const getNotifications = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.user_id;
 
   try {
     let notifications = await prisma.logs.findMany({
