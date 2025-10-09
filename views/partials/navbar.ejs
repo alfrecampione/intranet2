@@ -48,10 +48,10 @@
                 <a class="nav-link position-relative" href="#" id="navbarDropdown" role="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="ti ti-bell ti-md"></i>
-                    <!-- Small badge just below the bell -->
+                    <!-- Overlapping bubble badge -->
                     <span id="notification-badge"
                         class="position-absolute top-100 start-50 translate-middle badge rounded-circle bg-danger d-none"
-                        style="font-size: 0.65rem; min-width: 16px; height: 16px; padding: 0; line-height: 16px; margin-top: -4px;">
+                        style="font-size: 0.65rem; min-width: 16px; height: 16px; padding: 0; line-height: 16px; margin-top: -6px; margin-left: 8px;">
                         0
                     </span>
                 </a>
@@ -77,6 +77,7 @@
                     </li>
                 </ul>
             </li>
+
             <script>
                 document.addEventListener("DOMContentLoaded", async () => {
                     const notificationBadge = document.getElementById("notification-badge");
