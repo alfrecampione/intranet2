@@ -73,10 +73,12 @@ async function getAllAgencies(agencyId, franchiseId) {
             franchiseId = parentFranchiseId;
 
         } else if (franchiseId) {
-            const [franchise] = await prisma.$queryRawUnsafe(
-                `SELECT * FROM qq.locations WHERE location_id = $1`,
-                franchiseId
-            );
+            const id = Number(franchiseId);
+            if (isNaN(id)) break;
+
+            const [franchise] = await prisma.$queryRaw`
+        SELECT * FROM qq.locations WHERE location_id = ${id}
+    `;
 
             results.push({
                 id: franchiseId,
@@ -84,7 +86,6 @@ async function getAllAgencies(agencyId, franchiseId) {
                 name: franchise?.alias || '',
             });
 
-            // Franchise is top-level — stop
             break;
         }
     }
