@@ -1,3 +1,4 @@
+import { get } from "https";
 import { prisma } from "../config/dbConfig.js";
 import { getAllAgencyIds } from "../config/utils.js";
 
@@ -5,25 +6,90 @@ async function loadAgents(where = {}) {
     const agents = await prisma.user.findMany({
         where: { isAgent: true, ...where },
         include: {
-            Agency: { select: { name: true } },
+            personalInfo: true,
             contactInfo: true,
             statesAndCarriers: true
         },
         orderBy: { display_name: 'asc' }
     });
 
-    return agents.flatMap(agent =>
+    const flattened = agents.flatMap(agent =>
         agent.statesAndCarriers.map(record => ({
             user_id: agent.user_id,
             name: agent.display_name || '',
             state: record.state || '',
             carrier: record.company || '',
             status: record.status || '',
-            agency: agent.Agency?.name || '',
+            agency: agent.personalInfo?.agency || '',
+            franchise: agent.personalInfo?.franchise || '',
             email: agent.email || '',
             number: agent.contactInfo?.personalPhone || ''
         }))
     );
+
+    return flattened.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+}
+
+/**
+ * Retrieves the full hierarchy of agencies and franchises above a given agency or franchise.
+ * 
+ * Starting from the specified agency or franchise, this function traverses upward through
+ * parent agencies and franchises until reaching the top-level entity. It returns an ordered
+ * list of all related agencies and franchises encountered along the way.
+ *
+ * @async
+ * @param {string|null} agencyId - The starting agency ID (if applicable).
+ * @param {string|null} franchiseId - The starting franchise ID (if applicable).
+ * @returns {Promise<Array<{ id: string, isAgency: boolean, name: string }>>}
+ * A list of parent agencies and franchises, starting from the given entity upward.
+ */
+async function getAllAgencies(agencyId, franchiseId) {
+    const results = [];
+
+    while (agencyId || franchiseId) {
+        if (agencyId) {
+            const agency = await prisma.agency.findUnique({
+                where: { id: agencyId },
+                include: {
+                    user: {
+                        include: { personalInfo: true },
+                    },
+                },
+            });
+
+            if (!agency) break;
+
+            results.push({
+                id: agency.id,
+                isAgency: true,
+                name: agency.name || '',
+            });
+
+            const parentAgencyId = agency.user?.personalInfo?.agency || null;
+            const parentFranchiseId = agency.user?.personalInfo?.franchise || null;
+
+            // Move up the chain
+            agencyId = parentAgencyId;
+            franchiseId = parentFranchiseId;
+
+        } else if (franchiseId) {
+            const [franchise] = await prisma.$queryRawUnsafe(
+                `SELECT * FROM qq.locations WHERE location_id = $1`,
+                franchiseId
+            );
+
+            results.push({
+                id: franchiseId,
+                isAgency: false,
+                name: franchise?.alias || '',
+            });
+
+            // Franchise is top-level — stop
+            break;
+        }
+    }
+
+    return results;
 }
 
 const renderReports = async (req, res) => {
@@ -50,7 +116,17 @@ const renderReports = async (req, res) => {
 
     const processedAgents = await loadAgents(where);
 
-    const getUnique = (arr, key) => [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
+    const getUnique = (arr, key) => {
+        const values = key ? arr.map(i => i[key]) : arr;
+        return [...new Set(values.filter(Boolean))].sort();
+    };
+
+    const allSubordinations = await Promise.all(
+        processedAgents.map(agent => getAllAgencies(agent.agency, agent.franchise))
+    );
+
+    const allAgencies = getUnique(allSubordinations.flat().filter(i => i.isAgency).map(i => i.name));
+    const allFranchises = getUnique(allSubordinations.flat().filter(i => !i.isAgency).map(i => i.name));
 
     res.render("reports", {
         user,
@@ -59,14 +135,14 @@ const renderReports = async (req, res) => {
             state: getUnique(processedAgents, 'state'),
             carrier: getUnique(processedAgents, 'carrier'),
             status: getUnique(processedAgents, 'status'),
-            agency: getUnique(processedAgents, 'agency')
+            franchise: allFranchises,
+            agency: allAgencies,
         },
         activePage: 'reports'
     });
 };
-
 const filterReport = async (req, res) => {
-    const { filterType, filterValue, carrierValue } = req.query;
+    const { filterType, filterValue, filterSubValue } = req.query;
     const user = req.user;
     let where = {};
 
@@ -90,10 +166,12 @@ const filterReport = async (req, res) => {
 
     let processedAgents = await loadAgents(where);
 
-    if (filterType === 'carrier & state' && filterValue && carrierValue) {
+    if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
-            i => i.state === filterValue && i.carrier === carrierValue
+            i => i.state === filterValue && i.carrier === filterSubValue
         );
+    } else if (filterType === 'agency' && (filterValue || filterSubValue)) {
+        processedAgents = processedAgents.filter(i => i[filterType] === (filterSubValue || filterValue));
     } else if (filterType && filterType !== 'carrier & state' && filterValue) {
         processedAgents = processedAgents.filter(i => i[filterType] === filterValue);
     }
@@ -113,81 +191,34 @@ const filterReport = async (req, res) => {
 import ExcelJS from "exceljs";
 
 const exportData = async (req, res) => {
-    let { filterType, filterValue, carrierValue } = req.query;
+    const { headers = [], rows = [] } = req.body;
 
-    // Build the where clause dynamically
-    const whereClause = {
-        isAgent: true
-    };
-
-    if (filterType === "carrier & state" && filterValue && carrierValue) {
-        whereClause.statesAndCarriers = {
-            some: {
-                state: filterValue,
-                company: carrierValue
-            }
-        };
-    } else if (filterType === "state" && filterValue) {
-        whereClause.statesAndCarriers = {
-            some: {
-                state: filterValue
-            }
-        };
-    } else if (filterType === "carrier" && filterValue) {
-        whereClause.statesAndCarriers = {
-            some: {
-                company: filterValue
-            }
-        };
-    } else if (["status", "agency"].includes(filterType) && filterValue) {
-        // These will be filtered after Prisma fetch, because `status` is in `statesAndCarriers`
-        // and `agency` is a nested relation
-    }
-
-    const agents = await prisma.user.findMany({
-        where: whereClause,
-        include: {
-            Agency: { select: { name: true } },
-            contactInfo: true,
-            statesAndCarriers: true
-        },
-        orderBy: {
-            display_name: 'asc'
-        }
-    });
-
-    // Flatten records
-    let processedAgents = [];
-
-    agents.forEach(agent => {
-        const item = {
-            user_id: agent.user_id,
-            name: agent.display_name || '',
-            email: agent.email || '',
-            number: agent.contactInfo?.personalPhone || ''
-        };
-        processedAgents.push(item);
-    });
-
-    // Create Excel file
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Filtered Agents");
+    const sheet = workbook.addWorksheet('Report');
 
-    worksheet.columns = [
-        { header: "Name", key: "name", width: 25 },
-        { header: "Email", key: "email", width: 30 },
-        { header: "Phone Number", key: "number", width: 20 },
-    ];
+    // Add headers as first row
+    sheet.addRow(headers);
 
-    worksheet.addRows(processedAgents);
+    // Add all data rows
+    rows.forEach(row => sheet.addRow(row));
+
+    // Optional: auto-width for each column
+    sheet.columns.forEach(column => {
+        let maxLength = 10;
+        column.eachCell({ includeEmpty: true }, cell => {
+            const len = cell.value ? cell.value.toString().length : 0;
+            if (len > maxLength) maxLength = len;
+        });
+        column.width = maxLength + 2;
+    });
 
     res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        'Content-Disposition',
+        'attachment; filename="report.xlsx"'
     );
     res.setHeader(
-        "Content-Disposition",
-        "attachment; filename=report.xlsx"
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
 
     await workbook.xlsx.write(res);

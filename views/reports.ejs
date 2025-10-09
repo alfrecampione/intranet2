@@ -92,9 +92,9 @@
                                                 disabled>
                                                 <option value="">Select Value</option>
                                             </select>
-                                            <select id="filter-carrier" class="form-select"
+                                            <select id="filter-sub-value" class="form-select"
                                                 style="width: 200px; display: none;">
-                                                <option value="">Select a Carrier</option>
+                                                <option value="">Select Other Value</option>
                                             </select>
 
                                             <button id="export-button" class="btn btn-success">Export to Excel</button>
@@ -184,18 +184,18 @@
 
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
-            const carrierSelect = document.getElementById('filter-carrier');
+            const filterSubValue = document.getElementById('filter-sub-value');
             const resultsCount = document.getElementById('results-count');
             const resultsTable = document.getElementById('results-table');
 
             let dataTable;
             const pageLength = 10;
 
-            function populateFilterValues(type) {
+            function populateFilterValues(type, dataKey) {
                 filterValueSelect.innerHTML = '<option value="">Select Value</option>';
-                if (!type || !filtersData[type]) return;
+                if (!dataKey || !filtersData[dataKey]) return;
 
-                filtersData[type].forEach(value => {
+                filtersData[dataKey].forEach(value => {
                     const opt = document.createElement('option');
                     opt.value = value;
                     opt.textContent = value;
@@ -205,15 +205,32 @@
                 filterValueSelect.disabled = false;
             }
 
+            function populateSubValues(dataKey) {
+                filterSubValue.innerHTML = '<option value="">Select Other Value</option>';
+                if (!dataKey || !filtersData[dataKey]) {
+                    filterSubValue.style.display = 'none';
+                    return;
+                }
+
+                filtersData[dataKey].forEach(value => {
+                    const opt = document.createElement('option');
+                    opt.value = value;
+                    opt.textContent = value;
+                    filterSubValue.appendChild(opt);
+                });
+
+                filterSubValue.style.display = 'block';
+            }
+
             async function fetchFilteredData() {
                 const filterType = filterTypeSelect.value;
                 const filterValue = filterValueSelect.value;
-                const carrierValue = carrierSelect.value;
+                const filterSubValueVal = filterSubValue.value;
 
                 const params = new URLSearchParams();
                 if (filterType) params.append("filterType", filterType);
                 if (filterValue) params.append("filterValue", filterValue);
-                if (carrierValue) params.append("carrierValue", carrierValue);
+                if (filterSubValueVal) params.append("filterSubValue", filterSubValueVal);
 
                 const response = await fetch(`/users/reports/filter?${params.toString()}`);
                 const result = await response.json();
@@ -229,30 +246,22 @@
                     {
                         title: "#",
                         data: null,
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
+                        render: (data, type, row, meta) => meta.row + 1
                     },
                     {
                         title: "Name",
                         data: "name",
-                        render: function (data, type, row) {
-                            return `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`;
-                        }
+                        render: (data, type, row) => `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`
                     },
                     {
                         title: "Email",
                         data: "email",
-                        render: function (data) {
-                            return data ? `<a href="mailto:${data}">${data}</a>` : '';
-                        }
+                        render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
                     },
                     {
                         title: "Number",
                         data: "number",
-                        render: function (data) {
-                            return data ? `<a href="tel:${data}">${data}</a>` : '';
-                        }
+                        render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
                     }
                 ];
 
@@ -275,6 +284,7 @@
                 const type = filterTypeSelect.value;
 
                 if (type === 'carrier & state') {
+                    // Carrier & State mode
                     filterValueSelect.innerHTML = '<option value="">Select State</option>';
                     filtersData['state'].forEach(state => {
                         const opt = document.createElement('option');
@@ -284,29 +294,56 @@
                     });
                     filterValueSelect.disabled = false;
 
-                    carrierSelect.innerHTML = '<option value="">Select Carrier</option>';
+                    filterSubValue.innerHTML = '<option value="">Select Carrier</option>';
                     filtersData['carrier'].forEach(carrier => {
                         const opt = document.createElement('option');
                         opt.value = carrier;
                         opt.textContent = carrier;
-                        carrierSelect.appendChild(opt);
+                        filterSubValue.appendChild(opt);
                     });
-                    carrierSelect.style.display = 'block';
+                    filterSubValue.style.display = 'block';
+
+                } else if (type === 'agency') {
+                    // Agency mode → franchises first, agencies second
+                    filterValueSelect.innerHTML = '<option value="">Select Franchise</option>';
+                    if (filtersData['franchise']) {
+                        filtersData['franchise'].forEach(franchise => {
+                            const opt = document.createElement('option');
+                            opt.value = franchise;
+                            opt.textContent = franchise;
+                            filterValueSelect.appendChild(opt);
+                        });
+                    }
+                    filterValueSelect.disabled = false;
+
+                    filterSubValue.innerHTML = '<option value="">Select Agency</option>';
+                    if (filtersData['agency']) {
+                        filtersData['agency'].forEach(agency => {
+                            const opt = document.createElement('option');
+                            opt.value = agency;
+                            opt.textContent = agency;
+                            filterSubValue.appendChild(opt);
+                        });
+                    }
+                    filterSubValue.style.display = 'block';
+
                 } else if (type) {
-                    populateFilterValues(type);
-                    carrierSelect.style.display = 'none';
+                    // Generic single-value filters
+                    populateFilterValues(type, type);
+                    filterSubValue.style.display = 'none';
                 } else {
+                    // Reset
                     filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                     filterValueSelect.disabled = true;
-                    carrierSelect.style.display = 'none';
+                    filterSubValue.style.display = 'none';
                 }
 
                 applyFilterAndRender();
             });
 
-            // Filter value or carrier change
+            // Filter value or sub-value change
             filterValueSelect.addEventListener('change', applyFilterAndRender);
-            carrierSelect.addEventListener('change', applyFilterAndRender);
+            filterSubValue.addEventListener('change', applyFilterAndRender);
 
             // Initial render
             applyFilterAndRender();
@@ -315,19 +352,36 @@
 
     <script>
         document.getElementById('export-button').addEventListener('click', () => {
-            const filterType = document.getElementById('filter-type').value;
-            const filterValue = document.getElementById('filter-value').value;
-            const carrierValue = document.getElementById('filter-carrier').value;
+            const table = document.getElementById('results-table');
 
-            const params = new URLSearchParams();
-            if (filterType) params.append("filterType", filterType);
-            if (filterValue) params.append("filterValue", filterValue);
-            if (carrierValue) params.append("carrierValue", carrierValue);
+            // Get headers
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th =>
+                th.textContent.trim()
+            );
 
-            const url = `/users/reports/export?${params.toString()}`;
+            // Get data rows
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
+                return Array.from(tr.querySelectorAll('td')).map(td =>
+                    td.textContent.trim()
+                );
+            });
 
-            // Open file in a new tab or force download
-            window.open(url, '_blank');
+            // Send both headers and rows
+            fetch('/users/reports/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ headers, rows })
+            })
+                .then(res => res.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'report.xlsx';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                })
+                .catch(err => console.error('Export failed:', err));
         });
     </script>
 </body>

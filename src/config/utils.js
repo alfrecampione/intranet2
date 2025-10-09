@@ -74,6 +74,14 @@ async function getAgencies() {
     }
 };
 
+/**
+ * Recursively retrieves all agency IDs under a given agency,
+ * including nested (child) agencies owned by business agents.
+ *
+ * @async
+ * @param {string} agencyId - The ID of the root agency.
+ * @returns {Promise<string[]>} A list of all agency IDs (including nested ones).
+ */
 async function getAllAgencyIds(agencyId) {
     const result = [agencyId];
 
