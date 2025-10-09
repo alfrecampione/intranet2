@@ -45,45 +45,110 @@ async function loadAgents(where = {}) {
  */
 async function getAllAgencies(agencyId, franchiseId) {
     const results = [];
+    const agencyCache = new Map();
+    const franchiseCache = new Map();
 
-    while (agencyId || franchiseId) {
-        if (agencyId) {
-            const agency = await prisma.agency.findUnique({
-                where: { id: agencyId },
-                include: {
-                    user: {
-                        include: { personalInfo: true },
+    // Helper to climb up to find the franchise for a given agency
+    async function findTopFranchise(aid) {
+        let currentAgencyId = aid;
+
+        while (currentAgencyId) {
+            let agency = agencyCache.get(currentAgencyId);
+            if (!agency) {
+                agency = await prisma.agency.findUnique({
+                    where: { id: currentAgencyId },
+                    include: {
+                        user: {
+                            include: { personalInfo: true },
+                        },
                     },
-                },
-            });
+                });
+                agencyCache.set(currentAgencyId, agency);
+            }
 
             if (!agency) break;
+
+            const franchiseId = agency.user?.personalInfo?.franchise || null;
+            const parentAgencyId = agency.user?.personalInfo?.agency || null;
+
+            if (franchiseId) {
+                // Found the franchise at this level
+                const fid = Number(franchiseId);
+                if (isNaN(fid)) return null;
+
+                if (!franchiseCache.has(fid)) {
+                    const [franchise] = await prisma.$queryRaw`
+                        SELECT location_id, alias 
+                        FROM qq.locations 
+                        WHERE location_id = ${fid}
+                    `;
+                    franchiseCache.set(fid, franchise);
+                }
+
+                return franchiseCache.get(fid);
+            }
+
+            // Move up the chain
+            currentAgencyId = parentAgencyId;
+        }
+
+        return null; // No franchise found
+    }
+
+    // Now climb the combined chain (agency + franchise)
+    while (agencyId || franchiseId) {
+        if (agencyId) {
+            let agency = agencyCache.get(agencyId);
+            if (!agency) {
+                agency = await prisma.agency.findUnique({
+                    where: { id: agencyId },
+                    include: {
+                        user: {
+                            include: { personalInfo: true },
+                        },
+                    },
+                });
+                agencyCache.set(agencyId, agency);
+            }
+
+            if (!agency) break;
+
+            // Find the top franchise for this agency
+            const underFranchise = await findTopFranchise(agencyId);
 
             results.push({
                 id: agency.id,
                 isAgency: true,
                 name: agency.name || '',
+                underFranchise: underFranchise
+                    ? { id: underFranchise.location_id, name: underFranchise.alias || '' }
+                    : null,
             });
 
-            const parentAgencyId = agency.user?.personalInfo?.agency || null;
-            const parentFranchiseId = agency.user?.personalInfo?.franchise || null;
+            // Move up to parent
+            agencyId = agency.user?.personalInfo?.agency || null;
+            franchiseId = agency.user?.personalInfo?.franchise || null;
+        }
+        else if (franchiseId) {
+            const fid = Number(franchiseId);
+            if (isNaN(fid)) break;
 
-            // Move up the chain
-            agencyId = parentAgencyId;
-            franchiseId = parentFranchiseId;
+            if (!franchiseCache.has(fid)) {
+                const [franchise] = await prisma.$queryRaw`
+                    SELECT location_id, alias 
+                    FROM qq.locations 
+                    WHERE location_id = ${fid}
+                `;
+                franchiseCache.set(fid, franchise);
+            }
 
-        } else if (franchiseId) {
-            const id = Number(franchiseId);
-            if (isNaN(id)) break;
-
-            const [franchise] = await prisma.$queryRaw`
-        SELECT * FROM qq.locations WHERE location_id = ${id}
-    `;
+            const franchise = franchiseCache.get(fid);
 
             results.push({
                 id: franchiseId,
                 isAgency: false,
                 name: franchise?.alias || '',
+                underFranchise: null, // top-level franchise
             });
 
             break;
@@ -126,7 +191,15 @@ const renderReports = async (req, res) => {
         processedAgents.map(agent => getAllAgencies(agent.agency, agent.franchise))
     );
 
-    const allAgencies = getUnique(allSubordinations.flat().filter(i => i.isAgency).map(i => i.name));
+    const allAgencies = getUnique(
+        allSubordinations
+            .flat()
+            .filter(i => i.isAgency)
+            .map(i => ({
+                name: i.name,
+                franchiseName: i.underFranchise?.name || null
+            }))
+    );
     const allFranchises = getUnique(allSubordinations.flat().filter(i => !i.isAgency).map(i => i.name));
 
     res.render("reports", {

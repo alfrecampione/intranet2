@@ -191,6 +191,7 @@
             let dataTable;
             const pageLength = 10;
 
+            // Populate filterValue dropdown
             function populateFilterValues(type, dataKey) {
                 filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                 if (!dataKey || !filtersData[dataKey]) return;
@@ -205,23 +206,29 @@
                 filterValueSelect.disabled = false;
             }
 
-            function populateSubValues(dataKey) {
-                filterSubValue.innerHTML = '<option value="">Select Other Value</option>';
-                if (!dataKey || !filtersData[dataKey]) {
+            // Populate filterSubValue (agency) based on selected franchise
+            function populateAgenciesUnderFranchise(selectedFranchise) {
+                filterSubValue.innerHTML = '<option value="">Select Agency</option>';
+
+                if (!selectedFranchise || !filtersData['agency']) {
                     filterSubValue.style.display = 'none';
                     return;
                 }
 
-                filtersData[dataKey].forEach(value => {
-                    const opt = document.createElement('option');
-                    opt.value = value;
-                    opt.textContent = value;
-                    filterSubValue.appendChild(opt);
+                // Only include agencies whose franchiseName matches the selected franchise
+                filtersData['agency'].forEach(agency => {
+                    if (agency.franchiseName === selectedFranchise) {
+                        const opt = document.createElement('option');
+                        opt.value = agency.name;
+                        opt.textContent = agency.name;
+                        filterSubValue.appendChild(opt);
+                    }
                 });
 
                 filterSubValue.style.display = 'block';
             }
 
+            // Fetch filtered data from server
             async function fetchFilteredData() {
                 const filterType = filterTypeSelect.value;
                 const filterValue = filterValueSelect.value;
@@ -284,7 +291,6 @@
                 const type = filterTypeSelect.value;
 
                 if (type === 'carrier & state') {
-                    // Carrier & State mode
                     filterValueSelect.innerHTML = '<option value="">Select State</option>';
                     filtersData['state'].forEach(state => {
                         const opt = document.createElement('option');
@@ -304,7 +310,7 @@
                     filterSubValue.style.display = 'block';
 
                 } else if (type === 'agency') {
-                    // Agency mode → franchises first, agencies second
+                    // Populate franchises first
                     filterValueSelect.innerHTML = '<option value="">Select Franchise</option>';
                     if (filtersData['franchise']) {
                         filtersData['franchise'].forEach(franchise => {
@@ -316,23 +322,14 @@
                     }
                     filterValueSelect.disabled = false;
 
+                    // Initially hide agency dropdown until a franchise is selected
                     filterSubValue.innerHTML = '<option value="">Select Agency</option>';
-                    if (filtersData['agency']) {
-                        filtersData['agency'].forEach(agency => {
-                            const opt = document.createElement('option');
-                            opt.value = agency;
-                            opt.textContent = agency;
-                            filterSubValue.appendChild(opt);
-                        });
-                    }
-                    filterSubValue.style.display = 'block';
+                    filterSubValue.style.display = 'none';
 
                 } else if (type) {
-                    // Generic single-value filters
                     populateFilterValues(type, type);
                     filterSubValue.style.display = 'none';
                 } else {
-                    // Reset
                     filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                     filterValueSelect.disabled = true;
                     filterSubValue.style.display = 'none';
@@ -341,8 +338,14 @@
                 applyFilterAndRender();
             });
 
-            // Filter value or sub-value change
-            filterValueSelect.addEventListener('change', applyFilterAndRender);
+            // When franchise (filterValue) changes, update agencies
+            filterValueSelect.addEventListener('change', () => {
+                if (filterTypeSelect.value === 'agency') {
+                    populateAgenciesUnderFranchise(filterValueSelect.value);
+                }
+                applyFilterAndRender();
+            });
+
             filterSubValue.addEventListener('change', applyFilterAndRender);
 
             // Initial render
