@@ -158,6 +158,49 @@ async function getAllAgencies(agencyId, franchiseId) {
     return results;
 }
 
+/**
+ * Returns unique values from an array.
+ * - For primitives: removes duplicates, filters falsy values, sorts.
+ * - For objects: removes duplicates based on composite key (keys), sorts by first key.
+ *
+ * @param {Array} arr - Array of items (primitives or objects)
+ * @param {Array<string>} keys - Optional keys for objects to determine uniqueness
+ * @returns {Array} Unique and sorted array
+ */
+const getUnique = (arr, keys = []) => {
+    if (!arr || arr.length === 0) return [];
+
+    if (keys.length === 0) {
+        return [...new Set(arr.filter(Boolean))].sort((a, b) => {
+            if (typeof a === 'string' && typeof b === 'string') return a.localeCompare(b);
+            return a - b;
+        });
+    }
+
+    const seen = new Set();
+    const result = [];
+
+    for (const item of arr) {
+        const compositeKey = keys.map(k => item[k] ?? '').join('|');
+        if (!seen.has(compositeKey)) {
+            seen.add(compositeKey);
+            result.push(item);
+        }
+    }
+
+    const firstKey = keys[0];
+    result.sort((a, b) => {
+        if (!a[firstKey]) return 1;
+        if (!b[firstKey]) return -1;
+        if (typeof a[firstKey] === 'string' && typeof b[firstKey] === 'string') {
+            return a[firstKey].localeCompare(b[firstKey]);
+        }
+        return a[firstKey] - b[firstKey];
+    });
+
+    return result;
+};
+
 const renderReports = async (req, res) => {
     const user = req.user;
     let where = {};
@@ -182,11 +225,6 @@ const renderReports = async (req, res) => {
 
     const processedAgents = await loadAgents(where);
 
-    const getUnique = (arr, key) => {
-        const values = key ? arr.map(i => i[key]) : arr;
-        return [...new Set(values.filter(Boolean))].sort();
-    };
-
     const allSubordinations = await Promise.all(
         processedAgents.map(agent => getAllAgencies(agent.agency, agent.franchise))
     );
@@ -198,7 +236,8 @@ const renderReports = async (req, res) => {
             .map(i => ({
                 name: i.name,
                 franchiseName: i.underFranchise?.name || null
-            }))
+            })),
+        ['name', 'franchiseName']
     );
     const allFranchises = getUnique(allSubordinations.flat().filter(i => !i.isAgency).map(i => i.name));
 
@@ -218,7 +257,6 @@ const renderReports = async (req, res) => {
 
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
-    console.log(req.query);
 
     const user = req.user;
     let where = {};
