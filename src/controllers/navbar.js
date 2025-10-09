@@ -110,7 +110,7 @@ const getNotifications = async (req, res) => {
       }))
     );
 
-    res.json({ mappedNotifications, unreadCount: mappedNotifications.filter(n => !n.isRead).length });
+    res.json({ notifications: mappedNotifications, unreadCount: mappedNotifications.filter(n => !n.isRead).length });
 
   }
   catch (error) {
