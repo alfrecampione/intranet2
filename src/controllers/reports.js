@@ -245,9 +245,9 @@ const renderReports = async (req, res) => {
         user,
         agents: processedAgents,
         filters: {
-            state: getUnique(processedAgents, 'state'),
-            carrier: getUnique(processedAgents, 'carrier'),
-            status: getUnique(processedAgents, 'status'),
+            state: getUnique(processedAgents, ['state']),
+            carrier: getUnique(processedAgents, ['carrier']),
+            status: getUnique(processedAgents, ['status']),
             franchise: allFranchises,
             agency: allAgencies,
         },
