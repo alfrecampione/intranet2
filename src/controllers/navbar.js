@@ -104,7 +104,7 @@ const getNotifications = async (req, res) => {
     const mappedNotifications = await Promise.all(
       notifications.map(async (n) => ({
         id: n.id,
-        message: await createNotificationMessage(n),
+        message: await createMessage(n),
         createdAt: n.createdAt.toISOString(),
         isRead: n.isRead ?? false,
       }))
