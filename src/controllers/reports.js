@@ -142,8 +142,11 @@ const renderReports = async (req, res) => {
         activePage: 'reports'
     });
 };
+
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
+    console.log(req.query);
+
     const user = req.user;
     let where = {};
 
@@ -167,13 +170,40 @@ const filterReport = async (req, res) => {
 
     let processedAgents = await loadAgents(where);
 
+    // Multi-filter logic
     if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
             i => i.state === filterValue && i.carrier === filterSubValue
         );
-    } else if (filterType === 'agency' && (filterValue || filterSubValue)) {
-        processedAgents = processedAgents.filter(i => i[filterType] === (filterSubValue || filterValue));
-    } else if (filterType && filterType !== 'carrier & state' && filterValue) {
+    }
+    // Hierarchy-aware agency/franchise filter
+    else if (filterType === 'agency' && (filterValue || filterSubValue)) {
+        const targetName = (filterSubValue || filterValue).toLowerCase();
+        const hierarchyCache = new Map();
+        const matchingAgents = [];
+
+        for (const agent of processedAgents) {
+            const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
+
+            if (!hierarchyCache.has(key)) {
+                const hierarchy = await getAllAgencies(agent.agency, agent.franchise);
+                hierarchyCache.set(key, hierarchy);
+            }
+
+            const allNames = hierarchyCache
+                .get(key)
+                .map(h => h.name?.toLowerCase())
+                .filter(Boolean);
+
+            if (allNames.includes(targetName)) {
+                matchingAgents.push(agent);
+            }
+        }
+
+        processedAgents = matchingAgents;
+    }
+
+    else if (filterType && filterValue) {
         processedAgents = processedAgents.filter(i => i[filterType] === filterValue);
     }
 
@@ -186,7 +216,6 @@ const filterReport = async (req, res) => {
 
     res.json({ data: processedAgents, total: processedAgents.length });
 };
-
 
 
 import ExcelJS from "exceljs";
