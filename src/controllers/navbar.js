@@ -44,6 +44,14 @@ const dataSearch = async (req, res) => {
   }
 };
 
+function safeParse(json, fallback = null) {
+  try {
+    return json ? JSON.parse(json) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 async function createMessage(log) {
   if (!log.action) return '';
 
