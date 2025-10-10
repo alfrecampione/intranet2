@@ -257,7 +257,6 @@ const renderReports = async (req, res) => {
 
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
-
     const user = req.user;
     let where = {};
 
@@ -268,11 +267,7 @@ const filterReport = async (req, res) => {
 
             where = {
                 OR: [
-                    {
-                        personalInfo: {
-                            is: { agency: { in: allAgencyIds } }
-                        }
-                    },
+                    { personalInfo: { is: { agency: { in: allAgencyIds } } } },
                     { user_id: user.user_id }
                 ]
             };
@@ -281,13 +276,12 @@ const filterReport = async (req, res) => {
 
     let processedAgents = await loadAgents(where);
 
-    // Multi-filter logic
     if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
             i => i.state === filterValue && i.carrier === filterSubValue
         );
     }
-    // Hierarchy-aware agency/franchise filter
+
     else if (filterType === 'agency' && (filterValue || filterSubValue)) {
         const targetName = (filterSubValue || filterValue).toLowerCase();
         const hierarchyCache = new Map();
@@ -306,7 +300,14 @@ const filterReport = async (req, res) => {
                 .map(h => h.name?.toLowerCase())
                 .filter(Boolean);
 
-            if (allNames.includes(targetName)) {
+            const businessName = agent.personalInfo?.businessName?.toLowerCase() || '';
+
+            if (
+                allNames.includes(targetName) ||
+                agent.agency?.toLowerCase() === targetName ||
+                agent.franchise?.toLowerCase() === targetName ||
+                businessName === targetName
+            ) {
                 matchingAgents.push(agent);
             }
         }
@@ -327,9 +328,6 @@ const filterReport = async (req, res) => {
 
     res.json({ data: processedAgents, total: processedAgents.length });
 };
-
-
-import ExcelJS from "exceljs";
 
 const exportData = async (req, res) => {
     try {
