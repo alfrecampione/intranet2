@@ -27,7 +27,7 @@ import {
   cnSalesStatistics,
 } from "./controllers/dash_reports.js";
 import { agency } from "./controllers/agency_reports.js";
-import { dataSearch, getNotifications } from "./controllers/navbar.js";
+import { dataSearch, getNotifications, renderNotifications, readNotification } from "./controllers/navbar.js";
 import { passwordMail, email_sender, new_user_notification, searchNews, readEmails } from "./controllers/mailer.js";
 import { postLogin } from "./config/passportConfig.js";
 import { register, editRegister } from "./controllers/registration.js";
@@ -96,7 +96,10 @@ router.post(
 router.get("/users/agency", checkNotAuthenticated, agency);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);
+
+router.get("users/all-notifications", checkNotAuthenticated, renderNotifications)
 router.get("/users/notifications", checkNotAuthenticated, getNotifications);
+router.post("/users/notifications/:id", checkNotAuthenticated, readNotification)
 
 router.get("/users/registration", checkNotAuthenticated, register);
 

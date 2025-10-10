@@ -99,23 +99,40 @@
                             } else {
                                 data.notifications.forEach(notification => {
                                     const li = document.createElement("li");
-                                    li.className = "list-group-item d-flex align-items-start";
+                                    li.className = `list-group-item d-flex align-items-start notification-item ${notification.isRead ? 'bg-light' : ''}`;
+                                    li.style.cursor = "pointer";
+                                    li.dataset.id = notification.id; // store notification id
 
                                     li.innerHTML = `
-                        <div class="flex-shrink-0 me-2">
-                            <i class="ti ti-bell text-primary fs-5"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between">
-                                <p class="mb-1 small">${notification.message}</p>
-                                <small class="text-muted">${new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
-                            </div>
-                        </div>
-                    `;
+                                        <div class="flex-shrink-0 me-2">
+                                          <i class="ti ti-bell text-${notification.isRead ? 'secondary' : 'primary'} fs-5"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                          <div class="d-flex justify-content-between">
+                                            <p class="mb-1 small ${notification.isRead ? 'text-muted' : ''}">${notification.message}</p>
+                                            <small class="text-muted">${new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                                          </div>
+                                        </div>
+                                    `;
+
+                                    // Add click listener to mark as read
+                                    li.addEventListener("click", async () => {
+                                        try {
+                                            await fetch(`/users/notifications/${notification.id}`, { method: "POST" });
+                                            li.classList.add("bg-light");
+                                            li.querySelector("p").classList.add("text-muted");
+                                            li.querySelector("i").classList.replace("text-primary", "text-secondary");
+                                            fetchNotifications();
+                                        } catch (err) {
+                                            console.error("Failed to mark notification as read:", err);
+                                        }
+                                    });
+
                                     notificationList.appendChild(li);
                                 });
                             }
 
+                            // update badge
                             if (data.unreadCount && data.unreadCount > 0) {
                                 notificationBadge.textContent = data.unreadCount > 9 ? "9+" : data.unreadCount;
                                 notificationBadge.classList.remove("d-none");

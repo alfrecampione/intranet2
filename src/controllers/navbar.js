@@ -44,82 +44,15 @@ const dataSearch = async (req, res) => {
   }
 };
 
-function safeParse(json, fallback = null) {
-  try {
-    return json ? JSON.parse(json) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-async function createMessage(log) {
-  if (!log.action) return '';
-
-  const oldObj = safeParse(log.oldValue, null);
-  const newObj = safeParse(log.newValue, null);
-
-  const table = (log.table || '').toLowerCase();
-  const action = (log.action || '').toLowerCase();
-
-  const isCreate = action.includes('create');
-  const isUpdate = action.includes('update');
-  const isDelete = action.includes('delete');
-
-  const userId = log.userId;
-  const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-  const legalName = personalInfo?.legalName || '(Administrator User)';
-
-  let message = '';
-
-  if (table.includes('user')) {
-    if (isCreate) message = `🟢 ${legalName} created a new user.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated a user.`;
-    else if (isDelete) message = `🔴 ${legalName} deleted a user.`;
-  } else if (table.includes('carriers')) {
-    const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-    const company = carrierObj?.company ?? '(unknown)';
-    if (isCreate) message = `🟢 ${legalName} added a new carrier: ${company}.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated carrier: ${company}.`;
-    else if (isDelete) {
-      const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
-      const oldCompany = oldCarrierObj?.company ?? '(unknown)';
-      message = `🔴 ${legalName} deleted carrier: ${oldCompany}.`;
-    }
-  } else {
-    const displayTable = log.table ?? '(unknown)';
-    if (isCreate) message = `🟢 ${legalName} created a new ${displayTable}.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated a ${displayTable}.`;
-    else if (isDelete) message = `🔴 ${legalName} deleted a ${displayTable}.`;
-  }
-
-  return message;
-}
-
 const getNotifications = async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    let notifications = await prisma.logs.findMany({
-      where: {
-        OR: [
-          { userId: userId },
-          { oldValue: { contains: userId } },
-          { newValue: { contains: userId } },
-        ],
-      },
-    });
+    const notifications = await prisma.notificacion.findMany({
+      where: { userId: userId }
+    })
 
-    const mappedNotifications = await Promise.all(
-      notifications.map(async (n) => ({
-        id: n.id,
-        message: await createMessage(n),
-        createdAt: n.createdAt.toISOString(),
-        isRead: n.isRead ?? false,
-      }))
-    );
-
-    res.json({ notifications: mappedNotifications, unreadCount: mappedNotifications.filter(n => !n.isRead).length });
-
+    res.json({ notifications: notifications, unreadCount: notifications.filter(n => !n.isRead).length });
   }
   catch (error) {
     console.error('Notifications error:', error);
@@ -127,4 +60,42 @@ const getNotifications = async (req, res) => {
   }
 }
 
-export { dataSearch, getNotifications };
+const renderNotifications = async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const notifications = await prisma.notificacion.findMany({
+      where: { userId: userId }
+    })
+
+    await prisma.notificacion.updateMany({
+      where: { userId: userId },
+      data: { isRead: true }
+    })
+
+    res.render("notifications", { user, notifications, activePage: "notifications" });
+  }
+  catch (error) {
+    console.error('Notifications error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+}
+
+const readNotification = async (req, res) => {
+  const userId = req.user.user_id;
+  const notificationId = req.params.id;
+
+  try {
+    await prisma.notificacion.updateMany({
+      where: { id: notificationId, userId },
+      data: { isRead: true }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).json({ error: "Failed to mark notification as read" });
+  }
+};
+
+export { dataSearch, getNotifications, renderNotifications, readNotification };
