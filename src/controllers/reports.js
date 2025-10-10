@@ -257,6 +257,8 @@ const renderReports = async (req, res) => {
 
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
+    console.log(filterType, filterValue, filterSubValue)
+
     const user = req.user;
     let where = {};
 
@@ -308,7 +310,6 @@ const filterReport = async (req, res) => {
                 .map(h => h.name?.toLowerCase())
                 .filter(Boolean);
 
-            console.log("allNames: " + allNames)
 
             const businessName = agent.personalInfo?.businessName?.toLowerCase() || '';
 
