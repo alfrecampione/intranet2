@@ -28,9 +28,7 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
 
 const getData = async (users) => {
   const registeredUsers = await Promise.all(users.map(async u => {
-    console.log("user:" + u);
     const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-    console.log("agencyName: " + agencyName)
     return {
       ...u,
       photoPath: u.personalInfo?.photoPath || null,
