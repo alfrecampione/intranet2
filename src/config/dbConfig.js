@@ -4,6 +4,7 @@ import connectPgSimple from "connect-pg-simple";
 import pkg from "pg";
 import { PrismaClient } from "@prisma/client";
 import { prismaContext } from "./prismaContext.js";
+import { reverseGetAllAgencies } from "../config/utils.js";
 
 const { Pool } = pkg;
 
@@ -107,6 +108,7 @@ prisma.$use(async (params, next) => {
 
   const store = prismaContext.getStore();
   const actorUserId = store?.userId || "unknown";
+  const affectedUserIds = store?.affectedUserIds || [];
 
   let oldValue = null;
   let newValue = null;
@@ -206,6 +208,66 @@ prisma.$use(async (params, next) => {
     } catch (err) {
       console.warn("Failed to save log:", err.message);
     }
+  }
+
+  try {
+    // Build a synthetic log entry for createMessage
+    const log = {
+      userId: actorUserId,
+      action: `[${params.model}] ${actionType}`,
+      table: params.model,
+      oldValue: oldStr,
+      newValue: newStr,
+    };
+
+    const message = await createMessage(log);
+
+    if (!message) return result;
+
+    // Notify affected users
+    for (const targetUserId of affectedUserIds) {
+      await prisma.notificacion.create({
+        data: {
+          userId: targetUserId,
+          message,
+          createdBy: actorUserId,
+        },
+      });
+
+      const personalInfo = await prisma.personalInfo.findUnique({
+        where: { userId: targetUserId },
+        select: { agency: true, franchise: true },
+      });
+
+      if (!personalInfo) continue;
+
+      const hierarchy = await reverseGetAllAgencies(personalInfo.agency, personalInfo.franchise);
+
+      // Notify all agency owners up the chain
+      for (const level of hierarchy) {
+        if (level.isAgency) {
+          const agency = await prisma.agency.findUnique({
+            where: { id: level.id },
+            select: { owner: true },
+          });
+
+          if (agency?.owner && agency.owner !== actorUserId) {
+            await prisma.notificacion.create({
+              data: {
+                userId: agency.owner,
+                message: `👤 ${message}`,
+                createdBy: actorUserId,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // TODO: Modify all the prisma calls to include affectedUserIds in the context
+
+  } catch (notifErr) {
+    console.warn("Failed to create notification:", notifErr.message);
   }
 
   return result;
