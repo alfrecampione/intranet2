@@ -74,7 +74,15 @@ const renderMyAgents = async (req, res) => {
     const users = await prisma.user.findMany({
       where,
       orderBy: [{ display_name: "asc" }, { email: "asc" }],
-      include: { personalInfo: true }
+      include: {
+        personalInfo: {
+          include: {
+            underAgency: {
+              select: { name: true }
+            }
+          }
+        }
+      }
     });
 
     const registeredUsers = await getData(users);
@@ -93,7 +101,15 @@ const renderAgents = async (req, res) => {
   const users = await prisma.user.findMany({
     where: { isReleased: false },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
-    include: { personalInfo: true }
+    include: {
+      personalInfo: {
+        include: {
+          underAgency: {
+            select: { name: true }
+          }
+        }
+      }
+    }
   });
 
   const registeredUsers = await getData(users);
@@ -107,7 +123,15 @@ const renderReleasedAgents = async (req, res) => {
   const users = await prisma.user.findMany({
     where: { isReleased: true },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
-    include: { personalInfo: true }
+    include: {
+      personalInfo: {
+        include: {
+          underAgency: {
+            select: { name: true }
+          }
+        }
+      }
+    }
   });
 
   const releasedUsers = await getData(users);
@@ -129,7 +153,13 @@ const renderReferingAgents = async (req, res) => {
     },
     orderBy: [{ display_name: "asc" }, { email: "asc" }],
     include: {
-      personalInfo: true,
+      personalInfo: {
+        include: {
+          underAgency: {
+            select: { name: true }
+          }
+        }
+      },
       statesAndCarriers: {
         where: { status: { equals: "refering", mode: "insensitive" } }
       }
