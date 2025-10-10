@@ -182,8 +182,6 @@
         $(document).ready(function () {
             const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
 
-            console.log(filtersData)
-
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
             const filterSubValue = document.getElementById('filter-sub-value');
@@ -382,7 +380,7 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'report.xlsx';
+                    a.download = 'report.csv';
                     a.click();
                     URL.revokeObjectURL(url);
                 })
