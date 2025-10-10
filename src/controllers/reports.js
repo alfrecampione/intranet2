@@ -282,6 +282,8 @@ const filterReport = async (req, res) => {
 
     let processedAgents = await loadAgents(where);
 
+    console.log("Loaded agents: " + processedAgents)
+
     if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
             i => i.state === filterValue && i.carrier === filterSubValue
@@ -305,6 +307,8 @@ const filterReport = async (req, res) => {
                 .get(key)
                 .map(h => h.name?.toLowerCase())
                 .filter(Boolean);
+
+            console.log("allNames: " + allNames)
 
             const businessName = agent.personalInfo?.businessName?.toLowerCase() || '';
 
