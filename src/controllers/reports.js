@@ -346,6 +346,8 @@ const exportData = async (req, res) => {
     try {
         const { headers = [], rows = [] } = req.body;
 
+        console.log(headers, rows)
+
         let csvContent = '';
         csvContent += headers.join(',') + '\n'; // Header row
         rows.forEach(row => {
