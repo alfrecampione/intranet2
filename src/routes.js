@@ -212,7 +212,7 @@ router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);
 import { renderReports, filterReport, exportData } from "./controllers/reports.js";
 router.get("/users/reports", checkNotAuthenticated, checkReadRight, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
-router.get("/users/reports/export", checkNotAuthenticated, exportData);
+router.post("/users/reports/export", checkNotAuthenticated, exportData);
 
 import { renderLeadCenter, addLead, acceptAsAgent, deleteLead } from "./controllers/lead_center.js";
 router.get("/users/lead-center", checkNotAuthenticated, checkReadRight, renderLeadCenter);
