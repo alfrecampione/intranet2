@@ -332,38 +332,36 @@ const filterReport = async (req, res) => {
 import ExcelJS from "exceljs";
 
 const exportData = async (req, res) => {
-    const { headers = [], rows = [] } = req.body;
+    try {
+        const { headers = [], rows = [] } = req.body;
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Report');
-
-    // Add headers as first row
-    sheet.addRow(headers);
-
-    // Add all data rows
-    rows.forEach(row => sheet.addRow(row));
-
-    // Optional: auto-width for each column
-    sheet.columns.forEach(column => {
-        let maxLength = 10;
-        column.eachCell({ includeEmpty: true }, cell => {
-            const len = cell.value ? cell.value.toString().length : 0;
-            if (len > maxLength) maxLength = len;
+        let csvContent = '';
+        csvContent += headers.join(',') + '\n'; // Header row
+        rows.forEach(row => {
+            const csvRow = row.map(value => {
+                // Escape commas and quotes
+                if (typeof value === 'string') {
+                    let v = value.replace(/"/g, '""');
+                    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+                        v = `"${v}"`;
+                    }
+                    return v;
+                }
+                return value ?? '';
+            });
+            csvContent += csvRow.join(',') + '\n';
         });
-        column.width = maxLength + 2;
-    });
 
-    res.setHeader(
-        'Content-Disposition',
-        'attachment; filename="report.xlsx"'
-    );
-    res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
+        // Set headers for CSV download
+        res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
 
-    await workbook.xlsx.write(res);
-    res.end();
+        // Send CSV content
+        res.send(csvContent);
+    } catch (err) {
+        console.error('CSV export failed:', err);
+        res.status(500).send('Error exporting CSV');
+    }
 };
 
 export { renderReports, filterReport, exportData };
