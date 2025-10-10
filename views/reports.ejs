@@ -371,7 +371,7 @@
 
             // Send both headers and rows
             fetch('/users/reports/export', {
-                method: 'POST',
+                method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ headers, rows })
             })
