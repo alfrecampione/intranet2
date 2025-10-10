@@ -22,6 +22,7 @@ async function loadAgents(where = {}) {
             status: record.status || '',
             agency: agent.personalInfo?.agency || '',
             franchise: agent.personalInfo?.franchise || '',
+            businessName: agent.personalInfo?.businessName || '',
             email: agent.email || '',
             number: agent.contactInfo?.personalPhone || ''
         }))
@@ -257,13 +258,13 @@ const renderReports = async (req, res) => {
 
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
-    console.log(filterType, filterValue, filterSubValue)
 
     const user = req.user;
     let where = {};
+    let agency;
 
     if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
-        const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
+        agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
         if (agency) {
             const allAgencyIds = await getAllAgencyIds(agency.id);
 
@@ -298,6 +299,11 @@ const filterReport = async (req, res) => {
         const matchingAgents = [];
 
         for (const agent of processedAgents) {
+            if (filterSubValue && filterSubValue.toLowerCase() === agent.businessName.toLowerCase()) {
+                matchingAgents.push(agent);
+                continue;
+            }
+
             const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
 
             if (!hierarchyCache.has(key)) {
@@ -309,9 +315,6 @@ const filterReport = async (req, res) => {
                 .get(key)
                 .map(h => h.name?.toLowerCase())
                 .filter(Boolean);
-
-
-            const businessName = agent.personalInfo?.businessName?.toLowerCase() || '';
 
             if (
                 allNames.includes(targetName) ||
