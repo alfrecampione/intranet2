@@ -285,8 +285,6 @@ const filterReport = async (req, res) => {
 
     let processedAgents = await loadAgents(where);
 
-    console.log("Loaded agents: " + processedAgents)
-
     if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
             i => i.state === filterValue && i.carrier === filterSubValue
