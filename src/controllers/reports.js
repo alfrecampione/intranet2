@@ -319,8 +319,7 @@ const filterReport = async (req, res) => {
             if (
                 allNames.includes(targetName) ||
                 agent.agency?.toLowerCase() === targetName ||
-                agent.franchise?.toLowerCase() === targetName ||
-                businessName === targetName
+                agent.franchise?.toLowerCase() === targetName
             ) {
                 matchingAgents.push(agent);
             }
