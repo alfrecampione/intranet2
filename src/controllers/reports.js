@@ -242,13 +242,15 @@ const renderReports = async (req, res) => {
     );
     const allFranchises = getUnique(allSubordinations.flat().filter(i => !i.isAgency).map(i => i.name));
 
+    const getUniqueSimple = (arr, key) => [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
+
     res.render("reports", {
         user,
         agents: processedAgents,
         filters: {
-            state: getUnique(processedAgents.flat().map(i => i.state), ['state']),
-            carrier: getUnique(processedAgents.flat().map(i => i.carrier), ['carrier']),
-            status: getUnique(processedAgents.flat().map(i => i.status), ['status']),
+            state: getUniqueSimple(processedAgents, ['state']),
+            carrier: getUniqueSimple(processedAgents, ['carrier']),
+            status: getUniqueSimple(processedAgents, ['status']),
             franchise: allFranchises,
             agency: allAgencies,
         },
