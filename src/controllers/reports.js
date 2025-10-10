@@ -267,8 +267,14 @@ const filterReport = async (req, res) => {
 
             where = {
                 OR: [
-                    { personalInfo: { is: { agency: { in: allAgencyIds } } } },
-                    { user_id: user.user_id }
+                    {
+                        personalInfo: {
+                            agency: { in: allAgencyIds }
+                        }
+                    },
+                    {
+                        user_id: user.user_id
+                    }
                 ]
             };
         }
