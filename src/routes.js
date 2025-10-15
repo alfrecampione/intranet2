@@ -97,7 +97,7 @@ router.get("/users/agency", checkNotAuthenticated, agency);
 
 router.post("/users/search", checkNotAuthenticated, dataSearch);
 
-router.get("users/all-notifications", checkNotAuthenticated, renderNotifications)
+router.get("/users/all-notifications", checkNotAuthenticated, renderNotifications)
 router.get("/users/notifications", checkNotAuthenticated, getNotifications);
 router.post("/users/notifications/:id", checkNotAuthenticated, readNotification)
 

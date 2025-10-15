@@ -52,7 +52,22 @@ const getNotifications = async (req, res) => {
       where: { userId: userId }
     })
 
-    res.json({ notifications: notifications, unreadCount: notifications.filter(n => !n.isRead).length });
+    const mappedNotifications = await Promise.all(
+      notifications.map(async n => ({
+        id: n.id,
+        userId: n.userId,
+        message: n.message,
+        isRead: n.isRead,
+        createdBy:
+          (await prisma.user.findUnique({
+            where: { user_id: n.createdBy },
+            select: { display_name: true }
+          }))?.display_name || 'Admin User',
+        createdAt: n.createdAt,
+      }))
+    );
+
+    res.json({ notifications: mappedNotifications, unreadCount: notifications.filter(n => !n.isRead).length });
   }
   catch (error) {
     console.error('Notifications error:', error);
@@ -62,18 +77,36 @@ const getNotifications = async (req, res) => {
 
 const renderNotifications = async (req, res) => {
   const userId = req.user.user_id;
+  const user = req.user;
 
   try {
     const notifications = await prisma.notificacion.findMany({
       where: { userId: userId }
     })
 
+    const mappedNotifications = await Promise.all(
+      notifications.map(async n => ({
+        id: n.id,
+        userId: n.userId,
+        message: n.message,
+        isRead: n.isRead,
+        createdBy:
+          (await prisma.user.findUnique({
+            where: { user_id: n.createdBy },
+            select: { display_name: true }
+          }))?.display_name || 'Admin User',
+        createdAt: n.createdAt,
+      }))
+    );
+
     await prisma.notificacion.updateMany({
       where: { userId: userId },
       data: { isRead: true }
     })
 
-    res.render("notifications", { user, notifications, activePage: "notifications" });
+    console.log("Mapped Notifications:", mappedNotifications);
+
+    res.render("notifications", { user, notifications: mappedNotifications, activePage: "notifications" });
   }
   catch (error) {
     console.error('Notifications error:', error);
