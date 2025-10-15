@@ -49,32 +49,58 @@ const getNotifications = async (req, res) => {
 
   try {
     const notifications = await prisma.notificacion.findMany({
-      where: { userId: userId },
+      where: { userId },
       orderBy: { createdAt: 'desc' },
-    })
+    });
 
-    const mappedNotifications = await Promise.all(
-      notifications.map(async n => ({
-        id: n.id,
-        userId: n.userId,
-        message: n.message,
-        isRead: n.isRead,
-        createdBy:
-          (await prisma.user.findUnique({
-            where: { user_id: n.createdBy },
-            select: { display_name: true }
-          }))?.display_name || 'Admin User',
-        createdAt: n.createdAt,
-      }))
+    // Get unique creator IDs
+    const creatorIds = [...new Set(notifications.map(n => n.createdBy))].filter(Boolean);
+
+    // Fetch all creators in one go from Prisma
+    const prismaCreators = await prisma.user.findMany({
+      where: { user_id: { in: creatorIds } },
+      select: { user_id: true, display_name: true },
+    });
+
+    // Fetch all remaining (non-Prisma) creators from SQL in one batch
+    const remainingIds = creatorIds.filter(
+      id => !prismaCreators.some(p => p.user_id === id)
     );
 
-    res.json({ notifications: mappedNotifications, unreadCount: notifications.filter(n => !n.isRead).length });
-  }
-  catch (error) {
+    let sqlCreators = [];
+    if (remainingIds.length > 0) {
+      const { rows } = await pool.query(
+        `SELECT user_id, display_name 
+         FROM entra.users 
+         WHERE user_id = ANY($1) AND active = true AND location_id > 0`,
+        [remainingIds]
+      );
+      sqlCreators = rows;
+    }
+
+    // Merge creators into one map for fast lookup
+    const creatorsMap = new Map();
+    prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+    sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+
+    const mappedNotifications = notifications.map(n => ({
+      id: n.id,
+      userId: n.userId,
+      message: n.message,
+      isRead: n.isRead,
+      createdBy: creatorsMap.get(n.createdBy) || 'Admin User',
+      createdAt: n.createdAt,
+    }));
+
+    res.json({
+      notifications: mappedNotifications,
+      unreadCount: notifications.filter(n => !n.isRead).length,
+    });
+  } catch (error) {
     console.error('Notifications error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
-}
+};
 
 const renderNotifications = async (req, res) => {
   const userId = req.user.user_id;
@@ -82,40 +108,61 @@ const renderNotifications = async (req, res) => {
 
   try {
     const notifications = await prisma.notificacion.findMany({
-      where: { userId: userId },
-      orderBy: { createdAt: 'desc' }
-    })
-
-    const mappedNotifications = await Promise.all(
-      notifications.map(async n => ({
-        id: n.id,
-        userId: n.userId,
-        message: n.message,
-        isRead: n.isRead,
-        createdBy:
-          (await prisma.user.findUnique({
-            where: { user_id: n.createdBy },
-            select: { display_name: true }
-          }))?.display_name || await pool.query(
-            `SELECT display_name FROM entra.users WHERE user_id = $1 AND active = true AND location_id > 0`,
-            [n.createdBy]
-          )[0] || 'Admin User',
-        createdAt: n.createdAt,
-      }))
-    );
-
-    await prisma.notificacion.updateMany({
-      where: { userId: userId },
-      data: { isRead: true }
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
     });
 
-    res.render("notifications", { user, notifications: mappedNotifications, activePage: "notifications" });
-  }
-  catch (error) {
+    const creatorIds = [...new Set(notifications.map(n => n.createdBy))].filter(Boolean);
+
+    const prismaCreators = await prisma.user.findMany({
+      where: { user_id: { in: creatorIds } },
+      select: { user_id: true, display_name: true },
+    });
+
+    const remainingIds = creatorIds.filter(
+      id => !prismaCreators.some(p => p.user_id === id)
+    );
+
+    let sqlCreators = [];
+    if (remainingIds.length > 0) {
+      const { rows } = await pool.query(
+        `SELECT user_id, display_name 
+         FROM entra.users 
+         WHERE user_id = ANY($1) AND active = true AND location_id > 0`,
+        [remainingIds]
+      );
+      sqlCreators = rows;
+    }
+
+    const creatorsMap = new Map();
+    prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+    sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+
+    const mappedNotifications = notifications.map(n => ({
+      id: n.id,
+      userId: n.userId,
+      message: n.message,
+      isRead: n.isRead,
+      createdBy: creatorsMap.get(n.createdBy) || 'Admin User',
+      createdAt: n.createdAt,
+    }));
+
+    // Mark all as read
+    await prisma.notificacion.updateMany({
+      where: { userId },
+      data: { isRead: true },
+    });
+
+    res.render('notifications', {
+      user,
+      notifications: mappedNotifications,
+      activePage: 'notifications',
+    });
+  } catch (error) {
     console.error('Notifications error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
-}
+};
 
 const readNotification = async (req, res) => {
   const userId = req.user.user_id;

@@ -77,7 +77,6 @@ const addLead = async (req, res) => {
 const deleteLead = async (req, res) => {
     const { id } = req.params;
 
-    console.log("Deleting lead :", id);
     if (!id) {
         return res.status(400).json({ error: "id is required" });
     }
