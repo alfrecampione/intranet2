@@ -1,4 +1,4 @@
-import { prisma } from "../config/dbConfig.js";
+import { prisma, pool } from "../config/dbConfig.js";
 
 const dataSearch = async (req, res) => {
   const { query } = req.body;
