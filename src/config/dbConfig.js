@@ -214,11 +214,8 @@ prisma.$use(async (params, next) => {
       newValue: newStr,
     };
 
-    console.log("Log entry:", log);
-
     // Notify affected users
     for (const targetUserId of affectedUserIds) {
-      console.log(`Creating notification for user: ${targetUserId}`);
       // Create notification for the affected user
       const message = await createMessage(log, { isForOwner: false });
 
