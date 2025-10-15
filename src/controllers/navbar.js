@@ -124,6 +124,7 @@ const renderNotifications = async (req, res) => {
     const remainingIds = creatorIds.filter(
       id => !prismaCreators.some(p => p.user_id === id)
     );
+    console.log("Remaining creator IDs for SQL fetch:", remainingIds);
 
     let sqlCreators = [];
     if (remainingIds.length > 0) {
