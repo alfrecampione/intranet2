@@ -19,7 +19,7 @@ const updateCarrierStatus = async (req, res) => {
         return res.status(400).json({ success: false, message: "Invalid request data" });
     }
 
-    await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
+    await prismaContext.run({ userId: req.user?.user_id ?? "unknown", affectedUserIds: [userId] }, async () => {
         try {
             for (const update of updates) {
                 const { company, state, status } = update;

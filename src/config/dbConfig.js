@@ -48,8 +48,10 @@ function safeParse(json, fallback = null) {
   }
 }
 
-async function createMessage(log) {
+async function createMessage(log, options = {}) {
   if (!log.action) return '';
+
+  const { isForOwner = false, affectedUserName = null } = options;
 
   const oldObj = safeParse(log.oldValue, null);
   const newObj = safeParse(log.newValue, null);
@@ -66,42 +68,45 @@ async function createMessage(log) {
   const legalName = personalInfo?.legalName || '(Administrator User)';
 
   let message = '';
+  let actionVerb = '';
 
-  if (table.includes('user')) {
-    if (isCreate) message = `🟢 ${legalName} created a new user.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated a user.`;
-    else if (isDelete) message = `🔴 ${legalName} deleted a user.`;
-  } else if (table.includes('carriers')) {
+  if (isCreate) actionVerb = 'created';
+  else if (isUpdate) actionVerb = 'updated';
+  else if (isDelete) actionVerb = 'deleted';
+
+  // Base emoji depending on action
+  const emoji = isCreate ? '🟢' : isUpdate ? '🔵' : '🔴';
+
+  // Determine target label (table and entity name)
+  let targetLabel = table;
+  if (table.includes('carriers')) {
     const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-    const company = carrierObj?.company ?? '(unknown)';
-    if (isCreate) message = `🟢 ${legalName} added a new carrier: ${company}.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated carrier: ${company}.`;
-    else if (isDelete) {
-      const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
-      const oldCompany = oldCarrierObj?.company ?? '(unknown)';
-      message = `🔴 ${legalName} deleted carrier: ${oldCompany}.`;
-    }
-  } else {
-    const displayTable = log.table ?? '(unknown)';
-    if (isCreate) message = `🟢 ${legalName} created a new ${displayTable}.`;
-    else if (isUpdate) message = `🔵 ${legalName} updated a ${displayTable}.`;
-    else if (isDelete) message = `🔴 ${legalName} deleted a ${displayTable}.`;
+    const company = carrierObj?.company ?? '(unknown carrier)';
+    targetLabel = `carrier ${company}`;
+  } else if (table.includes('user')) {
+    targetLabel = 'user';
+  }
+
+  // If notification is for the affected user
+  if (!isForOwner) {
+    message = `${emoji} ${legalName} ${actionVerb} a ${targetLabel}.`;
+  }
+  // If notification is for owners or higher hierarchy
+  else {
+    const affectedPart = affectedUserName ? ` in ${affectedUserName}` : '';
+    message = `${emoji} ${legalName} ${actionVerb} ${targetLabel}${affectedPart}.`;
   }
 
   return message;
 }
 
+
 prisma.$use(async (params, next) => {
   if (params.model === 'Logs') return next(params);
 
   const writeActions = [
-    'create',
-    'update',
-    'delete',
-    'upsert',
-    'createMany',
-    'updateMany',
-    'deleteMany'
+    'create', 'update', 'delete',
+    'upsert', 'createMany', 'updateMany', 'deleteMany'
   ];
 
   if (!writeActions.includes(params.action)) return next(params);
@@ -126,7 +131,7 @@ prisma.$use(async (params, next) => {
     }
   }
 
-  // Handle pre-fetching OLD VALUE for update/delete actions
+  // Handle pre-fetching OLD VALUE
   if (['update', 'delete', 'updateMany', 'deleteMany'].includes(params.action)) {
     try {
       if (params.action.endsWith('Many')) {
@@ -143,54 +148,42 @@ prisma.$use(async (params, next) => {
     }
   }
 
-  // Execute the actual action
   const result = await next(params);
 
-  // If updateMany or deleteMany affected 0 rows, skip logging
   if ((params.action === 'updateMany' || params.action === 'deleteMany') && result.count === 0) {
     return result;
   }
 
-  // Fetch NEW VALUE for create/update actions
+  // Fetch NEW VALUE
   try {
     if (params.action === 'create') {
       newValue = result || params.args?.data || null;
-    }
-
-    if (params.action === 'createMany') {
+    } else if (params.action === 'createMany') {
       newValue = params.args.data || [];
-    }
-
-    if (params.action === 'update') {
+    } else if (params.action === 'update') {
       if (params.args.where) {
         newValue = await prisma[params.model].findUnique({
           where: params.args.where,
         });
       }
-    }
-
-    if (params.action === 'updateMany') {
+    } else if (params.action === 'updateMany') {
       const updatedIds = oldValue?.map(item => item.id) || [];
       if (updatedIds.length > 0) {
         newValue = await prisma[params.model].findMany({
           where: { id: { in: updatedIds } },
         });
       }
-    }
-
-    if (params.action === 'upsert') {
+    } else if (params.action === 'upsert') {
       if (params.args.where) {
         newValue = await prisma[params.model].findUnique({
           where: params.args.where,
         });
       }
     }
-    // For delete & deleteMany, newValue remains null
   } catch (err) {
     console.warn("Failed to fetch newValue:", err.message);
   }
 
-  // Compare oldValue and newValue to avoid duplicate logs
   const oldStr = oldValue ? JSON.stringify(oldValue) : null;
   const newStr = newValue ? JSON.stringify(newValue) : null;
 
@@ -211,7 +204,6 @@ prisma.$use(async (params, next) => {
   }
 
   try {
-    // Build a synthetic log entry for createMessage
     const log = {
       userId: actorUserId,
       action: `[${params.model}] ${actionType}`,
@@ -220,30 +212,34 @@ prisma.$use(async (params, next) => {
       newValue: newStr,
     };
 
-    const message = await createMessage(log);
-
-    if (!message) return result;
+    console.log("Log entry:", log);
 
     // Notify affected users
     for (const targetUserId of affectedUserIds) {
-      await prisma.notificacion.create({
-        data: {
-          userId: targetUserId,
-          message,
-          createdBy: actorUserId,
-        },
-      });
+      console.log(`Creating notification for user: ${targetUserId}`);
+      // Create notification for the affected user
+      const message = await createMessage(log, { isForOwner: false });
 
+      if (message) {
+        await prisma.notificacion.create({
+          data: {
+            userId: targetUserId,
+            message,
+            createdBy: actorUserId,
+          },
+        });
+      }
+
+      // Notify owners up the hierarchy
       const personalInfo = await prisma.personalInfo.findUnique({
         where: { userId: targetUserId },
-        select: { agency: true, franchise: true },
+        select: { agency: true, franchise: true, legalName: true },
       });
 
       if (!personalInfo) continue;
 
       const hierarchy = await reverseGetAllAgencies(personalInfo.agency, personalInfo.franchise);
 
-      // Notify all agency owners up the chain
       for (const level of hierarchy) {
         if (level.isAgency) {
           const agency = await prisma.agency.findUnique({
@@ -252,10 +248,15 @@ prisma.$use(async (params, next) => {
           });
 
           if (agency?.owner && agency.owner !== actorUserId) {
+            const ownerMessage = await createMessage(log, {
+              isForOwner: true,
+              affectedUserName: personalInfo.legalName,
+            });
+
             await prisma.notificacion.create({
               data: {
                 userId: agency.owner,
-                message: `👤 ${message}`,
+                message: `👤 ${ownerMessage}`,
                 createdBy: actorUserId,
               },
             });
@@ -263,8 +264,6 @@ prisma.$use(async (params, next) => {
         }
       }
     }
-
-    // TODO: Modify all the prisma calls to include affectedUserIds in the context
 
   } catch (notifErr) {
     console.warn("Failed to create notification:", notifErr.message);

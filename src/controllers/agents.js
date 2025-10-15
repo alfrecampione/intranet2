@@ -265,7 +265,7 @@ const deleteAgent = async (req, res) => {
     return res.status(400).json({ message: "Agent ID is required." });
   }
 
-  await prismaContext.run({ userId: req.user.user_id }, async () => {
+  await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
     try {
       const user = await prisma.user.findUnique({
         where: { user_id: id }
@@ -481,7 +481,7 @@ const recoverAgent = async (req, res) => {
   }
 
   try {
-    await prismaContext.run({ userId: req.user.user_id }, async () => {
+    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
       await prisma.user.update({
         where: { user_id: id },
         data: { isReleased: false }

@@ -301,7 +301,7 @@ const postNote = async (req, res) => {
     let creator = creatorUser?.display_name ?? "Administrator User";
 
     try {
-        await prismaContext.run({ userId: req.user.user_id }, async () => {
+        await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [userId] }, async () => {
             const note = await prisma.note.create({
                 data: {
                     userId,
@@ -325,9 +325,19 @@ const editNote = async (req, res) => {
     if (!text) {
         return res.status(400).json({ error: "Note text is required." });
     }
+    if (!noteId) {
+        return res.status(400).json({ error: "Note ID is required." });
+    }
+    const noteToEdit = await prisma.note.findUnique({
+        where: { id: noteId }
+    });
+    if (!noteToEdit) {
+        return res.status(404).json({ error: "Note not found." });
+    }
+    const userId = noteToEdit.userId;
 
     try {
-        await prismaContext.run({ userId: req.user.user_id }, async () => {
+        await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [userId] }, async () => {
             const note = await prisma.note.update({
                 where: { id: noteId },
                 data: { text, isPinned: isPinned ?? false }
@@ -380,7 +390,7 @@ const saveSection = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId }, async () => {
+        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
             let prevPersonalInfo = null;
             if (sectionKey === "personalInfo") {
                 prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
@@ -438,7 +448,7 @@ const addCarrierToUser = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId }, async () => {
+        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
             const newCarrier = await prisma.statesANDCarriers.create({
                 data: {
                     userId,
@@ -468,7 +478,7 @@ const deleteCarrierToUser = async (req, res) => {
         return res.status(400).json({ success: false, message: "Carrier ID is required." });
     }
     try {
-        await prismaContext.run({ requesterId }, async () => {
+        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
             const userToUpdate = (await prisma.statesANDCarriers.findUnique({
                 where: { id: carrierId }
             }))?.userId;
@@ -501,7 +511,7 @@ const releaseAgent = async (req, res) => {
     const { id } = req.params;
 
     try {
-        await prismaContext.run({ userId: req.user.user_id }, async () => {
+        await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
             const agent = await prisma.user.findUnique({
                 where: { user_id: id }
             });
