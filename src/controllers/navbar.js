@@ -104,9 +104,7 @@ const renderNotifications = async (req, res) => {
     await prisma.notificacion.updateMany({
       where: { userId: userId },
       data: { isRead: true }
-    })
-
-    console.log("Mapped Notifications:", mappedNotifications);
+    });
 
     res.render("notifications", { user, notifications: mappedNotifications, activePage: "notifications" });
   }
