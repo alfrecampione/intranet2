@@ -112,13 +112,15 @@ const renderNotifications = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    console.log("Notifications fetched:", notifications.length);
+
     const creatorIds = [...new Set(notifications.map(n => n.createdBy))].filter(Boolean);
 
     const prismaCreators = await prisma.user.findMany({
       where: { user_id: { in: creatorIds } },
       select: { user_id: true, display_name: true },
     });
-
+    console.log("Prisma creators fetched:", prismaCreators.length);
     const remainingIds = creatorIds.filter(
       id => !prismaCreators.some(p => p.user_id === id)
     );
@@ -133,6 +135,8 @@ const renderNotifications = async (req, res) => {
       );
       sqlCreators = rows;
     }
+
+    console.log("SQL creators fetched:", sqlCreators.length);
 
     const creatorsMap = new Map();
     prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
