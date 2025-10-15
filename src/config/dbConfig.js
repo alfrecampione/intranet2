@@ -102,7 +102,9 @@ async function createMessage(log, options = {}) {
 
 
 prisma.$use(async (params, next) => {
-  if (params.model === 'Logs') return next(params);
+
+  const skipModels = ['Logs', 'Notificacion'];
+  if (skipModels.includes(params.model)) return next(params);
 
   const writeActions = [
     'create', 'update', 'delete',
