@@ -75,11 +75,16 @@ const addLead = async (req, res) => {
 }
 
 const deleteLead = async (req, res) => {
-    const { email } = req.params;
+    const { id } = req.params;
+
+    console.log("Deleting lead :", id);
+    if (!id) {
+        return res.status(400).json({ error: "id is required" });
+    }
     try {
         await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
-            const lead = await prisma.lead.delete({
-                where: { email: email },
+            await prisma.lead.delete({
+                where: { id: id },
             });
         });
         res.status(200).json({ success: true, message: "Lead deleted successfully" });

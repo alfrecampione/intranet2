@@ -96,7 +96,10 @@ const renderNotifications = async (req, res) => {
           (await prisma.user.findUnique({
             where: { user_id: n.createdBy },
             select: { display_name: true }
-          }))?.display_name || 'Admin User',
+          }))?.display_name || await pool.query(
+            `SELECT display_name FROM entra.users WHERE user_id = $1 AND active = true AND location_id > 0`,
+            [n.createdBy]
+          )[0] || 'Admin User',
         createdAt: n.createdAt,
       }))
     );
