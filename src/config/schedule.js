@@ -8,7 +8,6 @@ import { prisma } from "../config/dbConfig.js";
 export function scheduleCronJobs() {
     // Schedule tasks to be run on the server.
     cron.schedule("0 * * * *", async () => {
-        console.log("⏰ Cron ejecutado");
         await readEmails();
         await checkReleasedToNot_Agents();
     });

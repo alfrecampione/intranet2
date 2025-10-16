@@ -1,4 +1,5 @@
 import { prisma, pool } from "../config/dbConfig.js";
+import { getAllAgencyIds } from "../config/utils.js";
 
 const dataSearch = async (req, res) => {
   const { query } = req.body;
@@ -37,7 +38,16 @@ const dataSearch = async (req, res) => {
     };
 
     if (!user.isMicrosoftLogin) {
-      const agencyId = user.personalInfo?.businessName;
+      const agentId = user.user_id;
+      const owner = await prisma.agency.findUnique({
+        where: { owner: agentId },
+      });
+
+      console.log("User's agency name:", owner);
+
+      const agencyId = await prisma.agency.findFirst({
+        where: { name: agencyName }
+      }).then(agency => agency ? agency.id : null);
 
       if (agencyId) {
         const allAgencyIds = await getAllAgencyIds(agencyId);
