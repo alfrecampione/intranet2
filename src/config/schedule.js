@@ -1,15 +1,18 @@
 import cron from "node-cron";
-import { readEmails } from "../controllers/mailer";
+import { readEmails } from "../controllers/mailer.js";
 import { prisma } from "../config/dbConfig.js";
 
 /* ---------------------------- 
     CRON JOB (every hour) 
 ---------------------------- */
-cron.schedule("0 * * * *", () => {
-    readEmails();
-    // checkReleasedToNot_Agents();
-    checkNotToReleased_Agents();
-});
+export function scheduleCronJobs() {
+    // Schedule tasks to be run on the server.
+    cron.schedule("0 * * * *", async () => {
+        console.log("⏰ Cron ejecutado");
+        await readEmails();
+        await checkReleasedToNot_Agents();
+    });
+};
 
 
 const checkReleasedToNot_Agents = async () => {

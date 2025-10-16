@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import passport from "passport";
 import { initialize } from "./config/passportConfig.js";
 import { sessionStore } from "./config/dbConfig.js";
+import { scheduleCronJobs } from "./config/schedule.js";
 // import http from "http";
 import https from "https"
 import cors from "cors";
@@ -79,6 +80,8 @@ app.use((err, req, res, next) => {
   }
   next(err);
 });
+
+scheduleCronJobs();
 
 https.createServer(options, app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
