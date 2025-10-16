@@ -92,8 +92,11 @@ const postLogin = async (req, res, next) => {
       const isAllowed = await prisma.allowedAgents.findUnique({
         where: { email: email },
       });
+      const healthAgent = await prisma.user.findUnique({
+        where: { email: email },
+      });
 
-      if (!isAllowed) {
+      if (!(isAllowed || healthAgent)) {
         return res.redirect("/login");
       }
 
