@@ -39,14 +39,12 @@ const dataSearch = async (req, res) => {
 
     if (!user.isMicrosoftLogin) {
       const agentId = user.user_id;
-      const owner = await prisma.agency.findUnique({
+      const agency = await prisma.agency.findUnique({
         where: { owner: agentId },
       });
 
-      console.log("User's agency name:", owner);
-
       const agencyId = await prisma.agency.findFirst({
-        where: { name: agencyName }
+        where: { name: agency.name }
       }).then(agency => agency ? agency.id : null);
 
       if (agencyId) {
@@ -58,8 +56,6 @@ const dataSearch = async (req, res) => {
             },
           },
         ];
-      } else {
-        whereClause.AND = [{ user_id: user.user_id }];
       }
     }
 
@@ -70,6 +66,21 @@ const dataSearch = async (req, res) => {
         personalInfo: true,
       },
     });
+
+    // Ensure current user is included in the result
+    const userExists = result.some(u => u.user_id === user.user_id);
+    if (!userExists) {
+      const currentUser = await prisma.user.findUnique({
+        where: { user_id: user.user_id },
+        include: {
+          contactInfo: true,
+          personalInfo: true,
+        },
+      });
+      if (currentUser) {
+        result.push(currentUser);
+      }
+    }
 
     res.json({ contacts: result });
   } catch (error) {
