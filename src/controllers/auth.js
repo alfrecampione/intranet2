@@ -263,6 +263,7 @@ const checkNotAuthenticated = async (req, res, next) => {
   if (req.path.startsWith('/users/profile/') && req.method === 'GET') {
     const id = req.path.split('/')[3];
     const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    allowedIds.push(req.user.user_id);
     if (req.user && allowedIds.includes(id)) {
       return next();
     }
