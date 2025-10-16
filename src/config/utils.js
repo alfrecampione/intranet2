@@ -320,7 +320,6 @@ const fetchCreators = async (creatorIds, prisma, pool) => {
     prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
     sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
 
-    console.log("Final creators map:", creatorsMap);
     return creatorsMap;
 };
 
@@ -330,7 +329,6 @@ const fetchCreators = async (creatorIds, prisma, pool) => {
 const mapNotifications = (notifications, creatorsMap) =>
     notifications.map(n => {
         const cleanId = normalizeId(n.createdBy);
-        console.log(`Mapping notification createdBy: ${n.createdBy} (cleaned: ${cleanId}) to creator name: ${creatorsMap.get(cleanId)}`);
         return {
             id: n.id,
             userId: n.userId,
