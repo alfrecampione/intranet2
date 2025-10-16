@@ -1,5 +1,5 @@
 import { prisma, pool } from "../config/dbConfig.js";
-import { getAllAgencyIds } from "../config/utils.js";
+import { getAllAgencyIds, fetchCreators, mapNotifications } from "../config/utils.js";
 
 const dataSearch = async (req, res) => {
   const { query } = req.body;
@@ -12,75 +12,65 @@ const dataSearch = async (req, res) => {
   }
 
   try {
-    let whereClause = {
-      OR: [
-        { display_name: { contains: query, mode: "insensitive" } },
-        { email: { contains: query, mode: "insensitive" } },
-        {
-          contactInfo: {
-            OR: [
-              { personalEmail: { contains: query, mode: "insensitive" } },
-              { personalPhone: { contains: query, mode: "insensitive" } },
-              { secondaryEmail: { contains: query, mode: "insensitive" } },
-              { secondaryPhone: { contains: query, mode: "insensitive" } },
-            ],
-          },
+    const agentId = user.user_id;
+
+    const searchConditions = [
+      { display_name: { contains: query, mode: "insensitive" } },
+      { email: { contains: query, mode: "insensitive" } },
+      {
+        contactInfo: {
+          OR: [
+            { personalEmail: { contains: query, mode: "insensitive" } },
+            { personalPhone: { contains: query, mode: "insensitive" } },
+            { secondaryEmail: { contains: query, mode: "insensitive" } },
+            { secondaryPhone: { contains: query, mode: "insensitive" } },
+          ],
         },
-        {
-          personalInfo: {
-            OR: [
-              { legalName: { contains: query, mode: "insensitive" } },
-              { businessName: { contains: query, mode: "insensitive" } },
-            ],
-          },
+      },
+      {
+        personalInfo: {
+          OR: [
+            { legalName: { contains: query, mode: "insensitive" } },
+            { businessName: { contains: query, mode: "insensitive" } },
+          ],
         },
-      ],
-    };
+      },
+    ];
+
+    let whereClause = { OR: searchConditions };
 
     if (!user.isMicrosoftLogin) {
-      const agentId = user.user_id;
       const agency = await prisma.agency.findUnique({
         where: { owner: agentId },
       });
 
       const agencyId = await prisma.agency.findFirst({
-        where: { name: agency.name }
-      }).then(agency => agency ? agency.id : null);
+        where: { name: agency?.name },
+      }).then(a => a ? a.id : null);
 
       if (agencyId) {
         const allAgencyIds = await getAllAgencyIds(agencyId);
-        whereClause.AND = [
-          {
-            personalInfo: {
-              agency: { in: allAgencyIds },
+
+        whereClause = {
+          AND: [
+            { OR: searchConditions },
+            {
+              OR: [
+                { personalInfo: { agency: { in: allAgencyIds } } },
+                { user_id: agentId },
+              ],
             },
-          },
-        ];
+          ],
+        };
+      } else {
+        whereClause = { AND: [{ OR: searchConditions }, { OR: [{ user_id: agentId }] }] };
       }
     }
 
     const result = await prisma.user.findMany({
       where: whereClause,
-      include: {
-        contactInfo: true,
-        personalInfo: true,
-      },
+      include: { contactInfo: true, personalInfo: true },
     });
-
-    // Ensure current user is included in the result
-    const userExists = result.some(u => u.user_id === user.user_id);
-    if (!userExists) {
-      const currentUser = await prisma.user.findUnique({
-        where: { user_id: user.user_id },
-        include: {
-          contactInfo: true,
-          personalInfo: true,
-        },
-      });
-      if (currentUser) {
-        result.push(currentUser);
-      }
-    }
 
     res.json({ contacts: result });
   } catch (error) {
@@ -98,54 +88,21 @@ const getNotifications = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Get unique creator IDs
     const creatorIds = [...new Set(notifications.map(n => n.createdBy))].filter(Boolean);
+    const creatorsMap = await fetchCreators(creatorIds, prisma, pool);
 
-    // Fetch all creators in one go from Prisma
-    const prismaCreators = await prisma.user.findMany({
-      where: { user_id: { in: creatorIds } },
-      select: { user_id: true, display_name: true },
-    });
-
-    // Fetch all remaining (non-Prisma) creators from SQL in one batch
-    const remainingIds = creatorIds.filter(
-      id => !prismaCreators.some(p => p.user_id === id)
-    );
-
-    let sqlCreators = [];
-    if (remainingIds.length > 0) {
-      const { rows } = await pool.query(
-        `SELECT user_id, display_name 
-         FROM entra.users 
-         WHERE user_id = ANY($1) AND active = true AND location_id > 0`,
-        [remainingIds]
-      );
-      sqlCreators = rows;
-    }
-
-    // Merge creators into one map for fast lookup
-    const creatorsMap = new Map();
-    prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
-    sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
-
-    const mappedNotifications = notifications.map(n => ({
-      id: n.id,
-      userId: n.userId,
-      message: n.message,
-      isRead: n.isRead,
-      createdBy: creatorsMap.get(n.createdBy) || 'Admin User',
-      createdAt: n.createdAt,
-    }));
+    const mappedNotifications = mapNotifications(notifications, creatorsMap);
 
     res.json({
       notifications: mappedNotifications,
       unreadCount: notifications.filter(n => !n.isRead).length,
     });
   } catch (error) {
-    console.error('Notifications error:', error);
+    console.error('❌ Notifications error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 };
+
 
 const renderNotifications = async (req, res) => {
   const userId = req.user.user_id;
@@ -157,47 +114,11 @@ const renderNotifications = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    console.log("Notifications fetched:", notifications.length);
-
     const creatorIds = [...new Set(notifications.map(n => n.createdBy))].filter(Boolean);
+    const creatorsMap = await fetchCreators(creatorIds, prisma, pool);
+    const mappedNotifications = mapNotifications(notifications, creatorsMap);
 
-    const prismaCreators = await prisma.user.findMany({
-      where: { user_id: { in: creatorIds } },
-      select: { user_id: true, display_name: true },
-    });
-    console.log("Prisma creators fetched:", prismaCreators.length);
-    const remainingIds = creatorIds.filter(
-      id => !prismaCreators.some(p => p.user_id === id)
-    );
-    console.log("Remaining creator IDs for SQL fetch:", remainingIds);
-
-    let sqlCreators = [];
-    if (remainingIds.length > 0) {
-      const { rows } = await pool.query(
-        `SELECT user_id, display_name 
-         FROM entra.users 
-         WHERE user_id = ANY($1) AND active = true AND location_id > 0`,
-        [remainingIds]
-      );
-      sqlCreators = rows;
-    }
-
-    console.log("SQL creators fetched:", sqlCreators.length);
-
-    const creatorsMap = new Map();
-    prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
-    sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
-
-    const mappedNotifications = notifications.map(n => ({
-      id: n.id,
-      userId: n.userId,
-      message: n.message,
-      isRead: n.isRead,
-      createdBy: creatorsMap.get(n.createdBy) || 'Admin User',
-      createdAt: n.createdAt,
-    }));
-
-    // Mark all as read
+    // Marcar todas como leídas
     await prisma.notificacion.updateMany({
       where: { userId },
       data: { isRead: true },
@@ -209,7 +130,7 @@ const renderNotifications = async (req, res) => {
       activePage: 'notifications',
     });
   } catch (error) {
-    console.error('Notifications error:', error);
+    console.error('❌ Notifications error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 };

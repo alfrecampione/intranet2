@@ -275,4 +275,65 @@ async function getVisibleAgentsId(user_id) {
     return visibleAgents;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId };
+/**
+ * Normaliza un ID quitando la parte después del punto (.)
+ * Ej: "1234.microsoft" => "1234"
+ */
+const normalizeId = id => (id ? id.split('.')[0] : id);
+
+/**
+ * Fetch creators' display names from Prisma and SQL in a unified way
+ */
+const fetchCreators = async (creatorIds, prisma, pool) => {
+    const normalizedIds = [...new Set(creatorIds.map(normalizeId))].filter(Boolean);
+
+    // Prisma fetch
+    const prismaCreators = await prisma.user.findMany({
+        where: { user_id: { in: normalizedIds } },
+        select: { user_id: true, display_name: true },
+    });
+
+    // Determine remaining IDs not found in Prisma
+    const remainingIds = normalizedIds.filter(
+        id => !prismaCreators.some(p => p.user_id === id)
+    );
+
+    // SQL fetch
+    let sqlCreators = [];
+    if (remainingIds.length > 0) {
+        const { rows } = await pool.query(
+            `SELECT user_id, display_name
+       FROM entra.users
+       WHERE split_part(user_id, '.', 1) = ANY($1)`,
+            [remainingIds]
+        );
+        sqlCreators = rows;
+    }
+
+    // Merge into map for quick lookup
+    const creatorsMap = new Map();
+    prismaCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+    sqlCreators.forEach(u => creatorsMap.set(u.user_id, u.display_name));
+
+    console.log("Final creators map:", creatorsMap);
+    return creatorsMap;
+};
+
+/**
+ * Map raw notifications into enriched format
+ */
+const mapNotifications = (notifications, creatorsMap) =>
+    notifications.map(n => {
+        const cleanId = normalizeId(n.createdBy);
+        console.log(`Mapping notification createdBy: ${n.createdBy} (cleaned: ${cleanId}) to creator name: ${creatorsMap.get(cleanId)}`);
+        return {
+            id: n.id,
+            userId: n.userId,
+            message: n.message,
+            isRead: n.isRead,
+            createdBy: creatorsMap.get(cleanId) || 'Admin User',
+            createdAt: n.createdAt,
+        };
+    });
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications };
