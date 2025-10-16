@@ -239,4 +239,40 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
     return results;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies };
+async function getVisibleAgentsId(user_id) {
+    const user = await prisma.user.findUnique({
+        where: { user_id },
+        include: { personalInfo: true }
+    });
+    if (!user) return [];
+
+    let visibleAgents = [];
+    if (!user.isAgent) {
+        const allAgents = await prisma.user.findMany({
+            where: { isAgent: true },
+        });
+        visibleAgents = allAgents.map(agent => agent.user_id);
+    }
+    else if (user.personalInfo?.contactType?.toLowerCase() === 'business') {
+        const agency = await prisma.agency.findUnique({
+            where: { owner: user.user_id },
+        });
+        if (!agency) return [user.user_id];
+        const agencyId = agency.id;
+
+        const allAgencyIds = await getAllAgencyIds(agencyId);
+        const agentsInAgencies = await prisma.user.findMany({
+            where: {
+                isAgent: true,
+                personalInfo: { agency: { in: allAgencyIds } }
+            },
+        });
+        visibleAgents = agentsInAgencies.map(agent => agent.user_id);
+    }
+    else {
+        visibleAgents = [user.user_id];
+    }
+    return visibleAgents;
+}
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId };

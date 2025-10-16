@@ -4,6 +4,7 @@ import { sendMail } from "./mailer.js";
 import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { cca, LOGIN_SCOPES } from "../config/msalConfig.js";
+import { getVisibleAgentsId } from "../config/utils.js";
 
 const login = (req, res) => {
   res.render("login");
@@ -249,7 +250,7 @@ const checkAuthenticated = (req, res, next) => {
   next();
 };
 
-const checkNotAuthenticated = (req, res, next) => {
+const checkNotAuthenticated = async (req, res, next) => {
   if (req.user && (req.user.registrationCompleted === false)) {
     if (req.path === '/users/registration') {
       return next();
@@ -259,6 +260,15 @@ const checkNotAuthenticated = (req, res, next) => {
     }
     return res.redirect('/users/registration');
   }
+  if (req.path.startsWith('/users/profile/') && req.method === 'GET') {
+    const id = req.path.split('/')[3];
+    const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    if (req.user && allowedIds.includes(id)) {
+      return next();
+    }
+    return res.status(403).send("Forbidden");
+  }
+
   if (req.isAuthenticated()) {
     return next();
   }
