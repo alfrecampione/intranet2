@@ -269,12 +269,7 @@ async function getVisibleAgentsId(user_id) {
         });
         visibleAgents = agentsInAgencies.map(agent => agent.user_id);
     }
-    else if (user.rights.includes(0)) {
-        const allAgents = await prisma.user.findMany({
-            where: { isAgent: true },
-        });
-        visibleAgents = allAgents.map(agent => agent.user_id);
-    } else {
+    else {
         visibleAgents = [user.user_id];
     }
     return visibleAgents;

@@ -261,6 +261,10 @@ const checkNotAuthenticated = async (req, res, next) => {
     return res.redirect('/users/registration');
   }
   if (req.path.startsWith('/users/profile/') && req.method === 'GET') {
+    console.log(req.user);
+    if (req.user.isMicrosoftLogin && req.user.rights.includes(0)) {
+      return next();
+    }
     const id = req.path.split('/')[3];
     const allowedIds = await getVisibleAgentsId(req.user.user_id);
     allowedIds.push(req.user.user_id);
