@@ -729,6 +729,20 @@
         });
       </script>
       <!--/ News -->
+
+      <script>
+        function showToast(headerText, bodyText) {
+          const toast = document.querySelector('.toast-ex1');
+          toast.querySelector('.toast-header small').textContent = headerText;
+          toast.querySelector('.toast-body').textContent = bodyText;
+          const bsToast = new bootstrap.Toast(toast);
+          bsToast.show();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+          showToast('Welcome!', 'You have successfully logged in.');
+        });
+      </script>
 </body>
 
 </html>
