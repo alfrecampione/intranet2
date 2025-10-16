@@ -261,7 +261,6 @@ const checkNotAuthenticated = async (req, res, next) => {
     return res.redirect('/users/registration');
   }
   if (req.path.startsWith('/users/profile/') && req.method === 'GET') {
-    console.log(req.user);
     if (req.user.isMicrosoftLogin && req.user.rights.includes(1)) {
       return next();
     }
