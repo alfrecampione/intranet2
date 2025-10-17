@@ -28,11 +28,12 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
 
 const getData = async (users) => {
   const registeredUsers = await Promise.all(users.map(async u => {
+    console.log("User fetched:", u);
     const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
     return {
       ...u,
       photoPath: u.personalInfo?.photoPath || null,
-      agency: u.personalInfo.contactType === 'business' ? u.personalInfo.businessName : agencyName
+      agency: u.personalInfo?.contactType === 'business' ? u.personalInfo.businessName : agencyName
     };
   }));
 
@@ -109,8 +110,6 @@ const renderAgents = async (req, res) => {
       }
     }
   });
-
-  console.log("Fetched user:", users[0]);
 
   const registeredUsers = await getData(users);
 
