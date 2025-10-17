@@ -1071,6 +1071,20 @@
                             });
                         }
 
+                        // NPN
+                        else if (fieldName === 'npn') {
+                            input = document.createElement('input');
+                            input.type = 'text';
+                            input.className = 'form-control form-control-sm';
+                            input.maxLength = 8;
+                            input.value = currentValue || '';
+                            input.dataset.original = currentValue || '';
+
+                            input.addEventListener('input', function () {
+                                this.value = this.value.replace(/\D/g, '').slice(0, 8);
+                            });
+                        }
+
                         // Date of Birth
                         else if (fieldName === 'dateOfBirth') {
                             input = document.createElement('input');
@@ -1081,7 +1095,7 @@
                             if (currentValue) {
                                 const dateObj = new Date(currentValue);
                                 if (!isNaN(dateObj.getTime())) {
-                                    isoDate = dateObj.toISOString().split('T')[0]; // yyyy-mm-dd
+                                    isoDate = dateObj.toISOString().split('T')[0];
                                 }
                             }
                             input.value = isoDate;

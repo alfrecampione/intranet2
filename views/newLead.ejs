@@ -71,6 +71,21 @@
                         <input type="text" class="form-control" id="npn" name="npn" required
                             value="<%= (lead && lead.npn) ? lead.npn : '' %>">
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const npnInput = document.getElementById('npn');
+                            if (!npnInput) return;
+                            npnInput.addEventListener('input', () => {
+                                let digits = npnInput.value.replace(/\D/g, '').slice(0, 8);
+                                npnInput.value = digits;
+                            });
+                            npnInput.addEventListener('keypress', (e) => {
+                                if (!/[0-9]/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            });
+                        });
+                    </script>
 
                     <!-- Address -->
                     <div class="mb-3">
