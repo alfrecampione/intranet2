@@ -258,6 +258,7 @@ const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
 
+    // Filtra solo los mensajes con [NEWS] al inicio
     const newsMessages = messages.filter(
       (msg) => msg.subject && msg.subject.trim().startsWith("[NEWS]")
     );
@@ -267,21 +268,26 @@ const readEmails = async () => {
     for (const msg of newsMessages) {
       seenIds.add(msg.id);
 
-      const cleanContent = msg.bodyPreview?.trim() || "(No Content)";
-      const uniqueId = msg.id;
+      const title = msg.subject.replace(/^\[NEWS\]\s*/i, "").trim() || "(No Subject)";
+
+      let cleanContent = msg.bodyPreview?.trim() || "(No Content)";
+      const nextNewsIndex = cleanContent.indexOf("[NEWS]");
+      if (nextNewsIndex !== -1) {
+        cleanContent = cleanContent.substring(0, nextNewsIndex).trim();
+      }
 
       await prisma.news.upsert({
-        where: { externalId: uniqueId },
+        where: { externalId: msg.id },
         update: {
           sender: msg.from?.emailAddress?.address || "Unknown",
-          title: msg.subject || "(No Subject)",
+          title,
           content: cleanContent,
           sendedAt: new Date(msg.sentDateTime),
         },
         create: {
-          externalId: uniqueId,
+          externalId: msg.id,
           sender: msg.from?.emailAddress?.address || "Unknown",
-          title: msg.subject || "(No Subject)",
+          title,
           content: cleanContent,
           sendedAt: new Date(msg.sentDateTime),
         },
