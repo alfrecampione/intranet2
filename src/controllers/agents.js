@@ -110,6 +110,8 @@ const renderAgents = async (req, res) => {
     }
   });
 
+  console.log("Fetched user:", users[0]);
+
   const registeredUsers = await getData(users);
 
   res.render("agents", { user, registeredUsers, activePage: "agents" });
