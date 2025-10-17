@@ -279,6 +279,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <script id="user-data" type="application/json">
+      <%- JSON.stringify(user) %>
+  </script>
+
   <script>
     const stateAbbreviationMap = {
       "AL": "Alabama",
@@ -729,8 +733,10 @@
           bsToast.show();
         }
 
+        const user = JSON.parse(document.getElementById('user-data').textContent);
+
         document.addEventListener("DOMContentLoaded", () => {
-          showToast('Welcome!', 'You have successfully logged in.');
+          showToast('Welcome!', `${user.display_name}, you have successfully logged in.`);
         });
       </script>
 </body>
