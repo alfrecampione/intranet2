@@ -28,7 +28,6 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
 
 const getData = async (users) => {
   const registeredUsers = await Promise.all(users.map(async u => {
-    console.log("User fetched:", u);
     const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
     return {
       ...u,
