@@ -1,7 +1,7 @@
 import { get } from "https";
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAllAgencyIds } from "../config/utils.js";
+import { getAllAgencyIds, getAgencies } from "../config/utils.js";
 import bcrypt from "bcrypt";
 
 
@@ -111,8 +111,9 @@ const renderAgents = async (req, res) => {
   });
 
   const registeredUsers = await getData(users);
+  const allAgencies = await getAgencies();
 
-  res.render("agents", { user, registeredUsers, activePage: "agents" });
+  res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
 
 const renderReleasedAgents = async (req, res) => {
@@ -170,7 +171,14 @@ const renderReferingAgents = async (req, res) => {
 };
 
 const addAgent = async (req, res) => {
-  const { email, legalName, phone, npn } = req.body
+  const {
+    email,
+    legalName,
+    phone,
+    npn,
+    agency,
+    franchise
+  } = req.body
 
   try {
     const {
@@ -218,7 +226,8 @@ const addAgent = async (req, res) => {
         businessName: null,
         companyEIN: null,
         contactType,
-        agency: null
+        agency: agency || null,
+        franchise: franchise || null
       }
     });
 

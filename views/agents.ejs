@@ -368,6 +368,24 @@
                                                             required placeholder="123456" maxlength="10">
                                                     </div>
 
+                                                    <!-- Subordination -->
+                                                    <div class="mb-3">
+                                                        <label for="agentSubordination"
+                                                            class="form-label">Subordination</label>
+                                                        <select class="form-select" id="agentSubordination"
+                                                            name="subordination" required>
+                                                            <option value="" disabled selected>Select Agency or
+                                                                Franchise</option>
+                                                            <% allAgencies.forEach(a=> { %>
+                                                                <option
+                                                                    value="<%= a.isAgency ? `agency-${a.id}` : `franchise-${a.id}` %>">
+                                                                    <%= a.name %>
+                                                                        <%= a.isAgency ? "(Agency)" : "(Franchise)" %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary"
@@ -511,7 +529,7 @@
                     tr.appendChild(tdName);
 
                     const tdEmail = document.createElement("td");
-                    tdEmail.textContent = user.email;
+                    tdEmail.innerHTML = user.email ? `<a href="mailto:${user.email}">${user.email}</a>` : "";
                     tr.appendChild(tdEmail);
 
                     const tdAgency = document.createElement("td");
@@ -643,8 +661,24 @@
                 const legalName = document.getElementById("agentLegalName").value.trim();
                 const phone = document.getElementById("agentPhone").value.trim();
                 const npn = document.getElementById("agentNpn").value.trim();
+                const subordination = document.getElementById("agentSubordination").value;
 
-                const payload = { email, legalName, phone, npn };
+                if (!subordination) {
+                    showToast("Error", "Please select a subordination");
+                    return;
+                }
+
+                // Parse "agency-5" or "franchise-12"
+                const [subType, subId] = subordination.split("-");
+
+                const payload = {
+                    email,
+                    legalName,
+                    phone,
+                    npn,
+                    agency: subType === "agency" ? subId : null,
+                    franchise: subType === "franchise" ? parseInt(subId) : null,
+                };
 
                 try {
                     const response = await fetch("/users/agents", {
