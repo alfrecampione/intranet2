@@ -106,12 +106,6 @@
 
                                         <table class="table table-bordered" id="results-table">
                                             <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Number</th>
-                                                </tr>
                                             </thead>
                                             <tbody></tbody>
                                         </table>
@@ -245,45 +239,85 @@
             }
 
             async function applyFilterAndRender() {
-                const { data, total } = await fetchFilteredData();
+                const { data, total, summary } = await fetchFilteredData();
+
+                const filterType = filterTypeSelect.value;
+                const filterValue = filterValueSelect.value;
+                const filterSubValueVal = filterSubValue.value;
+
+                const isAgencySummaryView = (filterType === 'agency' && !filterValue && !filterSubValueVal);
 
                 resultsCount.textContent = `Results found: ${total}`;
 
-                const columns = [
-                    {
-                        title: "#",
-                        data: null,
-                        render: (data, type, row, meta) => meta.row + 1
-                    },
-                    {
-                        title: "Name",
-                        data: "name",
-                        render: (data, type, row) => `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`
-                    },
-                    {
-                        title: "Email",
-                        data: "email",
-                        render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
-                    },
-                    {
-                        title: "Number",
-                        data: "number",
-                        render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
-                    }
-                ];
+                let columns;
+                let tableData;
+                let headersHtml;
 
-                if ($.fn.DataTable.isDataTable('#results-table')) {
-                    dataTable.clear().rows.add(data).draw();
+                if (isAgencySummaryView && summary) {
+                    // --- Agency Summary View ---
+                    tableData = summary;
+                    headersHtml = '<tr><th>Location (NAME)</th><th>Agencies (COUNT)</th><th>Agents (COUNT)</th></tr>';
+                    columns = [
+                        {
+                            title: "Location (NAME)",
+                            data: "location"
+                        },
+                        {
+                            title: "Agencies (COUNT)",
+                            data: "agencies"
+                        },
+                        {
+                            title: "Agents (COUNT)",
+                            data: "agents"
+                        }
+                    ];
+
                 } else {
-                    dataTable = $('#results-table').DataTable({
-                        data,
-                        columns,
-                        responsive: true,
-                        pageLength: pageLength,
-                        lengthMenu: [7, 10, 25, 50, 75, 100],
-                        autoWidth: false
-                    });
+                    // --- Default Agent List View ---
+                    tableData = data;
+                    headersHtml = '<tr><th>#</th><th>Name</th><th>Email</th><th>Number</th></tr>';
+                    columns = [
+                        {
+                            title: "#",
+                            data: null,
+                            render: (data, type, row, meta) => meta.row + 1
+                        },
+                        {
+                            title: "Name",
+                            data: "name",
+                            render: (data, type, row) => `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`
+                        },
+                        {
+                            title: "Email",
+                            data: "email",
+                            render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
+                        },
+                        {
+                            title: "Number",
+                            data: "number",
+                            render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
+                        }
+                    ];
                 }
+
+                // Destroy the old table (if it exists) because columns are changing
+                if ($.fn.DataTable.isDataTable('#results-table')) {
+                    dataTable.destroy();
+                    $('#results-table thead').empty(); // Clear old headers
+                }
+
+                // Add the new headers
+                $('#results-table thead').html(headersHtml);
+
+                // Initialize the new table
+                dataTable = $('#results-table').DataTable({
+                    data: tableData,
+                    columns,
+                    responsive: true,
+                    pageLength: pageLength,
+                    lengthMenu: [7, 10, 25, 50, 75, 100],
+                    autoWidth: false
+                });
             }
 
             // Filter type change

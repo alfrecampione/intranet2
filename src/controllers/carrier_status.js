@@ -9,6 +9,10 @@ const renderCarrierStatus = async (req, res) => {
         orderBy: { state: 'asc' },
     });
 
+    if (!carriers || carriers.length === 0) {
+        return res.status(404).send("No carrier status data found for the specified user.");
+    }
+
     res.render("carrier_status", { carriers, userId, user: req.user, activePage: 'config' });
 };
 

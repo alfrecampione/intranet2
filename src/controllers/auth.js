@@ -15,20 +15,24 @@ const signUp = async (req, res) => {
   if (!encrypted_email) {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
+  try {
+    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted_email } }, {
+      status: () => ({
+        json: (data) => data,
+      })
+    });
 
-  const emailResult = await decryptEmail({ params: { encrypted_email: encrypted_email } }, {
-    status: () => ({
-      json: (data) => data,
-    })
-  });
+    if (!emailResult || !emailResult.data || !emailResult.data.email) {
+      return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+    }
 
-  if (!emailResult || !emailResult.data || !emailResult.data.email) {
-    return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+    await deleteEncryptedEmail(encrypted_email);
+
+    res.render("signUp", { email: emailResult.data.email });
+  } catch (error) {
+    console.error("signUp function error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
-
-  await deleteEncryptedEmail(encrypted_email);
-
-  res.render("signUp", { email: emailResult.data.email });
 };
 
 const createAccount = async (req, res) => {

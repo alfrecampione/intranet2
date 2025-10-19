@@ -158,16 +158,65 @@ const filterReport = async (req, res) => {
     }
 
     let processedAgents = await loadAgents(where);
+    const hierarchyCache = new Map();
 
-    if (filterType === 'carrier & state' && filterValue && filterSubValue) {
+    if (filterType === 'agency' && !filterValue && !filterSubValue) {
+        const franchiseAgentCount = new Map();
+        const franchiseAgencySet = new Map();
+
+        const seenAgents = new Set();
+        const uniqueAgents = processedAgents.filter(i => {
+            if (seenAgents.has(i.user_id)) return false;
+            seenAgents.add(i.user_id);
+            return true;
+        });
+
+        for (const agent of uniqueAgents) {
+            const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
+            let hierarchy;
+
+            if (!hierarchyCache.has(key)) {
+                hierarchy = await reverseGetAllAgencies(agent.agency, agent.franchise);
+                hierarchyCache.set(key, hierarchy);
+            } else {
+                hierarchy = hierarchyCache.get(key);
+            }
+
+            const topFranchise = hierarchy.find(h => !h.isAgency);
+
+            if (topFranchise) {
+                const franchiseName = topFranchise.name;
+
+                franchiseAgentCount.set(franchiseName, (franchiseAgentCount.get(franchiseName) || 0) + 1);
+
+                if (!franchiseAgencySet.has(franchiseName)) {
+                    franchiseAgencySet.set(franchiseName, new Set());
+                }
+                const agencySet = franchiseAgencySet.get(franchiseName);
+                hierarchy.filter(h => h.isAgency).forEach(a => agencySet.add(a.name));
+            }
+        }
+
+        const summaryData = [];
+        for (const franchiseName of franchiseAgentCount.keys()) {
+            summaryData.push({
+                location: franchiseName,
+                agencies: franchiseAgencySet.get(franchiseName)?.size || 0,
+                agents: franchiseAgentCount.get(franchiseName) || 0
+            });
+        }
+
+        summaryData.sort((a, b) => a.location.localeCompare(b.location));
+
+        return res.json({ summary: summaryData, total: summaryData.length });
+    }
+    else if (filterType === 'carrier & state' && filterValue && filterSubValue) {
         processedAgents = processedAgents.filter(
             i => i.state === filterValue && i.carrier === filterSubValue
         );
     }
-
     else if (filterType === 'agency' && (filterValue || filterSubValue)) {
         const targetName = (filterSubValue || filterValue).toLowerCase();
-        const hierarchyCache = new Map();
         const matchingAgents = [];
 
         for (const agent of processedAgents) {

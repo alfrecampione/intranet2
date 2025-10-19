@@ -5,6 +5,14 @@ const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
   const admins = await getAdmins();
 
+  if (!emails) {
+    return res.status(500).send("Error retrieving email alerts.");
+  }
+
+  if (!admins) {
+    return res.status(500).send("Error retrieving admins.");
+  }
+
   res.render("config_emails", { user: req.user, emails, admins, activePage: 'config', open: 'emails' });
 };
 
@@ -225,14 +233,18 @@ const renderConfigCommisions = async (req, res) => {
   const commisionsRaw = await prisma.commisions.findMany({
     include: { company: { select: { name: true } } }
   });
-  const commisions = commisionsRaw.map(c => ({
-    company: c.company.name,
-    state: c.state,
-    amount: c.amount
-  }));
 
-
-  res.render("config_commisions", { user: req.user, companies, commisions, activePage: 'config', open: 'commisions' });
+  try {
+    const commisions = commisionsRaw.map(c => ({
+      company: c.company.name,
+      state: c.state,
+      amount: c.amount
+    }));
+    res.render("config_commisions", { user: req.user, companies, commisions, activePage: 'config', open: 'commisions' });
+  } catch (error) {
+    console.error("Error mapping commissions:", error);
+    return res.status(500).send("Error processing commissions data.");
+  }
 };
 
 const updateCommisions = async (req, res) => {

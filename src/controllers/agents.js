@@ -8,35 +8,44 @@ import bcrypt from "bcrypt";
 
 // Helper function to resolve agency/franchise name
 const getAgencyOrFranchiseName = async (personalInfo) => {
-  if (personalInfo?.underAgency?.name) {
-    return personalInfo.underAgency.name;
-  }
-
-  if (personalInfo?.franchise) {
-    const franchiseId = parseInt(personalInfo.franchise, 10);
-    if (!isNaN(franchiseId)) {
-      const result = await pool.query(
-        `SELECT alias FROM qq.locations WHERE location_id = $1`,
-        [franchiseId]
-      );
-      return result.rows[0]?.alias || null;
+  try {
+    if (personalInfo?.underAgency?.name) {
+      return personalInfo.underAgency.name;
     }
+
+    if (personalInfo?.franchise) {
+      const franchiseId = parseInt(personalInfo.franchise, 10);
+      if (!isNaN(franchiseId)) {
+        const result = await pool.query(
+          `SELECT alias FROM qq.locations WHERE location_id = $1`,
+          [franchiseId]
+        );
+        return result.rows[0]?.alias || null;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching agency/franchise name:", error);
   }
 
   return null;
 };
 
 const getData = async (users) => {
-  const registeredUsers = await Promise.all(users.map(async u => {
-    const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
-    return {
-      ...u,
-      photoPath: u.personalInfo?.photoPath || null,
-      agency: u.personalInfo?.contactType === 'business' ? u.personalInfo.businessName : agencyName
-    };
-  }));
+  try {
+    const registeredUsers = await Promise.all(users.map(async u => {
+      const agencyName = await getAgencyOrFranchiseName(u.personalInfo);
+      return {
+        ...u,
+        photoPath: u.personalInfo?.photoPath || null,
+        agency: u.personalInfo?.contactType === 'business' ? u.personalInfo.businessName : agencyName
+      };
+    }));
+    return registeredUsers;
+  } catch (error) {
+    console.error("Error in getData:", error);
+    return [];
+  }
 
-  return registeredUsers;
 }
 
 // ===============================
@@ -214,45 +223,48 @@ const addAgent = async (req, res) => {
       data: { email: user.email }
     });
 
-    await prisma.personalInfo.create({
-      data: {
-        userId: user.user_id,
-        legalName: legalName,
-        preferredName: null,
-        legalSex: null,
-        dateOfBirth: null,
-        ssn: null,
-        npn: npn || null,
-        businessName: null,
-        companyEIN: null,
-        contactType,
-        agency: agency || null,
-        franchise: franchise || null
-      }
-    });
+    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [user.user_id] }, async () => {
 
-    await prisma.contactInfo.create({
-      data: {
-        userId: user.user_id,
-        personalEmail: email,
-        personalPhone: cellPhone || null,
-        city: "",
-        state: "",
-        zipCode: "",
-        addressLine1: "",
-        addressLine2: null
-      }
-    });
+      await prisma.personalInfo.create({
+        data: {
+          userId: user.user_id,
+          legalName: legalName,
+          preferredName: null,
+          legalSex: null,
+          dateOfBirth: null,
+          ssn: null,
+          npn: npn || null,
+          businessName: null,
+          companyEIN: null,
+          contactType,
+          agency: agency || null,
+          franchise: franchise || null
+        }
+      });
 
-    await prisma.paymentMethod.create({
-      data: {
-        userId: user.user_id,
-        bankAccountType: null,
-        bankAccountNum: null,
-        bankRoutingNum: null,
-        accountNickname: null,
-        assignToGTI: true,
-      }
+      await prisma.contactInfo.create({
+        data: {
+          userId: user.user_id,
+          personalEmail: email,
+          personalPhone: cellPhone || null,
+          city: "",
+          state: "",
+          zipCode: "",
+          addressLine1: "",
+          addressLine2: null
+        }
+      });
+
+      await prisma.paymentMethod.create({
+        data: {
+          userId: user.user_id,
+          bankAccountType: null,
+          bankAccountNum: null,
+          bankRoutingNum: null,
+          accountNickname: null,
+          assignToGTI: true,
+        }
+      });
     });
 
     return res.status(201).json({
@@ -322,37 +334,43 @@ const markDocsAsNecessary = async (req, res) => {
 
 function normalizeCarrierValue(value) {
   if (!value || typeof value !== "string") return [];
+  try {
+    const trimmed = value.trim();
 
-  const trimmed = value.trim();
+    if (trimmed.includes(",")) {
+      const VALID_STATES = new Set([
+        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
+        "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
+        "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
+        "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
+        "WI", "WY"
+      ]);
 
-  if (trimmed.includes(",")) {
-    const VALID_STATES = new Set([
-      "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
-      "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
-      "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
-      "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
-      "WI", "WY"
-    ]);
+      const parts = trimmed.split(",").map(s => s.trim().toUpperCase());
+      return parts
+        .filter(state => VALID_STATES.has(state))
+        .map(state => ({
+          state,
+          status: "Request Received from Agent"
+        }));
+    }
 
-    const parts = trimmed.split(",").map(s => s.trim().toUpperCase());
-    return parts
-      .filter(state => VALID_STATES.has(state))
-      .map(state => ({
-        state,
-        status: "Request Received from Agent"
-      }));
+    const VALID_STATUSES = ["Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release"];
+
+    if (VALID_STATUSES.find(status => trimmed.toLowerCase().includes(status.toLowerCase()))) {
+      const [statePart, statusPart] = trimmed.split("-").map(s => s.trim());
+      return [{
+        state: statePart.toUpperCase(),
+        status: statusPart || "Request Received from Agent"
+      }];
+    }
+    return [{ state: trimmed, status: "Request Received from Agent" }];
+  } catch (error) {
+    console.error("Error normalizing carrier value:", error);
+    return [];
   }
 
-  const VALID_STATUSES = ["Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release"];
 
-  if (VALID_STATUSES.find(status => trimmed.toLowerCase().includes(status.toLowerCase()))) {
-    const [statePart, statusPart] = trimmed.split("-").map(s => s.trim());
-    return [{
-      state: statePart.toUpperCase(),
-      status: statusPart || "Request Received from Agent"
-    }];
-  }
-  return [{ state: trimmed, status: "Request Received from Agent" }];
 }
 
 const massiveCreateAgents = async (req, res) => {
