@@ -288,7 +288,7 @@
                     tr.appendChild(tdName);
 
                     const tdEmail = document.createElement("td");
-                    tdEmail.textContent = user.email ? `<a href="mailto:${user.email}">${user.email}</a>` : "";
+                    tdEmail.innerHTML = user.email ? `<a href="mailto:${user.email}">${user.email}</a>` : "";
                     tr.appendChild(tdEmail);
 
                     const tdAgency = document.createElement("td");
