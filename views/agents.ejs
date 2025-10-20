@@ -400,6 +400,12 @@
                                 <script>
                                     // Phone formatting: (XXX) XXX-XXXX
                                     const phoneInput = document.getElementById("agentPhone");
+                                    phoneInput.addEventListener("keypress", function (e) {
+                                        if (!/[0-9]/.test(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    });
+
                                     phoneInput.addEventListener("input", function (e) {
                                         let value = e.target.value.replace(/\D/g, "");
                                         if (value.length > 10) value = value.slice(0, 10);
