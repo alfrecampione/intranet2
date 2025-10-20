@@ -670,8 +670,8 @@
                 }
 
                 // Parse "agency-5" or "franchise-12"
-                const [subType, subId] = subordination.split("-", 2);
-
+                const [subType, ...subIdParts] = subordination.split("-");
+                const subId = subIdParts.join("-");
                 console.log({ subType, subId });
 
                 const payload = {
