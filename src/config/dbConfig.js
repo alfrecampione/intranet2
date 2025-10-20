@@ -191,8 +191,8 @@ prisma.$use(async (params, next) => {
 
   // Fetch only existing users for notifications
   const existingUsers = await prisma.user.findMany({
-    where: { id: { in: affectedUserIds } },
-    select: { id: true, personalInfo: true },
+    where: { user_id: { in: affectedUserIds } },
+    select: { user_id: true, personalInfo: true },
   });
 
   for (const user of existingUsers) {
@@ -210,7 +210,7 @@ prisma.$use(async (params, next) => {
       if (message) {
         await prisma.notificacion.create({
           data: {
-            userId: user.id,
+            userId: user.user_id,
             message,
             createdBy: actorUserId,
           },
@@ -219,7 +219,7 @@ prisma.$use(async (params, next) => {
 
       // Notify hierarchy/owners
       const personalInfo = await prisma.personalInfo.findUnique({
-        where: { userId: user.id },
+        where: { userId: user.user_id },
         select: { agency: true, franchise: true, legalName: true },
       });
 
