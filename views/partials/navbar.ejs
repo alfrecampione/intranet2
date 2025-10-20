@@ -232,3 +232,82 @@
     </div>
     <!--/ Full Nav Search -->
 </nav>
+
+<script>
+    // Global uppercase input handler
+    (function () {
+        function shouldUppercase(el) {
+            if (!el) return false;
+            const tag = el.tagName;
+            if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !el.isContentEditable) return false;
+
+            // opt-out by attribute
+            if (el.dataset && (el.dataset.preserveCase === 'true' || el.hasAttribute('data-preserve-case'))) return false;
+
+            // Prefer explicit attribute inspection (some environments may change el.type)
+            const typeAttr = (el.getAttribute && el.getAttribute('type')) || '';
+            const type = (el.type || typeAttr || '').toLowerCase();
+            const inputmode = ((el.getAttribute && el.getAttribute('inputmode')) || '').toLowerCase();
+
+            // don't uppercase these input types
+            const skipTypes = ['email', 'password', 'checkbox', 'radio', 'file', 'number', 'range', 'date', 'time', 'tel'];
+            if (skipTypes.includes(type) || skipTypes.includes(typeAttr.toLowerCase()) || inputmode === 'email') return false;
+
+            // Also skip if name/id/placeholder strongly indicate an email field
+            const name = (el.name || '').toLowerCase();
+            const id = (el.id || '').toLowerCase();
+            const placeholder = (el.placeholder || '').toLowerCase();
+            if (name.includes('email') || id.includes('email') || placeholder.includes('email') || placeholder.includes('@')) return false;
+
+            return true;
+        }
+
+        function toUpperInputValue(el) {
+            try {
+                const start = el.selectionStart;
+                const end = el.selectionEnd;
+                const oldVal = el.value;
+                const newVal = oldVal.toUpperCase();
+                if (newVal !== oldVal) {
+                    el.value = newVal;
+                    if (typeof start === 'number' && typeof end === 'number') {
+                        el.setSelectionRange(start, end);
+                    }
+                }
+            } catch (err) {
+                // ignore errors for elements without selectionStart (e.g., certain input types)
+            }
+        }
+
+        document.addEventListener('input', function (e) {
+            const el = e.target;
+            if (shouldUppercase(el)) {
+                toUpperInputValue(el);
+            }
+        }, true);
+
+        // Handle paste separately to uppercase pasted content and preserve caret
+        document.addEventListener('paste', function (e) {
+            const el = e.target;
+            if (!shouldUppercase(el)) return;
+            e.preventDefault();
+            const clipboard = (e.clipboardData || window.clipboardData);
+            const text = (clipboard && clipboard.getData('text')) ? clipboard.getData('text').toUpperCase() : '';
+            try {
+                const start = el.selectionStart || 0;
+                const end = el.selectionEnd || 0;
+                const val = el.value || '';
+                const newVal = val.slice(0, start) + text + val.slice(end);
+                el.value = newVal;
+                const caret = start + text.length;
+                el.setSelectionRange(caret, caret);
+            } catch (err) {
+                // fallback: append
+                el.value = (el.value || '') + text;
+            }
+        }, true);
+
+        // Utility: allow developers to opt-out per input with attribute: data-preserve-case="true"
+        // Example: <input type="text" data-preserve-case="true" />
+    })();
+</script>

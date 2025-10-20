@@ -1100,6 +1100,18 @@
               });
             }
 
+            // Email
+            else if ((fieldName === 'personalEmail' || fieldName === 'secondaryEmail') && sectionKey === 'contactInfo') {
+              input = document.createElement('input');
+              input.type = 'email';
+              input.className = 'form-control form-control-sm';
+              input.value = currentValue || '';
+              input.dataset.original = input.value;
+              // Opt-out of the global uppercase handler
+              input.setAttribute('data-preserve-case', 'true');
+            }
+
+
             // Default
             else {
               input = document.createElement('input');
@@ -1306,6 +1318,11 @@
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         contentSpan.appendChild(link);
+      }
+      else if (fieldName === "personalEmail" || fieldName === "secondaryEmail") {
+        const email = document.createElement("a");
+        email.textContent = value || 'None';
+        contentSpan.appendChild(email);
       }
 
       // Phones

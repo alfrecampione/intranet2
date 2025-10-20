@@ -290,9 +290,17 @@ const checkReadRight = (req, res, next) => {
   return res.status(403).send("Forbidden");
 }
 
-const checkWriteRight = (req, res, next) => {
+const checkWriteRight = async (req, res, next) => {
   if (req.user && req.user.rights && req.user.rights.includes(2)) {
     return next();
+  }
+  if (req.path.startsWith('/users/profile/save-section') && req.method === 'POST') {
+    const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    allowedIds.push(req.user.user_id);
+    if (req.user && allowedIds.includes(req.body.userId)) {
+      return next();
+    }
+    return res.status(403).send("Forbidden");
   }
   return res.status(403).send("Forbidden");
 }

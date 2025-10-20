@@ -93,8 +93,9 @@ const renderMyAgents = async (req, res) => {
     });
 
     const registeredUsers = await getData(users);
+    const allAgencies = await getAgencies();
 
-    res.render("agents", { user, registeredUsers, activePage: "agents" });
+    res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 
   } catch (err) {
     console.error("Error in renderMyAgents:", err);
