@@ -72,7 +72,6 @@ const renderProfile = async (req, res) => {
     allowedIds.push(req.user.user_id);
 
     const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));
-    console.log("Can Edit:", canEdit, "for userId:", userId, "viewer:", req.user.user_id);
 
     res.render("profile", {
         userId,
