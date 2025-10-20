@@ -374,8 +374,8 @@
                                                             class="form-label">Subordination</label>
                                                         <select class="form-select" id="agentSubordination"
                                                             name="subordination" required>
-                                                            <option value="" disabled selected>Select Agency or
-                                                                Franchise</option>
+                                                            <option value="" disabled selected>Select location or agency
+                                                            </option>
                                                             <% allAgencies.forEach(a=> { %>
                                                                 <option
                                                                     value="<%= a.isAgency ? `agency-${a.id}` : `franchise-${a.id}` %>">

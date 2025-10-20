@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId } from "../config/utils.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -9,6 +9,10 @@ const renderProfile = async (req, res) => {
     const profile = await prisma.user.findUnique({
         where: { user_id: userId }
     });
+
+    if (!profile) {
+        return res.status(404).send("User not found");
+    }
 
     const personalInfo = await prisma.personalInfo.findUnique({
         where: { userId }
@@ -60,6 +64,16 @@ const renderProfile = async (req, res) => {
         orderBy: { createdAt: 'desc' }
     });
 
+    // Can edit flag for frontend
+    // If the user is viewing their own profile, they can edit
+    // or if they have admin rights (rights including 2)
+    // or is an agency owner viewing their agent's profile
+    const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    allowedIds.push(req.user.user_id);
+
+    const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));
+    console.log("Can Edit:", canEdit, "for userId:", userId, "viewer:", req.user.user_id);
+
     res.render("profile", {
         userId,
         user,
@@ -74,7 +88,8 @@ const renderProfile = async (req, res) => {
         allAgencies,
         activity,
         pinnedNotes,
-        activePage: 'profile'
+        activePage: 'profile',
+        canEdit
     });
 };
 
