@@ -102,7 +102,6 @@ async function createMessage(log, options = {}) {
 
 
 prisma.$use(async (params, next) => {
-
   const skipModels = ['Logs', 'Notificacion'];
   if (skipModels.includes(params.model)) return next(params);
 
@@ -110,7 +109,6 @@ prisma.$use(async (params, next) => {
     'create', 'update', 'delete',
     'upsert', 'createMany', 'updateMany', 'deleteMany'
   ];
-
   if (!writeActions.includes(params.action)) return next(params);
 
   const store = prismaContext.getStore();
@@ -124,26 +122,20 @@ prisma.$use(async (params, next) => {
   // Handle UPSERT separately
   if (params.action === 'upsert') {
     try {
-      oldValue = await prisma[params.model].findUnique({
-        where: params.args.where,
-      });
+      oldValue = await prisma[params.model].findUnique({ where: params.args.where });
       actionType = oldValue ? 'update' : 'create';
     } catch (err) {
       console.warn("Failed to determine upsert type:", err.message);
     }
   }
 
-  // Handle pre-fetching OLD VALUE
+  // Fetch OLD value for update/delete actions
   if (['update', 'delete', 'updateMany', 'deleteMany'].includes(params.action)) {
     try {
       if (params.action.endsWith('Many')) {
-        oldValue = await prisma[params.model].findMany({
-          where: params.args.where || {},
-        });
+        oldValue = await prisma[params.model].findMany({ where: params.args.where || {} });
       } else if (params.args.where) {
-        oldValue = await prisma[params.model].findUnique({
-          where: params.args.where,
-        });
+        oldValue = await prisma[params.model].findUnique({ where: params.args.where });
       }
     } catch (err) {
       console.warn("Failed to fetch oldValue:", err.message);
@@ -152,35 +144,26 @@ prisma.$use(async (params, next) => {
 
   const result = await next(params);
 
+  // Skip if nothing updated/deleted
   if ((params.action === 'updateMany' || params.action === 'deleteMany') && result.count === 0) {
     return result;
   }
 
-  // Fetch NEW VALUE
+  // Fetch NEW value
   try {
     if (params.action === 'create') {
       newValue = result || params.args?.data || null;
     } else if (params.action === 'createMany') {
       newValue = params.args.data || [];
-    } else if (params.action === 'update') {
-      if (params.args.where) {
-        newValue = await prisma[params.model].findUnique({
-          where: params.args.where,
-        });
-      }
+    } else if (params.action === 'update' && params.args.where) {
+      newValue = await prisma[params.model].findUnique({ where: params.args.where });
     } else if (params.action === 'updateMany') {
       const updatedIds = oldValue?.map(item => item.id) || [];
       if (updatedIds.length > 0) {
-        newValue = await prisma[params.model].findMany({
-          where: { id: { in: updatedIds } },
-        });
+        newValue = await prisma[params.model].findMany({ where: { id: { in: updatedIds } } });
       }
-    } else if (params.action === 'upsert') {
-      if (params.args.where) {
-        newValue = await prisma[params.model].findUnique({
-          where: params.args.where,
-        });
-      }
+    } else if (params.action === 'upsert' && params.args.where) {
+      newValue = await prisma[params.model].findUnique({ where: params.args.where });
     }
   } catch (err) {
     console.warn("Failed to fetch newValue:", err.message);
@@ -189,6 +172,7 @@ prisma.$use(async (params, next) => {
   const oldStr = oldValue ? JSON.stringify(oldValue) : null;
   const newStr = newValue ? JSON.stringify(newValue) : null;
 
+  // Save log if something changed
   if (oldStr !== newStr) {
     try {
       await prisma.logs.create({
@@ -205,33 +189,37 @@ prisma.$use(async (params, next) => {
     }
   }
 
-  try {
-    const log = {
-      userId: actorUserId,
-      action: `[${params.model}] ${actionType}`,
-      table: params.model,
-      oldValue: oldStr,
-      newValue: newStr,
-    };
+  // Fetch only existing users for notifications
+  const existingUsers = await prisma.user.findMany({
+    where: { id: { in: affectedUserIds } },
+    select: { id: true, personalInfo: true },
+  });
 
-    // Notify affected users
-    for (const targetUserId of affectedUserIds) {
-      // Create notification for the affected user
+  for (const user of existingUsers) {
+    try {
+      const log = {
+        userId: actorUserId,
+        action: `[${params.model}] ${actionType}`,
+        table: params.model,
+        oldValue: oldStr,
+        newValue: newStr,
+      };
+
+      // Notify the affected user
       const message = await createMessage(log, { isForOwner: false });
-
       if (message) {
         await prisma.notificacion.create({
           data: {
-            userId: targetUserId,
+            userId: user.id,
             message,
             createdBy: actorUserId,
           },
         });
       }
 
-      // Notify owners up the hierarchy
+      // Notify hierarchy/owners
       const personalInfo = await prisma.personalInfo.findUnique({
-        where: { userId: targetUserId },
+        where: { userId: user.id },
         select: { agency: true, franchise: true, legalName: true },
       });
 
@@ -262,10 +250,10 @@ prisma.$use(async (params, next) => {
           }
         }
       }
-    }
 
-  } catch (notifErr) {
-    console.warn("Failed to create notification:", notifErr.message);
+    } catch (notifErr) {
+      console.warn("Failed to create notification:", notifErr.message);
+    }
   }
 
   return result;
