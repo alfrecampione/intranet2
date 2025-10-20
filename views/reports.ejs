@@ -251,65 +251,50 @@
 
                 let columns;
                 let tableData;
-                let headersHtml;
 
                 if (isAgencySummaryView && summary) {
                     // --- Agency Summary View ---
                     tableData = summary;
-                    headersHtml = '<tr><th>Location (NAME)</th><th>Agencies (COUNT)</th><th>Agents (COUNT)</th></tr>';
-                    columns = [
-                        {
-                            title: "Location (NAME)",
-                            data: "location"
-                        },
-                        {
-                            title: "Agencies (COUNT)",
-                            data: "agencies"
-                        },
-                        {
-                            title: "Agents (COUNT)",
-                            data: "agents"
-                        }
-                    ];
+                    columns = [{
+                        title: "Location (NAME)",
+                        data: "location"
+                    }, {
+                        title: "Agencies (COUNT)",
+                        data: "agencies"
+                    }, {
+                        title: "Agents (COUNT)",
+                        data: "agents"
+                    }];
 
                 } else {
                     // --- Default Agent List View ---
                     tableData = data;
-                    headersHtml = '<tr><th>#</th><th>Name</th><th>Email</th><th>Number</th></tr>';
-                    columns = [
-                        {
-                            title: "#",
-                            data: null,
-                            render: (data, type, row, meta) => meta.row + 1
-                        },
-                        {
-                            title: "Name",
-                            data: "name",
-                            render: (data, type, row) => `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`
-                        },
-                        {
-                            title: "Email",
-                            data: "email",
-                            render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
-                        },
-                        {
-                            title: "Number",
-                            data: "number",
-                            render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
-                        }
-                    ];
+                    columns = [{
+                        title: "#",
+                        data: null,
+                        render: (data, type, row, meta) => meta.row + 1
+                    }, {
+                        title: "Name",
+                        data: "name",
+                        render: (data, type, row) => `<a href="/users/profile/${row.user_id}" target="_blank">${data}</a>`
+                    }, {
+                        title: "Email",
+                        data: "email",
+                        render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
+                    }, {
+                        title: "Number",
+                        data: "number",
+                        render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
+                    }];
                 }
 
                 // Destroy the old table (if it exists) because columns are changing
                 if ($.fn.DataTable.isDataTable('#results-table')) {
-                    dataTable.destroy();
-                    $('#results-table thead').empty(); // Clear old headers
+                    dataTable.clear().destroy();
+                    $('#results-table').html('<thead></thead><tbody></tbody>');
                 }
 
-                // Add the new headers
-                $('#results-table thead').html(headersHtml);
-
-                // Initialize the new table
+                // Initialize the new table. DataTables will build the header from the 'columns' array.
                 dataTable = $('#results-table').DataTable({
                     data: tableData,
                     columns,

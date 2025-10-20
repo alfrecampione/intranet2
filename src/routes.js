@@ -213,7 +213,7 @@ router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);
 
 
 import { renderReports, filterReport, exportData } from "./controllers/reports.js";
-router.get("/users/reports", checkNotAuthenticated, checkReadRight, renderReports);
+router.get("/users/reports", checkNotAuthenticated, renderReports);
 router.get("/users/reports/filter", checkNotAuthenticated, filterReport);
 router.post("/users/reports/export", checkNotAuthenticated, exportData);
 
