@@ -189,6 +189,8 @@ const addAgent = async (req, res) => {
     franchise
   } = req.body
 
+  console.log("Add Agent Request Body:", req.body);
+
   try {
     const {
       password = "12345678",
