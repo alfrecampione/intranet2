@@ -59,7 +59,12 @@ const initialize = (passport) => {
             personalInfo: { select: { photoPath: true, contactType: true } }
           }
         });
-        return done(null, user || false);
+        const filledUser = {
+          ...user,
+          isMicrosoftLogin: false,
+          rights: []
+        }
+        return done(null, filledUser || false);
       } else if (obj.type === "ms") {
 
         const userRights = await prisma.allowedAgents.findUnique({
