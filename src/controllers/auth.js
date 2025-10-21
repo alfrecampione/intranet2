@@ -47,8 +47,6 @@ const createAccount = async (req, res) => {
     try {
       const result = await prisma.user.findUnique({ where: { email } });
 
-      console.log("createAccount - existing user check:", result);
-
       if (result && result.confirmationCode === null) {
         return res
           .status(400)
@@ -59,7 +57,6 @@ const createAccount = async (req, res) => {
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       if (result && result.confirmationCode) {
-        console.log("createAccount - updating existing unconfirmed user");
         await prisma.user.update({
           where: { email },
           data: {
@@ -68,7 +65,6 @@ const createAccount = async (req, res) => {
           }
         });
       } else {
-        console.log("createAccount - creating new user");
         await prisma.user.create({
           data: {
             email,
@@ -86,8 +82,6 @@ const createAccount = async (req, res) => {
       };
 
       await sendMail(email, subject, body);
-
-      console.log("createAccount - confirmation email sent to:", email);
 
       return res.status(201).json({ success: true, email });
     } catch (err) {
