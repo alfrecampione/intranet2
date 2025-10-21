@@ -168,8 +168,8 @@
                         // Initial fetch
                         fetchNotifications();
 
-                        // Periodic refresh
-                        setInterval(fetchNotifications, 30000);
+                        // Periodic refresh (every 5 minutes = 300000 ms)
+                        setInterval(fetchNotifications, 300000);
                     });
                 </script>
                 <!--/ Notification -->
