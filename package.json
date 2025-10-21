@@ -1,7 +1,7 @@
 {
   "name": "intranet2",
   "version": "2.0.0",
-  "description": "Intranet GoldenTrust Insurance",
+  "description": "GoldenHealth",
   "main": "server.js",
   "type": "module",
   "scripts": {

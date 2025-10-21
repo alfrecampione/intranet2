@@ -45,7 +45,7 @@ async function sendMail(email, subject, body) {
     const mailGenerator = new Mailgen({
       theme: "default",
       product: {
-        name: `GoldenTrust Insurance's Intranet`,
+        name: `GoldenHealth`,
         link: "https://goldentrustinsurance.com/",
       },
     });
@@ -236,7 +236,7 @@ const new_user_notification = async (req, res) => {
         },
       }),
       outro:
-        "This is an automated message from the GoldenTrust Insurance's Intranet.",
+        "This is an automated message from the GoldenHealth.",
     };
 
     for (const alert of alerts) {
