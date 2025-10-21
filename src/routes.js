@@ -228,6 +228,6 @@ router.get("/lead-center/newLead", renderNewLead);
 router.get("/lead-center/loadLead/:id", checkNotAuthenticated, loadLead);
 
 import { getCity } from "./config/utils.js"
-router.get("/utils/get-city", checkNotAuthenticated, getCity);
+router.get("/utils/get-city", getCity);
 
 export default router;
