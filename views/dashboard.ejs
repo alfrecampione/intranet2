@@ -277,6 +277,15 @@
   <div class="drag-target"></div>
   </div>
 
+  <div class="bs-toast toast toast-ex animate__animated my-2 animate__slideInDown toast-ex1" role="alert"
+    aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+    <div class="toast-header"> <i class="ti ti-bell ti-xs me-2"></i>
+      <div class="me-auto fw-medium text-primary">GoldenHealth</div> <small class="text-warning">Agents</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body text-primary"> You should receive an email, please check it. </div>
+  </div>
+
   <script src="/vendor/libs/jquery/jquery.js"></script>
   <script src="/vendor/libs/popper/popper.js"></script>
   <script src="/vendor/js/bootstrap.js"></script>
@@ -303,6 +312,16 @@
   <script src="/js/main.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    function showToast(headerText, bodyText) {
+      const toast = document.querySelector('.toast-ex1');
+      toast.querySelector('.toast-header small').textContent = headerText;
+      toast.querySelector('.toast-body').textContent = bodyText;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+    }
+  </script>
 
   <script id="user-data" type="application/json">
       <%- JSON.stringify(user) %>
@@ -750,14 +769,6 @@
       <!--/ News -->
 
       <script>
-        function showToast(headerText, bodyText) {
-          const toast = document.querySelector('.toast-ex1');
-          toast.querySelector('.toast-header small').textContent = headerText;
-          toast.querySelector('.toast-body').textContent = bodyText;
-          const bsToast = new bootstrap.Toast(toast);
-          bsToast.show();
-        }
-
         const user = JSON.parse(document.getElementById('user-data').textContent);
 
         document.addEventListener("DOMContentLoaded", () => {
