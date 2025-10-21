@@ -142,6 +142,10 @@
           </div>
         </div>
 
+        <script id="encryptedEmail" type="application/json">
+      <%- JSON.stringify(encrypted_email) %>
+        </script>
+
         <script>
           function showToast(headerText, bodyText) {
             const toast = document.querySelector('.toast-ex1');
@@ -158,16 +162,17 @@
 
               const email = document.getElementById("email").value;
               const password = document.getElementById("password").value;
+              const encrypted_email = JSON.parse(document.getElementById("encryptedEmail").textContent);
               const userData = {
                 email: email,
-                password: password,
+                password: password
               };
 
               const overlay = document.getElementById("email-overlay");
               overlay.style.display = "flex";
 
               try {
-                const res = await fetch(`${url}/signUp`, {
+                const res = await fetch(`/signUp`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -182,7 +187,7 @@
                   const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
                   if (bsOffcanvas) bsOffcanvas.hide()
 
-                  window.location.href = `${url}/email-validation?email=${encodeURIComponent(email)}`;
+                  window.location.href = `/email-validation?encryptedEmail=${encodeURIComponent(encrypted_email)}`;
                 } else {
                   showToast("Error", data.message || "An error occurred during registration");
                 }

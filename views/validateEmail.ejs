@@ -128,6 +128,10 @@
   <script src="/vendor/libs/@form-validation/bootstrap5.js"></script>
   <script src="/vendor/libs/@form-validation/auto-focus.js"></script>
 
+  <script id="encryptedEmail" type="application/json">
+      <%- JSON.stringify(encryptedEmail) %>
+  </script>
+
 
   <script>
     function showToast(headerText, bodyText) {
@@ -143,12 +147,11 @@
       .addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const confirmationCode =
-          document.getElementById("confirm-code").value;
-        const userEmail = "<%= email %>";
+        const confirmationCode = document.getElementById("confirm-code").value;
+        const encrypted_email = JSON.parse(document.getElementById("encryptedEmail").textContent);
 
         const userData = {
-          email: userEmail,
+          encryptedEmail: encryptedEmail,
           confirmationCode: confirmationCode,
         };
 

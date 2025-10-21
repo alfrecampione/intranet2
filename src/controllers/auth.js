@@ -26,9 +26,7 @@ const signUp = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid encrypted email" });
     }
 
-    await deleteEncryptedEmail(encrypted_email);
-
-    res.render("signUp", { email: emailResult.data.email });
+    res.render("signUp", { email: emailResult.data.email, encrypted_email: encrypted_email });
   } catch (error) {
     console.error("signUp function error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -82,8 +80,13 @@ const createAccount = async (req, res) => {
   });
 };
 
-const renderEmailValidation = (req, res) => {
-  res.render("validateEmail", { email: req.query.email });
+const renderEmailValidation = async (req, res) => {
+  const encryptedEmail = req.query.encryptedEmail;
+  if (!encryptedEmail) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  res.render("validateEmail", { encryptedEmail: encryptedEmail });
 };
 
 const leadToAgent = async (user, user_id) => {
@@ -128,10 +131,21 @@ const leadToAgent = async (user, user_id) => {
 };
 
 const validateEmail = async (req, res, next) => {
-  const { email, confirmationCode } = req.body;
+  const { encryptedEmail, confirmationCode } = req.body;
 
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
+      const emailResult = await decryptEmail({ params: { encrypted_email: encryptedEmail } }, {
+        status: () => ({
+          json: (data) => data,
+        })
+      });
+
+      if (!emailResult || !emailResult.data || !emailResult.data.email) {
+        return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+      }
+      await deleteEncryptedEmail(encryptedEmail);
+
       const existingUser = await prisma.user.findFirst({
         where: { confirmationCode }
       });
@@ -156,14 +170,17 @@ const validateEmail = async (req, res, next) => {
 
       await leadToAgent(existingUser, req.user?.user_id);
 
-      req.login(user, (err) => {
+      await req.login(user, async (err) => {
         if (err) {
           console.error("Login error:", err);
           return next(err);
         }
+        await deleteEncryptedEmail(email);
+
         return res.status(200).json({ success: true, redirect: "/users/registration" });
       });
-    } catch (err) {
+
+    } catch (error) {
       console.error("validateEmail function error:", err);
       return res.status(500).json({ success: false, message: "Server error" });
     }
