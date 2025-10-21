@@ -5,6 +5,7 @@ import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { cca, LOGIN_SCOPES } from "../config/msalConfig.js";
 import { getVisibleAgentsId } from "../config/utils.js";
+import e from "express";
 
 const login = (req, res) => {
   res.render("login");
@@ -46,6 +47,8 @@ const createAccount = async (req, res) => {
     try {
       const result = await prisma.user.findUnique({ where: { email } });
 
+      console.log("createAccount - existing user check:", result);
+
       if (result && result.confirmationCode === null) {
         return res
           .status(400)
@@ -55,7 +58,8 @@ const createAccount = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      if (result.confirmationCode !== null) {
+      if (result && result.confirmationCode) {
+        console.log("createAccount - updating existing unconfirmed user");
         await prisma.user.update({
           where: { email },
           data: {
@@ -64,6 +68,7 @@ const createAccount = async (req, res) => {
           }
         });
       } else {
+        console.log("createAccount - creating new user");
         await prisma.user.create({
           data: {
             email,
@@ -81,6 +86,8 @@ const createAccount = async (req, res) => {
       };
 
       await sendMail(email, subject, body);
+
+      console.log("createAccount - confirmation email sent to:", email);
 
       return res.status(201).json({ success: true, email });
     } catch (err) {
@@ -154,6 +161,7 @@ const validateEmail = async (req, res, next) => {
       if (!emailResult || !emailResult.data || !emailResult.data.email) {
         return res.status(400).json({ success: false, message: "Invalid encrypted email" });
       }
+      const email = emailResult.data.email;
       await deleteEncryptedEmail(encryptedEmail);
 
       const existingUser = await prisma.user.findFirst({
@@ -185,13 +193,13 @@ const validateEmail = async (req, res, next) => {
           console.error("Login error:", err);
           return next(err);
         }
-        await deleteEncryptedEmail(email);
+        await deleteEncryptedEmail(encryptedEmail);
 
         return res.status(200).json({ success: true, redirect: "/users/registration" });
       });
 
     } catch (error) {
-      console.error("validateEmail function error:", err);
+      console.error("validateEmail function error:", error);
       return res.status(500).json({ success: false, message: "Server error" });
     }
   });

@@ -751,7 +751,12 @@
                     ];
                     const requiredDocuments = {};
                     docFields.forEach(field => {
-                        requiredDocuments[field] = document.getElementById(field).checked;
+                        // El Tax Identification W9 siempre es requerido
+                        if (field === "taxIdentificationW9") {
+                            requiredDocuments[field] = true;
+                        } else {
+                            requiredDocuments[field] = document.getElementById(field).checked;
+                        }
                     });
 
                     const subject = "Create your account on GoldenHealth";
