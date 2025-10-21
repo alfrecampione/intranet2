@@ -42,7 +42,7 @@
                     </li>
                 </ul>
             </li>
-            <% if (!noNotification) { %>
+            <% if (typeof noNotification==='undefined' || !noNotification) { %>
                 <!-- Notification -->
                 <li class="nav-item dropdown me-3 me-xl-1">
                     <a class="nav-link position-relative" href="#" id="navbarDropdown" role="button"
