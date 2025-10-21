@@ -42,78 +42,78 @@
                     </li>
                 </ul>
             </li>
-
-            <!-- Notification -->
-            <li class="nav-item dropdown me-3 me-xl-1">
-                <a class="nav-link position-relative" href="#" id="navbarDropdown" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="ti ti-bell ti-md"></i>
-                    <!-- Overlapping bubble badge -->
-                    <span id="notification-badge"
-                        class="position-absolute top-100 start-50 translate-middle badge rounded-circle bg-danger d-none"
-                        style="font-size: 0.65rem; min-width: 16px; height: 16px; padding: 0; line-height: 16px; margin-top: -6px; margin-left: 8px;">
-                        0
-                    </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end p-0 shadow" aria-labelledby="navbarDropdown"
-                    style="width: 320px;">
-                    <li class="border-bottom">
-                        <div class="d-flex align-items-center justify-content-between py-2 px-3">
-                            <h6 class="mb-0">Notifications</h6>
-                            <a href="#" id="mark-all-read" class="text-body" data-bs-toggle="tooltip"
-                                data-bs-placement="top" title="Mark all as read">
-                                <i class="ti ti-mail-opened fs-5"></i>
+            <% if (!noNotification) { %>
+                <!-- Notification -->
+                <li class="nav-item dropdown me-3 me-xl-1">
+                    <a class="nav-link position-relative" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ti ti-bell ti-md"></i>
+                        <!-- Overlapping bubble badge -->
+                        <span id="notification-badge"
+                            class="position-absolute top-100 start-50 translate-middle badge rounded-circle bg-danger d-none"
+                            style="font-size: 0.65rem; min-width: 16px; height: 16px; padding: 0; line-height: 16px; margin-top: -6px; margin-left: 8px;">
+                            0
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end p-0 shadow" aria-labelledby="navbarDropdown"
+                        style="width: 320px;">
+                        <li class="border-bottom">
+                            <div class="d-flex align-items-center justify-content-between py-2 px-3">
+                                <h6 class="mb-0">Notifications</h6>
+                                <a href="#" id="mark-all-read" class="text-body" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="Mark all as read">
+                                    <i class="ti ti-mail-opened fs-5"></i>
+                                </a>
+                            </div>
+                        </li>
+                        <li id="notification-list" class="list-group list-group-flush"
+                            style="max-height: 300px; overflow-y: auto;">
+                            <!-- Notifications will appear here -->
+                        </li>
+                        <li class="border-top">
+                            <a href="/users/all-notifications" class="dropdown-item text-center text-primary py-2">
+                                View all notifications
                             </a>
-                        </div>
-                    </li>
-                    <li id="notification-list" class="list-group list-group-flush"
-                        style="max-height: 300px; overflow-y: auto;">
-                        <!-- Notifications will appear here -->
-                    </li>
-                    <li class="border-top">
-                        <a href="/users/all-notifications" class="dropdown-item text-center text-primary py-2">
-                            View all notifications
-                        </a>
-                    </li>
-                </ul>
-            </li>
+                        </li>
+                    </ul>
+                </li>
 
-            <script>
-                document.addEventListener("DOMContentLoaded", async () => {
-                    const notificationBadge = document.getElementById("notification-badge");
-                    const notificationList = document.getElementById("notification-list");
-                    const markAllReadBtn = document.getElementById("mark-all-read");
+                <script>
+                    document.addEventListener("DOMContentLoaded", async () => {
+                        const notificationBadge = document.getElementById("notification-badge");
+                        const notificationList = document.getElementById("notification-list");
+                        const markAllReadBtn = document.getElementById("mark-all-read");
 
-                    async function fetchNotifications() {
-                        console.log("[Notifications] Fetching notifications...");
-                        try {
-                            const res = await fetch("/users/notifications");
-                            console.log("[Notifications] Response status:", res.status);
+                        async function fetchNotifications() {
+                            console.log("[Notifications] Fetching notifications...");
+                            try {
+                                const res = await fetch("/users/notifications");
+                                console.log("[Notifications] Response status:", res.status);
 
-                            if (!res.ok) {
-                                throw new Error(`Server returned ${res.status}`);
-                            }
+                                if (!res.ok) {
+                                    throw new Error(`Server returned ${res.status}`);
+                                }
 
-                            const data = await res.json();
-                            console.log("[Notifications] Data received:", data);
+                                const data = await res.json();
+                                console.log("[Notifications] Data received:", data);
 
-                            notificationList.innerHTML = "";
+                                notificationList.innerHTML = "";
 
-                            if (!data.notifications?.length) {
-                                console.log("[Notifications] No notifications found.");
-                                const li = document.createElement("li");
-                                li.className = "list-group-item text-center text-muted small mb-0";
-                                li.textContent = "No notifications";
-                                notificationList.appendChild(li);
-                            } else {
-                                console.log(`[Notifications] Rendering ${data.notifications.length} notifications`);
-                                data.notifications.forEach(notification => {
+                                if (!data.notifications?.length) {
+                                    console.log("[Notifications] No notifications found.");
                                     const li = document.createElement("li");
-                                    li.className = `list-group-item d-flex align-items-start notification-item ${notification.isRead ? 'bg-light' : ''}`;
-                                    li.style.cursor = "pointer";
-                                    li.dataset.id = notification.id;
+                                    li.className = "list-group-item text-center text-muted small mb-0";
+                                    li.textContent = "No notifications";
+                                    notificationList.appendChild(li);
+                                } else {
+                                    console.log(`[Notifications] Rendering ${data.notifications.length} notifications`);
+                                    data.notifications.forEach(notification => {
+                                        const li = document.createElement("li");
+                                        li.className = `list-group-item d-flex align-items-start notification-item ${notification.isRead ? 'bg-light' : ''}`;
+                                        li.style.cursor = "pointer";
+                                        li.dataset.id = notification.id;
 
-                                    li.innerHTML = `
+                                        li.innerHTML = `
               <div class="flex-shrink-0 me-2">
                 <i class="ti ti-bell text-${notification.isRead ? 'secondary' : 'primary'} fs-5"></i>
               </div>
@@ -125,122 +125,125 @@
               </div>
             `;
 
-                                    li.addEventListener("click", async () => {
-                                        console.log(`[Notifications] Marking notification ${notification.id} as read...`);
-                                        try {
-                                            const markRes = await fetch(`/users/notifications/${notification.id}`, { method: "POST" });
-                                            console.log(`[Notifications] Mark response (${notification.id}):`, markRes.status);
+                                        li.addEventListener("click", async () => {
+                                            console.log(`[Notifications] Marking notification ${notification.id} as read...`);
+                                            try {
+                                                const markRes = await fetch(`/users/notifications/${notification.id}`, { method: "POST" });
+                                                console.log(`[Notifications] Mark response (${notification.id}):`, markRes.status);
 
-                                            if (!markRes.ok) {
-                                                throw new Error(`Failed to mark as read: ${markRes.status}`);
+                                                if (!markRes.ok) {
+                                                    throw new Error(`Failed to mark as read: ${markRes.status}`);
+                                                }
+
+                                                li.classList.add("bg-light");
+                                                li.querySelector("p").classList.add("text-muted");
+                                                li.querySelector("i").classList.replace("text-primary", "text-secondary");
+                                                await fetchNotifications();
+                                            } catch (err) {
+                                                console.error(`[Notifications] Error marking notification ${notification.id} as read:`, err);
                                             }
+                                        });
 
-                                            li.classList.add("bg-light");
-                                            li.querySelector("p").classList.add("text-muted");
-                                            li.querySelector("i").classList.replace("text-primary", "text-secondary");
-                                            await fetchNotifications();
-                                        } catch (err) {
-                                            console.error(`[Notifications] Error marking notification ${notification.id} as read:`, err);
-                                        }
+                                        notificationList.appendChild(li);
                                     });
+                                }
 
-                                    notificationList.appendChild(li);
-                                });
+                                // update badge
+                                if (data.unreadCount && data.unreadCount > 0) {
+                                    notificationBadge.textContent = data.unreadCount > 9 ? "9+" : data.unreadCount;
+                                    notificationBadge.classList.remove("d-none");
+                                    console.log("[Notifications] Unread count:", data.unreadCount);
+                                } else {
+                                    notificationBadge.classList.add("d-none");
+                                    console.log("[Notifications] No unread notifications.");
+                                }
+
+                            } catch (err) {
+                                console.error("[Notifications] Failed to fetch notifications:", err);
                             }
+                        }
 
-                            // update badge
-                            if (data.unreadCount && data.unreadCount > 0) {
-                                notificationBadge.textContent = data.unreadCount > 9 ? "9+" : data.unreadCount;
-                                notificationBadge.classList.remove("d-none");
-                                console.log("[Notifications] Unread count:", data.unreadCount);
-                            } else {
+                        markAllReadBtn.addEventListener("click", async () => {
+                            console.log("[Notifications] Marking all as read...");
+                            try {
+                                const res = await fetch("/users/notifications/mark-read", { method: "POST" });
+                                console.log("[Notifications] Mark all read response:", res.status);
+                                if (!res.ok) throw new Error(`Failed to mark all read: ${res.status}`);
                                 notificationBadge.classList.add("d-none");
-                                console.log("[Notifications] No unread notifications.");
+                                await fetchNotifications();
+                            } catch (err) {
+                                console.error("[Notifications] Failed to mark notifications as read:", err);
                             }
+                        });
 
-                        } catch (err) {
-                            console.error("[Notifications] Failed to fetch notifications:", err);
-                        }
-                    }
+                        // Initial fetch
+                        fetchNotifications();
 
-                    markAllReadBtn.addEventListener("click", async () => {
-                        console.log("[Notifications] Marking all as read...");
-                        try {
-                            const res = await fetch("/users/notifications/mark-read", { method: "POST" });
-                            console.log("[Notifications] Mark all read response:", res.status);
-                            if (!res.ok) throw new Error(`Failed to mark all read: ${res.status}`);
-                            notificationBadge.classList.add("d-none");
-                            await fetchNotifications();
-                        } catch (err) {
-                            console.error("[Notifications] Failed to mark notifications as read:", err);
-                        }
+                        // Periodic refresh
+                        setInterval(fetchNotifications, 30000);
                     });
+                </script>
+                <!--/ Notification -->
+                <% } %>
 
-                    // Initial fetch
-                    fetchNotifications();
-
-                    // Periodic refresh
-                    setInterval(fetchNotifications, 30000);
-                });
-            </script>
-            <!--/ Notification -->
-
-            <!-- User Dropdown -->
-            <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                        <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                            <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar" class="rounded-circle" />
-                            <% } else { %>
-                                <span class="avatar-initial rounded-circle bg-label-primary">
-                                    <%= user && user.display_name ? user.display_name[0] : (user && user.email ?
-                                        user.email[0] : "" ) %>
-                                </span>
-                                <% } %>
-                    </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item"
-                            href="<%= user && user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="avatar avatar-online">
-                                        <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                                            <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
-                                                class="rounded-circle" />
-                                            <% } else { %>
-                                                <span class="avatar-initial rounded-circle bg-label-primary">
-                                                    <%= user && user.display_name ? user.display_name[0] : (user &&
-                                                        user.email ? user.email[0] : "" ) %>
-                                                </span>
-                                                <% } %>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <span class="fw-medium d-block">
-                                        <%= user ? user.display_name : "" %>
-                                    </span>
-                                    <% if (user && user.job_title) { %>
-                                        <small class="text-muted">
-                                            <%= user.job_title %>
-                                        </small>
+                    <!-- User Dropdown -->
+                    <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                        <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);"
+                            data-bs-toggle="dropdown">
+                            <div class="avatar avatar-online">
+                                <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
+                                    <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
+                                        class="rounded-circle" />
+                                    <% } else { %>
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            <%= user && user.display_name ? user.display_name[0] : (user && user.email ?
+                                                user.email[0] : "" ) %>
+                                        </span>
                                         <% } %>
-                                </div>
                             </div>
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item"
+                                    href="<%= user && user.createdAt ? '/users/profile/' + user.user_id : 'javascript:void(0)' %>">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar avatar-online">
+                                                <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
+                                                    <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
+                                                        class="rounded-circle" />
+                                                    <% } else { %>
+                                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                                            <%= user && user.display_name ? user.display_name[0] : (user
+                                                                && user.email ? user.email[0] : "" ) %>
+                                                        </span>
+                                                        <% } %>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <span class="fw-medium d-block">
+                                                <%= user ? user.display_name : "" %>
+                                            </span>
+                                            <% if (user && user.job_title) { %>
+                                                <small class="text-muted">
+                                                    <%= user.job_title %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <div class="dropdown-divider"></div>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/users/logout">
+                                    <i class="ti ti-logout me-2 ti-sm"></i>
+                                    <span class="align-middle">Log Out</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li>
-                        <div class="dropdown-divider"></div>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/users/logout">
-                            <i class="ti ti-logout me-2 ti-sm"></i>
-                            <span class="align-middle">Log Out</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
         </ul>
     </div>
 

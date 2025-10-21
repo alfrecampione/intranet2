@@ -80,7 +80,6 @@ const dataSearch = async (req, res) => {
 };
 
 const getNotifications = async (req, res) => {
-  console.log("Fetching notifications for user:", req.user);
   const userId = req.user.user_id;
 
   try {

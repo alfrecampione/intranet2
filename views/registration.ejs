@@ -106,7 +106,7 @@
     <div class="layout-container">
       <%- include('partials/sidebar', { user: user, activePage: activePage }) %>
         <div class="layout-page">
-          <%- include('partials/navbar', {user: user}) %>
+          <%- include('partials/navbar', {user: user, noNotification: true}) %>
             <div class="content-wrapper">
               <!-- Multi Steps Registration -->
               <div class="container-xxl flex-grow-1 container-p-y">
