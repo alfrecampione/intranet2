@@ -85,46 +85,62 @@
                     const markAllReadBtn = document.getElementById("mark-all-read");
 
                     async function fetchNotifications() {
+                        console.log("[Notifications] Fetching notifications...");
                         try {
                             const res = await fetch("/users/notifications");
+                            console.log("[Notifications] Response status:", res.status);
+
+                            if (!res.ok) {
+                                throw new Error(`Server returned ${res.status}`);
+                            }
+
                             const data = await res.json();
+                            console.log("[Notifications] Data received:", data);
 
                             notificationList.innerHTML = "";
 
-                            if (!data.notifications.length) {
+                            if (!data.notifications?.length) {
+                                console.log("[Notifications] No notifications found.");
                                 const li = document.createElement("li");
                                 li.className = "list-group-item text-center text-muted small mb-0";
                                 li.textContent = "No notifications";
                                 notificationList.appendChild(li);
                             } else {
+                                console.log(`[Notifications] Rendering ${data.notifications.length} notifications`);
                                 data.notifications.forEach(notification => {
                                     const li = document.createElement("li");
                                     li.className = `list-group-item d-flex align-items-start notification-item ${notification.isRead ? 'bg-light' : ''}`;
                                     li.style.cursor = "pointer";
-                                    li.dataset.id = notification.id; // store notification id
+                                    li.dataset.id = notification.id;
 
                                     li.innerHTML = `
-                                        <div class="flex-shrink-0 me-2">
-                                          <i class="ti ti-bell text-${notification.isRead ? 'secondary' : 'primary'} fs-5"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                          <div class="d-flex justify-content-between">
-                                            <p class="mb-1 small ${notification.isRead ? 'text-muted' : ''}">${notification.message}</p>
-                                            <small class="text-muted">${new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
-                                          </div>
-                                        </div>
-                                    `;
+              <div class="flex-shrink-0 me-2">
+                <i class="ti ti-bell text-${notification.isRead ? 'secondary' : 'primary'} fs-5"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between">
+                  <p class="mb-1 small ${notification.isRead ? 'text-muted' : ''}">${notification.message}</p>
+                  <small class="text-muted">${new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                </div>
+              </div>
+            `;
 
-                                    // Add click listener to mark as read
                                     li.addEventListener("click", async () => {
+                                        console.log(`[Notifications] Marking notification ${notification.id} as read...`);
                                         try {
-                                            await fetch(`/users/notifications/${notification.id}`, { method: "POST" });
+                                            const markRes = await fetch(`/users/notifications/${notification.id}`, { method: "POST" });
+                                            console.log(`[Notifications] Mark response (${notification.id}):`, markRes.status);
+
+                                            if (!markRes.ok) {
+                                                throw new Error(`Failed to mark as read: ${markRes.status}`);
+                                            }
+
                                             li.classList.add("bg-light");
                                             li.querySelector("p").classList.add("text-muted");
                                             li.querySelector("i").classList.replace("text-primary", "text-secondary");
-                                            fetchNotifications();
+                                            await fetchNotifications();
                                         } catch (err) {
-                                            console.error("Failed to mark notification as read:", err);
+                                            console.error(`[Notifications] Error marking notification ${notification.id} as read:`, err);
                                         }
                                     });
 
@@ -136,25 +152,34 @@
                             if (data.unreadCount && data.unreadCount > 0) {
                                 notificationBadge.textContent = data.unreadCount > 9 ? "9+" : data.unreadCount;
                                 notificationBadge.classList.remove("d-none");
+                                console.log("[Notifications] Unread count:", data.unreadCount);
                             } else {
                                 notificationBadge.classList.add("d-none");
+                                console.log("[Notifications] No unread notifications.");
                             }
+
                         } catch (err) {
-                            console.error("Failed to fetch notifications:", err);
+                            console.error("[Notifications] Failed to fetch notifications:", err);
                         }
                     }
 
                     markAllReadBtn.addEventListener("click", async () => {
+                        console.log("[Notifications] Marking all as read...");
                         try {
-                            await fetch("/users/notifications/mark-read", { method: "POST" });
+                            const res = await fetch("/users/notifications/mark-read", { method: "POST" });
+                            console.log("[Notifications] Mark all read response:", res.status);
+                            if (!res.ok) throw new Error(`Failed to mark all read: ${res.status}`);
                             notificationBadge.classList.add("d-none");
-                            fetchNotifications();
+                            await fetchNotifications();
                         } catch (err) {
-                            console.error("Failed to mark notifications as read:", err);
+                            console.error("[Notifications] Failed to mark notifications as read:", err);
                         }
                     });
 
+                    // Initial fetch
                     fetchNotifications();
+
+                    // Periodic refresh
                     setInterval(fetchNotifications, 30000);
                 });
             </script>
