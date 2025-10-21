@@ -1357,66 +1357,89 @@
     });
   </script>
 
-  <!-- State and City Dynamic Selects -->
+  <script id="contactInfo-data" type="application/json">
+    <%- JSON.stringify(contactInfo || {}) %>
+  </script>
+
   <script>
     document.addEventListener('DOMContentLoaded', async function () {
       const stateSelect = document.getElementById('state');
       const citySelect = document.getElementById('city');
-      let citiesData = null;
 
-      // Fetch the US States and Cities data
+      let contactInfo = {};
       try {
-        const response = await fetch('/config/US_States_and_Cities.json');
-        citiesData = await response.json();
-
-        // Populate states
-        Object.keys(citiesData).sort().forEach(state => {
-          const option = document.createElement('option');
-          option.value = state;
-          option.textContent = state;
-          if (stateSelect.dataset.value === state) {
-            option.selected = true;
-          }
-          stateSelect.appendChild(option);
-        });
-
-        // Set initial value if exists
-        const initialState = '<%= contactInfo?.state || "" %>';
-        if (initialState) {
-          stateSelect.value = initialState;
-          updateCities(initialState);
-
-          // Set initial city if exists
-          const initialCity = '<%= contactInfo?.city || "" %>';
-          if (initialCity) {
-            citySelect.value = initialCity;
-          }
-        }
-      } catch (error) {
-        console.error('Error loading states and cities:', error);
+        contactInfo = JSON.parse(document.getElementById('contactInfo-data')?.textContent || '{}') || {};
+      } catch {
+        contactInfo = {};
       }
 
-      function updateCities(state) {
-        citySelect.innerHTML = '<option value="">Select City</option>';
-        citySelect.disabled = !state;
+      const US_STATES = [
+        { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
+        { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
+        { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
+        { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
+        { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
+        { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
+        { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
+        { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
+        { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
+        { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
+        { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
+        { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
+        { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
+        { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
+        { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
+        { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
+        { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
+      ];
 
-        if (state && citiesData[state]) {
-          citiesData[state].sort().forEach(city => {
+      function populateStates(selectedState = '') {
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+        US_STATES.forEach(st => {
+          const option = document.createElement('option');
+          option.value = st.abbr;
+          option.textContent = st.name;
+          if (selectedState === st.abbr || selectedState === st.name) option.selected = true;
+          stateSelect.appendChild(option);
+        });
+      }
+
+      async function loadCities(stateAbbr, selectedCity = '') {
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        citySelect.disabled = true;
+
+        if (!stateAbbr) return;
+
+        try {
+          const res = await fetch(`/utils/get-city?state=${encodeURIComponent(stateAbbr)}`);
+          const cities = await res.json();
+
+          if (!Array.isArray(cities)) return;
+
+          cities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
             option.textContent = city;
+            if (selectedCity && selectedCity.toLowerCase() === city.toLowerCase()) {
+              option.selected = true;
+            }
             citySelect.appendChild(option);
           });
+
+          citySelect.disabled = false;
+        } catch (err) {
+          console.error("Failed to load cities:", err);
         }
       }
 
-      // Update cities when state changes
-      stateSelect.addEventListener('change', function () {
-        updateCities(this.value);
+      stateSelect.addEventListener('change', () => {
+        loadCities(stateSelect.value);
       });
+
+      populateStates(contactInfo.state || '');
+      await loadCities(contactInfo.state || '', contactInfo.city || '');
     });
   </script>
-
 </body>
 
 </html>
