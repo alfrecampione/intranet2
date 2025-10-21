@@ -44,9 +44,9 @@ const createAccount = async (req, res) => {
 
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
-      const result = await prisma.user.findUnique({ where: { email, isReleased: false } });
+      const result = await prisma.user.findUnique({ where: { email } });
 
-      if (result) {
+      if (result && result.confirmationCode === null) {
         return res
           .status(400)
           .json({ success: false, message: "Email already exists" });
@@ -55,13 +55,23 @@ const createAccount = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      await prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          confirmationCode
-        }
-      });
+      if (result.confirmationCode !== null) {
+        await prisma.user.update({
+          where: { email },
+          data: {
+            password: hashedPassword,
+            confirmationCode: confirmationCode
+          }
+        });
+      } else {
+        await prisma.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            confirmationCode: confirmationCode
+          }
+        });
+      }
 
       const subject = "Email Confirmation Code";
       const body = {
