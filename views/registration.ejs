@@ -439,20 +439,21 @@
                             <div class="invalid-feedback"></div>
                           </div>
 
-                          <!-- 6. City (Required) -->
+                          <!-- 6. State (Required) -->
                           <div class="col-sm-4">
-                            <label class="form-label" for="city">City <span class="text-danger">*</span></label>
-                            <input type="text" id="city" name="city" class="form-control" placeholder="e.g. New York"
-                              required value="<%= contactInfo?.city || '' %>" />
+                            <label class="form-label" for="state">State <span class="text-danger">*</span></label>
+                            <select id="state" name="state" class="form-select" required>
+                              <option value="">Select State</option>
+                            </select>
                             <div class="invalid-feedback"></div>
                           </div>
 
-                          <!-- 7. State (Required) -->
+                          <!-- 7. City (Required) -->
                           <div class="col-sm-4">
-                            <label class="form-label" for="multiStepsState">State <span
-                                class="text-danger">*</span></label>
-                            <input type="text" id="state" name="state" class="form-control"
-                              placeholder="e.g. California" required value="<%= contactInfo?.state || '' %>" />
+                            <label class="form-label" for="city">City <span class="text-danger">*</span></label>
+                            <select id="city" name="city" class="form-select" required disabled>
+                              <option value="">Select City</option>
+                            </select>
                             <div class="invalid-feedback"></div>
                           </div>
 
@@ -501,16 +502,16 @@
                                   <label class="form-label">Bank Account Type</label>
                                   <div>
                                     <div class="form-check form-check-inline">
-                                      <input class="form-check-input" type="radio" id="bankAccountTypeCheking"
-                                        value="checking" <%=paymentMethod && paymentMethod.bankAccountType==='checking'
-                                        ? 'checked' : '' %>
+                                      <input class="form-check-input" type="radio" name="bankAccountType"
+                                        id="bankAccountTypeCheking" value="checking" <%=paymentMethod &&
+                                        paymentMethod.bankAccountType==='checking' ? 'checked' : '' %>
                                       required />
                                       <label class="form-check-label">Checking</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                      <input class="form-check-input" type="radio" id="bankAccountTypeSavings"
-                                        value="savings" <%=paymentMethod && paymentMethod.bankAccountType==='savings'
-                                        ? 'checked' : '' %>
+                                      <input class="form-check-input" type="radio" name="bankAccountType"
+                                        id="bankAccountTypeSavings" value="savings" <%=paymentMethod &&
+                                        paymentMethod.bankAccountType==='savings' ? 'checked' : '' %>
                                       required />
                                       <label class="form-check-label">Savings</label>
                                     </div>
@@ -1353,6 +1354,66 @@
         submitBtn.disabled = false;
         submitBtn.innerHTML = `Review & Submit`;
       }
+    });
+  </script>
+
+  <!-- State and City Dynamic Selects -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      const stateSelect = document.getElementById('state');
+      const citySelect = document.getElementById('city');
+      let citiesData = null;
+
+      // Fetch the US States and Cities data
+      try {
+        const response = await fetch('/config/US_States_and_Cities.json');
+        citiesData = await response.json();
+
+        // Populate states
+        Object.keys(citiesData).sort().forEach(state => {
+          const option = document.createElement('option');
+          option.value = state;
+          option.textContent = state;
+          if (stateSelect.dataset.value === state) {
+            option.selected = true;
+          }
+          stateSelect.appendChild(option);
+        });
+
+        // Set initial value if exists
+        const initialState = '<%= contactInfo?.state || "" %>';
+        if (initialState) {
+          stateSelect.value = initialState;
+          updateCities(initialState);
+
+          // Set initial city if exists
+          const initialCity = '<%= contactInfo?.city || "" %>';
+          if (initialCity) {
+            citySelect.value = initialCity;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading states and cities:', error);
+      }
+
+      function updateCities(state) {
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        citySelect.disabled = !state;
+
+        if (state && citiesData[state]) {
+          citiesData[state].sort().forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+          });
+        }
+      }
+
+      // Update cities when state changes
+      stateSelect.addEventListener('change', function () {
+        updateCities(this.value);
+      });
     });
   </script>
 
