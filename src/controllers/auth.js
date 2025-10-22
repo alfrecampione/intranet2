@@ -57,6 +57,7 @@ const createAccount = async (req, res) => {
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       if (result && result.confirmationCode) {
+        console.log("Updating existing user with new confirmation code");
         await prisma.user.update({
           where: { email },
           data: {
@@ -93,6 +94,7 @@ const createAccount = async (req, res) => {
 
 const renderEmailValidation = async (req, res) => {
   const encryptedEmail = req.query.encryptedEmail;
+  console.log("renderEmailValidation called with:", { encryptedEmail });
   if (!encryptedEmail) {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
@@ -144,6 +146,8 @@ const leadToAgent = async (user, user_id) => {
 const validateEmail = async (req, res, next) => {
   const { encryptedEmail, confirmationCode } = req.body;
 
+  console.log("validateEmail called with:", { encryptedEmail, confirmationCode });
+
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
       const emailResult = await decryptEmail({ params: { encrypted_email: encryptedEmail } }, {
@@ -156,6 +160,7 @@ const validateEmail = async (req, res, next) => {
         return res.status(400).json({ success: false, message: "Invalid encrypted email" });
       }
       const email = emailResult.data.email;
+      console.log("Decrypted email:", email);
       await deleteEncryptedEmail(encryptedEmail);
 
       const existingUser = await prisma.user.findFirst({
