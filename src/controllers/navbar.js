@@ -141,7 +141,7 @@ const readNotification = async (req, res) => {
 
   try {
     await prisma.notificacion.updateMany({
-      where: { id: notificationId, userId },
+      where: { id: notificationId },
       data: { isRead: true }
     });
 
