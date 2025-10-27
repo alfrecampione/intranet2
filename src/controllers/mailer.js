@@ -250,9 +250,11 @@ const new_user_notification = async (req, res) => {
           where: { email: alert.email },
         });
         if (agent) {
+          console.log("Logging notification for agent:", agent);
           await prisma.notificacion.create({
             data: {
               userId: agent.user_id,
+              userEmail: alert.email,
               message: `User with email: ${email} has been created.`,
               createdBy: "system",
             },
@@ -262,9 +264,11 @@ const new_user_notification = async (req, res) => {
           where: { email: alert.email },
         });
         if (allowedAgent) {
+          console.log("Logging notification for allowed agent:", allowedAgent);
           await prisma.notificacion.create({
             data: {
-              userId: allowedAgent.userId,
+              userId: null,
+              userEmail: alert.email,
               message: `User with email: ${email} has been created.`,
               createdBy: "system",
             },
@@ -272,7 +276,7 @@ const new_user_notification = async (req, res) => {
         }
       }
     } catch (err) {
-      console.error(`Error sending notification to ${alert.email}:`, err);
+      console.error(`Error sending notification: `, err);
     }
 
     return res.status(200).json({ message: "Notifications sent." });
