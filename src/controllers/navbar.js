@@ -84,7 +84,7 @@ const getNotifications = async (req, res) => {
 
   try {
     const notifications = await prisma.notificacion.findMany({
-      where: { userId },
+      where: { OR: [{ userId }, { userEmail: req.user.email }] },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -110,7 +110,7 @@ const renderNotifications = async (req, res) => {
 
   try {
     const notifications = await prisma.notificacion.findMany({
-      where: { userId },
+      where: { OR: [{ userId }, { userEmail: req.user.email }] },
       orderBy: { createdAt: 'desc' },
     });
 
