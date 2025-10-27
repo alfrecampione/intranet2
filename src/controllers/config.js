@@ -78,10 +78,7 @@ async function getAdmins() {
     const allowedAdmins = await prisma.allowedAgents.findMany({
       select: { email: true }
     });
-
-    console.log("Allowed admins from allowedAgents table:", allowedAdmins);
     const allAdmins = [...admins, ...allowedAdmins.filter(aa => !admins.some(a => a.email === aa.email))];
-    console.log("Combined admin list:", allAdmins);
     return allAdmins;
   } catch (error) {
     console.error("Error fetching admins:", error);
