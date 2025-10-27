@@ -69,11 +69,17 @@ const deleteEmailToAlert = async (req, res) => {
 
 async function getAdmins() {
   try {
-    const result = await pool.query(
-      `SELECT display_name, mail FROM entra.users WHERE location_id = $1 AND department = $2`,
-      [1, 'Health']
-    );
-    return result.rows;
+    const admins = await prisma.user.findMany({
+      where: { isAgent: false },
+      orderBy: { display_name: 'asc' }
+    });
+
+    const allowedAdmins = await prisma.allowedAgents({
+      select: { email: true }
+    });
+    const allAdmins = [...new Set(allowedAdmins.map(a => a.email), ...admins.map(a => a.email))];
+
+    return allAdmins;
   } catch (error) {
     console.error("Error fetching admins:", error);
   }

@@ -5,6 +5,7 @@ import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
 import { createMessage } from "../config/utils.js";
 import { getEmailsToAlert } from "./config.js";
+import { get } from "https";
 
 dotenv.config();
 
@@ -213,12 +214,14 @@ const email_sender = async (req, res) => {
 const new_user_notification = async (req, res) => {
   const { email, recommendation } = req.body;
 
+  console.log("New user notification request for email:", email);
+
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
 
   try {
-    const alerts = await prisma.newUserAlerts.findMany({});
+    const alerts = await getEmailsToAlert();
     if (!alerts || alerts.length === 0) {
       return res
         .status(200)
@@ -240,33 +243,36 @@ const new_user_notification = async (req, res) => {
       outro:
         "This is an automated message from the GoldenHealth.",
     };
-
-    for (const alert of alerts) {
-      try {
+    try {
+      for (const alert of alerts) {
         await sendMail(alert.email, subject, body);
-        const emailsToAlert = getEmailsToAlert();
-        const usersToAlert = await prisma.allowedAgents.findMany({
-          where: { email: { in: emailsToAlert } },
+        const agent = await prisma.user.findUnique({
+          where: { email: alert.email },
         });
-        const agentsToAlert = await prisma.user.findMany({
-          where: { isAgent: false },
-          select: { user_id: true },
-        });
-
-        const allIds = [...new Set([...usersToAlert.map((a) => a.userId), ...agentsToAlert.map(a => a.user_id)])];
-
-        for (const id of allIds) {
+        if (agent) {
           await prisma.notificacion.create({
             data: {
-              userId: id,
-              message: `User with email ${email} has been created.`,
+              userId: agent.user_id,
+              message: `User with email: ${email} has been created.`,
               createdBy: "system",
             },
           });
         }
-      } catch (err) {
-        console.error(`Error sending notification to ${alert.email}:`, err);
+        const allowedAgent = await prisma.allowedAgents.findUnique({
+          where: { email: alert.email },
+        });
+        if (allowedAgent) {
+          await prisma.notificacion.create({
+            data: {
+              userId: allowedAgent.userId,
+              message: `User with email: ${email} has been created.`,
+              createdBy: "system",
+            },
+          });
+        }
       }
+    } catch (err) {
+      console.error(`Error sending notification to ${alert.email}:`, err);
     }
 
     return res.status(200).json({ message: "Notifications sent." });
