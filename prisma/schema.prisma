@@ -44,7 +44,6 @@ model User {
   Recommendation        Recommendation?
   statesAndCarriers     StatesANDCarriers[]
   Note                  Note[]
-  Notificacion          Notificacion[]
 
   @@schema("health")
 }
@@ -295,8 +294,6 @@ model Notificacion {
   isRead    Boolean  @default(false)
   createdBy String
   createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
   @@schema("health")
 }
