@@ -74,7 +74,7 @@ async function getAdmins() {
       orderBy: { display_name: 'asc' }
     });
 
-    const allowedAdmins = await prisma.allowedAgents({
+    const allowedAdmins = await prisma.allowedAgents.findMany({
       select: { email: true }
     });
     const allAdmins = [...new Set(allowedAdmins.map(a => a.email), ...admins.map(a => a.email))];
