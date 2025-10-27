@@ -35,7 +35,7 @@ const postAdminToAlert = async (req, res) => {
       await prisma.$transaction(
         admins.map(admin =>
           prisma.newUserAlerts.create({
-            data: { email: admin.mail, display_name: admin.display_name }
+            data: { email: admin.mail, display_name: admin.display_name || "Admin" }
           })
         )
       );
@@ -73,12 +73,15 @@ async function getAdmins() {
       where: { isAgent: false },
       orderBy: { display_name: 'asc' }
     });
+    console.log("Admins from user table:", admins);
 
     const allowedAdmins = await prisma.allowedAgents.findMany({
       select: { email: true }
     });
-    const allAdmins = [...new Set(allowedAdmins.map(a => a.email), ...admins.map(a => a.email))];
 
+    console.log("Allowed admins from allowedAgents table:", allowedAdmins);
+    const allAdmins = [...admins, ...allowedAdmins.filter(aa => !admins.some(a => a.email === aa.email))];
+    console.log("Combined admin list:", allAdmins);
     return allAdmins;
   } catch (error) {
     console.error("Error fetching admins:", error);
