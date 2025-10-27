@@ -267,7 +267,7 @@ const new_user_notification = async (req, res) => {
           console.log("Logging notification for allowed agent:", allowedAgent);
           await prisma.notificacion.create({
             data: {
-              userId: null,
+              userId: allowedAgent.id,
               userEmail: alert.email,
               message: `User with email: ${email} has been created.`,
               createdBy: "system",
