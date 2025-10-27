@@ -73,7 +73,6 @@ async function getAdmins() {
       where: { isAgent: false },
       orderBy: { display_name: 'asc' }
     });
-    console.log("Admins from user table:", admins);
 
     const allowedAdmins = await prisma.allowedAgents.findMany({
       select: { email: true }
