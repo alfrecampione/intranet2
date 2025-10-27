@@ -1339,7 +1339,7 @@
         await saveStatesCarriers();
 
         if (isEdit == "false") {
-          const response = await fetch(`${url}/email/config`, {
+          const response = await fetch(`/email/config`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user_email, recommendation: recommendation })

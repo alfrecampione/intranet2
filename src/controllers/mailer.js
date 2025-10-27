@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
+import { createMessage } from "../config/utils.js";
+import { getEmailsToAlert } from "./config.js";
 
 dotenv.config();
 
@@ -242,6 +244,26 @@ const new_user_notification = async (req, res) => {
     for (const alert of alerts) {
       try {
         await sendMail(alert.email, subject, body);
+        const emailsToAlert = getEmailsToAlert();
+        const usersToAlert = await prisma.allowedAgents.findMany({
+          where: { email: { in: emailsToAlert } },
+        });
+        const agentsToAlert = await prisma.user.findMany({
+          where: { isAgent: false },
+          select: { user_id: true },
+        });
+
+        const allIds = [...new Set([...usersToAlert.map((a) => a.userId), ...agentsToAlert.map(a => a.user_id)])];
+
+        for (const id of allIds) {
+          await prisma.notificacion.create({
+            data: {
+              userId: id,
+              message: `User with email ${email} has been created.`,
+              createdBy: "system",
+            },
+          });
+        }
       } catch (err) {
         console.error(`Error sending notification to ${alert.email}:`, err);
       }

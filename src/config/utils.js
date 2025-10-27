@@ -334,4 +334,64 @@ const mapNotifications = (notifications, creatorsMap) =>
         };
     });
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications };
+function safeParse(json, fallback = null) {
+    try {
+        return json ? JSON.parse(json) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+async function createMessage(log, options = {}) {
+    if (!log.action) return '';
+
+    const { isForOwner = false, affectedUserName = null } = options;
+
+    const oldObj = safeParse(log.oldValue, null);
+    const newObj = safeParse(log.newValue, null);
+
+    const table = (log.table || '').toLowerCase();
+    const action = (log.action || '').toLowerCase();
+
+    const isCreate = action.includes('create');
+    const isUpdate = action.includes('update');
+    const isDelete = action.includes('delete');
+
+    const userId = log.userId;
+    const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
+    const legalName = personalInfo?.legalName || '(Administrator User)';
+
+    let message = '';
+    let actionVerb = '';
+
+    if (isCreate) actionVerb = 'created';
+    else if (isUpdate) actionVerb = 'updated';
+    else if (isDelete) actionVerb = 'deleted';
+
+    // Base emoji depending on action
+    const emoji = isCreate ? '🟢' : isUpdate ? '🔵' : '🔴';
+
+    // Determine target label (table and entity name)
+    let targetLabel = table;
+    if (table.includes('carriers')) {
+        const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
+        const company = carrierObj?.company ?? '(unknown carrier)';
+        targetLabel = `carrier ${company}`;
+    } else if (table.includes('user')) {
+        targetLabel = 'user';
+    }
+
+    // If notification is for the affected user
+    if (!isForOwner) {
+        message = `${emoji} ${legalName} ${actionVerb} a ${targetLabel}.`;
+    }
+    // If notification is for owners or higher hierarchy
+    else {
+        const affectedPart = affectedUserName ? ` in ${affectedUserName}` : '';
+        message = `${emoji} ${legalName} ${actionVerb} ${targetLabel}${affectedPart}.`;
+    }
+
+    return message;
+}
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage };

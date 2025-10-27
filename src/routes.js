@@ -184,7 +184,7 @@ router.get("/email/decrypt/:encrypted_email", checkNotAuthenticated, decryptEmai
 
 import { handleFileUpload } from "./controllers/registration.js";
 import upload from "./config/multerConfig.js";
-router.post("/upload", checkNotAuthenticated, checkWriteRight, upload.single("file"), handleFileUpload);
+router.post("/upload", checkNotAuthenticated, upload.single("file"), handleFileUpload);
 
 import { renderConfigEmails, postAdminToAlert, deleteEmailToAlert, addCarrier, renderConfigCarriers, postCompany, updateCompany, deleteCompany, renderConfigCommisions, updateCommisions } from "./controllers/config.js";
 router.get("/users/config", checkNotAuthenticated, checkReadRight, renderConfigEmails)
