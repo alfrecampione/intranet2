@@ -125,7 +125,7 @@ router.get("/start-search", readEmails)
 
 router.post("/necessaryDocs", checkNotAuthenticated, markDocsAsNecessary);
 
-router.post("/email/config", new_user_notification)
+router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
 import { renderCarrierStatus, updateCarrierStatus } from "./controllers/carrier_status.js";
 router.get("/users/carrrier_status/:id", checkNotAuthenticated, renderCarrierStatus);
