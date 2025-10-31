@@ -7,16 +7,32 @@ const redirect_dashboard = (req, res) => {
 };
 
 const renderDashboard = async (req, res) => {
+
   try {
     let companies, userCompanyStateData, states;
     let user = req.user;
 
-    if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
-      // Case 1: Business Agent
+    // 1. Si tiene derecho 1 (admin)
+    if (user && user.rights && user.rights.includes(1)) {
+      companies = await prisma.company.findMany();
+      const agents = await prisma.user.findMany({
+        where: { isAgent: true },
+        include: { statesAndCarriers: true }
+      });
+      userCompanyStateData = agents.flatMap(agent =>
+        agent.statesAndCarriers.map(c => ({
+          userId: agent.user_id,
+          company: c.company,
+          state: c.state
+        }))
+      );
+      states = [...new Set(userCompanyStateData.map(d => d.state))];
+    }
+    // 2. Si es business agent
+    else if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
       const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
       if (agency) {
         const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
-
         const users = await prisma.user.findMany({
           where: {
             OR: [
@@ -27,13 +43,11 @@ const renderDashboard = async (req, res) => {
           },
           select: { user_id: true }
         });
-
         const userIds = users.map(u => u.user_id);
         userCompanyStateData = await prisma.statesANDCarriers.findMany({
           where: { userId: { in: userIds } },
           select: { userId: true, company: true, state: true }
         });
-
         companies = await prisma.company.findMany();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
       } else {
@@ -41,40 +55,26 @@ const renderDashboard = async (req, res) => {
         userCompanyStateData = [];
         states = [];
       }
-    } else if (user && user.isAgent) {
-      // Case 2: Individual Agent
+    }
+    // 3. Si es agente individual
+    else if (user && user.isAgent) {
       user = await prisma.user.findUnique({
         where: { user_id: user.user_id },
         include: { personalInfo: true, statesAndCarriers: true }
       });
-
       companies = await prisma.company.findMany();
-
       userCompanyStateData = user.statesAndCarriers.map(c => ({
         userId: user.user_id,
         company: c.company,
         state: c.state
       }));
-
       states = [...new Set(userCompanyStateData.map(d => d.state))];
-    } else {
-      // Caso 3: User not Agent (admin / staff)
-      companies = await prisma.company.findMany();
-
-      const agents = await prisma.user.findMany({
-        where: { isAgent: true },
-        include: { statesAndCarriers: true }
-      });
-
-      userCompanyStateData = agents.flatMap(agent =>
-        agent.statesAndCarriers.map(c => ({
-          userId: agent.user_id,
-          company: c.company,
-          state: c.state
-        }))
-      );
-
-      states = [...new Set(userCompanyStateData.map(d => d.state))];
+    }
+    // 4. Otro caso
+    else {
+      companies = [];
+      userCompanyStateData = [];
+      states = [];
     }
 
     const newsList = await prisma.news.findMany({
