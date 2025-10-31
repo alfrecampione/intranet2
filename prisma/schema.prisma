@@ -36,6 +36,7 @@ model User {
   display_name          String?
   isAgent               Boolean?            @default(true)
   isReleased            Boolean?            @default(false)
+  hastoChangePassword   Boolean?            @default(false)
   Agency                Agency?
   contactInfo           ContactInfo?
   documents             Documents?

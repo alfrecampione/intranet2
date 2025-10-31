@@ -17,6 +17,9 @@ const initialize = (passport) => {
       if (user) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
+          if (user.hastoChangePassword) {
+            return done(null, false, { msg: "Change your password" });
+          }
           return done(null, user);
         } else {
           console.log(`Login failed for ${email}: Password is not correct`);

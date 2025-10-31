@@ -216,7 +216,8 @@ const addAgent = async (req, res) => {
         email,
         password: hashedPassword,
         display_name: legalName,
-        registrationCompleted: false
+        registrationCompleted: false,
+        hastoChangePassword: true
       }
     });
 
