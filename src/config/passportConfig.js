@@ -14,6 +14,9 @@ const initialize = (passport) => {
           }
         }
       });
+      if (user.hastoChangePassword) {
+        return res.status(401).json({ error: "Change your password" });
+      }
       if (user) {
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
