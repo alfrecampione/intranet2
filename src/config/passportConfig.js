@@ -22,7 +22,7 @@ const initialize = (passport) => {
         return done(null, false, { msg: "Email is not registered" });
       }
 
-      if (user.hasToChangePassword) {
+      if (user.hastoChangePassword) {
         return done(null, false, { msg: "You are required to change your password" });
       }
 
@@ -107,7 +107,6 @@ const initialize = (passport) => {
 // ---------------------- POST LOGIN ----------------------
 const postLogin = async (req, res, next) => {
   const { email } = req.body;
-  console.log("Login attempt:", email);
 
   // MICROSOFT LOGIN
   if (email.endsWith("@goldentrust.com")) {
