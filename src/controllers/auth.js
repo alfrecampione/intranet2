@@ -235,9 +235,14 @@ const resetPassword = async (req, res) => {
             data: { password: hashedPassword, hastoChangePassword: false }
           });
         }
-        await prisma.crypto.delete({
+        const cryptoRecord = await prisma.crypto.findFirst({
           where: { encrypted_data: encrypted }
-        })
+        });
+        if (cryptoRecord) {
+          await prisma.crypto.delete({
+            where: { id: cryptoRecord.id }
+          });
+        }
       } catch (prismaErr) {
         console.log(`resetPassword Prisma error`, prismaErr);
       }
