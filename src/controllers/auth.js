@@ -232,7 +232,7 @@ const resetPassword = async (req, res) => {
         if (prismaUser) {
           await prisma.user.update({
             where: { email },
-            data: { password: hashedPassword }
+            data: { password: hashedPassword, hastoChangePassword: false }
           });
         }
         await prisma.crypto.delete({
