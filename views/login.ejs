@@ -222,9 +222,9 @@
         const emailInput = document.getElementById("email");
         const passwordContainer = document.getElementById("password-container");
 
-        emailInput.addEventListener("input", function () {
-          const email = (this.value || "").trim();
 
+        function checkEmailAndTogglePassword() {
+          const email = (emailInput.value || "").trim();
           if (email.endsWith("@goldentrust.com")) {
             passwordContainer.style.display = "none";
             if (fv) fv.disableValidator('password');
@@ -232,7 +232,12 @@
             passwordContainer.style.display = "block";
             if (fv) fv.enableValidator('password');
           }
-        });
+        }
+
+        emailInput.addEventListener("input", checkEmailAndTogglePassword);
+        emailInput.addEventListener("change", checkEmailAndTogglePassword);
+        document.addEventListener("DOMContentLoaded", checkEmailAndTogglePassword);
+        setTimeout(checkEmailAndTogglePassword, 100);
 
         // Toast logic
         const toastAnimationBtn = document.getElementById('showToastAnimation');
