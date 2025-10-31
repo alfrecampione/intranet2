@@ -1,39 +1,40 @@
 import { Strategy as LocalStrategy } from "passport-local";
-import { pool, prisma } from "./dbConfig.js";
+import { prisma } from "./dbConfig.js";
 import bcrypt from "bcrypt";
 import { cca, LOGIN_SCOPES } from "./msalConfig.js";
+import passport from "passport";
 
+// ---------------------- PASSPORT INITIALIZE ----------------------
 const initialize = (passport) => {
   const authenticateUser = async (email, password, done) => {
     try {
       const user = await prisma.user.findUnique({
-        where: { email: email },
+        where: { email },
         include: {
           personalInfo: {
-            select: { photoPath: true, contactType: true }
-          }
-        }
+            select: { photoPath: true, contactType: true },
+          },
+        },
       });
-      if (user.hastoChangePassword) {
-        return res.status(401).json({ error: "Change your password" });
-      }
-      if (user) {
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) {
-          if (user.hastoChangePassword) {
-            return done(null, false, { msg: "Change your password" });
-          }
-          return done(null, user);
-        } else {
-          console.log(`Login failed for ${email}: Password is not correct`);
-          return done(null, false, { msg: "Password is not correct" });
-        }
-      }
-      else {
+
+      if (!user) {
         console.log(`Login failed for ${email}: Email is not registered`);
         return done(null, false, { msg: "Email is not registered" });
       }
+
+      if (user.hasToChangePassword) {
+        return done(null, false, { msg: "You are required to change your password" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log(`Login failed for ${email}: Password is not correct`);
+        return done(null, false, { msg: "Password is not correct" });
+      }
+
+      return done(null, user);
     } catch (err) {
+      console.error("Error during authentication:", err);
       return done(err);
     }
   };
@@ -44,8 +45,8 @@ const initialize = (passport) => {
         usernameField: "email",
         passwordField: "password",
       },
-      authenticateUser,
-    ),
+      authenticateUser
+    )
   );
 
   passport.serializeUser((user, done) => {
@@ -62,25 +63,27 @@ const initialize = (passport) => {
         const user = await prisma.user.findFirst({
           where: { user_id: obj.user_id },
           include: {
-            personalInfo: { select: { photoPath: true, contactType: true } }
-          }
+            personalInfo: { select: { photoPath: true, contactType: true } },
+          },
         });
+
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: user.email },
-          include: { AgentRights: true }
+          include: { AgentRights: true },
         });
 
         const filledUser = {
           ...user,
           isMicrosoftLogin: false,
-          rights: userRights ? userRights.AgentRights.map(ar => ar.idRight) : []
-        }
+          rights: userRights
+            ? userRights.AgentRights.map((ar) => ar.idRight)
+            : [],
+        };
         return done(null, filledUser || false);
       } else if (obj.type === "ms") {
-
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: obj.email },
-          include: { AgentRights: true }
+          include: { AgentRights: true },
         });
 
         return done(null, {
@@ -89,7 +92,9 @@ const initialize = (passport) => {
           display_name: obj.display_name,
           tenantId: obj.tenantId,
           isMicrosoftLogin: true,
-          rights: userRights ? userRights.AgentRights.map(ar => ar.idRight) : []
+          rights: userRights
+            ? userRights.AgentRights.map((ar) => ar.idRight)
+            : [],
         });
       }
       return done(null, false);
@@ -99,21 +104,19 @@ const initialize = (passport) => {
   });
 };
 
-import passport from "passport";
-
+// ---------------------- POST LOGIN ----------------------
 const postLogin = async (req, res, next) => {
   const { email } = req.body;
+  console.log("Login attempt:", email);
+
+  // MICROSOFT LOGIN
   if (email.endsWith("@goldentrust.com")) {
     try {
-      const isAllowed = await prisma.allowedAgents.findUnique({
-        where: { email: email },
-      });
-      const healthAgent = await prisma.user.findUnique({
-        where: { email: email },
-      });
+      const isAllowed = await prisma.allowedAgents.findUnique({ where: { email } });
+      const healthAgent = await prisma.user.findUnique({ where: { email } });
 
       if (!(isAllowed || healthAgent)) {
-        return res.redirect("/login");
+        return res.status(401).json({ msg: "Unauthorized Microsoft account" });
       }
 
       const authCodeUrlParameters = {
@@ -124,20 +127,40 @@ const postLogin = async (req, res, next) => {
       };
 
       const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
-      return res.redirect(authCodeUrl);
+      return res.json({ redirect: authCodeUrl }); // ✅ FRONTEND lo redirige
     } catch (err) {
       console.error("MS login redirect error:", err);
-      return next(err);
+      return res.status(500).json({ msg: "Microsoft login failed" });
     }
-  } else {
-    passport.authenticate("local", {
-      successRedirect: "/users/dashboard",
-      failureRedirect: "/login",
-      failureFlash: true,
-    })(req, res, next);
   }
+
+  // LOCAL LOGIN
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      console.error("Passport error:", err);
+      return res.status(500).json({ msg: "Internal server error" });
+    }
+
+    if (!user) {
+      // info.msg viene del done(null, false, { msg: "..." })
+      return res.status(401).json({ msg: info?.msg || "Invalid credentials" });
+    }
+
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error("Login session error:", err);
+        return res.status(500).json({ msg: "Login failed" });
+      }
+
+      return res.json({
+        success: true,
+        redirect: "/users/dashboard",
+      });
+    });
+  })(req, res, next);
 };
 
+// ---------------------- PASSPORT MIDDLEWARE ----------------------
 const authenticate = (passport) => {
   return passport.authenticate("local", {
     successRedirect: "/users/dashboard",

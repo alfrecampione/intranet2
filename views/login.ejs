@@ -178,23 +178,14 @@
             fields: {
               email: {
                 validators: {
-                  notEmpty: {
-                    message: 'Please enter your email'
-                  },
-                  emailAddress: {
-                    message: 'Please enter a valid email address'
-                  }
+                  notEmpty: { message: 'Please enter your email' },
+                  emailAddress: { message: 'Please enter a valid email address' }
                 }
               },
               password: {
                 validators: {
-                  notEmpty: {
-                    message: 'Please enter your password'
-                  },
-                  stringLength: {
-                    min: 6,
-                    message: 'Password must be more than 6 characters'
-                  }
+                  notEmpty: { message: 'Please enter your password' },
+                  stringLength: { min: 6, message: 'Password must be more than 6 characters' }
                 }
               }
             },
@@ -205,7 +196,6 @@
                 rowSelector: '.mb-3'
               }),
               submitButton: new FormValidation.plugins.SubmitButton(),
-              // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
               autoFocus: new FormValidation.plugins.AutoFocus()
             },
             init: instance => {
@@ -216,78 +206,105 @@
               });
             }
           });
-          // Envío del login con fetch
-          if (formAuthentication) {
-            formAuthentication.addEventListener('submit', function (e) {
-              e.preventDefault();
-              const formData = new FormData(formAuthentication);
-              fetch('/login', {
+
+          // --- LOGIN SUBMIT ---
+          formAuthentication.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const isValid = await fv.validate();
+            if (isValid !== 'Valid') return;
+
+            const data = Object.fromEntries(new FormData(formAuthentication));
+
+            try {
+              const res = await fetch('/login', {
                 method: 'POST',
-                body: formData
-              })
-                .then(async res => {
-                  if (!res.ok) {
-                    let msg = 'Login failed';
-                    try {
-                      const data = await res.json();
-                      msg = data.error || data.msg || msg;
-                    } catch { }
-                    showToast('Error', msg);
-                  } else {
-                    window.location.href = '/dashboard';
-                  }
-                })
-                .catch(() => {
-                  showToast('Error', 'Unable to connect to the server.');
-                });
-            });
-          }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              let body;
+              try { body = await res.json(); } catch { body = {}; }
+
+              if (!res.ok) {
+                showToast('Error', body.msg || 'Login failed');
+                return;
+              }
+
+              // --- Microsoft login redirect ---
+              if (body.redirect && body.redirect.includes('login.microsoftonline.com')) {
+                showToast('Info', 'Redirecting to Microsoft login...');
+                window.location.href = body.redirect;
+                return;
+              }
+
+              // --- Local login success ---
+              if (body.success) {
+                showToast('Success', body.msg || 'Welcome!');
+                window.location.href = body.redirect || '/users/dashboard';
+                return;
+              }
+
+              // --- Fallback unexpected ---
+              showToast('Error', body.msg || 'Unexpected response');
+
+            } catch (err) {
+              console.error('Login request failed:', err);
+              showToast('Error', 'Unable to connect to the server.');
+            }
+          });
         }
 
-        // Hide/show password + enable/disable validator
-        const emailInput = document.getElementById("email");
-        const passwordContainer = document.getElementById("password-container");
-
+        // --- EMAIL CHECK ---
+        const emailInput = document.getElementById('email');
+        const passwordContainer = document.getElementById('password-container');
 
         function checkEmailAndTogglePassword() {
-          const email = (emailInput.value || "").trim();
-          if (email.endsWith("@goldentrust.com")) {
-            passwordContainer.style.display = "none";
+          const email = (emailInput.value || '').trim();
+          if (email.endsWith('@goldentrust.com')) {
+            passwordContainer.style.display = 'none';
             if (fv) fv.disableValidator('password');
           } else {
-            passwordContainer.style.display = "block";
+            passwordContainer.style.display = 'block';
             if (fv) fv.enableValidator('password');
           }
         }
 
-        emailInput.addEventListener("input", checkEmailAndTogglePassword);
-        emailInput.addEventListener("change", checkEmailAndTogglePassword);
-        document.addEventListener("DOMContentLoaded", checkEmailAndTogglePassword);
+        emailInput.addEventListener('input', checkEmailAndTogglePassword);
+        emailInput.addEventListener('change', checkEmailAndTogglePassword);
         setTimeout(checkEmailAndTogglePassword, 100);
 
-        // Toast logic
+        // --- TOAST PASSWORD REQUEST ---
         const toastAnimationBtn = document.getElementById('showToastAnimation');
+        const url = `${window.location.protocol}//${window.location.host}`;
+
         if (toastAnimationBtn) {
-          toastAnimationBtn.addEventListener('click', () => {
-            const email = document.getElementById('email').value;
+          toastAnimationBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
             const data = { url };
 
-            if (email) {
-              fetch(`/users/auth/send/${email}`, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-              }).then(res => {
-                if (!res.ok) {
-                  showToast('Wrong Email', 'Please enter a valid email address');
-                } else {
-                  showToast('Create password', 'You should receive an email, please check it.');
-                }
-              }).catch(() => {
-                showToast('Error', 'Unable to connect to the server.');
-              });
-            } else {
+            if (!email) {
               showToast('Wrong Email', 'Please enter a valid email address');
+              return;
+            }
+
+            try {
+              const res = await fetch(`/users/auth/send/${email}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              const body = await res.json();
+
+              if (!res.ok) {
+                showToast('Error', body.msg || 'Please enter a valid email address');
+              } else {
+                showToast('Success', body.msg || 'You should receive an email, please check it.');
+              }
+
+            } catch (err) {
+              console.error('Password request failed:', err);
+              showToast('Error', 'Unable to connect to the server.');
             }
           });
         }
