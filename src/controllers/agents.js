@@ -282,7 +282,8 @@ const addAgent = async (req, res) => {
 };
 
 const onboardingSentEmail = async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.params;
+  console.log("Onboarding email request for:", email);
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
