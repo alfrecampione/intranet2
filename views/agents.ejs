@@ -157,6 +157,7 @@
                                                             style="width: 130px"
                                                             aria-label="Photo: activate to sort column ascending">
                                                             Agency
+                                                        </th>
                                                         <th class="sorting_disabled" tabindex="3"
                                                             aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                             style="width: 130px"
@@ -812,6 +813,12 @@
 
                         if (response.ok) {
                             showToast("Success", "Email sent successfully!");
+
+                            await fetch(`/onboardingSentEmail`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ email }),
+                            });
 
                             emailInput.value = "";
                             docFields.forEach(field => {

@@ -281,6 +281,24 @@ const addAgent = async (req, res) => {
   }
 };
 
+const onboardingSentEmail = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Email is required." });
+  }
+  try {
+    await prisma.onboardingSentEmails.upsert({
+      where: { email },
+      update: { sentAt: new Date(), pending: true },
+      create: { email, sentAt: new Date(), pending: true }
+    });
+    res.status(200).json({ message: "Onboarding email record updated." });
+  } catch (error) {
+    console.error("Error updating onboarding email record:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 const deleteAgent = async (req, res) => {
   const { id } = req.params;
 
@@ -532,5 +550,6 @@ export {
   addAgent,
   deleteAgent,
   recoverAgent,
-  massiveCreateAgents
+  massiveCreateAgents,
+  onboardingSentEmail
 };

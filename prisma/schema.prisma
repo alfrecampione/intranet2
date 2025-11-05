@@ -298,3 +298,12 @@ model Notificacion {
 
   @@schema("health")
 }
+
+model OnboardingSentEmails {
+  id      String   @id @default(uuid())
+  email   String   @unique
+  sentAt  DateTime @default(now())
+  pending Boolean  @default(true)
+
+  @@schema("health")
+}

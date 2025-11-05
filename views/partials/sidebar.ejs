@@ -23,7 +23,7 @@
                 </a>
             </li>
 
-            <% if (user && user.createdAt) { %>
+            <% if (user && !user.isMicrosoftLogin) { %>
                 <li class="menu-item <%= activePage === 'profile' ? 'active' : '' %>">
                     <a href="<%= '/users/profile/' + user.user_id %>" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-user"></i>
@@ -52,6 +52,14 @@
                             <a href="/users/refering-agents" class="menu-link">
                                 <i class="menu-icon tf-icons ti ti-id-badge"></i>
                                 <div data-i18n="Refering Agents">Refering Agents</div>
+                            </a>
+                        </li>
+
+                        <!-- Onboarding Pending -->
+                        <li class="menu-item <%= activePage === 'pending-onboarding' ? 'active' : '' %>">
+                            <a href="/pending-onboarding" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-file-text"></i>
+                                <div data-i18n="Onboarding Pending">Onboarding Pending</div>
                             </a>
                         </li>
 

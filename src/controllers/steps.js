@@ -60,6 +60,11 @@ export const createPersonalInfo = async (req, res) => {
         data: { registrationCompleted: true, display_name: legalName },
       });
 
+      await prisma.onboardingSentEmails.update({
+        where: { email: req.user.email },
+        data: { pending: false },
+      });
+
       res.json(personalInfo);
     } catch (error) {
       console.error("Error creating or updating personal info:", error);

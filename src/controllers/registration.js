@@ -126,6 +126,19 @@ const handleFileUpload = (req, res) => {
   }
 };
 
+const renderOnboardingPending = async (req, res) => {
+  try {
+    const onboardingPending = await prisma.onboardingSentEmails.findMany({
+      where: { pending: true },
+    });
+
+    res.render("onboarding_pending", { user: req.user, activePage: "pending-onboarding", onboardingPending });
+  } catch (error) {
+    console.error("Error rendering onboarding pending page:", error.message);
+    res.status(500).send("Error rendering onboarding pending page.");
+  }
+};
 
 
-export { register, handleFileUpload, editRegister };
+
+export { register, handleFileUpload, editRegister, renderOnboardingPending };

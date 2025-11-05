@@ -30,8 +30,8 @@ import { agency } from "./controllers/agency_reports.js";
 import { dataSearch, getNotifications, renderNotifications, readNotification } from "./controllers/navbar.js";
 import { passwordMail, email_sender, new_user_notification, searchNews, readEmails } from "./controllers/mailer.js";
 import { postLogin } from "./config/passportConfig.js";
-import { register, editRegister } from "./controllers/registration.js";
-import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, deleteAgent, recoverAgent } from "./controllers/agents.js";
+import { register, editRegister, renderOnboardingPending } from "./controllers/registration.js";
+import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, onboardingSentEmail, deleteAgent, recoverAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, releaseAgent } from "./controllers/profile.js";
 
 const router = express.Router();
@@ -118,6 +118,9 @@ router.post("/users/agents/recover/:id", checkNotAuthenticated, recoverAgent);
 router.get("/users/released-agents", checkNotAuthenticated, checkReadRight, renderReleasedAgents);
 router.get("/users/refering-agents", checkNotAuthenticated, checkReadRight, renderReferingAgents);
 router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
+
+router.post("/onboardingSentEmail", checkNotAuthenticated, onboardingSentEmail);
+router.get("/pending-onboarding", checkNotAuthenticated, renderOnboardingPending);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 router.get("/search-news", checkNotAuthenticated, searchNews);
