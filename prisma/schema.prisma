@@ -60,10 +60,10 @@ model PersonalInfo {
   legalSex      String?
   photoPath     String?
   preferredName String?
-  ssn           String?   @unique
+  ssn           String?
   agency        String?
   franchise     String?
-  npn           String?   @unique
+  npn           String?
   user          User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   underAgency   Agency?   @relation(fields: [agency], references: [id], onDelete: SetNull)
 
