@@ -250,7 +250,6 @@ const new_user_notification = async (req, res) => {
           where: { email: alert.email },
         });
         if (agent) {
-          console.log("Logging notification for agent:", agent);
           await prisma.notificacion.create({
             data: {
               userId: agent.user_id,
