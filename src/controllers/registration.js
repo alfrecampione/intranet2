@@ -132,7 +132,16 @@ const renderOnboardingPending = async (req, res) => {
       where: { pending: true },
     });
 
-    res.render("onboarding_pending", { user: req.user, activePage: "pending-onboarding", onboardingPending });
+    const formatted = onboardingPending.map(u => ({
+      ...u,
+      sentAt: u.sentAt.toISOString(),
+    }));
+
+    res.render("onboarding_pending", {
+      user: req.user,
+      activePage: "pending-onboarding",
+      onboardingPending: formatted,
+    });
   } catch (error) {
     console.error("Error rendering onboarding pending page:", error.message);
     res.status(500).send("Error rendering onboarding pending page.");

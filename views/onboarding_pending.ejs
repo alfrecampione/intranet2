@@ -112,9 +112,6 @@
                                                         <th class="sorting_disabled" aria-controls="DataTables_Table_0"
                                                             rowspan="1" colspan="1" style="width: 30px" aria-label="#">#
                                                         </th>
-                                                        <th class="sorting_disabled dtr-hidden"
-                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
-                                                            style="width: 10px" aria-label=""></th>
                                                         <th class="sorting_disabled" tabindex="1"
                                                             aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                             style="width: 147px"
@@ -268,9 +265,12 @@
                     tr.appendChild(tdEmail);
 
                     const tdSentAt = document.createElement("td");
-                    tdSentAt.textContent = user.sentAt
-                        ? new Date(user.sentAt).toLocaleDateString()
-                        : "";
+                    if (user.sentAt) {
+                        const date = new Date(user.sentAt);
+                        tdSentAt.textContent = date.toLocaleString();
+                    } else {
+                        tdSentAt.textContent = "";
+                    }
                     tr.appendChild(tdSentAt);
 
                     tbody.appendChild(tr);
