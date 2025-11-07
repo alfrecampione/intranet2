@@ -335,12 +335,18 @@ const markDocsAsNecessary = async (req, res) => {
     return res.status(400).json({ message: "Email is required." });
   }
 
+  // Check if the email exists in necesaryDocuments
+  const existingRecord = await prisma.necesaryDocuments.findUnique({
+    where: { email }
+  });
+  if (existingRecord) {
+    return res.status(400).json({ message: "Documents for this email have already been marked as necessary." });
+  }
+
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     try {
-      const doc = await prisma.necesaryDocuments.upsert({
-        where: { email },
-        update: requiredDocuments,
-        create: {
+      const doc = await prisma.necesaryDocuments.create({
+        data: {
           email,
           ...requiredDocuments
         }

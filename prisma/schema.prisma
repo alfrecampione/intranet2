@@ -19,9 +19,10 @@ model session {
 }
 
 model crypto {
-  id             String @id
+  id             String  @id
   encrypted_data String
-  key            String @unique
+  key            String  @unique
+  data           String?
 
   @@schema("health")
 }

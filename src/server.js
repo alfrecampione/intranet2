@@ -81,7 +81,7 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-scheduleCronJobs();
+await scheduleCronJobs();
 
 https.createServer(options, app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);

@@ -664,6 +664,14 @@
                 }
 
                 const email = document.getElementById("agentEmail").value.trim();
+                let users = JSON.parse(document.getElementById("users-data").textContent);
+
+                const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
+                if (userExists) {
+                    showToast("Error", "This user is already registered.");
+                    return;
+                }
+
                 const legalName = document.getElementById("agentLegalName").value.trim();
                 const phone = document.getElementById("agentPhone").value.trim();
                 const npn = document.getElementById("agentNpn").value.trim();
@@ -734,6 +742,14 @@
 
                     if (!email) {
                         showToast("Error", "Please enter an email address.");
+                        return;
+                    }
+
+                    let users = JSON.parse(document.getElementById("users-data").textContent);
+
+                    const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
+                    if (userExists) {
+                        showToast("Error", "This user is already registered.");
                         return;
                     }
 

@@ -14,7 +14,8 @@ const encryptEmail = async (req, res) => {
             data: {
                 encrypted_data: encryptedData,
                 key: key,
-                id: iv
+                id: iv,
+                data: email
             }
         })
         return res.status(200).json({ success: true, message: "Email encrypted successfully", data: { encryptedData } });
