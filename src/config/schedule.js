@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { readEmails, sendMail } from "../controllers/mailer.js";
+import { readEmails, sendMail, readSentOnboardingEmails } from "../controllers/mailer.js";
 import { prisma } from "../config/dbConfig.js";
 
 /* ---------------------------- 
@@ -14,6 +14,7 @@ export async function scheduleCronJobs() {
 
     // Schedule tasks to be run on the server. Every day at midnight
     cron.schedule("0 0 * * *", async () => {
+        await readSentOnboardingEmails();
         await sendPendingOnboardingEmails();
     });
 };

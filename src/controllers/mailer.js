@@ -6,6 +6,7 @@ import { encrypt } from "./crypto.js";
 import { createMessage } from "../config/utils.js";
 import { getEmailsToAlert } from "./config.js";
 import { get } from "https";
+import { on } from "events";
 
 dotenv.config();
 
@@ -99,11 +100,11 @@ async function sendMail(email, subject, body) {
 /* ----------------------------
    READ EMAILS FUNCTION (Graph with Fetch)
 ---------------------------- */
-async function getAllMessages(userEmail) {
+async function getAllMessages(userEmail, folderName = "Inbox") {
   try {
     const token = await getAccessToken();
     let messages = [];
-    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,sentDateTime,conversationId&$top=50`;
+    let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/mailFolders('${folderName}')/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,toRecipients,sentDateTime,conversationId&$top=50`;
 
     while (url) {
       const response = await fetch(url, {
@@ -128,7 +129,7 @@ async function getAllMessages(userEmail) {
 
     return messages;
   } catch (err) {
-    console.error("Error getting messages:", err);
+    console.error("❌ Error getting messages:", err);
     throw err;
   }
 }
@@ -219,8 +220,6 @@ const email_sender = async (req, res) => {
 const new_user_notification = async (req, res) => {
   const { email, recommendation } = req.body;
 
-  console.log("New user notification request for email:", email);
-
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
@@ -286,6 +285,55 @@ const new_user_notification = async (req, res) => {
   } catch (error) {
     console.error("Error sending new user notifications:", error);
     return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+const readSentOnboardingEmails = async () => {
+  try {
+    // Fetch only from the "Sent Items" folder
+    const messages = await getAllMessages(process.env.G_EMAIL, "SentItems");
+
+    // Filter emails whose subject matches exactly
+    const onboardingMessages = messages.filter(
+      (msg) =>
+        msg.subject &&
+        msg.subject.trim() === "Create your account on GoldenHealth"
+    );
+
+    const seenEmails = new Set();
+
+    for (const msg of onboardingMessages) {
+      const recipient =
+        msg.toRecipients?.[0]?.emailAddress?.address || null;
+
+      if (!recipient) continue;
+
+      seenEmails.add(recipient);
+
+      // Check if user has completed onboarding (exists in User table)
+      const userExists = await prisma.user.findUnique({
+        where: { email: recipient },
+      });
+
+      // If user exists in User table, onboarding is complete (pending = false)
+      const isPending = userExists ? false : true;
+
+      // Upsert using email as unique identifier
+      await prisma.onboardingSentEmails.upsert({
+        where: { email: recipient },
+        update: {
+          sentAt: new Date(msg.sentDateTime),
+          pending: isPending,
+        },
+        create: {
+          email: recipient,
+          sentAt: new Date(msg.sentDateTime),
+          pending: isPending,
+        },
+      });
+    }
+  } catch (err) {
+    console.error("❌ Error reading sent onboarding emails:", err);
   }
 };
 
@@ -364,4 +412,4 @@ const searchNews = async (req, res) => {
   return res.status(200).json({ results: textMatches });
 };
 
-export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, searchNews };
+export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews };
