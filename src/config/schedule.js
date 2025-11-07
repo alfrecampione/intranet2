@@ -16,8 +16,6 @@ export async function scheduleCronJobs() {
     cron.schedule("0 0 * * *", async () => {
         await sendPendingOnboardingEmails();
     });
-
-    await sendPendingOnboardingEmails();
 };
 
 

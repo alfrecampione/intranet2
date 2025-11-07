@@ -59,7 +59,7 @@ async function sendMail(email, subject, body) {
           link: "https://goldentrustinsurance.com/",
         },
       });
-      mailHtml = mailGenerator.generate(body);
+      mailHtml = mailGenerator.generate({ body });
     }
 
     const message = {
@@ -73,7 +73,6 @@ async function sendMail(email, subject, body) {
       },
       saveToSentItems: true,
     };
-
     const token = await getAccessToken();
 
     const response = await fetch(
