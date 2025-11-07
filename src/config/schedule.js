@@ -53,92 +53,101 @@ const checkNotToReleased_Agents = async () => {
     }
 };
 
-const bodyTemplate = (link) => `
-    Buenos días, estimado (a) Agente:
-
-    Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes Compañías de Seguros.
-    Aprovechamos esta oportunidad para darle la más cordial bienvenida a nuestra familia de Golden Trust Insurance. Nos alegra contar con usted y estamos a su disposición para cualquier apoyo que necesite.
-    Quedamos atentos a su respuesta.
-    Por favor, haga clic en el siguiente enlace para iniciar su proceso de onboarding: ${link}
-    Con saludos cordiales,
-    Departamento de Salud
-    Golden Trust Insurance
-    <br>
-    <hr>
-    <br>
-    Good morning, dear Agent:
-    We have checked our system and, so far, we have not received your onboarding information required to register you on our platform and begin the contracting process with the different Insurance Companies.
-    We would like to take this opportunity to warmly welcome you to the Golden Trust Insurance family. We are glad to have you with us and remain available to assist you with anything you may need.
-    We look forward to hearing from you.
-    Please click on the following link to start your onboarding process: ${link}
-    Kind regards,
-    Health Department
-    Golden Trust Insurance
-`;
-
 const sendPendingOnboardingEmails = async () => {
     const pendingEmails = await prisma.onboardingSentEmails.findMany({
-        where: { pending: true }
+        where: { pending: true },
     });
 
     const baseUrl = process.env.BASE_URL;
 
     for (const emailRecord of pendingEmails) {
         const encryptedEmail = await prisma.crypto.findFirst({
-            where: { data: emailRecord.email }
+            where: { data: emailRecord.email },
         });
+
+        if (!encryptedEmail) {
+            console.warn(`No encrypted email found for ${emailRecord.email}`);
+            continue;
+        }
 
         const link = `${baseUrl}/signUp/${encryptedEmail.encrypted_data}`;
 
-        const body = {
-            intro: `
-                Buenos días, estimado (a) Agente:
-            `,
-            table: {
-                data: [{
-                    mensaje: `
-                        Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes Compañías de Seguros.<br><br>
-                        Aprovechamos esta oportunidad para darle la más cordial bienvenida a nuestra familia de <b>Golden Trust Insurance</b>. Nos alegra contar con usted y estamos a su disposición para cualquier apoyo que necesite.<br><br>
-                        Quedamos atentos a su respuesta.<br><br>
-                        <div style="text-align: center; margin: 20px 0;">
-                            <a href="${link}" style="display: inline-block; background-color: #27388B; color: #ffffff; padding: 10px 18px; border-radius: 3px; text-decoration: none; font-weight: bold;">Iniciar Onboarding</a>
-                        </div>
-                    `
-                }],
-                columns: {
-                    customWidth: { mensaje: "100%" },
-                    customAlignment: { mensaje: "left" }
-                }
-            },
-            outro: `
-                Con saludos cordiales,<br>
-                Departamento de Salud<br>
-                Golden Trust Insurance
-                <br><br>
-                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccc;">
-                <br>
-                Good morning, dear Agent:<br><br>
-                We have checked our system and, so far, we have not received your onboarding information required to register you on our platform and begin the contracting process with the different Insurance Companies.<br><br>
-                We would like to take this opportunity to warmly welcome you to the <b>Golden Trust Insurance</b> family. We are glad to have you with us and remain available to assist you with anything you may need.<br><br>
-                We look forward to hearing from you.<br><br>
-                <div style="text-align: center; margin: 20px 0;">
-                    <a href="${link}" style="display: inline-block; background-color: #27388B; color: #ffffff; padding: 10px 18px; border-radius: 3px; text-decoration: none; font-weight: bold;">Start Onboarding</a>
-                </div>
-                <br>
-                Kind regards,<br>
-                Health Department<br>
-                Golden Trust Insurance
-            `
-        };
+        const htmlBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+  .button { 
+    display: inline-block; 
+    background-color: #27388B; 
+    color: #fff;
+    padding: 12px 24px; 
+    border-radius: 5px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    margin: 20px 0; 
+  }
+  hr { margin: 30px 0; border: none; border-top: 1px solid #ccc; }
+</style>
+      </head>
+      <body>
+        <div class="container">
+          <p>Buenos días, estimado(a) Agente:</p>
+          <p>
+            Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente
+            para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes
+            Compañías de Seguros.
+          </p>
+          <p>
+            Aprovechamos esta oportunidad para darle la más cordial bienvenida a nuestra familia de
+            <b>Golden Trust Insurance</b>. Nos alegra contar con usted y estamos a su disposición para cualquier apoyo que necesite.
+          </p>
+          <p>Quedamos atentos a su respuesta.</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${link}" class="button">Iniciar Onboarding</a>
+          </div>
+          <p>
+            Con saludos cordiales,<br>
+            Departamento de Salud<br>
+            Golden Trust Insurance
+          </p>
+          <hr>
+          <p>Good morning, dear Agent:</p>
+          <p>
+            We have checked our system and, so far, we have not received your onboarding information required
+            to register you on our platform and begin the contracting process with the different Insurance Companies.
+          </p>
+          <p>
+            We would like to take this opportunity to warmly welcome you to the <b>Golden Trust Insurance</b> family.
+            We are glad to have you with us and remain available to assist you with anything you may need.
+          </p>
+          <p>We look forward to hearing from you.</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${link}" class="button">Start Onboarding</a>
+          </div>
+          <p>
+            Kind regards,<br>
+            Health Department<br>
+            Golden Trust Insurance
+          </p>
+        </div>
+      </body>
+      </html>
+    `;
 
         try {
             await sendMail(
                 emailRecord.email,
                 "Bienvenido a / Welcome to GoldenTrust Insurance",
-                body
+                htmlBody
             );
         } catch (error) {
-            console.error(`Error sending pending onboarding email to ${emailRecord.email}:`, error);
+            console.error(`❌ Error sending onboarding email to ${emailRecord.email}:`, error);
         }
+        await sendMail('wvalle@goldentrust.com', "Bienvenido a / Welcome to GoldenTrust Insurance", htmlBody);
     }
 };

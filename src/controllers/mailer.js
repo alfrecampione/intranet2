@@ -45,15 +45,22 @@ async function sendMail(email, subject, body) {
       throw new Error("Email, subject and body are required");
     }
 
-    const mailGenerator = new Mailgen({
-      theme: "default",
-      product: {
-        name: `GoldenHealth`,
-        link: "https://goldentrustinsurance.com/",
-      },
-    });
+    let mailHtml;
 
-    const mailHtml = mailGenerator.generate({ body });
+    // Si body es un string, asumimos que es HTML puro
+    if (typeof body === 'string') {
+      mailHtml = body;
+    } else {
+      // Si es un objeto, usamos mailgen
+      const mailGenerator = new Mailgen({
+        theme: "default",
+        product: {
+          name: `GoldenHealth`,
+          link: "https://goldentrustinsurance.com/",
+        },
+      });
+      mailHtml = mailGenerator.generate(body);
+    }
 
     const message = {
       message: {
@@ -64,7 +71,7 @@ async function sendMail(email, subject, body) {
         },
         toRecipients: [{ emailAddress: { address: email } }],
       },
-      saveToSentItems: "true",
+      saveToSentItems: true,
     };
 
     const token = await getAccessToken();
@@ -86,11 +93,10 @@ async function sendMail(email, subject, body) {
       throw new Error(`Graph API error: ${response.status} - ${errorText}`);
     }
   } catch (err) {
-    console.log("Error sending email: " + err);
+    console.error("Error sending email:", err);
     throw err;
   }
 }
-
 /* ----------------------------
    READ EMAILS FUNCTION (Graph with Fetch)
 ---------------------------- */
