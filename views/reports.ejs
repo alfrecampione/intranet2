@@ -204,21 +204,23 @@
             function populateAgenciesUnderFranchise(selectedFranchiseId) {
                 filterSubValue.innerHTML = '<option value="">Select Agency</option>';
 
-                if (!selectedFranchiseId || !filtersData['franchiseAgencyCombination']) {
+                if (!selectedFranchiseId || !filtersData?.franchiseAgencyCombination) {
                     filterSubValue.style.display = 'none';
                     return;
                 }
 
-                // Find the franchise in the combination array
-                const franchiseData = filtersData['franchiseAgencyCombination'].find(
-                    item => item.franchise.id === selectedFranchiseId
-                );
+                // Convert both sides to strings to ensure consistent comparison
+                const franchiseData = filtersData.franchiseAgencyCombination.find(item => {
+                    const fid = String(item.franchise?.id || '').trim();
+                    const selected = String(selectedFranchiseId).trim();
+                    return fid === selected;
+                });
 
-                if (franchiseData && franchiseData.agencies) {
-                    franchiseData.agencies.forEach(agencyWrapper => {
-                        const agency = agencyWrapper.agency;
+                if (franchiseData?.agencies?.length) {
+                    franchiseData.agencies.forEach(({ agency }) => {
+                        if (!agency?.id || !agency?.name) return; // skip incomplete entries
                         const opt = document.createElement('option');
-                        opt.value = agency.id;
+                        opt.value = String(agency.id);
                         opt.textContent = agency.name;
                         filterSubValue.appendChild(opt);
                     });
