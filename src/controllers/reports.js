@@ -164,10 +164,6 @@ function handleCarrierStateFilter(processedAgents, state, carrier) {
 async function handleAgencyFilter(processedAgents, filterValue, filterSubValue) {
     const matchingAgents = [];
 
-    console.log(`[handleAgencyFilter] Filtering with filterValue: ${filterValue}, filterSubValue: ${filterSubValue}`);
-
-    console.log(`[handleAgencyFilter] Agents to process: ${processedAgents.map(a => a.name).join(', ')}`);
-
     // Get unique combinations to minimize queries
     const uniqueCombinations = new Map();
     processedAgents.forEach(agent => {
