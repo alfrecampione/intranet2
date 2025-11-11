@@ -56,6 +56,10 @@ async function handleAgencySummaryFilter(requester) {
         let count = 0;
         for (const agencyEntry of combination.agencies) {
             const agencyId = agencyEntry.id;
+            if (agencyId === null || agencyId === undefined) {
+                count = -1;  // Indicate unknown count
+                continue;
+            }
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
             console.log('Agencies under this agency:', agenciesUnderThis);
             const agentsInThisAgency = await prisma.personalInfo.count({
@@ -64,6 +68,8 @@ async function handleAgencySummaryFilter(requester) {
                 }
             });
             count += agentsInThisAgency + 1; // +1 for agency owner
+
+            if (combination.franchise.id === '1') console.log(`Agency ID: ${agencyEntry.name}, Agents Count: ${agentsInThisAgency}`);
         }
         franchiseAgentCount.set(combination.franchise.id, count);
     }

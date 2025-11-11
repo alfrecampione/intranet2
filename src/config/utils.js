@@ -83,9 +83,6 @@ async function getAgencies() {
  * @returns {Promise<string[]>} A list of all agency IDs (including nested ones).
  */
 async function getAllAgencyIds(agencyId) {
-    if (agencyId === null || agencyId === undefined) {
-        return [];
-    }
     const result = [agencyId];
 
     const usersUnderAgency = await prisma.user.findMany({
