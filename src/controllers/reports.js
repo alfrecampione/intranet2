@@ -108,6 +108,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
         const topAgents = await prisma.user.findMany({
             include: {
                 personalInfo: true,
+                contactInfo: true,
             },
             where: {
                 personalInfo: {
@@ -125,6 +126,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
         const agentsInAgencies = await prisma.user.findMany({
             include: {
                 personalInfo: true,
+                contactInfo: true,
             },
             where: {
                 personalInfo: {
@@ -147,6 +149,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
         const agentsInAgencies = await prisma.user.findMany({
             include: {
                 personalInfo: true,
+                contactInfo: true,
             },
             where: {
                 personalInfo: {
@@ -154,8 +157,26 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 },
             }
         });
+        const allAgents = agentsInAgencies;
 
-        return agentsInAgencies.map(agent => ({
+        const owner = await prisma.agency.findUnique({
+            where: { id: filterSubValue },
+            select: { owner: true }
+        });
+        if (owner) {
+            const ownerAgent = await prisma.user.findUnique({
+                where: { user_id: owner.owner },
+                include: {
+                    personalInfo: true,
+                    contactInfo: true,
+                }
+            });
+            if (ownerAgent) {
+                allAgents.push(ownerAgent);
+            }
+        }
+
+        return allAgents.map(agent => ({
             user_id: agent.user_id,
             name: agent.display_name || '',
             email: agent.email || '',
