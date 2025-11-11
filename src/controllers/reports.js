@@ -1,19 +1,21 @@
 import { get } from "http";
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, reverseGetAllAgencies } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies } from "../config/utils.js";
+import { name } from "ejs";
+import { agency } from "./agency_reports.js";
 
 /* ============================
    UTILITY FUNCTIONS
 ============================ */
 
 /**
- * Loads agents with their related data and flattens state/carrier records
- * @param {Object} where - Prisma where clause
- * @returns {Promise<Array>} Flattened array of agent records with state/carrier info
+ * Loads agents with their related data. Keeps states/carriers nested per agent.
+ * @param {Array<number|string>} agentsIds - List of agent user_ids
+ * @returns {Promise<Array>} Array of agent records with nested statesAndCarriers
  */
-async function loadAgents(where = {}) {
+async function loadAgents(agentsIds) {
     const agents = await prisma.user.findMany({
-        where: { ...where },
+        where: { user_id: { in: agentsIds } },
         include: {
             personalInfo: true,
             contactInfo: true,
@@ -22,22 +24,18 @@ async function loadAgents(where = {}) {
         orderBy: { display_name: 'asc' }
     });
 
-    const flattened = agents.flatMap(agent =>
-        agent.statesAndCarriers.map(record => ({
-            user_id: agent.user_id,
-            name: agent.display_name || '',
-            state: record.state || '',
-            carrier: record.company || '',
-            status: record.status || '',
-            agency: agent.personalInfo?.agency || '',
-            franchise: agent.personalInfo?.franchise || '',
-            businessName: agent.personalInfo?.businessName || '',
-            email: agent.email || '',
-            number: agent.contactInfo?.personalPhone || ''
-        }))
-    );
+    const mappedAgents = agents.map(agent => ({
+        user_id: agent.user_id,
+        name: agent.display_name || '',
+        statesAndCarriers: agent.statesAndCarriers,
+        agency: agent.personalInfo?.agency || '',
+        franchise: agent.personalInfo?.franchise || '',
+        businessName: agent.personalInfo?.businessName || '',
+        email: agent.email || '',
+        number: agent.contactInfo?.personalPhone || ''
+    }));
 
-    return flattened.sort((a, b) =>
+    return mappedAgents.sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     );
 }
@@ -97,19 +95,7 @@ function getUniqueSimple(arr, key) {
     return [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
 }
 
-/**
- * Removes duplicate agents by user_id
- * @param {Array} agents - Array of agent records
- * @returns {Array} Unique agents
- */
-function deduplicateAgents(agents) {
-    const seen = new Set();
-    return agents.filter(agent => {
-        if (seen.has(agent.user_id)) return false;
-        seen.add(agent.user_id);
-        return true;
-    });
-}
+// Note: No deduplication needed anymore since each agent is returned once
 
 /**
  * Builds where clause for agency-restricted queries
@@ -154,7 +140,7 @@ async function buildAgencyWhereClause(user) {
 async function handleAgencySummaryFilter(processedAgents) {
     const franchiseAgentCount = new Map();
     const franchiseAgencySet = new Map();
-    const uniqueAgents = deduplicateAgents(processedAgents);
+    const uniqueAgents = processedAgents; // already unique by user_id
 
     // Get unique combinations to minimize queries
     const uniqueCombinations = new Map();
@@ -221,8 +207,10 @@ async function handleAgencySummaryFilter(processedAgents) {
  * @returns {Array} Filtered agents
  */
 function handleCarrierStateFilter(processedAgents, state, carrier) {
-    return processedAgents.filter(
-        agent => agent.state === state && agent.carrier === carrier
+    // Match agents that have at least one state/carrier record with both values
+    return processedAgents.filter(agent =>
+        Array.isArray(agent.statesAndCarriers) &&
+        agent.statesAndCarriers.some(sc => sc.state === state && sc.company === carrier)
     );
 }
 
@@ -321,6 +309,26 @@ async function handleAgencyFilter(processedAgents, filterValue, filterSubValue) 
  * @returns {Array} Filtered agents
  */
 function handleGenericFilter(processedAgents, filterType, filterValue) {
+    // Handle nested statesAndCarriers fields for common filters
+    if (filterType === 'status') {
+        return processedAgents.filter(agent =>
+            Array.isArray(agent.statesAndCarriers) &&
+            agent.statesAndCarriers.some(sc => sc.status === filterValue)
+        );
+    }
+    if (filterType === 'state') {
+        return processedAgents.filter(agent =>
+            Array.isArray(agent.statesAndCarriers) &&
+            agent.statesAndCarriers.some(sc => sc.state === filterValue)
+        );
+    }
+    if (filterType === 'carrier') {
+        return processedAgents.filter(agent =>
+            Array.isArray(agent.statesAndCarriers) &&
+            agent.statesAndCarriers.some(sc => sc.company === filterValue)
+        );
+    }
+    // Primitive top-level agent fields
     return processedAgents.filter(agent => agent[filterType] === filterValue);
 }
 
@@ -336,7 +344,7 @@ async function getStatesAndCarriers() {
     const sortedStates = Array.from(uniqueStates).sort();
 
     // Extract unique carriers
-    const carriers = statesAndCarriers.map(item => item.name);
+    const carriers = statesAndCarriers.map(item => item.name).sort();
 
     return { states: sortedStates, carriers };
 };
@@ -363,7 +371,7 @@ async function getFranchiseAgencyCombinations(requester) {
         for (const franchise of franchises) {
             const agencyOwners = await prisma.personalInfo.findMany({
                 where: {
-                    franchise: franchise.location_id
+                    franchise: `${franchise.location_id}`
                 }
             });
             topAgencies = await prisma.agency.findMany({
@@ -429,6 +437,11 @@ async function getFranchiseAgencyCombinations(requester) {
 
     return result;
 }
+async function getAgentsToRender(requester) {
+    const visibleAgentsId = await getVisibleAgentsId(requester.user_id);
+    const processedAgents = await loadAgents(visibleAgentsId);
+    return processedAgents;
+}
 
 /* ============================
    ROUTE HANDLERS
@@ -437,7 +450,9 @@ async function getFranchiseAgencyCombinations(requester) {
 const renderReports = async (req, res) => {
     const user = req.user;
 
-    const carrierStateCombination = getStatesAndCarriers();
+    const visibleAgents = await getAgentsToRender(user);
+
+    const carrierStateCombination = await getStatesAndCarriers();
     const stateFilterValue = carrierStateCombination.states;
     const carrierFilterValue = carrierStateCombination.carriers;
 
@@ -445,97 +460,31 @@ const renderReports = async (req, res) => {
 
     const franchiseAgencyCombination = await getFranchiseAgencyCombinations(user);
 
-    console.log('Franchise-Agency Combination:', franchiseAgencyCombination);
+    // Sort franchises alphabetically by name
+    const franchiseFilterValue = franchiseAgencyCombination
+        .map(item => item.franchise)
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-    const franchiseFilterValue = franchiseAgencyCombination.map(item => item.franchise);
+    // Sort agencies alphabetically by name and remove duplicates
     let agencyFilterValue = franchiseAgencyCombination.flatMap(item => item.agencies.map(a => a.agency));
 
-    // Remove duplicates
-    agencyFilterValue = [...new Set(agencyFilterValue)];
+    // Remove duplicates by id and sort by name
+    const uniqueAgencies = Array.from(
+        new Map(agencyFilterValue.map(a => [a.id, a])).values()
+    ).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     res.render("reports", {
         user,
+        agents: visibleAgents,
         filters: {
+            agents: visibleAgents,
             state: stateFilterValue,
             carrier: carrierFilterValue,
             carrierState: carrierStateCombination,
             status: statusFilterValue,
             franchise: franchiseFilterValue,
-            agency: agencyFilterValue,
-            franchiseAgencyCombination,
-        },
-        activePage: 'reports'
-    });
-};
-
-/**
- * Renders the reports page with filters
- */
-const renderReportsOld = async (req, res) => {
-    const user = req.user;
-    const where = await buildAgencyWhereClause(user);
-    const processedAgents = await loadAgents(where);
-
-    // Extract unique agency/franchise combinations to avoid duplicate queries
-    const uniqueCombinations = new Map();
-    processedAgents.forEach(agent => {
-        const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
-        if (!uniqueCombinations.has(key)) {
-            uniqueCombinations.set(key, { agency: agent.agency, franchise: agent.franchise });
-        }
-    });
-
-    // Get hierarchies only for unique combinations (batch processing)
-    const hierarchyPromises = Array.from(uniqueCombinations.values()).map(
-        ({ agency, franchise }) => reverseGetAllAgencies(agency, franchise)
-    );
-
-    const hierarchies = await Promise.all(hierarchyPromises);
-    console.log('Fetched Hierarchies:', hierarchies);
-
-    // Create a map of hierarchies by key for quick lookup
-    const hierarchyMap = new Map();
-    Array.from(uniqueCombinations.keys()).forEach((key, index) => {
-        hierarchyMap.set(key, hierarchies[index]);
-    });
-
-    // Extract unique agencies and franchises from hierarchies
-    const allHierarchies = hierarchies.flat();
-
-    const allAgencies = getUnique(
-        allHierarchies
-            .filter(i => i.isAgency)
-            .map(i => ({
-                name: i.name,
-                franchiseName: i.underFranchise?.name || null
-            })),
-        ['name', 'franchiseName']
-    );
-    console.log('Unique Agencies Extracted:', allAgencies);
-
-    const allFranchises = getUnique(
-        allHierarchies
-            .filter(i => !i.isAgency)
-            .map(i => i.name)
-    );
-
-    console.log('=== Reports Page Debug ===');
-    console.log('Total unique combinations:', uniqueCombinations.size);
-    console.log('Total hierarchies fetched:', hierarchies.length);
-    console.log('Total unique agencies:', allAgencies.length);
-    console.log('Total unique franchises:', allFranchises.length);
-    console.log('Agencies:', allAgencies);
-    console.log('==========================');
-
-    res.render("reports", {
-        user,
-        agents: processedAgents,
-        filters: {
-            state: getUniqueSimple(processedAgents, 'state'),
-            carrier: getUniqueSimple(processedAgents, 'carrier'),
-            status: getUniqueSimple(processedAgents, 'status'),
-            franchise: allFranchises,
-            agency: allAgencies,
+            agency: uniqueAgencies,
+            franchiseAgencyCombination: franchiseAgencyCombination,
         },
         activePage: 'reports'
     });
@@ -547,9 +496,11 @@ const renderReportsOld = async (req, res) => {
 const filterReport = async (req, res) => {
     const { filterType, filterValue, filterSubValue } = req.query;
     const user = req.user;
+    let processedAgents = await getAgentsToRender(user);
 
-    const where = await buildAgencyWhereClause(user);
-    let processedAgents = await loadAgents(where);
+    if (filterType === null || filterType === undefined) {
+        return res.json({ data: processedAgents, total: processedAgents.length });
+    }
 
     // Apply appropriate filter
     if (filterType === 'agency' && !filterValue && !filterSubValue) {
@@ -566,93 +517,10 @@ const filterReport = async (req, res) => {
         processedAgents = handleGenericFilter(processedAgents, filterType, filterValue);
     }
 
-    // Remove duplicates
-    processedAgents = deduplicateAgents(processedAgents);
-
     res.json({ data: processedAgents, total: processedAgents.length });
 };
 
 /**
- * Gets agencies under a specific franchise
- */
-const getAgenciesByFranchise = async (req, res) => {
-    try {
-        const { franchise } = req.query;
-        const user = req.user;
-
-        if (!franchise) {
-            return res.json({ agencies: [] });
-        }
-
-        const where = await buildAgencyWhereClause(user);
-        const processedAgents = await loadAgents(where);
-
-        // Get unique agency/franchise combinations
-        const uniqueCombinations = new Map();
-        processedAgents.forEach(agent => {
-            const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
-            if (!uniqueCombinations.has(key)) {
-                uniqueCombinations.set(key, {
-                    agency: agent.agency,
-                    franchise: agent.franchise,
-                    businessName: agent.businessName
-                });
-            }
-        });
-
-        // Batch process hierarchies
-        const hierarchyPromises = Array.from(uniqueCombinations.values()).map(
-            ({ agency, franchise: agentFranchise }) =>
-                reverseGetAllAgencies(agency, agentFranchise)
-        );
-
-        const hierarchies = await Promise.all(hierarchyPromises);
-
-        // Map hierarchies back to combinations
-        const agenciesUnderFranchise = new Set();
-        const combinationsArray = Array.from(uniqueCombinations.values());
-
-        hierarchies.forEach((hierarchy, index) => {
-            const { businessName } = combinationsArray[index];
-
-            // Check if this hierarchy includes the target franchise
-            const hasFranchise = hierarchy.some(
-                h => !h.isAgency && h.name?.toLowerCase() === franchise.toLowerCase()
-            );
-
-            if (hasFranchise) {
-                // Add all agencies in this hierarchy
-                hierarchy
-                    .filter(h => h.isAgency)
-                    .forEach(a => {
-                        if (a.name) {
-                            agenciesUnderFranchise.add(JSON.stringify({
-                                name: a.name,
-                                businessName: businessName
-                            }));
-                        }
-                    });
-            }
-        });
-
-        // Convert back to objects and deduplicate
-        const agencies = Array.from(agenciesUnderFranchise)
-            .map(str => JSON.parse(str))
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        console.log('=== Agency Dropdown Debug ===');
-        console.log('Franchise requested:', franchise);
-        console.log('Total unique combinations checked:', uniqueCombinations.size);
-        console.log('Agencies found:', agencies.length);
-        console.log('Agency list:', agencies);
-        console.log('============================');
-
-        res.json({ agencies });
-    } catch (err) {
-        console.error('Error getting agencies by franchise:', err);
-        res.status(500).json({ error: 'Error getting agencies' });
-    }
-};/**
  * Exports data as CSV
  */
 const exportData = async (req, res) => {
@@ -688,4 +556,4 @@ const exportData = async (req, res) => {
     }
 };
 
-export { renderReports, filterReport, getAgenciesByFranchise, exportData };
+export { renderReports, filterReport, exportData };
