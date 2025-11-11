@@ -57,7 +57,7 @@ async function handleAgencySummaryFilter(requester) {
         for (const agencyEntry of combination.agencies) {
             const agencyId = agencyEntry.id;
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
-            const agentsInThisAgency = await prisma.user.count({
+            const agentsInThisAgency = await prisma.personalInfo.count({
                 where: {
                     agency: { in: agenciesUnderThis },
                 }
