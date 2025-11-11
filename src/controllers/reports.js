@@ -251,47 +251,41 @@ async function handleAgencyFilter(processedAgents, filterValue, filterSubValue) 
         const { agents } = uniqueCombinations.get(key);
 
         for (const agent of agents) {
-            // If both filterValue and filterSubValue are provided
+            // If both filterValue (franchise ID) and filterSubValue (agency ID) are provided
             if (filterValue && filterSubValue) {
-                const franchiseLower = filterValue.toLowerCase();
-                const agencyLower = filterSubValue.toLowerCase();
-
-                // Check if hierarchy contains the franchise
+                // Check if hierarchy contains the franchise by ID
                 const hasFranchise = hierarchy.some(
-                    h => !h.isAgency && h.name?.toLowerCase() === franchiseLower
+                    h => !h.isAgency && String(h.id) === String(filterValue)
                 );
 
-                // Check if hierarchy contains the agency OR matches businessName
+                // Check if hierarchy contains the agency by ID
                 const hasAgency = hierarchy.some(
-                    h => h.isAgency && h.name?.toLowerCase() === agencyLower
-                ) || agent.businessName?.toLowerCase() === agencyLower;
+                    h => h.isAgency && String(h.id) === String(filterSubValue)
+                );
 
                 if (hasFranchise && hasAgency) {
                     matchingAgents.push(agent);
                 }
             }
-            // If only filterValue (franchise) is provided
+            // If only filterValue (franchise ID) is provided
             else if (filterValue && !filterSubValue) {
-                const franchiseLower = filterValue.toLowerCase();
-                const allNames = hierarchy.map(h => h.name?.toLowerCase()).filter(Boolean);
+                // Check if hierarchy contains the franchise by ID or agent's franchise matches
+                const hasFranchise = hierarchy.some(
+                    h => !h.isAgency && String(h.id) === String(filterValue)
+                ) || String(agent.franchise) === String(filterValue);
 
-                if (
-                    allNames.includes(franchiseLower) ||
-                    agent.franchise?.toLowerCase() === franchiseLower
-                ) {
+                if (hasFranchise) {
                     matchingAgents.push(agent);
                 }
             }
-            // If only filterSubValue is provided (shouldn't happen, but handle it)
+            // If only filterSubValue (agency ID) is provided (shouldn't happen, but handle it)
             else if (!filterValue && filterSubValue) {
-                const targetLower = filterSubValue.toLowerCase();
-                const allNames = hierarchy.map(h => h.name?.toLowerCase()).filter(Boolean);
+                // Check if hierarchy contains the agency by ID or agent's agency matches
+                const hasAgency = hierarchy.some(
+                    h => h.isAgency && String(h.id) === String(filterSubValue)
+                ) || String(agent.agency) === String(filterSubValue);
 
-                if (
-                    allNames.includes(targetLower) ||
-                    agent.agency?.toLowerCase() === targetLower ||
-                    agent.businessName?.toLowerCase() === targetLower
-                ) {
+                if (hasAgency) {
                     matchingAgents.push(agent);
                 }
             }
