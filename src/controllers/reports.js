@@ -60,7 +60,7 @@ async function handleAgencySummaryFilter(requester) {
             console.log('Agencies under this agency:', agenciesUnderThis);
             const agentsInThisAgency = await prisma.personalInfo.count({
                 where: {
-                    agency: { in: [] },
+                    agency: { in: agenciesUnderThis },
                 }
             });
             count += agentsInThisAgency + 1; // +1 for agency owner
