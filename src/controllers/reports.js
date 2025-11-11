@@ -49,11 +49,10 @@ async function loadAgents(agentsIds) {
 async function handleAgencySummaryFilter(processedAgents) {
     const franchiseAgentCount = new Map();
     const franchiseAgencySet = new Map();
-    const uniqueAgents = processedAgents; // already unique by user_id
 
-    // Get unique combinations to minimize queries
+    // Unique combinations (agency + franchise)
     const uniqueCombinations = new Map();
-    uniqueAgents.forEach(agent => {
+    processedAgents.forEach(agent => {
         const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
         if (!uniqueCombinations.has(key)) {
             uniqueCombinations.set(key, {
@@ -65,42 +64,74 @@ async function handleAgencySummaryFilter(processedAgents) {
         uniqueCombinations.get(key).agents.push(agent);
     });
 
-    // Batch process hierarchies
-    const hierarchyPromises = Array.from(uniqueCombinations.values()).map(
-        ({ agency, franchise }) => reverseGetAllAgencies(agency, franchise)
+    // Cache hierarchies to prevent repeated DB lookups
+    const hierarchyCache = new Map();
+
+    // Helper to enforce timeouts on async calls
+    const withTimeout = (promise, ms = 5000, key = 'unknown') => {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`Timeout on ${key}`)), ms)
+            ),
+        ]);
+    };
+
+    // Process each unique combination
+    const hierarchyPromises = Array.from(uniqueCombinations.entries()).map(
+        async ([key, { agency, franchise }]) => {
+            if (!hierarchyCache.has(key)) {
+                try {
+                    const hierarchy = await withTimeout(
+                        reverseGetAllAgencies(agency, franchise, new Set()),
+                        8000,
+                        key
+                    );
+                    hierarchyCache.set(key, hierarchy);
+                } catch (err) {
+                    console.log(`[handleAgencySummaryFilter] Hierarchy load failed for ${key}:`, err.message);
+                    hierarchyCache.set(key, []); // fallback empty
+                }
+            }
+            return [key, hierarchyCache.get(key)];
+        }
     );
 
-    const hierarchies = await Promise.all(hierarchyPromises);
+    const hierarchyResults = await Promise.all(hierarchyPromises);
 
-    // Process results
-    Array.from(uniqueCombinations.keys()).forEach((key, index) => {
-        const hierarchy = hierarchies[index];
+    // Process summary counts
+    for (const [key, hierarchy] of hierarchyResults) {
         const { agents } = uniqueCombinations.get(key);
         const topFranchise = hierarchy.find(h => !h.isAgency);
 
         if (topFranchise) {
             const franchiseName = topFranchise.name;
 
-            // Count agents
+            // Count agents under this franchise
             franchiseAgentCount.set(
                 franchiseName,
                 (franchiseAgentCount.get(franchiseName) || 0) + agents.length
             );
 
-            // Track unique agencies
+            // Track agencies under this franchise
             if (!franchiseAgencySet.has(franchiseName)) {
                 franchiseAgencySet.set(franchiseName, new Set());
             }
-            const agencySet = franchiseAgencySet.get(franchiseName);
-            hierarchy.filter(h => h.isAgency).forEach(a => agencySet.add(a.name));
-        }
-    });
 
-    // Build summary
+            const agencySet = franchiseAgencySet.get(franchiseName);
+            hierarchy
+                .filter(h => h.isAgency)
+                .forEach(a => agencySet.add(a.name));
+        } else {
+            console.log(`[handleAgencySummaryFilter] No top franchise found for key: ${key}`);
+        }
+    }
+
+    // Build final summary data
     const summaryData = Array.from(franchiseAgentCount.keys()).map(franchiseName => ({
         location: franchiseName,
         agencies: franchiseAgencySet.get(franchiseName)?.size || 0,
-        agents: franchiseAgentCount.get(franchiseName) || 0
+        agents: franchiseAgentCount.get(franchiseName) || 0,
     }));
 
     summaryData.sort((a, b) => a.location.localeCompare(b.location));

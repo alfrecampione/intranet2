@@ -123,25 +123,22 @@ async function getAllAgencyIds(agencyId) {
  * @returns {Promise<Array<{ id: string, isAgency: boolean, name: string }>>}
  * A list of parent agencies and franchises, starting from the given entity upward.
  */
-async function reverseGetAllAgencies(agencyId, franchiseId) {
+async function reverseGetAllAgencies(agencyId, franchiseId, visited = new Set()) {
     const results = [];
     const agencyCache = new Map();
     const franchiseCache = new Map();
 
-    // Helper to climb up to find the franchise for a given agency
     async function findTopFranchise(aid) {
         let currentAgencyId = aid;
-
         while (currentAgencyId) {
+            if (visited.has(currentAgencyId)) break; // prevent loop
+            visited.add(currentAgencyId);
+
             let agency = agencyCache.get(currentAgencyId);
             if (!agency) {
                 agency = await prisma.agency.findUnique({
                     where: { id: currentAgencyId },
-                    include: {
-                        user: {
-                            include: { personalInfo: true },
-                        },
-                    },
+                    include: { user: { include: { personalInfo: true } } },
                 });
                 agencyCache.set(currentAgencyId, agency);
             }
@@ -152,7 +149,6 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
             const parentAgencyId = agency.user?.personalInfo?.agency || null;
 
             if (franchiseId) {
-                // Found the franchise at this level
                 const fid = Number(franchiseId);
                 if (isNaN(fid)) return null;
 
@@ -168,34 +164,29 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
                 return franchiseCache.get(fid);
             }
 
-            // Move up the chain
             currentAgencyId = parentAgencyId;
         }
 
-        return null; // No franchise found
+        return null;
     }
 
-    // Now climb the combined chain (agency + franchise)
     while (agencyId || franchiseId) {
         if (agencyId) {
+            if (visited.has(agencyId)) break; // stop cyclic loop
+            visited.add(agencyId);
+
             let agency = agencyCache.get(agencyId);
             if (!agency) {
                 agency = await prisma.agency.findUnique({
                     where: { id: agencyId },
-                    include: {
-                        user: {
-                            include: { personalInfo: true },
-                        },
-                    },
+                    include: { user: { include: { personalInfo: true } } },
                 });
                 agencyCache.set(agencyId, agency);
             }
 
             if (!agency) break;
 
-            // Find the top franchise for this agency
             const underFranchise = await findTopFranchise(agencyId);
-
             results.push({
                 id: agency.id,
                 isAgency: true,
@@ -205,11 +196,9 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
                     : null,
             });
 
-            // Move up to parent
             agencyId = agency.user?.personalInfo?.agency || null;
             franchiseId = agency.user?.personalInfo?.franchise || null;
-        }
-        else if (franchiseId) {
+        } else if (franchiseId) {
             const fid = Number(franchiseId);
             if (isNaN(fid)) break;
 
@@ -223,12 +212,11 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
             }
 
             const franchise = franchiseCache.get(fid);
-
             results.push({
                 id: franchiseId,
                 isAgency: false,
                 name: franchise?.alias || '',
-                underFranchise: null, // top-level franchise
+                underFranchise: null,
             });
 
             break;
