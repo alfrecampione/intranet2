@@ -1,8 +1,5 @@
-import { get } from "http";
 import { prisma } from "../config/dbConfig.js";
 import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies } from "../config/utils.js";
-import { name } from "ejs";
-import { agency } from "./agency_reports.js";
 
 /* ============================
    UTILITY FUNCTIONS
@@ -38,94 +35,6 @@ async function loadAgents(agentsIds) {
     return mappedAgents.sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     );
-}
-
-/**
- * Returns unique values from array with optional composite key support
- * @param {Array} arr - Array of items (primitives or objects)
- * @param {Array<string>} keys - Keys for objects to determine uniqueness
- * @returns {Array} Unique and sorted array
- */
-function getUnique(arr, keys = []) {
-    if (!arr?.length) return [];
-
-    // Handle primitive arrays
-    if (!keys.length) {
-        return [...new Set(arr.filter(Boolean))].sort((a, b) => {
-            if (typeof a === 'string' && typeof b === 'string') {
-                return a.localeCompare(b);
-            }
-            return a - b;
-        });
-    }
-
-    // Handle object arrays with composite keys
-    const seen = new Set();
-    const result = [];
-
-    for (const item of arr) {
-        const compositeKey = keys.map(k => item[k] ?? '').join('|');
-        if (!seen.has(compositeKey)) {
-            seen.add(compositeKey);
-            result.push(item);
-        }
-    }
-
-    // Sort by first key
-    const firstKey = keys[0];
-    result.sort((a, b) => {
-        if (!a[firstKey]) return 1;
-        if (!b[firstKey]) return -1;
-        if (typeof a[firstKey] === 'string' && typeof b[firstKey] === 'string') {
-            return a[firstKey].localeCompare(b[firstKey]);
-        }
-        return a[firstKey] - b[firstKey];
-    });
-
-    return result;
-}
-
-/**
- * Extracts unique simple values from array of objects
- * @param {Array} arr - Array of objects
- * @param {string} key - Key to extract
- * @returns {Array} Sorted unique values
- */
-function getUniqueSimple(arr, key) {
-    return [...new Set(arr.map(i => i[key]).filter(Boolean))].sort();
-}
-
-// Note: No deduplication needed anymore since each agent is returned once
-
-/**
- * Builds where clause for agency-restricted queries
- * Restricts data based on user's agency ownership
- * @param {Object} user - Current user object
- * @returns {Promise<Object>} Prisma where clause
- */
-async function buildAgencyWhereClause(user) {
-    if (!user?.isAgent || user.rights.includes(1)) {
-        return {};
-    }
-
-    const agency = await prisma.agency.findUnique({
-        where: { owner: user.user_id }
-    });
-
-    if (!agency) return {};
-
-    const allAgencyIds = await getAllAgencyIds(agency.id);
-
-    return {
-        OR: [
-            {
-                personalInfo: {
-                    is: { agency: { in: allAgencyIds } }
-                }
-            },
-            { user_id: user.user_id }
-        ]
-    };
 }
 
 /* ============================
