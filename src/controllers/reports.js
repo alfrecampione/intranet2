@@ -53,9 +53,6 @@ async function handleAgencySummaryFilter(requester) {
     const franchiseAgentCount = new Map();
 
     for (const combination of franchiseAgencyCombination) {
-        if (combination.franchise.id === 1) {
-            console.log(combination);
-        }
         let count = 0;
         for (const agencyEntry of combination.agencies) {
             const agencyId = agencyEntry.agency.id;
