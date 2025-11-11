@@ -49,6 +49,7 @@ async function loadAgents(agentsIds) {
 async function handleAgencySummaryFilter(requester) {
 
     const franchiseAgencyCombination = await getFranchiseAgencyCombinations(requester);
+    console.log('Franchise-Agency Combinations:', franchiseAgencyCombination);
 
     const franchiseAgentCount = new Map();
 
@@ -57,7 +58,6 @@ async function handleAgencySummaryFilter(requester) {
         for (const agencyEntry of combination.agencies) {
             const agencyId = agencyEntry.id;
             if (agencyId === null || agencyId === undefined) {
-                count = -1;  // Indicate unknown count
                 continue;
             }
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
@@ -69,7 +69,7 @@ async function handleAgencySummaryFilter(requester) {
             });
             count += agentsInThisAgency + 1; // +1 for agency owner
 
-            if (combination.franchise.id === '1') console.log(`Agency ID: ${agencyEntry.name}, Agents Count: ${agentsInThisAgency}`);
+            if (combination.franchise.id === 1) console.log(`Agency ID: ${agencyEntry.name}, Agents Count: ${agentsInThisAgency}`);
         }
         franchiseAgentCount.set(combination.franchise.id, count);
     }
