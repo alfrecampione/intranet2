@@ -248,6 +248,12 @@ async function getVisibleAgentsId(requester) {
         const agencyId = agency.id;
 
         const allAgencyIds = await getAllAgencyIds(agencyId);
+        const agencyOwners = await prisma.agency.findMany({
+            where: { id: { in: allAgencyIds } },
+            select: { owner: true },
+        });
+        const ownerIds = agencyOwners.map(a => a.owner);
+        visibleAgents.push(...ownerIds);
         const agentsInAgencies = await prisma.user.findMany({
             where: {
                 isAgent: true,
@@ -255,6 +261,11 @@ async function getVisibleAgentsId(requester) {
             },
         });
         visibleAgents = agentsInAgencies.map(agent => agent.user_id);
+
+        // Ensure the agency owner is included in the list
+        if (!visibleAgents.includes(requester.user_id)) {
+            visibleAgents.push(requester.user_id);
+        }
     }
     else {
         visibleAgents = [requester.user_id];
