@@ -46,92 +46,31 @@ async function loadAgents(agentsIds) {
  * @param {Array} processedAgents - Array of agent records
  * @returns {Promise<Object>} Summary data with franchise/agency counts
  */
-async function handleAgencySummaryFilter(processedAgents) {
+async function handleAgencySummaryFilter(requester) {
+
+    const franchiseAgencyCombination = await getFranchiseAgencyCombinations(requester);
+
     const franchiseAgentCount = new Map();
-    const franchiseAgencySet = new Map();
 
-    // Unique combinations (agency + franchise)
-    const uniqueCombinations = new Map();
-    processedAgents.forEach(agent => {
-        const key = `${agent.agency || 'none'}-${agent.franchise || 'none'}`;
-        if (!uniqueCombinations.has(key)) {
-            uniqueCombinations.set(key, {
-                agency: agent.agency,
-                franchise: agent.franchise,
-                agents: []
-            });
-        }
-        uniqueCombinations.get(key).agents.push(agent);
-    });
-
-    // Cache hierarchies to prevent repeated DB lookups
-    const hierarchyCache = new Map();
-
-    // Helper to enforce timeouts on async calls
-    const withTimeout = (promise, ms = 5000, key = 'unknown') => {
-        return Promise.race([
-            promise,
-            new Promise((_, reject) =>
-                setTimeout(() => reject(new Error(`Timeout on ${key}`)), ms)
-            ),
-        ]);
-    };
-
-    // Process each unique combination
-    const hierarchyPromises = Array.from(uniqueCombinations.entries()).map(
-        async ([key, { agency, franchise }]) => {
-            if (!hierarchyCache.has(key)) {
-                try {
-                    const hierarchy = await withTimeout(
-                        reverseGetAllAgencies(agency, franchise, new Set()),
-                        8000,
-                        key
-                    );
-                    hierarchyCache.set(key, hierarchy);
-                } catch (err) {
-                    console.log(`[handleAgencySummaryFilter] Hierarchy load failed for ${key}:`, err.message);
-                    hierarchyCache.set(key, []); // fallback empty
+    for (const combination of franchiseAgencyCombination) {
+        let count = 0;
+        for (const agencyEntry of combination.agencies) {
+            const agencyId = agencyEntry.id;
+            const agenciesUnderThis = await getAllAgencyIds(agencyId);
+            const agentsInThisAgency = await prisma.user.count({
+                where: {
+                    agency: { in: agenciesUnderThis },
                 }
-            }
-            return [key, hierarchyCache.get(key)];
+            });
+            count += agentsInThisAgency + 1; // +1 for agency owner
         }
-    );
-
-    const hierarchyResults = await Promise.all(hierarchyPromises);
-
-    // Process summary counts
-    for (const [key, hierarchy] of hierarchyResults) {
-        const { agents } = uniqueCombinations.get(key);
-        const topFranchise = hierarchy.find(h => !h.isAgency);
-
-        if (topFranchise) {
-            const franchiseName = topFranchise.name;
-
-            // Count agents under this franchise
-            franchiseAgentCount.set(
-                franchiseName,
-                (franchiseAgentCount.get(franchiseName) || 0) + agents.length
-            );
-
-            // Track agencies under this franchise
-            if (!franchiseAgencySet.has(franchiseName)) {
-                franchiseAgencySet.set(franchiseName, new Set());
-            }
-
-            const agencySet = franchiseAgencySet.get(franchiseName);
-            hierarchy
-                .filter(h => h.isAgency)
-                .forEach(a => agencySet.add(a.name));
-        } else {
-            console.log(`[handleAgencySummaryFilter] No top franchise found for key: ${key}`);
-        }
+        franchiseAgentCount.set(combination.franchise.id, count);
     }
-
     // Build final summary data
-    const summaryData = Array.from(franchiseAgentCount.keys()).map(franchiseName => ({
-        location: franchiseName,
-        agencies: franchiseAgencySet.get(franchiseName)?.size || 0,
-        agents: franchiseAgentCount.get(franchiseName) || 0,
+    const summaryData = franchiseAgencyCombination.map(combination => ({
+        location: combination.franchise.name,
+        agencies: combination.agencies.size || 0,
+        agents: franchiseAgentCount.get(combination.franchise.id) || 0
     }));
 
     summaryData.sort((a, b) => a.location.localeCompare(b.location));
@@ -455,7 +394,7 @@ const filterReport = async (req, res) => {
 
     // Apply appropriate filter
     if (filterType === 'agency' && !filterValue && !filterSubValue) {
-        const result = await handleAgencySummaryFilter(processedAgents);
+        const result = await handleAgencySummaryFilter(user);
         return res.json(result);
     }
     else if (filterType === 'carrier & state' && filterValue && filterSubValue) {
