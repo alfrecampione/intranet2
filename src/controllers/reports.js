@@ -75,7 +75,7 @@ async function handleAgencySummaryFilter(requester) {
     // Build final summary data
     const summaryData = franchiseAgencyCombination.map(combination => ({
         location: combination.franchise.name,
-        agencies: combination.agencies.size || 0,
+        agencies: combination.agencies.length || 0,
         agents: franchiseAgentCount.get(combination.franchise.id) || 0
     }));
 
