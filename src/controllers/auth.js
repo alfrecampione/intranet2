@@ -303,7 +303,7 @@ const checkNotAuthenticated = async (req, res, next) => {
       return next();
     }
     const id = req.path.split('/')[3];
-    const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    const allowedIds = await getVisibleAgentsId(req.user);
     allowedIds.push(req.user.user_id);
     if (req.user && allowedIds.includes(id)) {
       return next();

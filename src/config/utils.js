@@ -238,25 +238,25 @@ async function reverseGetAllAgencies(agencyId, franchiseId) {
     return results;
 }
 
-async function getVisibleAgentsId(user_id) {
-    const user = await prisma.user.findUnique({
-        where: { user_id },
-        include: { personalInfo: true }
-    });
-    if (!user) return [];
+async function getVisibleAgentsId(requester) {
+    if (!requester) return [];
+
+    if (requester.rights && requester.rights.includes(1)) {
+        // Admin user - can see all agents
+        const allAgents = await prisma.user.findMany({});
+        return allAgents.map(agent => agent.user_id);
+    }
 
     let visibleAgents = [];
-    if (!user.isAgent) {
-        const allAgents = await prisma.user.findMany({
-            where: { isAgent: true },
-        });
+    if (!requester.isAgent) {
+        const allAgents = await prisma.user.findMany({});
         visibleAgents = allAgents.map(agent => agent.user_id);
     }
-    else if (user.personalInfo?.contactType?.toLowerCase() === 'business') {
+    else if (requester.personalInfo?.contactType?.toLowerCase() === 'business') {
         const agency = await prisma.agency.findUnique({
-            where: { owner: user.user_id },
+            where: { owner: requester.user_id },
         });
-        if (!agency) return [user.user_id];
+        if (!agency) return [requester.user_id];
         const agencyId = agency.id;
 
         const allAgencyIds = await getAllAgencyIds(agencyId);
@@ -269,7 +269,7 @@ async function getVisibleAgentsId(user_id) {
         visibleAgents = agentsInAgencies.map(agent => agent.user_id);
     }
     else {
-        visibleAgents = [user.user_id];
+        visibleAgents = [requester.user_id];
     }
     return visibleAgents;
 }

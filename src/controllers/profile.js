@@ -68,7 +68,7 @@ const renderProfile = async (req, res) => {
     // If the user is viewing their own profile, they can edit
     // or if they have admin rights (rights including 2)
     // or is an agency owner viewing their agent's profile
-    const allowedIds = await getVisibleAgentsId(req.user.user_id);
+    const allowedIds = await getVisibleAgentsId(req.user);
     allowedIds.push(req.user.user_id);
 
     const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));

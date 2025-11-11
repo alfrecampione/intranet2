@@ -438,7 +438,7 @@ async function getFranchiseAgencyCombinations(requester) {
     return result;
 }
 async function getAgentsToRender(requester) {
-    const visibleAgentsId = await getVisibleAgentsId(requester.user_id);
+    const visibleAgentsId = await getVisibleAgentsId(requester);
     const processedAgents = await loadAgents(visibleAgentsId);
     return processedAgents;
 }
