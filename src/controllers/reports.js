@@ -139,6 +139,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
             user_id: agent.user_id,
             name: agent.display_name || '',
             email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || ''
         }));
 
     } else {
@@ -158,6 +159,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
             user_id: agent.user_id,
             name: agent.display_name || '',
             email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || ''
         }));
     }
 }
