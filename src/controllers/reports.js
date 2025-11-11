@@ -50,16 +50,14 @@ async function handleAgencySummaryFilter(requester) {
 
     const franchiseAgencyCombination = await getFranchiseAgencyCombinations(requester);
 
-    console.log('Franchise-Agency Combinations:', franchiseAgencyCombination);
-
     const franchiseAgentCount = new Map();
 
     for (const combination of franchiseAgencyCombination) {
         let count = 0;
         for (const agencyEntry of combination.agencies) {
-            console.log('Processing Agency:', agencyEntry);
             const agencyId = agencyEntry.id;
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
+            console.log('Agencies under this agency:', agenciesUnderThis);
             const agentsInThisAgency = await prisma.personalInfo.count({
                 where: {
                     agency: { in: [] },
