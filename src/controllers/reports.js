@@ -166,7 +166,7 @@ async function handleAgencyFilter(processedAgents, filterValue, filterSubValue) 
 
     console.log(`[handleAgencyFilter] Filtering with filterValue: ${filterValue}, filterSubValue: ${filterSubValue}`);
 
-    console.log(`[handleAgencyFilter] Agents to process: ${processedAgents}`);
+    console.log(`[handleAgencyFilter] Agents to process: ${processedAgents.map(a => a.name).join(', ')}`);
 
     // Get unique combinations to minimize queries
     const uniqueCombinations = new Map();
