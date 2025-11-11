@@ -106,78 +106,61 @@ function handleCarrierStateFilter(processedAgents, state, carrier) {
  * @param {string} filterSubValue - Secondary filter value (agency under franchise)
  * @returns {Promise<Array>} Filtered agents
  */
-async function handleAgencyFilter(processedAgents, filterValue, filterSubValue) {
-    const matchingAgents = [];
+async function handleAgencyFilter(filterValue, filterSubValue) {
+    if (filterSubValue == null || filterSubValue === '') {
+        const topAgents = await prisma.user.findMany({
+            include: {
+                personalInfo: true,
+            },
+            where: {
+                franchise: `${filterValue}`
+            }
+        });
+        const topAgencyIds = topAgents.filter(agent => agent.agency != null).map(agent => agent.agency);
 
-    // Get unique combinations to minimize queries
-    const uniqueCombinations = new Map();
-    processedAgents.forEach(agent => {
-        const key = `${agent.agency || 'none'} - ${agent.franchise || 'none'}`;
-        if (!uniqueCombinations.has(key)) {
-            uniqueCombinations.set(key, {
-                agency: agent.agency,
-                franchise: agent.franchise,
-                agents: []
-            });
+        const allAgencyIds = [];
+        for (const agencyId of topAgencyIds) {
+            const subAgencyIds = await getAllAgencyIds(agencyId);
+            allAgencyIds.push(...subAgencyIds);
         }
-        uniqueCombinations.get(key).agents.push(agent);
-    });
-
-    // Batch process hierarchies
-    const hierarchyPromises = Array.from(uniqueCombinations.values()).map(
-        ({ agency, franchise }) => reverseGetAllAgencies(agency, franchise)
-    );
-
-    const hierarchies = await Promise.all(hierarchyPromises);
-
-    // Process each unique combination
-    Array.from(uniqueCombinations.keys()).forEach((key, index) => {
-        const hierarchy = hierarchies[index];
-        const { agents } = uniqueCombinations.get(key);
-
-        for (const agent of agents) {
-            // If both filterValue (franchise ID) and filterSubValue (agency ID) are provided
-            if (filterValue && filterSubValue) {
-                // Check if hierarchy contains the franchise by ID
-                const hasFranchise = hierarchy.some(
-                    h => !h.isAgency && String(h.id) === String(filterValue)
-                );
-
-                // Check if hierarchy contains the agency by ID
-                const hasAgency = hierarchy.some(
-                    h => h.isAgency && String(h.id) === String(filterSubValue)
-                );
-
-                if (hasFranchise && hasAgency) {
-                    matchingAgents.push(agent);
-                }
+        const agentsInAgencies = await prisma.user.findMany({
+            include: {
+                personalInfo: true,
+            },
+            where: {
+                personalInfo: {
+                    agency: { in: allAgencyIds }
+                },
             }
-            // If only filterValue (franchise ID) is provided
-            else if (filterValue && !filterSubValue) {
-                // Check if hierarchy contains the franchise by ID or agent's franchise matches
-                const hasFranchise = hierarchy.some(
-                    h => !h.isAgency && String(h.id) === String(filterValue)
-                ) || String(agent.franchise) === String(filterValue);
+        });
 
-                if (hasFranchise) {
-                    matchingAgents.push(agent);
-                }
+        const allAgents = topAgents.concat(agentsInAgencies);
+
+        return allAgents.map(agent => ({
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+        }));
+
+    } else {
+        const allAgencyIds = await getAllAgencyIds(filterSubValue);
+        const agentsInAgencies = await prisma.user.findMany({
+            include: {
+                personalInfo: true,
+            },
+            where: {
+                personalInfo: {
+                    agency: { in: allAgencyIds }
+                },
             }
-            // If only filterSubValue (agency ID) is provided (shouldn't happen, but handle it)
-            else if (!filterValue && filterSubValue) {
-                // Check if hierarchy contains the agency by ID or agent's agency matches
-                const hasAgency = hierarchy.some(
-                    h => h.isAgency && String(h.id) === String(filterSubValue)
-                ) || String(agent.agency) === String(filterSubValue);
+        });
 
-                if (hasAgency) {
-                    matchingAgents.push(agent);
-                }
-            }
-        }
-    });
-
-    return matchingAgents;
+        return agentsInAgencies.map(agent => ({
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+        }));
+    }
 }
 
 /**
@@ -346,8 +329,6 @@ async function getAgentsToRender(requester) {
 const renderReports = async (req, res) => {
     const user = req.user;
 
-    const visibleAgents = await getAgentsToRender(user);
-
     const carrierStateCombination = await getStatesAndCarriers();
     const stateFilterValue = carrierStateCombination.states;
     const carrierFilterValue = carrierStateCombination.carriers;
@@ -371,9 +352,7 @@ const renderReports = async (req, res) => {
 
     res.render("reports", {
         user,
-        agents: visibleAgents,
         filters: {
-            agents: visibleAgents,
             state: stateFilterValue,
             carrier: carrierFilterValue,
             carrierState: carrierStateCombination,
@@ -407,7 +386,7 @@ const filterReport = async (req, res) => {
         processedAgents = handleCarrierStateFilter(processedAgents, filterValue, filterSubValue);
     }
     else if (filterType === 'agency' && (filterValue || filterSubValue)) {
-        processedAgents = await handleAgencyFilter(processedAgents, filterValue, filterSubValue);
+        processedAgents = await handleAgencyFilter(filterValue, filterSubValue);
     }
     else if (filterType && filterValue) {
         processedAgents = handleGenericFilter(processedAgents, filterType, filterValue);
