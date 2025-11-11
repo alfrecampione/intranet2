@@ -355,27 +355,42 @@ async function getStatuses() {
 
 async function getFranchiseAgencyCombinations(requester) {
     let franchises;
-    let topAgencies;
     const franchiseAgencyCombination = {};
+
     if (!requester.isAgent || requester.rights.includes(1)) {
         franchises = await prisma.$queryRaw`
-        SELECT location_id, alias
-        FROM qq.locations
-    `;
+            SELECT location_id, alias
+            FROM qq.locations
+        `;
+
         for (const franchise of franchises) {
             const agencyOwners = await prisma.personalInfo.findMany({
                 where: {
                     franchise: `${franchise.location_id}`
                 }
             });
-            topAgencies = await prisma.agency.findMany({
+
+            const topAgencies = await prisma.agency.findMany({
                 where: {
                     owner: {
                         in: agencyOwners.map(a => a.userId)
                     }
                 }
             });
-            franchiseAgencyCombination[franchise.location_id] = topAgencies;
+
+            // For each top agency in this franchise, get all sub-agencies
+            const allAgenciesForFranchise = [];
+            for (const agency of topAgencies) {
+                const underAgenciesId = await getAllAgencyIds(agency.id);
+                const underAgencies = await prisma.agency.findMany({
+                    where: {
+                        id: { in: underAgenciesId }
+                    }
+                });
+                allAgenciesForFranchise.push(...underAgencies);
+            }
+
+            franchiseAgencyCombination[franchise.location_id] = allAgenciesForFranchise;
         }
 
     } else if (requester.personalInfo?.contactType === 'business') {
@@ -383,32 +398,34 @@ async function getFranchiseAgencyCombinations(requester) {
 
         const topFranchise = upperHierarchy.find(h => !h.isAgency);
         if (!topFranchise) {
-            return {};
+            return [];
         }
+
         franchises = await prisma.$queryRaw`
             SELECT location_id, alias
             FROM qq.locations
             WHERE location_id = ${topFranchise.id}
         `;
-        topAgencies = await prisma.agency.findMany({
+
+        const topAgency = await prisma.agency.findUnique({
             where: {
-                id: requester.personalInfo?.agency
+                owner: requester.user_id
             }
         });
-        franchiseAgencyCombination[topFranchise.id] = topAgencies;
 
-    }
-
-    for (const franchise of franchises) {
-        for (const agency of topAgencies) {
-            const underAgenciesId = await getAllAgencyIds(agency.id);
+        if (topAgency) {
+            const underAgenciesId = await getAllAgencyIds(topAgency.id);
             const underAgencies = await prisma.agency.findMany({
                 where: {
                     id: { in: underAgenciesId }
                 }
             });
-            franchiseAgencyCombination[franchise.location_id] = underAgencies;
+            franchiseAgencyCombination[topFranchise.id] = underAgencies;
+        } else {
+            franchiseAgencyCombination[topFranchise.id] = [];
         }
+    } else {
+        return [];
     }
 
     // Transform to array format
