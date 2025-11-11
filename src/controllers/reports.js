@@ -56,6 +56,7 @@ async function handleAgencySummaryFilter(requester) {
     for (const combination of franchiseAgencyCombination) {
         let count = 0;
         for (const agencyEntry of combination.agencies) {
+            console.log('Processing agency:', agencyEntry);
             const agencyId = agencyEntry.id;
             if (agencyId === null || agencyId === undefined) {
                 continue;
@@ -69,7 +70,7 @@ async function handleAgencySummaryFilter(requester) {
             });
             count += agentsInThisAgency + 1; // +1 for agency owner
 
-            if (combination.franchise.id === 1) console.log(`Agency ID: ${agencyEntry.name}, Agents Count: ${agentsInThisAgency}`);
+            if (combination.franchise.id == 1) console.log(`Agency ID: ${agencyEntry.name}, Agents Count: ${agentsInThisAgency}`);
         }
         franchiseAgentCount.set(combination.franchise.id, count);
     }
