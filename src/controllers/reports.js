@@ -110,7 +110,9 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 personalInfo: true,
             },
             where: {
-                franchise: `${filterValue}`
+                personalInfo: {
+                    franchise: filterValue
+                },
             }
         });
         const topAgencyIds = topAgents.filter(agent => agent.agency != null).map(agent => agent.agency);
