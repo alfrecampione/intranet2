@@ -201,25 +201,31 @@
             }
 
             // Populate filterSubValue (agency) based on selected franchise
-            function populateAgenciesUnderFranchise(selectedFranchise) {
+            function populateAgenciesUnderFranchise(selectedFranchiseId) {
                 filterSubValue.innerHTML = '<option value="">Select Agency</option>';
 
-                if (!selectedFranchise || !filtersData['agency']) {
+                if (!selectedFranchiseId || !filtersData['franchiseAgencyCombination']) {
                     filterSubValue.style.display = 'none';
                     return;
                 }
 
-                // Only include agencies whose franchiseName matches the selected franchise
-                filtersData['agency'].forEach(agency => {
-                    if (agency.franchiseName === selectedFranchise) {
+                // Find the franchise in the combination array
+                const franchiseData = filtersData['franchiseAgencyCombination'].find(
+                    item => item.franchise.id === selectedFranchiseId
+                );
+
+                if (franchiseData && franchiseData.agencies) {
+                    franchiseData.agencies.forEach(agencyWrapper => {
+                        const agency = agencyWrapper.agency;
                         const opt = document.createElement('option');
-                        opt.value = agency.name;
+                        opt.value = agency.id;
                         opt.textContent = agency.name;
                         filterSubValue.appendChild(opt);
-                    }
-                });
-
-                filterSubValue.style.display = 'block';
+                    });
+                    filterSubValue.style.display = 'block';
+                } else {
+                    filterSubValue.style.display = 'none';
+                }
             }
 
             // Fetch filtered data from server
@@ -334,8 +340,8 @@
                     if (filtersData['franchise']) {
                         filtersData['franchise'].forEach(franchise => {
                             const opt = document.createElement('option');
-                            opt.value = franchise;
-                            opt.textContent = franchise;
+                            opt.value = franchise.id;
+                            opt.textContent = franchise.name;
                             filterValueSelect.appendChild(opt);
                         });
                     }

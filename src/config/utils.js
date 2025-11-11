@@ -112,15 +112,14 @@ async function getAllAgencyIds(agencyId) {
 };
 
 /**
- * Retrieves the full hierarchy of agencies and franchises above a given agency or franchise.
- * 
- * Starting from the specified agency or franchise, this function traverses upward through
- * parent agencies and franchises until reaching the top-level entity. It returns an ordered
- * list of all related agencies and franchises encountered along the way.
+ * Retrieves the full hierarchy of agencies above a given agency.
+ *
+ * Starting from the specified agency, this function traverses upward through
+ * parent agencies until reaching the top-level entity. It returns an ordered
+ * list of all related agencies encountered along the way.
  *
  * @async
  * @param {string|null} agencyId - The starting agency ID (if applicable).
- * @param {string|null} franchiseId - The starting franchise ID (if applicable).
  * @returns {Promise<Array<{ id: string, isAgency: boolean, name: string }>>}
  * A list of parent agencies and franchises, starting from the given entity upward.
  */

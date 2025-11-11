@@ -17,6 +17,8 @@ export async function scheduleCronJobs() {
         await readSentOnboardingEmails();
         await sendPendingOnboardingEmails();
     });
+
+    await readSentOnboardingEmails();
 };
 
 
