@@ -213,8 +213,6 @@
                                                                     <% const ini=n.length> 1 ? n[0][0] + n[1][0]
                                                                         :n[0][0]; %>
                                                                         <%= ini.toUpperCase() %>
-                                                                            <% console.log("n: ", n) %>
-                                                                        <% console.log(" ini: ", ini) %>
                                                                             <% } else if (user && user.email) { %>
                                                                                 <%= user.email[0].toUpperCase() %>
                                                                                     <% } %>
@@ -223,16 +221,16 @@
                                             </div>
                                         </div>
                                         <div class=" flex-grow-1">
-                                                                                <span class="fw-medium d-block">
-                                                                                    <%= user ? user.display_name : "" %>
-                                                                                </span>
-                                                                                <% if (user && user.job_title) { %>
-                                                                                    <small class="text-muted">
-                                                                                        <%= user.job_title %>
-                                                                                    </small>
-                                                                                    <% } %>
-                                            </div>
+                                            <span class="fw-medium d-block">
+                                                <%= user ? user.display_name : "" %>
+                                            </span>
+                                            <% if (user && user.job_title) { %>
+                                                <small class="text-muted">
+                                                    <%= user.job_title %>
+                                                </small>
+                                                <% } %>
                                         </div>
+                                    </div>
                                 </a>
                             </li>
                             <li>
