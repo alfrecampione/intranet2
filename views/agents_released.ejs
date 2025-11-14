@@ -292,8 +292,8 @@
                         : null;
 
                     tdAvatar.innerHTML = photoSrc
-                        ? `<img src="${photoSrc}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
-                        : `<span class="avatar-initial rounded-circle bg-label-primary">${getInitials(user.display_name || user.email)}</span>`;
+                        ? `<img src="${photoSrc}" alt="" style="width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;">`
+                        : `<span class="avatar-initial rounded-circle bg-label-primary d-inline-flex align-items-center justify-content-center" style="width:2.5rem;height:2.5rem;">${getInitials(user.display_name || user.email)}</span>`;
                     tr.appendChild(tdAvatar);
 
 
