@@ -513,7 +513,9 @@ const exportData = async (req, res) => {
             return csvRow.join(',');
         });
 
-        const csvContent = [headerRow, ...dataRows].join('\n');
+        // Add BOM for UTF-8 encoding so Excel recognizes it properly
+        const BOM = '\uFEFF';
+        const csvContent = BOM + [headerRow, ...dataRows].join('\n');
 
         // Set headers for download
         res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
