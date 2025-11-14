@@ -119,38 +119,6 @@
                     </div>
                     <!--/ Group by states -->
                     <% } else { %>
-                      <!-- User Info Section -->
-                      <div class="col-md-4">
-                        <div class="card shadow-sm border-0 rounded-3">
-                          <div class="card-header bg-primary">
-                            <h5 class="mb-0 text-white">Your Information</h5>
-                          </div>
-                          <div class="card-body">
-                            <ul class="list-group list-group-flush">
-                              <li class="list-group-item"><strong>Name:</strong>
-                                <%= user.display_name %>
-                              </li>
-                              <li class="list-group-item"><strong>Email:</strong>
-                                <%= user.email %>
-                              </li>
-                              <% if (user.personalInfo) { %>
-                                <% if (user.personalInfo.contactType) { %>
-                                  <li class="list-group-item"><strong>Contact Type:</strong>
-                                    <%= user.personalInfo.contactType %>
-                                  </li>
-                                  <% } %>
-                                    <% let check=user.personalInfo.businessName %>
-                                      <% if (check && user.personalInfo.businessName.toLowerCase()==='business' ) { %>
-                                        <li class="list-group-item"><strong>Business Name:</strong>
-                                          <%= user.personalInfo.businessName %>
-                                        </li>
-                                        <% } %>
-                                          <% } %>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-
                       <!-- Carrier Status Section -->
                       <div class="col-md-4">
                         <div class="card mb-3 shadow-sm border-0 rounded-3">
@@ -392,6 +360,14 @@
 
       // Only Group by states list
       document.querySelectorAll('#groupByStatesList li h6').forEach(el => {
+        const text = el.textContent.trim();
+        if (stateAbbreviationMap[text]) {
+          el.textContent = stateAbbreviationMap[text];
+        }
+      });
+
+      // Agent's Carrier Status accordion headers
+      document.querySelectorAll('#carrierAccordion .accordion-button strong').forEach(el => {
         const text = el.textContent.trim();
         if (stateAbbreviationMap[text]) {
           el.textContent = stateAbbreviationMap[text];
@@ -756,11 +732,18 @@
       </script>
       <!--/ News -->
 
+      <script id="welcome" type="application/json">
+        <%- JSON.stringify(showWelcome) %>
+      </script>
+
       <script>
         const user = JSON.parse(document.getElementById('user-data').textContent);
+        const showWelcome = JSON.parse(document.getElementById('welcome').textContent);
 
         document.addEventListener("DOMContentLoaded", () => {
-          showToast('Welcome!', `${user.display_name}, you have successfully logged in.`);
+          if (showWelcome) {
+            showToast('Welcome!', `${user.display_name}, you have successfully logged in.`);
+          }
         });
       </script>
 </body>

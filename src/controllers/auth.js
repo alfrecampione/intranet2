@@ -384,6 +384,7 @@ const microsoftCallback = async (req, res, next) => {
     if (prismaUser) {
       req.login(prismaUser, (err) => {
         if (err) return next(err);
+        req.session.justLoggedIn = true;
         return res.redirect("/users/dashboard");
       });
     } else {
@@ -397,6 +398,7 @@ const microsoftCallback = async (req, res, next) => {
 
       req.login(msUser, (err) => {
         if (err) return next(err);
+        req.session.justLoggedIn = true;
         return res.redirect("/users/dashboard");
       });
     }

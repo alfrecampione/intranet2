@@ -81,13 +81,19 @@ const renderDashboard = async (req, res) => {
       orderBy: { sendedAt: 'desc' }
     });
 
+    const showWelcome = req.session?.justLoggedIn || false;
+    if (req.session?.justLoggedIn) {
+      req.session.justLoggedIn = false;
+    }
+
     res.render('dashboard', {
       user,
       companies,
       newsList,
       userCompanyStateData,
       states,
-      activePage: 'dashboard'
+      activePage: 'dashboard',
+      showWelcome
     });
   } catch (error) {
     console.error(error);

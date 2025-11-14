@@ -160,6 +160,8 @@ const postLogin = async (req, res, next) => {
         return res.status(500).json({ msg: "Login failed" });
       }
 
+      req.session.justLoggedIn = true;
+
       return res.json({
         success: true,
         redirect: "/users/dashboard",
