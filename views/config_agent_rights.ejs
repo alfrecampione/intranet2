@@ -298,8 +298,12 @@
                         return displayName.charAt(0).toUpperCase();
                     };
 
-                    const photoHtml = agent.photoPath
-                        ? `<img src="${agent.photoPath}" alt="Avatar" class="rounded-circle" width="40" height="40" style="object-fit: cover;">`
+                    const photoSrc = agent.photoPath
+                        ? (agent.photoPath.startsWith('http') ? agent.photoPath : `${url}/${agent.photoPath}`)
+                        : null;
+
+                    const photoHtml = photoSrc
+                        ? `<img src="${photoSrc}" alt="Avatar" class="rounded-circle" width="40" height="40" style="object-fit: cover;">`
                         : `<div class="avatar avatar-sm"><span class="avatar-initial rounded-circle bg-label-secondary">${getInitials(agent.display_name)}</span></div>`;
 
                     row.innerHTML = `

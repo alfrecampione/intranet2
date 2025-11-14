@@ -534,8 +534,12 @@
                         return name.substring(0, 2).toUpperCase();
                     };
 
-                    tdAvatar.innerHTML = user.photoPath
-                        ? `<img src="${url}/${user.photoPath}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
+                    const photoSrc = user.photoPath
+                        ? (user.photoPath.startsWith('http') ? user.photoPath : `${url}/${user.photoPath}`)
+                        : null;
+
+                    tdAvatar.innerHTML = photoSrc
+                        ? `<img src="${photoSrc}" alt="avatar" style="width:32px;height:32px;border-radius:50%;">`
                         : `<span class="avatar-initial rounded-circle bg-label-primary">${getInitials(user.display_name || user.email)}</span>`;
                     tr.appendChild(tdAvatar);
 
