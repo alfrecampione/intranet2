@@ -21,15 +21,39 @@ async function loadAgents(agentsIds) {
         orderBy: { display_name: 'asc' }
     });
 
-    const mappedAgents = agents.map(agent => ({
-        user_id: agent.user_id,
-        name: agent.display_name || '',
-        statesAndCarriers: agent.statesAndCarriers,
-        agency: agent.personalInfo?.agency || '',
-        franchise: agent.personalInfo?.franchise || '',
-        businessName: agent.personalInfo?.businessName || '',
-        email: agent.email || '',
-        number: agent.contactInfo?.personalPhone || ''
+    const mappedAgents = await Promise.all(agents.map(async agent => {
+        let photoPath = agent.personalInfo?.photoPath || '';
+
+        // For Microsoft users, fetch photoPath from user_avatars table
+        if (agent.email && agent.email.endsWith('@goldentrust.com')) {
+            const entra_user = await prisma.$queryRaw`
+                SELECT user_id
+                FROM entra.users
+                WHERE mail = ${agent.email}
+            `;
+
+            if (entra_user.length !== 0) {
+
+                const user_avatar_photo_path = await prisma.$queryRaw`
+                SELECT s3_url AS photoPath
+                FROM entra.user_avatars
+                WHERE entra_id = ${entra_user[0].user_id}
+            `;
+                photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
+            }
+        }
+
+        return {
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            statesAndCarriers: agent.statesAndCarriers,
+            agency: agent.personalInfo?.agency || '',
+            franchise: agent.personalInfo?.franchise || '',
+            businessName: agent.personalInfo?.businessName || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || '',
+            photoPath: photoPath
+        };
     }));
 
     return mappedAgents.sort((a, b) =>

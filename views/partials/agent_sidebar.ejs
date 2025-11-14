@@ -10,8 +10,14 @@
                         <% } else { %>
                             <span class="avatar-initial rounded-circle bg-label-primary"
                                 style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
-                                <%= profile.display_name ? profile.display_name[0] : (profile.email ? profile.email[0]
-                                    : "" ) %>
+                                <% if (user && user.display_name) { %>
+                                    <% const n=user.display_name.trim().split(/\s+/); %>
+                                        <% const ini=n.length> 1 ? n[0][0] + n[1][0]
+                                            :n[0][0]; %>
+                                            <%= ini.toUpperCase() %>
+                                                <% } else if (user && user.email) { %>
+                                                    <%= user.email[0].toUpperCase() %>
+                                                        <% } %>
                             </span>
                             <% } %>
                                 <div class="user-info text-center">

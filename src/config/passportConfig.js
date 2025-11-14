@@ -86,16 +86,25 @@ const initialize = (passport) => {
           include: { AgentRights: true },
         });
 
-        return done(null, {
+        const entra_user = await prisma.$queryRaw`
+          SELECT s3_url AS photoPath
+          FROM user_avatars
+          WHERE entra_id = ${obj.user_id}
+        `;
+
+        const user = {
           user_id: obj.user_id,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
+          personalInfo: { photoPath: entra_user.length > 0 ? entra_user[0].photoPath : null },
           isMicrosoftLogin: true,
           rights: userRights
             ? userRights.AgentRights.map((ar) => ar.idRight)
             : [],
-        });
+        }
+
+        return done(null, user);
       }
       return done(null, false);
     } catch (err) {

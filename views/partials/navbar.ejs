@@ -185,8 +185,13 @@
                                         class="rounded-circle" />
                                     <% } else { %>
                                         <span class="avatar-initial rounded-circle bg-label-primary">
-                                            <%= user && user.display_name ? user.display_name[0] : (user && user.email ?
-                                                user.email[0] : "" ) %>
+                                            <% if (user && user.display_name) { %>
+                                                <% const n=user.display_name.trim().split(/\s+/); %>
+                                                    <% const ini=n.length> 1 ? n[0][0] + n[1][0] :n[0][0]; %>
+                                                        <%= ini.toUpperCase() %>
+                                                            <% } else if (user && user.email) { %>
+                                                                <%= user.email[0].toUpperCase() %>
+                                                                    <% } %>
                                         </span>
                                         <% } %>
                             </div>
@@ -203,8 +208,14 @@
                                                         class="rounded-circle" />
                                                     <% } else { %>
                                                         <span class="avatar-initial rounded-circle bg-label-primary">
-                                                            <%= user && user.display_name ? user.display_name[0] : (user
-                                                                && user.email ? user.email[0] : "" ) %>
+                                                            <% if (user && user.display_name) { %>
+                                                                <% const n=user.display_name.trim().split(/\s+/); %>
+                                                                    <% const ini=n.length> 1 ? n[0][0] + n[1][0]
+                                                                        :n[0][0]; %>
+                                                                        <%= ini.toUpperCase() %>
+                                                                            <% } else if (user && user.email) { %>
+                                                                                <%= user.email[0].toUpperCase() %>
+                                                                                    <% } %>
                                                         </span>
                                                         <% } %>
                                             </div>

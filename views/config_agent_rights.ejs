@@ -107,6 +107,8 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>#</th>
+                                                                <th>Photo</th>
+                                                                <th>Name</th>
                                                                 <th>Email</th>
                                                                 <th>Rights</th>
                                                                 <th>Actions</th>
@@ -287,8 +289,23 @@
                       `
                         : `<span class="text-muted">-</span>`;
 
+                    const getInitials = (displayName) => {
+                        if (!displayName) return '?';
+                        const nameParts = displayName.trim().split(' ');
+                        if (nameParts.length >= 2) {
+                            return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+                        }
+                        return displayName.charAt(0).toUpperCase();
+                    };
+
+                    const photoHtml = agent.photoPath
+                        ? `<img src="${agent.photoPath}" alt="Avatar" class="rounded-circle" width="40" height="40" style="object-fit: cover;">`
+                        : `<div class="avatar avatar-sm"><span class="avatar-initial rounded-circle bg-label-secondary">${getInitials(agent.display_name)}</span></div>`;
+
                     row.innerHTML = `
                   <td>${index + 1}</td>
+                  <td>${photoHtml}</td>
+                  <td>${agent.display_name || '-'}</td>
                   <td>${agent.email}</td>
                   <td>${assignedRights || "-"}</td>
                   <td>${actionsHtml}</td>

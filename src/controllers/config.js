@@ -294,11 +294,34 @@ const renderConfigAgentRights = async (req, res) => {
     });
     const rights = await prisma.right.findMany({ orderBy: { name: 'asc' } });
 
-    const formattedAgents = agents.map(agent => ({
-      id: agent.id,
-      email: agent.email,
-      display_name: agent.display_name,
-      rights: agent.AgentRights.map(ar => ar.idRight)
+    const formattedAgents = await Promise.all(agents.map(async agent => {
+      let photoPath = '';
+
+      // For Microsoft users, fetch photoPath from user_avatars table
+      if (agent.email && agent.email.endsWith('@goldentrust.com')) {
+        const entra_user = await prisma.$queryRaw`
+          SELECT user_id
+          FROM entra.users
+          WHERE mail = ${agent.email}
+        `;
+
+        if (entra_user.length !== 0) {
+          const user_avatar_photo_path = await prisma.$queryRaw`
+            SELECT s3_url AS photoPath
+            FROM entra.user_avatars
+            WHERE entra_id = ${entra_user[0].user_id}
+          `;
+          photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
+        }
+      }
+
+      return {
+        id: agent.id,
+        email: agent.email,
+        display_name: agent.display_name,
+        photoPath: photoPath,
+        rights: agent.AgentRights.map(ar => ar.idRight)
+      };
     }));
 
     res.render("config_agent_rights", { user: req.user, agents: formattedAgents, rights, activePage: 'config', open: 'agent_rights' });
