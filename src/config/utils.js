@@ -400,10 +400,18 @@ async function getMSAPhotoPath(entraId) {
         `;
     return (entra_user && entra_user.length > 0) ? entra_user[0].photoPath : null;
 };
+async function getEntraId(email) {
+    const entra_id = await prisma.$queryRaw`
+          SELECT user_id
+          FROM entra.users
+          WHERE mail = ${email}
+        `;
+    return (entra_id && entra_id.length > 0) ? entra_id[0].user_id : null;
+}
 
 function getMSARealId(userId) {
     const realId = userId ? userId.split(".")[0] : userId;
     return realId;
 };
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId };
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId };

@@ -1,7 +1,7 @@
 import { get } from "https";
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAllAgencyIds, getAgencies, getMSARealId, getMSAPhotoPath } from "../config/utils.js";
+import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
 import bcrypt from "bcrypt";
 
 
@@ -39,7 +39,7 @@ const getData = async (users) => {
 
       // For Microsoft users, fetch photoPath from user_avatars table
       if (u.email && u.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(u.user_id);
+        const realId = await getEntraId(u.email);
         const msaPhotoPath = await getMSAPhotoPath(realId);
         photoPath = msaPhotoPath || photoPath;
       }
