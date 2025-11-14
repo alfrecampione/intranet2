@@ -399,10 +399,11 @@ async function getMSAPhotoPath(entraId) {
           WHERE entra_id = ${entraId}
         `;
     return entra_user.length > 0 ? entra_user[0].photoPath : null;
-}
-async function getMSARealId(userId) {
+};
+
+function getMSARealId(userId) {
     const realId = userId ? userId.split(".")[0] : userId;
     return realId;
-}
+};
 
 export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId };
