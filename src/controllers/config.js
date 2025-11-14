@@ -300,18 +300,18 @@ const renderConfigAgentRights = async (req, res) => {
       // For Microsoft users, fetch photoPath from user_avatars table
       if (agent.email && agent.email.endsWith('@goldentrust.com')) {
         const entra_user = await prisma.$queryRaw`
-          SELECT user_id
+          SELECT user_id, display_name
           FROM entra.users
           WHERE mail = ${agent.email}
         `;
 
         if (entra_user.length !== 0) {
           const user_avatar_photo_path = await prisma.$queryRaw`
-            SELECT s3_url AS photoPath
+            SELECT s3_url AS photo
             FROM entra.user_avatars
             WHERE entra_id = ${entra_user[0].user_id}
           `;
-          photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
+          photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photo : '';
         }
       }
 
