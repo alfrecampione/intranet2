@@ -91,6 +91,8 @@ const initialize = (passport) => {
           FROM entra.user_avatars
           WHERE entra_id = ${obj.user_id}
         `;
+        console.log("EntraId: ", obj.user_id);
+        console.log("photoPath msal:", entra_user);
 
         const user = {
           user_id: obj.user_id,
