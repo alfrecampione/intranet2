@@ -392,4 +392,17 @@ async function createMessage(log, options = {}) {
     return message;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage };
+async function getMSAPhotoPath(entraId) {
+    const entra_user = await prisma.$queryRaw`
+          SELECT s3_url AS photoPath
+          FROM entra.user_avatars
+          WHERE entra_id = ${entraId}
+        `;
+    return entra_user.length > 0 ? entra_user[0].photoPath : null;
+}
+async function getMSARealId(userId) {
+    const realId = userId ? userId.split(".")[0] : userId;
+    return realId;
+}
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId };

@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath } from "../config/utils.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -17,6 +17,15 @@ const renderProfile = async (req, res) => {
     const personalInfo = await prisma.personalInfo.findUnique({
         where: { userId }
     });
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getMSARealId(profile.user_id);
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        if (msaPhotoPath && personalInfo) {
+            personalInfo.photoPath = msaPhotoPath;
+        }
+    }
 
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }
@@ -286,6 +295,15 @@ const renderNotes = async (req, res) => {
     const personalInfo = await prisma.personalInfo.findUnique({
         where: { userId }
     });
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getMSARealId(profile.user_id);
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        if (msaPhotoPath && personalInfo) {
+            personalInfo.photoPath = msaPhotoPath;
+        }
+    }
 
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }

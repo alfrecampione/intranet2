@@ -3,6 +3,8 @@ import { prisma } from "./dbConfig.js";
 import bcrypt from "bcrypt";
 import { cca, LOGIN_SCOPES } from "./msalConfig.js";
 import passport from "passport";
+import { getMSAPhotoPath, getMSARealId } from "./utils.js";
+import { get } from "https";
 
 // ---------------------- PASSPORT INITIALIZE ----------------------
 const initialize = (passport) => {
@@ -86,13 +88,9 @@ const initialize = (passport) => {
           include: { AgentRights: true },
         });
 
-        const realId = obj.user_id ? obj.user_id.split(".")[0] : obj.user_id;
+        const realId = getMSARealId(obj.user_id);
 
-        const entra_user = await prisma.$queryRaw`
-          SELECT s3_url AS photoPath
-          FROM entra.user_avatars
-          WHERE entra_id = ${realId}
-        `;
+        const entra_user = await getMSAPhotoPath(realId);
 
         const user = {
           user_id: realId,
