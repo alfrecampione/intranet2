@@ -88,7 +88,7 @@ const initialize = (passport) => {
 
         const entra_user = await prisma.$queryRaw`
           SELECT s3_url AS photoPath
-          FROM user_avatars
+          FROM entra.user_avatars
           WHERE entra_id = ${obj.user_id}
         `;
 
