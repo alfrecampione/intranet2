@@ -394,12 +394,11 @@ async function createMessage(log, options = {}) {
 
 async function getMSAPhotoPath(entraId) {
     const entra_user = await prisma.$queryRaw`
-          SELECT s3_url AS photoPath
+          SELECT s3_url AS photo
           FROM entra.user_avatars
           WHERE entra_id = ${entraId}
         `;
-    console.log("Entra User Photo Path Query Result:", entra_user);
-    return (entra_user && entra_user.length > 0) ? entra_user[0].photoPath : null;
+    return (entra_user && entra_user.length > 0) ? entra_user[0].photo : null;
 };
 async function getEntraId(email) {
     const entra_id = await prisma.$queryRaw`
