@@ -382,28 +382,16 @@
     };
 
     function replaceStateAbbreviationsInGraph() {
-      document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(el => {
+      // Only dropdown items for heat-chart-menu (states by carrier)
+      document.querySelectorAll('#heat-chart-menu .dropdown-item').forEach(el => {
         const text = el.textContent.trim();
         if (stateAbbreviationMap[text]) {
           el.textContent = stateAbbreviationMap[text];
         }
       });
 
-      document.querySelectorAll('#groupByStatesList li .card-title, #groupByStatesList li h6, #groupByStatesList li small').forEach(el => {
-        const words = el.textContent.split(' ');
-        const replacedWords = words.map(word => stateAbbreviationMap[word] || word);
-        el.textContent = replacedWords.join(' ');
-      });
-
-      // 🔥 Added accordion headers too
-      document.querySelectorAll('.accordion-button strong').forEach(el => {
-        const text = el.textContent.trim();
-        if (stateAbbreviationMap[text]) {
-          el.textContent = stateAbbreviationMap[text];
-        }
-      });
-
-      document.querySelectorAll('td, span, div').forEach(el => {
+      // Only Group by states list
+      document.querySelectorAll('#groupByStatesList li h6').forEach(el => {
         const text = el.textContent.trim();
         if (stateAbbreviationMap[text]) {
           el.textContent = stateAbbreviationMap[text];
