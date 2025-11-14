@@ -398,7 +398,7 @@ async function getMSAPhotoPath(entraId) {
           FROM entra.user_avatars
           WHERE entra_id = ${entraId}
         `;
-    return entra_user.length > 0 ? entra_user[0].photoPath : null;
+    return (entra_user && entra_user.length > 0) ? entra_user[0].photoPath : null;
 };
 
 function getMSARealId(userId) {
