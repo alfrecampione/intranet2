@@ -86,16 +86,18 @@ const initialize = (passport) => {
           include: { AgentRights: true },
         });
 
+        const realId = obj.user_id ? obj.user_id.split(".")[0] : obj.user_id;
+
         const entra_user = await prisma.$queryRaw`
           SELECT s3_url AS photoPath
           FROM entra.user_avatars
-          WHERE entra_id = ${obj.user_id}
+          WHERE entra_id = ${realId}
         `;
-        console.log("EntraId: ", obj.user_id);
+        console.log("EntraId: ", realId);
         console.log("photoPath msal:", entra_user);
 
         const user = {
-          user_id: obj.user_id,
+          user_id: realId,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
