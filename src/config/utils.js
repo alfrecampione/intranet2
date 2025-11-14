@@ -398,6 +398,7 @@ async function getMSAPhotoPath(entraId) {
           FROM entra.user_avatars
           WHERE entra_id = ${entraId}
         `;
+    console.log("Entra User Photo Path Query Result:", entra_user);
     return (entra_user && entra_user.length > 0) ? entra_user[0].photoPath : null;
 };
 async function getEntraId(email) {

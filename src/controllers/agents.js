@@ -40,9 +40,7 @@ const getData = async (users) => {
       // For Microsoft users, fetch photoPath from user_avatars table
       if (u.email && u.email.endsWith('@goldentrust.com')) {
         const realId = await getEntraId(u.email.toLowerCase());
-        console.log("Real ID:", realId);
         const msaPhotoPath = await getMSAPhotoPath(realId);
-        console.log("MSA Photo Path:", msaPhotoPath);
         photoPath = msaPhotoPath || photoPath;
       }
 
