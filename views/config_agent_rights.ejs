@@ -342,6 +342,11 @@
 
                 if (!email) return alert("Email is required.");
 
+                if (!email.toLowerCase().endsWith('@goldentrust.com')) {
+                    showToast("Error", "Only emails ending in @goldentrust.com are allowed.");
+                    return;
+                }
+
                 try {
                     const res = await fetch("/users/config/allowed-agents/add", {
                         method: "POST",
