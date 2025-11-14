@@ -279,11 +279,15 @@
                         render: (data, type, row, meta) => meta.row + 1
                     }, {
                         title: "Avatar",
-                        data: "photoPath",
+                        data: null,
                         orderable: false,
                         render: (data, type, row) => {
-                            if (data) {
-                                return `<img src="/${data}" alt="Avatar" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover;">`;
+                            const photoPath = row.photoPath || '';
+                            if (photoPath) {
+                                // Check if photoPath is an external URL (starts with http:// or https://)
+                                const isExternalUrl = photoPath.startsWith('http');
+                                const imgSrc = isExternalUrl ? photoPath : `/${photoPath}`;
+                                return `<img src="${imgSrc}" alt="Avatar" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover;">`;
                             } else {
                                 const name = row.name || row.email || '';
                                 const names = name.trim().split(/\s+/);

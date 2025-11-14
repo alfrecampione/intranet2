@@ -181,19 +181,20 @@
                             data-bs-toggle="dropdown">
                             <div class="avatar avatar-online">
                                 <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                                    <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
-                                        class="rounded-circle" />
-                                    <% } else { %>
-                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                            <% if (user && user.display_name) { %>
-                                                <% const n=user.display_name.trim().split(/\s+/); %>
-                                                    <% const ini=n.length> 1 ? n[0][0] + n[1][0] :n[0][0]; %>
-                                                        <%= ini.toUpperCase() %>
-                                                            <% } else if (user && user.email) { %>
-                                                                <%= user.email[0].toUpperCase() %>
-                                                                    <% } %>
-                                        </span>
-                                        <% } %>
+                                    <% const photoSrc=user.personalInfo.photoPath.startsWith('http') ?
+                                        user.personalInfo.photoPath : '/' + user.personalInfo.photoPath; %>
+                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle" />
+                                        <% } else { %>
+                                            <span class="avatar-initial rounded-circle bg-label-primary">
+                                                <% if (user && user.display_name) { %>
+                                                    <% const n=user.display_name.trim().split(/\s+/); %>
+                                                        <% const ini=n.length> 1 ? n[0][0] + n[1][0] :n[0][0]; %>
+                                                            <%= ini.toUpperCase() %>
+                                                                <% } else if (user && user.email) { %>
+                                                                    <%= user.email[0].toUpperCase() %>
+                                                                        <% } %>
+                                            </span>
+                                            <% } %>
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
@@ -204,20 +205,23 @@
                                         <div class="flex-shrink-0 me-3">
                                             <div class="avatar avatar-online">
                                                 <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
-                                                    <img src="/<%= user.personalInfo.photoPath %>" alt="User Avatar"
-                                                        class="rounded-circle" />
-                                                    <% } else { %>
-                                                        <span class="avatar-initial rounded-circle bg-label-primary">
-                                                            <% if (user && user.display_name) { %>
-                                                                <% const n=user.display_name.trim().split(/\s+/); %>
-                                                                    <% const ini=n.length> 1 ? n[0][0] + n[1][0]
-                                                                        :n[0][0]; %>
-                                                                        <%= ini.toUpperCase() %>
-                                                                            <% } else if (user && user.email) { %>
-                                                                                <%= user.email[0].toUpperCase() %>
-                                                                                    <% } %>
-                                                        </span>
-                                                        <% } %>
+                                                    <% const photoSrc=user.personalInfo.photoPath.startsWith('http') ?
+                                                        user.personalInfo.photoPath : '/' + user.personalInfo.photoPath;
+                                                        %>
+                                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle" />
+                                                        <% } else { %>
+                                                            <span
+                                                                class="avatar-initial rounded-circle bg-label-primary">
+                                                                <% if (user && user.display_name) { %>
+                                                                    <% const n=user.display_name.trim().split(/\s+/); %>
+                                                                        <% const ini=n.length> 1 ? n[0][0] + n[1][0]
+                                                                            :n[0][0]; %>
+                                                                            <%= ini.toUpperCase() %>
+                                                                                <% } else if (user && user.email) { %>
+                                                                                    <%= user.email[0].toUpperCase() %>
+                                                                                        <% } %>
+                                                            </span>
+                                                            <% } %>
                                             </div>
                                         </div>
                                         <div class=" flex-grow-1">

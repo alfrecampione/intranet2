@@ -5,27 +5,28 @@
             <div class="user-avatar-section">
                 <div class="d-flex align-items-center flex-column">
                     <% if (personalInfo && personalInfo.photoPath) { %>
-                        <img class="img-fluid rounded mb-4" src="/<%= personalInfo.photoPath %>" height="120"
-                            width="120" alt="Agent avatar" />
-                        <% } else { %>
-                            <span class="avatar-initial rounded-circle bg-label-primary"
-                                style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
-                                <% if (user && user.display_name) { %>
-                                    <% const n=user.display_name.trim().split(/\s+/); %>
-                                        <% const ini=n.length> 1 ? n[0][0] + n[1][0]
-                                            :n[0][0]; %>
-                                            <%= ini.toUpperCase() %>
-                                                <% } else if (user && user.email) { %>
-                                                    <%= user.email[0].toUpperCase() %>
-                                                        <% } %>
-                            </span>
-                            <% } %>
-                                <div class="user-info text-center">
-                                    <h5>
-                                        <%= profile.display_name ? profile.display_name : (profile.email ? profile.email
-                                            : "" ) %>
-                                    </h5>
-                                </div>
+                        <% const photoSrc=personalInfo.photoPath.startsWith('http') ? personalInfo.photoPath : '/' +
+                            personalInfo.photoPath; %>
+                            <img class="img-fluid rounded mb-4" src="<%= photoSrc %>" height="120" width="120" alt="" />
+                            <% } else { %>
+                                <span class="avatar-initial rounded-circle bg-label-primary"
+                                    style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;">
+                                    <% if (user && user.display_name) { %>
+                                        <% const n=user.display_name.trim().split(/\s+/); %>
+                                            <% const ini=n.length> 1 ? n[0][0] + n[1][0]
+                                                :n[0][0]; %>
+                                                <%= ini.toUpperCase() %>
+                                                    <% } else if (user && user.email) { %>
+                                                        <%= user.email[0].toUpperCase() %>
+                                                            <% } %>
+                                </span>
+                                <% } %>
+                                    <div class="user-info text-center">
+                                        <h5>
+                                            <%= profile.display_name ? profile.display_name : (profile.email ?
+                                                profile.email : "" ) %>
+                                        </h5>
+                                    </div>
                 </div>
             </div>
             <h5 class="pb-4 border-bottom mb-4">Details</h5>

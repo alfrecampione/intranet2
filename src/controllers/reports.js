@@ -465,7 +465,8 @@ const filterReport = async (req, res) => {
     const user = req.user;
     let processedAgents = await getAgentsToRender(user);
 
-    if (filterType === null || filterType === undefined) {
+    // Handle empty or null filter type - return all agents
+    if (!filterType || filterType === null || filterType === undefined) {
         return res.json({ data: processedAgents, total: processedAgents.length });
     }
 
@@ -483,6 +484,7 @@ const filterReport = async (req, res) => {
     else if (filterType && filterValue) {
         processedAgents = handleGenericFilter(processedAgents, filterType, filterValue);
     }
+    // If filterType is set but filterValue is empty, return all agents (no filtering applied)
 
     res.json({ data: processedAgents, total: processedAgents.length });
 };
