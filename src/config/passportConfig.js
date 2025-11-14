@@ -90,14 +90,14 @@ const initialize = (passport) => {
 
         const realId = getMSARealId(obj.user_id);
 
-        const entra_user = await getMSAPhotoPath(realId);
+        const entra_photoPath = await getMSAPhotoPath(realId);
 
         const user = {
           user_id: realId,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
-          personalInfo: { photoPath: entra_user.length > 0 ? entra_user[0].photoPath : null },
+          personalInfo: { photoPath: entra_photoPath },
           isMicrosoftLogin: true,
           rights: userRights
             ? userRights.AgentRights.map((ar) => ar.idRight)
