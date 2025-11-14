@@ -296,6 +296,7 @@ const renderConfigAgentRights = async (req, res) => {
 
     const formattedAgents = await Promise.all(agents.map(async agent => {
       let photoPath = '';
+      let display_name = '';
 
       // For Microsoft users, fetch photoPath from user_avatars table
       if (agent.email && agent.email.endsWith('@goldentrust.com')) {
@@ -312,13 +313,14 @@ const renderConfigAgentRights = async (req, res) => {
             WHERE entra_id = ${entra_user[0].user_id}
           `;
           photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photo : '';
+          display_name = entra_user[0].display_name;
         }
       }
 
       return {
         id: agent.id,
         email: agent.email,
-        display_name: agent.display_name,
+        display_name: display_name,
         photoPath: photoPath,
         rights: agent.AgentRights.map(ar => ar.idRight)
       };

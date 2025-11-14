@@ -400,11 +400,17 @@
                 th.textContent.trim()
             );
 
-            // Get data rows
+            // Get data rows - extract only text content, excluding images
             const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
-                return Array.from(tr.querySelectorAll('td')).map(td =>
-                    td.textContent.trim()
-                );
+                return Array.from(tr.querySelectorAll('td')).map(td => {
+                    // If the cell contains a link, extract just the text
+                    const link = td.querySelector('a');
+                    if (link) {
+                        return link.textContent.trim();
+                    }
+                    // Otherwise return the text content
+                    return td.textContent.trim();
+                });
             });
 
             // Send both headers and rows
