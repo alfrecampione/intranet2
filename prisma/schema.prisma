@@ -176,6 +176,7 @@ model Company {
   States    String[]
   createdAt DateTime @default(now())
   phone     String
+  iconPath  String?
 
   Commisions Commisions[]
 

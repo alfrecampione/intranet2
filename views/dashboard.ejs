@@ -122,67 +122,16 @@
                       <!-- Carrier Status Section -->
                       <div class="col-md-4">
                         <div class="card mb-3 shadow-sm border-0 rounded-3">
-                          <div class="card-header d-flex justify-content-between align-items-center flex-wrap bg-light">
-                            <h5 class="mb-0">Agent's Carrier Status</h5>
+                          <div
+                            class="card-header d-flex justify-content-between align-items-center flex-wrap bg-warning">
+                            <h5 class="mb-0 text-dark">Agent's Carrier Status</h5>
                           </div>
-                          <div class="card-body p-0">
-                            <% if (user.statesAndCarriers && user.statesAndCarriers.length> 0) { %>
-                              <% var carriersByState={}; %>
-                                <% user.statesAndCarriers.forEach(function(c) { if (!carriersByState[c.state])
-                                  carriersByState[c.state]=[]; carriersByState[c.state].push(c); }); %>
-
-                                  <div class="accordion" id="carrierAccordion">
-                                    <% Object.keys(carriersByState).forEach((state, idx)=> { %>
-                                      <div class="accordion-item">
-                                        <h2 class="accordion-header" id="heading<%= idx %>">
-                                          <button class="accordion-button <%= idx > 0 ? 'collapsed' : '' %>"
-                                            type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= idx %>"
-                                            aria-expanded="<%= idx === 0 ? 'true' : 'false' %>"
-                                            aria-controls="collapse<%= idx %>">
-                                            <strong>
-                                              <%= state %>
-                                            </strong>
-                                          </button>
-                                        </h2>
-                                        <div id="collapse<%= idx %>"
-                                          class="accordion-collapse collapse <%= idx === 0 ? 'show' : '' %>"
-                                          aria-labelledby="heading<%= idx %>" data-bs-parent="#carrierAccordion">
-                                          <div class="accordion-body p-0">
-                                            <table class="table table-hover table-bordered mb-0">
-                                              <thead class="table-light">
-                                                <tr>
-                                                  <th>#</th>
-                                                  <th>Carrier Name</th>
-                                                  <th>Status</th>
-                                                </tr>
-                                              </thead>
-                                              <tbody>
-                                                <% carriersByState[state].forEach((carrier, i)=> { %>
-                                                  <tr>
-                                                    <td>
-                                                      <%= i+1 %>
-                                                    </td>
-                                                    <td>
-                                                      <%= carrier.company %>
-                                                    </td>
-                                                    <td><span>
-                                                        <%= carrier.status %>
-                                                      </span></td>
-                                                  </tr>
-                                                  <% }) %>
-                                              </tbody>
-                                            </table>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <% }) %>
-                                  </div>
-                                  <% } else { %>
-                                    <div class="p-4 text-center text-muted">No carrier information available.</div>
-                                    <% } %>
+                          <div class="card-body p-0" id="carrierStatusContainer">
+                            <!-- Content will be populated by JavaScript -->
                           </div>
                         </div>
                       </div>
+                      <!--/ Carrier Status Section -->
                       <% } %>
 
                         <!-- News Section -->
@@ -393,6 +342,15 @@
 
   <script id="states-data" type="application/json">
     <%- JSON.stringify(states) %>
+  </script>
+
+  <script>
+    // Create company icon lookup map from companies data
+    const companyIconMap = {};
+    const companiesData = JSON.parse(document.getElementById('companies-data').textContent);
+    companiesData.forEach(company => {
+      companyIconMap[company.name] = company.iconPath || '/img/icons/carriers/default.png';
+    });
   </script>
 
   <% if (user.active ||!user.isAgent||user.personalInfo?.contactType?.toLowerCase()==='business' ) {%>
@@ -672,6 +630,187 @@
     </script>
     <!--/ Group by states -->
     <% } %>
+
+      <!-- Carrier Status Bars -->
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const user = JSON.parse(document.getElementById('user-data').textContent);
+          const container = document.getElementById('carrierStatusContainer');
+
+          // Only render if user is an agent and not active or not a business
+          if (!container || !user.statesAndCarriers) return;
+
+          if (!user.statesAndCarriers || user.statesAndCarriers.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-muted">No carrier information available.</div>';
+            return;
+          }
+
+          // Group carriers by state
+          const carriersByState = {};
+          user.statesAndCarriers.forEach(c => {
+            if (!carriersByState[c.state]) {
+              carriersByState[c.state] = [];
+            }
+            carriersByState[c.state].push(c);
+          });
+
+          // Sort states with FL first
+          const sortedStates = Object.keys(carriersByState).sort((a, b) => {
+            if (a === 'FL') return -1;
+            if (b === 'FL') return 1;
+            return a.localeCompare(b);
+          });
+
+          // Build accordion HTML
+          let accordionHTML = '<div class="accordion" id="carrierAccordion">';
+
+          sortedStates.forEach((state, idx) => {
+            const isExpanded = idx === 0;
+            accordionHTML += `
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="heading${idx}">
+                  <button class="accordion-button ${!isExpanded ? 'collapsed' : ''}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapse${idx}"
+                    aria-expanded="${isExpanded}" aria-controls="collapse${idx}">
+                    <strong>${state}</strong>
+                  </button>
+                </h2>
+                <div id="collapse${idx}" class="accordion-collapse collapse ${isExpanded ? 'show' : ''}"
+                  aria-labelledby="heading${idx}" data-bs-parent="#carrierAccordion">
+                  <div class="accordion-body p-0">
+                    <ul class="list-group list-group-flush">
+            `;
+
+            carriersByState[state].forEach(carrier => {
+              const iconPath = companyIconMap[carrier.company] || '/img/icons/carriers/default.png';
+              accordionHTML += `
+                <li class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    <img src="${iconPath}"
+                      alt="icon" class="me-2"
+                      style="width:28px; height:28px; object-fit:contain;">
+                    <div class="me-3 fw-semibold">${carrier.company}</div>
+                    <div class="flex-grow-1">
+                      <div class="progress" style="height: 14px;">
+                        <div class="progress-bar bg-success carrier-bar"
+                          data-status="${carrier.status}" role="progressbar"
+                          style="width: 0%" aria-valuemin="0" aria-valuemax="100">
+                          <span class="small ms-2 text-white carrier-bar-text"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              `;
+            });
+
+            accordionHTML += `
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          accordionHTML += '</div>';
+          container.innerHTML = accordionHTML;
+
+          // Now apply progress bar logic
+          const normalStatusOptions = [
+            "Request Received from Agent",
+            "Pending Submission",
+            "Submitted to Carrier",
+            "Carrier In Review",
+            "Carrier Sent Contract to Agent",
+            "Ready to Sell"
+          ];
+
+          const specialStatusOptions = [
+            "Rejected by Carrier",
+            "Withdrawn by Agent",
+            "Need Release",
+            "Release",
+            "Refering"
+          ];
+
+          const maxIndex = normalStatusOptions.length - 1;
+          const percentageStep = 100 / maxIndex;
+
+          // Function to animate progress bars
+          function animateProgressBars(accordionElement) {
+            const bars = accordionElement.querySelectorAll(".carrier-bar");
+            bars.forEach(bar => {
+              let status = bar.dataset.status?.trim();
+              let pct = 0;
+              let colorClass = "bg-secondary";
+
+              if (normalStatusOptions.includes(status)) {
+                const index = normalStatusOptions.indexOf(status);
+                pct = Math.round(index * percentageStep);
+                colorClass = "bg-success";
+              } else if (specialStatusOptions.includes(status)) {
+                pct = 100;
+                colorClass = "bg-warning";
+              }
+
+              bar.className = `progress-bar carrier-bar ${colorClass}`;
+              bar.style.transition = "width 0.3s ease-in-out";
+
+              // Animate from 0 to target percentage
+              setTimeout(() => {
+                bar.style.width = pct + "%";
+              }, 50);
+
+              // Don't show percentage text
+              const textSpan = bar.querySelector(".carrier-bar-text");
+              if (textSpan) textSpan.textContent = "";
+
+              bar.setAttribute("data-bs-toggle", "tooltip");
+              bar.setAttribute("data-bs-placement", "top");
+              bar.setAttribute("title", status);
+            });
+
+            // Initialize tooltips for this accordion
+            setTimeout(() => {
+              const tooltips = accordionElement.querySelectorAll('[data-bs-toggle="tooltip"]');
+              tooltips.forEach(el => {
+                const tooltip = new bootstrap.Tooltip(el, {
+                  trigger: 'hover',
+                  delay: { show: 200, hide: 0 }
+                });
+
+                // Auto-hide tooltip after 5 seconds
+                let hideTimeout;
+                el.addEventListener('mouseenter', () => {
+                  clearTimeout(hideTimeout);
+                  hideTimeout = setTimeout(() => {
+                    tooltip.hide();
+                  }, 5000);
+                });
+
+                el.addEventListener('mouseleave', () => {
+                  clearTimeout(hideTimeout);
+                  tooltip.hide();
+                });
+              });
+            }, 100);
+          }
+
+          // Animate bars in the initially expanded accordion
+          const firstAccordion = document.querySelector('#collapse0');
+          if (firstAccordion) {
+            animateProgressBars(firstAccordion);
+          }
+
+          // Add event listeners to animate bars when accordion is shown
+          document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+            collapse.addEventListener('shown.bs.collapse', function () {
+              animateProgressBars(this);
+            });
+          });
+        });
+      </script>
+      <!--/ Carrier Status Bars -->
 
       <!-- News -->
       <script>
