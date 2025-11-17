@@ -162,7 +162,9 @@
         // Create company icon lookup map from companies data
         const companyIconMap = {};
         companies.forEach(company => {
-            companyIconMap[company.name] = company.iconPath || '/img/icons/carriers/default.png';
+            if (company.iconPath) {
+                companyIconMap[company.name] = company.iconPath;
+            }
         });
 
         // Populate square buttons instead of select
@@ -185,13 +187,16 @@
             btn.style.height = "100px";
             btn.style.borderRadius = "8px";
 
-            // Add company logo
-            const img = document.createElement("img");
-            img.src = companyIconMap[company.name] || '/img/icons/carriers/default.png';
-            img.alt = company.name;
-            img.style.maxWidth = "40px";
-            img.style.maxHeight = "40px";
-            img.className = "mb-2";
+            // Add company logo if available
+            if (companyIconMap[company.name]) {
+                const img = document.createElement("img");
+                img.src = companyIconMap[company.name];
+                img.alt = company.name;
+                img.style.maxWidth = "40px";
+                img.style.maxHeight = "40px";
+                img.className = "mb-2";
+                btn.appendChild(img);
+            }
 
             // Add company name label
             const span = document.createElement("span");
@@ -199,7 +204,6 @@
             span.style.fontSize = "0.75rem";
             span.style.textAlign = "center";
 
-            btn.appendChild(img);
             btn.appendChild(span);
 
             btn.dataset.name = company.name;

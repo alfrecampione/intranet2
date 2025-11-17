@@ -349,7 +349,9 @@
     const companyIconMap = {};
     const companiesData = JSON.parse(document.getElementById('companies-data').textContent);
     companiesData.forEach(company => {
-      companyIconMap[company.name] = company.iconPath || '/img/icons/carriers/default.png';
+      if (company.iconPath) {
+        companyIconMap[company.name] = company.iconPath;
+      }
     });
   </script>
 
@@ -682,13 +684,11 @@
             `;
 
             carriersByState[state].forEach(carrier => {
-              const iconPath = companyIconMap[carrier.company] || '/img/icons/carriers/default.png';
+              const iconPath = companyIconMap[carrier.company];
               accordionHTML += `
                 <li class="list-group-item">
                   <div class="d-flex align-items-center">
-                    <img src="${iconPath}"
-                      alt="icon" class="me-2"
-                      style="width:28px; height:28px; object-fit:contain;">
+                    ${iconPath ? `<img src="${iconPath}" alt="icon" class="me-2" style="width:28px; height:28px; object-fit:contain;">` : ''}
                     <div class="me-3 fw-semibold">${carrier.company}</div>
                     <div class="flex-grow-1">
                       <div class="progress carrier-progress" style="height: 14px; cursor: pointer;"
