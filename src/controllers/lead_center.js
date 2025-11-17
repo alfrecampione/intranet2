@@ -98,6 +98,7 @@ const renderNewLead = async (req, res) => {
         select: {
             id: true,
             name: true,
+            iconPath: true,
         },
     });
 
@@ -118,6 +119,7 @@ const loadLead = async (req, res) => {
             select: {
                 id: true,
                 name: true,
+                iconPath: true,
             },
         });
         res.render("newLead", { companies, lead, isLoaded: true });
