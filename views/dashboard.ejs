@@ -691,9 +691,10 @@
                       style="width:28px; height:28px; object-fit:contain;">
                     <div class="me-3 fw-semibold">${carrier.company}</div>
                     <div class="flex-grow-1">
-                      <div class="progress" style="height: 14px;">
+                      <div class="progress carrier-progress" style="height: 14px; cursor: pointer;"
+                        data-status="${carrier.status}">
                         <div class="progress-bar bg-success carrier-bar"
-                          data-status="${carrier.status}" role="progressbar"
+                          role="progressbar"
                           style="width: 0%" aria-valuemin="0" aria-valuemax="100">
                           <span class="small ms-2 text-white carrier-bar-text"></span>
                         </div>
@@ -738,9 +739,10 @@
 
           // Function to animate progress bars
           function animateProgressBars(accordionElement) {
-            const bars = accordionElement.querySelectorAll(".carrier-bar");
-            bars.forEach(bar => {
-              let status = bar.dataset.status?.trim();
+            const progressContainers = accordionElement.querySelectorAll(".carrier-progress");
+            progressContainers.forEach(container => {
+              const bar = container.querySelector(".carrier-bar");
+              let status = container.dataset.status?.trim();
               let pct = 0;
               let colorClass = "bg-secondary";
 
@@ -765,9 +767,10 @@
               const textSpan = bar.querySelector(".carrier-bar-text");
               if (textSpan) textSpan.textContent = "";
 
-              bar.setAttribute("data-bs-toggle", "tooltip");
-              bar.setAttribute("data-bs-placement", "top");
-              bar.setAttribute("title", status);
+              // Add tooltip to the progress container (entire bar area)
+              container.setAttribute("data-bs-toggle", "tooltip");
+              container.setAttribute("data-bs-placement", "top");
+              container.setAttribute("title", status);
             });
 
             // Initialize tooltips for this accordion
