@@ -171,12 +171,12 @@ model NewUserAlerts {
 }
 
 model Company {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  States    String[]
-  createdAt DateTime @default(now())
-  phone     String
-  iconPath  String?
+  id         String   @id @default(uuid())
+  externalId Int?     @unique
+  name       String?  @unique
+  phone      String?
+  States     String[]
+  iconPath   String?
 
   Commisions Commisions[]
 

@@ -70,7 +70,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, "..", "assets")));
-app.use("/uploads", express.static("uploads"));
 
 app.use("/", router);
 

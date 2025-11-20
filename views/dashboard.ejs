@@ -718,6 +718,7 @@
 
           // Now apply progress bar logic
           const normalStatusOptions = [
+            "Empty",
             "Request Received from Agent",
             "Pending Submission",
             "Submitted to Carrier",
@@ -752,7 +753,8 @@
                 colorClass = "bg-success";
               } else if (specialStatusOptions.includes(status)) {
                 pct = 100;
-                colorClass = "bg-warning";
+                // Refering is green, all other special statuses are red
+                colorClass = status === "Refering" ? "bg-success" : "bg-danger";
               }
 
               bar.className = `progress-bar carrier-bar ${colorClass}`;

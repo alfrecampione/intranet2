@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -48,7 +48,7 @@ const renderProfile = async (req, res) => {
         orderBy: { state: 'asc' },
     });
 
-    const allCompanies = await prisma.company.findMany();
+    const allCompanies = await getAllCompanies();
 
     const allAgencies = await getAgencies();
 

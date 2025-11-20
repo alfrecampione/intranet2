@@ -1,5 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAgencies } from "../config/utils.js";
+import { getAgencies, getAllCompanies } from "../config/utils.js";
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
   const user = reqUser;
@@ -18,7 +18,7 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     prisma.paymentMethod.findUnique({ where: { userId } }),
     prisma.documents.findUnique({ where: { userId } }),
     prisma.statesANDCarriers.findMany({ where: { userId } }),
-    prisma.company.findMany(),
+    getAllCompanies(),
     prisma.recommendation.findUnique({ where: { userId } })
   ]);
 
@@ -101,20 +101,42 @@ const editRegister = async (req, res) => {
   }
 };
 
-const handleFileUpload = (req, res) => {
+const handleFileUpload = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: "No file uploaded" });
     }
 
-    const normalizedPath = req.file.path.replace(/\\/g, "/");
-    const relativePath = normalizedPath.includes("uploads/")
-      ? normalizedPath.substring(normalizedPath.indexOf("uploads/"))
-      : `uploads/${req.file.filename}`;
+    const { uploadToS3, isValidFileType } = await import("../config/s3Config.js");
+
+    // Validate file type
+    if (!isValidFileType(req.file.originalname, req.file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid file type. Allowed: jpeg, jpg, png, pdf, doc, docx",
+      });
+    }
+
+    // Check file size (2MB limit)
+    if (req.file.size > 2 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        error: "File size exceeds 2MB limit",
+      });
+    }
+
+    // Upload to S3
+    const userId = req.user?.user_id || "general";
+    const s3Url = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+      userId
+    );
 
     res.json({
       success: true,
-      path: relativePath,
+      path: s3Url,
     });
   } catch (error) {
     console.error("Upload error:", error);

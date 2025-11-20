@@ -1,5 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
 
 /* ============================
    UTILITY FUNCTIONS
@@ -287,10 +287,7 @@ function handleGenericFilter(processedAgents, filterType, filterValue) {
 }
 
 async function getStatesAndCarriers() {
-    const statesAndCarriers = await prisma.company.findMany({
-        select: { States: true, name: true },
-        orderBy: { name: 'asc' },
-    });
+    const statesAndCarriers = await getAllCompanies();
 
     // Extract unique states
     const states = statesAndCarriers.map(item => item.States).flat();

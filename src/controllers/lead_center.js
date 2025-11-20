@@ -94,13 +94,51 @@ const deleteLead = async (req, res) => {
 }
 
 const renderNewLead = async (req, res) => {
-    const companies = await prisma.company.findMany({
-        select: {
-            id: true,
-            name: true,
-            iconPath: true,
-        },
-    });
+    // Get companies from health schema
+    const healthCompanies = await prisma.company.findMany();
+
+    // Get only the externalIds that exist in health schema
+    const externalIds = healthCompanies
+        .filter(hc => hc.externalId)
+        .map(hc => hc.externalId);
+
+    // Get companies from qq.contacts only for those with externalId in health
+    let qqCompanies = [];
+    if (externalIds.length > 0) {
+        qqCompanies = await prisma.$queryRaw`
+            SELECT entity_id, display_name
+            FROM qq.contacts
+            WHERE entity_id = ANY(${externalIds}::int[])
+            ORDER BY display_name ASC
+        `;
+    }
+
+    // Combine both sources
+    const companies = [];
+
+    // Add companies with externalId (from qq.contacts)
+    for (const qqComp of qqCompanies) {
+        const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
+        if (healthMatch) {
+            companies.push({
+                id: healthMatch.id,
+                name: qqComp.display_name,
+                iconPath: healthMatch.iconPath || null
+            });
+        }
+    }
+
+    // Add health-only companies
+    const healthOnlyCompanies = healthCompanies.filter(hc => !hc.externalId);
+    for (const hc of healthOnlyCompanies) {
+        companies.push({
+            id: hc.id,
+            name: hc.name,
+            iconPath: hc.iconPath
+        });
+    }
+
+    companies.sort((a, b) => a.name.localeCompare(b.name));
 
     res.render("newLead", { companies, lead: {}, isLoaded: false });
 }
@@ -115,13 +153,53 @@ const loadLead = async (req, res) => {
         if (!lead) {
             return res.status(404).json({ error: "Lead not found" });
         }
-        const companies = await prisma.company.findMany({
-            select: {
-                id: true,
-                name: true,
-                iconPath: true,
-            },
-        });
+
+        // Get companies from health schema
+        const healthCompanies = await prisma.company.findMany();
+
+        // Get only the externalIds that exist in health schema
+        const externalIds = healthCompanies
+            .filter(hc => hc.externalId)
+            .map(hc => hc.externalId);
+
+        // Get companies from qq.contacts only for those with externalId in health
+        let qqCompanies = [];
+        if (externalIds.length > 0) {
+            qqCompanies = await prisma.$queryRaw`
+                SELECT entity_id, display_name
+                FROM qq.contacts
+                WHERE entity_id = ANY(${externalIds}::int[])
+                ORDER BY display_name ASC
+            `;
+        }
+
+        // Combine both sources
+        const companies = [];
+
+        // Add companies with externalId (from qq.contacts)
+        for (const qqComp of qqCompanies) {
+            const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
+            if (healthMatch) {
+                companies.push({
+                    id: healthMatch.id,
+                    name: qqComp.display_name,
+                    iconPath: healthMatch.iconPath || null
+                });
+            }
+        }
+
+        // Add health-only companies
+        const healthOnlyCompanies = healthCompanies.filter(hc => !hc.externalId);
+        for (const hc of healthOnlyCompanies) {
+            companies.push({
+                id: hc.id,
+                name: hc.name,
+                iconPath: hc.iconPath
+            });
+        }
+
+        companies.sort((a, b) => a.name.localeCompare(b.name));
+
         res.render("newLead", { companies, lead, isLoaded: true });
     } catch (error) {
         console.error("Error loading lead:", error);

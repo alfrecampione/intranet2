@@ -1,5 +1,5 @@
 import { pool, prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds } from "../config/utils.js";
+import { getAllAgencyIds, getAllCompanies } from "../config/utils.js";
 import { register } from "./registration.js";
 
 const redirect_dashboard = (req, res) => {
@@ -14,7 +14,7 @@ const renderDashboard = async (req, res) => {
 
     // 1. Si tiene derecho 1 (admin)
     if (user && user.rights && user.rights.includes(1)) {
-      companies = await prisma.company.findMany();
+      companies = await getAllCompanies();
       const agents = await prisma.user.findMany({
         where: { isAgent: true },
         include: { statesAndCarriers: true }
@@ -48,7 +48,7 @@ const renderDashboard = async (req, res) => {
           where: { userId: { in: userIds } },
           select: { userId: true, company: true, state: true }
         });
-        companies = await prisma.company.findMany();
+        companies = await getAllCompanies();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
       } else {
         companies = [];
@@ -62,7 +62,7 @@ const renderDashboard = async (req, res) => {
         where: { user_id: user.user_id },
         include: { personalInfo: true, statesAndCarriers: true }
       });
-      companies = await prisma.company.findMany();
+      companies = await getAllCompanies();
       userCompanyStateData = user.statesAndCarriers.map(c => ({
         userId: user.user_id,
         company: c.company,
