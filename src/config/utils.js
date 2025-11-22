@@ -456,19 +456,6 @@ async function getAllCompanies() {
         }
     }
 
-    // Add health-only companies (those without externalId)
-    const healthOnlyCompanies = healthCompanies.filter(hc => !hc.externalId);
-    for (const hc of healthOnlyCompanies) {
-        companies.push({
-            id: hc.id,
-            name: hc.name,
-            phone: hc.phone || '',
-            iconPath: hc.iconPath,
-            States: hc.States || [],
-            externalId: null
-        });
-    }
-
     companies.sort((a, b) => a.name.localeCompare(b.name));
     return companies;
 }

@@ -128,16 +128,6 @@ const renderNewLead = async (req, res) => {
         }
     }
 
-    // Add health-only companies
-    const healthOnlyCompanies = healthCompanies.filter(hc => !hc.externalId);
-    for (const hc of healthOnlyCompanies) {
-        companies.push({
-            id: hc.id,
-            name: hc.name,
-            iconPath: hc.iconPath
-        });
-    }
-
     companies.sort((a, b) => a.name.localeCompare(b.name));
 
     res.render("newLead", { companies, lead: {}, isLoaded: false });
@@ -186,16 +176,6 @@ const loadLead = async (req, res) => {
                     iconPath: healthMatch.iconPath || null
                 });
             }
-        }
-
-        // Add health-only companies
-        const healthOnlyCompanies = healthCompanies.filter(hc => !hc.externalId);
-        for (const hc of healthOnlyCompanies) {
-            companies.push({
-                id: hc.id,
-                name: hc.name,
-                iconPath: hc.iconPath
-            });
         }
 
         companies.sort((a, b) => a.name.localeCompare(b.name));

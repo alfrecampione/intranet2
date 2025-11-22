@@ -297,9 +297,6 @@ const renderConfigCommisions = async (req, res) => {
       companyNameMap.set(healthMatch.id, qqComp.display_name);
     }
   }
-  for (const hc of healthCompanies.filter(c => !c.externalId)) {
-    companyNameMap.set(hc.id, hc.name);
-  }
 
   // Format companies for the view
   const companies = Array.from(companyNameMap.entries()).map(([id, name]) => ({
@@ -313,7 +310,7 @@ const renderConfigCommisions = async (req, res) => {
 
   try {
     const commisions = commisionsRaw.map(c => {
-      const companyName = companyNameMap.get(c.companyId) || c.company.name || 'Unknown';
+      const companyName = companyNameMap.get(c.companyId) || 'Unknown';
       return {
         company: companyName,
         state: c.state,
@@ -365,11 +362,6 @@ const updateCommisions = async (req, res) => {
       if (healthMatch) {
         nameToId[qqComp.display_name] = healthMatch.id;
       }
-    }
-
-    // Map health-only companies
-    for (const hc of healthCompanies.filter(c => !c.externalId)) {
-      nameToId[hc.name] = hc.id;
     }
 
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
