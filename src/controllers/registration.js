@@ -1,5 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { getAgencies, getAllCompanies } from "../config/utils.js";
+import { uploadToS3, isValidFileType } from "../config/s3Config.js";
+
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
   const user = reqUser;
@@ -106,8 +108,6 @@ const handleFileUpload = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, error: "No file uploaded" });
     }
-
-    const { uploadToS3, isValidFileType } = await import("../config/s3Config.js");
 
     // Validate file type
     if (!isValidFileType(req.file.originalname, req.file.mimetype)) {
