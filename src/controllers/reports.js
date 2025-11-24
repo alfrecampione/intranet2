@@ -1,7 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
-import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
    UTILITY FUNCTIONS
