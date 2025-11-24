@@ -1,5 +1,6 @@
 import { pool, prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 
 const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
@@ -411,6 +412,11 @@ const renderConfigAgentRights = async (req, res) => {
           photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photo : '';
           display_name = entra_user[0].display_name;
         }
+      }
+
+      // Generate signed URL for photoPath if it's from S3
+      if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
       }
 
       return {

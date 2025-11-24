@@ -1,5 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { processS3Urls } from "../config/s3Config.js";
 
 // Step 1: Personal Info
 export const createPersonalInfo = async (req, res) => {
@@ -80,7 +81,8 @@ export const getPersonalInfoById = async (req, res) => {
   const personalInfo = await prisma.personalInfo.findUnique({
     where: { userId: req.params.id },
   });
-  res.json(personalInfo);
+  const processedPersonalInfo = await processS3Urls(personalInfo);
+  res.json(processedPersonalInfo);
 };
 
 // Step 2: Contact Info
@@ -213,7 +215,8 @@ export const getDocumentsById = async (req, res) => {
   const documents = await prisma.documents.findUnique({
     where: { userId: req.params.id },
   });
-  res.json(documents);
+  const processedDocuments = await processS3Urls(documents);
+  res.json(processedDocuments);
 };
 
 export const getStateCarriers = async (req, res) => {

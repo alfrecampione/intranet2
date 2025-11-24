@@ -1,5 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
+import { getSignedS3Url } from "../config/s3Config.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
    UTILITY FUNCTIONS
@@ -41,6 +43,11 @@ async function loadAgents(agentsIds) {
             `;
                 photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
             }
+        }
+
+        // Generate signed URL for photoPath if it's from S3
+        if (photoPath) {
+            photoPath = await getSignedS3Url(photoPath);
         }
 
         return {
@@ -182,6 +189,11 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 }
             }
 
+            // Generate signed URL for photoPath if it's from S3
+            if (photoPath) {
+                photoPath = await getSignedS3Url(photoPath);
+            }
+
             return {
                 user_id: agent.user_id,
                 name: agent.display_name || '',
@@ -242,6 +254,11 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                     `;
                     photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
                 }
+            }
+
+            // Generate signed URL for photoPath if it's from S3
+            if (photoPath) {
+                photoPath = await getSignedS3Url(photoPath);
             }
 
             return {

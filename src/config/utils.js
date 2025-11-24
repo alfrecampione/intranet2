@@ -1,5 +1,6 @@
 import fs from "fs";
 import { prisma, pool } from "../config/dbConfig.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 
 const citiesByState = JSON.parse(
     fs.readFileSync("./src/config/US_States_and_Cities.json", "utf8")
@@ -445,11 +446,16 @@ async function getAllCompanies() {
     for (const qqComp of qqCompanies) {
         const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
         if (healthMatch) {
+            let iconPath = healthMatch.iconPath || null;
+            // Generate signed URL for iconPath if it's from S3
+            if (iconPath) {
+                iconPath = await getSignedS3Url(iconPath);
+            }
             companies.push({
                 id: healthMatch.id,
                 name: qqComp.display_name,
                 phone: qqComp.phone || '',
-                iconPath: healthMatch.iconPath || null,
+                iconPath: iconPath,
                 States: healthMatch.States || [],
                 externalId: qqComp.entity_id
             });

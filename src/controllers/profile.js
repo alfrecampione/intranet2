@@ -1,6 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
+import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -23,7 +24,8 @@ const renderProfile = async (req, res) => {
         const realId = await getMSARealId(profile.user_id);
         const msaPhotoPath = await getMSAPhotoPath(realId);
         if (msaPhotoPath && personalInfo) {
-            personalInfo.photoPath = msaPhotoPath;
+            // Generate signed URL for MSA photo
+            personalInfo.photoPath = await getSignedS3Url(msaPhotoPath);
         }
     }
 
@@ -82,17 +84,22 @@ const renderProfile = async (req, res) => {
 
     const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));
 
+    // Process S3 URLs to generate signed URLs
+    const processedPersonalInfo = await processS3Urls(personalInfo);
+    const processedDocuments = await processS3Urls(documents);
+    const processedAllCompanies = await processS3Urls(allCompanies);
+
     res.render("profile", {
         userId,
         user,
         profile,
-        personalInfo,
+        personalInfo: processedPersonalInfo,
         contactInfo,
         paymentMethod,
-        documents,
+        documents: processedDocuments,
         necesaryDocs,
         carriers,
-        allCompanies,
+        allCompanies: processedAllCompanies,
         allAgencies,
         activity,
         pinnedNotes,
@@ -301,7 +308,8 @@ const renderNotes = async (req, res) => {
         const realId = await getMSARealId(profile.user_id);
         const msaPhotoPath = await getMSAPhotoPath(realId);
         if (msaPhotoPath && personalInfo) {
-            personalInfo.photoPath = msaPhotoPath;
+            // Generate signed URL for MSA photo
+            personalInfo.photoPath = await getSignedS3Url(msaPhotoPath);
         }
     }
 
@@ -314,8 +322,10 @@ const renderNotes = async (req, res) => {
         orderBy: { createdAt: 'desc' }
     });
 
+    // Process S3 URLs to generate signed URLs
+    const processedPersonalInfo = await processS3Urls(personalInfo);
 
-    res.render("notes", { userId, user, profile, personalInfo, contactInfo, notes, activePage: 'profile' });
+    res.render("notes", { userId, user, profile, personalInfo: processedPersonalInfo, contactInfo, notes, activePage: 'profile' });
 }
 
 const postNote = async (req, res) => {

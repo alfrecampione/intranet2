@@ -777,6 +777,11 @@
   <script>
     function getDocumentUrl(path) {
       if (!path) return '';
+      // Check if it's already a full URL (S3 or external)
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      // Otherwise, treat as local path
       return `${window.location.protocol}//${window.location.host}/${path.replace(/^\/+/, '')}`;
     }
   </script>

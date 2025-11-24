@@ -353,7 +353,9 @@
                               <script>
                                 const origin = window.location.origin;
                                 const photoPath = "<%= personalInfo.photoPath %>";
-                                document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
+                                // Check if it's an S3 URL or local path
+                                const photoSrc = photoPath.startsWith('http') ? photoPath : `${origin}/${photoPath}`;
+                                document.getElementById("profilePhotoPreview").src = photoSrc;
                                 document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
                               </script>
                               <% } %>
@@ -596,8 +598,10 @@
                                           <label for="<%= doc.inputId %>"
                                             class="btn btn-sm btn-outline-primary">Upload</label>
                                           <% if (docs[doc.key]) { %>
-                                            <a href="/<%= docs[doc.key] %>" target="_blank" class="ms-2">View</a>
-                                            <% } %>
+                                            <% const docUrl=docs[doc.key].startsWith('http') ? docs[doc.key] : '/' +
+                                              docs[doc.key]; %>
+                                              <a href="<%= docUrl %>" target="_blank" class="ms-2">View</a>
+                                              <% } %>
                                         </div>
                                       </div>
                                     </div>

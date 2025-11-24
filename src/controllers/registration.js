@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { getAgencies, getAllCompanies } from "../config/utils.js";
-import { uploadToS3, isValidFileType } from "../config/s3Config.js";
+import { uploadToS3, isValidFileType, deleteFromS3, processS3Urls } from "../config/s3Config.js";
 
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
@@ -38,14 +38,17 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     });
   }
 
+  // Process S3 URLs to generate signed URLs
+  const processedPersonalInfo = await processS3Urls(personalInfo);
+  const processedDocuments = await processS3Urls(documents);
 
   return {
     user,
     userId,
-    personalInfo,
+    personalInfo: processedPersonalInfo,
     contactInfo,
     paymentMethod,
-    documents,
+    documents: processedDocuments,
     necessaryDocuments,
     isEdit,
     statesAndCarriersbyUser,
@@ -125,8 +128,40 @@ const handleFileUpload = async (req, res) => {
       });
     }
 
-    // Upload to S3
     const userId = req.user?.user_id || "general";
+    const fieldName = req.body.field; // Field name sent from frontend
+
+    // If updating an existing field, delete the old file first
+    if (fieldName && userId !== "general") {
+      try {
+        // Get current file URL from database
+        let oldFileUrl = null;
+
+        if (fieldName === "photoPath") {
+          const personalInfo = await prisma.personalInfo.findUnique({
+            where: { userId },
+            select: { photoPath: true }
+          });
+          oldFileUrl = personalInfo?.photoPath;
+        } else {
+          // It's a document field
+          const documents = await prisma.documents.findUnique({
+            where: { userId },
+          });
+          oldFileUrl = documents?.[fieldName];
+        }
+
+        // Delete old file from S3 if it exists
+        if (oldFileUrl && oldFileUrl.includes('s3.amazonaws.com')) {
+          await deleteFromS3(oldFileUrl);
+        }
+      } catch (deleteError) {
+        console.error("Error deleting old file:", deleteError);
+        // Continue with upload even if deletion fails
+      }
+    }
+
+    // Upload to S3
     const s3Url = await uploadToS3(
       req.file.buffer,
       req.file.originalname,
