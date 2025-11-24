@@ -73,15 +73,10 @@
                             <li class="mb-2">
                                 <span class="h6">Birthday:</span>
                                 <span>
-                                    <% let dateStr="None" ; %>
-                                        <% if (personalInfo?.dateOfBirth)%>
-                                            <%{%>
-                                                <% const date=new Date(personalInfo.dateOfBirth); %>
-                                                    <% if (!isNaN(date.getTime())) { %>
-                                                        <% dateStr=date.toISOString().split("T")[0]; %>
-                                                            <% } %>
-                                                                <%} %>
-                                                                    <%= dateStr %>
+                                    <% let dateStr="None" ; if (personalInfo?.dateOfBirth) { const date=new
+                                        Date(personalInfo.dateOfBirth); if (!isNaN(date.getTime())) {
+                                        dateStr=date.toISOString().split("T")[0]; } } %>
+                                        <%= dateStr %>
                                 </span>
                             </li>
                             <li class="mb-2">
