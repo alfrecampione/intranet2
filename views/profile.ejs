@@ -787,667 +787,678 @@
   </script>
 
   <script>
-    const data = JSON.parse(document.getElementById('user-data').textContent);
-    const list = document.getElementById('user-info-list');
-    const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
+    document.addEventListener('DOMContentLoaded', () => {
+      const data = JSON.parse(document.getElementById('user-data').textContent);
+      const list = document.getElementById('user-info-list');
+      const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
 
-    function formatPhone(number) {
-      const digits = (number || "").replace(/\D/g, "");
-      if (digits.length === 10) {
-        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-      }
-      return number || "None";
-    }
-
-    function formatSSN(value) {
-      const digits = (value || "").replace(/\D/g, "");
-      if (digits.length === 9) {
-        return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-      }
-      return value || "";
-    }
-
-    function maskSSN(value) {
-      if (!value) return "None";
-      const digits = (value || "").replace(/\D/g, "");
-      if (digits.length === 9) {
-        return `***-**-${digits.slice(5)}`;
-      }
-      return value;
-    }
-
-    function addSectionHeader(title, sectionKey) {
-      const header = document.createElement('li');
-      header.className = 'fw-bold mt-3 mb-2 d-flex align-items-center justify-content-between';
-
-      const text = document.createElement('span');
-      text.textContent = title;
-      header.appendChild(text);
-
-      if (!canEdit) {
-        list.appendChild(header);
+      if (!list) {
+        console.error('Element user-info-list not found');
         return;
       }
 
-      const editIcon = document.createElement('i');
-      editIcon.className = 'ti ti-edit';
-      editIcon.style.cursor = 'pointer';
-      editIcon.title = 'Edit Section';
+      function formatPhone(number) {
+        const digits = (number || "").replace(/\D/g, "");
+        if (digits.length === 10) {
+          return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+        return number || "None";
+      }
 
-      let editing = false;
+      function formatSSN(value) {
+        const digits = (value || "").replace(/\D/g, "");
+        if (digits.length === 9) {
+          return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+        }
+        return value || "";
+      }
 
-      editIcon.addEventListener('click', async () => {
-        const sectionItems = list.querySelectorAll(`li[data-section="${sectionKey}"] span[data-value]`);
+      function maskSSN(value) {
+        if (!value) return "None";
+        const digits = (value || "").replace(/\D/g, "");
+        if (digits.length === 9) {
+          return `***-**-${digits.slice(5)}`;
+        }
+        return value;
+      }
 
-        if (!editing) {
-          for (const span of sectionItems) {
-            const li = span.closest('li');
-            const fieldName = li.dataset.field;
-            let currentValue;
-            const sensitiveSpan = span.querySelector?.('span[data-full]');
-            if (sensitiveSpan) {
-              currentValue = sensitiveSpan.dataset.full || '';
-            } else {
-              currentValue = span.textContent;
-            }
+      function addSectionHeader(title, sectionKey) {
+        const header = document.createElement('li');
+        header.className = 'fw-bold mt-3 mb-2 d-flex align-items-center justify-content-between';
 
-            let input;
+        const text = document.createElement('span');
+        text.textContent = title;
+        header.appendChild(text);
 
-            // Agency
-            if (fieldName === 'agency') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-              input.dataset.original = currentValue || '';
+        if (!canEdit) {
+          list.appendChild(header);
+          return;
+        }
 
-              const noneOption = document.createElement('option');
-              noneOption.value = '';
-              noneOption.textContent = 'None';
-              if (!currentValue || currentValue === 'None') noneOption.selected = true;
-              input.appendChild(noneOption);
+        const editIcon = document.createElement('i');
+        editIcon.className = 'ti ti-edit';
+        editIcon.style.cursor = 'pointer';
+        editIcon.title = 'Edit Section';
 
-              agencies.forEach(a => {
-                const option = document.createElement('option');
-                option.value = a.id;
-                option.textContent = a.name;
-                option.dataset.isAgency = a.isAgency ? "true" : "false";
+        let editing = false;
 
-                if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
-                  option.selected = true;
+        editIcon.addEventListener('click', async () => {
+          const sectionItems = list.querySelectorAll(`li[data-section="${sectionKey}"] span[data-value]`);
+
+          if (!editing) {
+            for (const span of sectionItems) {
+              const li = span.closest('li');
+              const fieldName = li.dataset.field;
+              let currentValue;
+              const sensitiveSpan = span.querySelector?.('span[data-full]');
+              if (sensitiveSpan) {
+                currentValue = sensitiveSpan.dataset.full || '';
+              } else {
+                currentValue = span.textContent;
+              }
+
+              let input;
+
+              // Agency
+              if (fieldName === 'agency') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+                input.dataset.original = currentValue || '';
+
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = 'None';
+                if (!currentValue || currentValue === 'None') noneOption.selected = true;
+                input.appendChild(noneOption);
+
+                agencies.forEach(a => {
+                  const option = document.createElement('option');
+                  option.value = a.id;
+                  option.textContent = a.name;
+                  option.dataset.isAgency = a.isAgency ? "true" : "false";
+
+                  if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
+                    option.selected = true;
+                  }
+                  input.appendChild(option);
+                });
+              }
+
+              // State (contactInfo)
+              else if (fieldName === 'state' && sectionKey === 'contactInfo') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+                input.dataset.original = currentValue || '';
+                const US_STATES = [
+                  { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
+                  { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
+                  { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
+                  { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
+                  { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
+                  { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
+                  { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
+                  { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
+                  { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
+                  { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
+                  { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
+                  { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
+                  { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
+                  { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
+                  { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
+                  { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
+                  { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
+                ];
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = 'None';
+                if (!currentValue || currentValue === 'None') noneOption.selected = true;
+                input.appendChild(noneOption);
+                US_STATES.forEach(st => {
+                  const option = document.createElement('option');
+                  option.value = st.abbr;
+                  option.textContent = st.name;
+                  if (currentValue === st.abbr || currentValue === st.name) option.selected = true;
+                  input.appendChild(option);
+                });
+              }
+
+              // City (dynamic load)
+              else if (fieldName === 'city' && sectionKey === 'contactInfo') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+                input.dataset.original = currentValue || '';
+
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = 'None';
+                if (!currentValue || currentValue === 'None') noneOption.selected = true;
+                input.appendChild(noneOption);
+
+                async function loadCitiesForState(stateAbbr, selectedCity = null) {
+                  input.innerHTML = '';
+                  const none = document.createElement('option');
+                  none.value = '';
+                  none.textContent = 'None';
+                  input.appendChild(none);
+
+                  if (!stateAbbr || stateAbbr === 'None') return;
+
+                  try {
+                    const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
+                    const cities = await res.json();
+
+                    if (!Array.isArray(cities)) return;
+
+                    cities.forEach(city => {
+                      const option = document.createElement('option');
+                      option.value = city;
+                      option.textContent = city;
+                      if (selectedCity && selectedCity.toLowerCase() === city.toLowerCase()) {
+                        option.selected = true;
+                      }
+                      input.appendChild(option);
+                    });
+                  } catch (err) {
+                    showToast("Error", "Failed to load cities: " + err.message);
+                  }
                 }
-                input.appendChild(option);
-              });
+
+                const selectedState = contactInfo.state;
+                loadCitiesForState(selectedState, currentValue);
+
+                setTimeout(() => {
+                  const stateSelect = list.querySelector('li[data-field="state"] select');
+                  if (stateSelect) {
+                    stateSelect.addEventListener('change', () => {
+                      loadCitiesForState(stateSelect.value);
+                    });
+                  }
+                }, 0);
+              }
+
+              // --- Account Type ---
+              else if (fieldName === 'bankAccountType') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+                input.dataset.original = currentValue || '';
+
+                ['checking', 'saving'].forEach(opt => {
+                  const option = document.createElement('option');
+                  option.value = opt;
+                  option.textContent = opt;
+                  if ((currentValue || '').toLowerCase() === opt) {
+                    option.selected = true;
+                  }
+                  input.appendChild(option);
+                });
+              }
+
+              // Documents
+              else if (sectionKey === 'documents') {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.className = 'form-control form-control-sm';
+                input.dataset.original = currentValue || '';
+              }
+
+              // Sex
+              else if (fieldName === 'legalSex') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+
+                ['Male', 'Female'].forEach(opt => {
+                  const option = document.createElement('option');
+                  option.value = opt.toLowerCase();
+                  option.textContent = opt;
+                  if (currentValue?.toLowerCase() === opt.toLowerCase()) {
+                    option.selected = true;
+                  }
+                  input.appendChild(option);
+                });
+
+                input.dataset.original = currentValue?.toLowerCase() || '';
+              }
+
+              // Contact Type
+              else if (fieldName === 'contactType') {
+                input = document.createElement('select');
+                input.className = 'form-select form-select-sm';
+
+                ['Individual', 'Business'].forEach(opt => {
+                  const option = document.createElement('option');
+                  option.value = opt.toLowerCase();
+                  option.textContent = opt;
+                  if (currentValue?.toLowerCase() === opt.toLowerCase()) {
+                    option.selected = true;
+                  }
+                  input.appendChild(option);
+                });
+
+                input.dataset.original = currentValue?.toLowerCase() || '';
+              }
+
+              // SSN
+              else if (fieldName === 'ssn') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control form-control-sm';
+                input.maxLength = 11;
+                input.value = formatSSN(currentValue);
+                input.dataset.original = (currentValue || '').replace(/\D/g, ''); // solo dígitos
+
+                input.addEventListener('input', function () {
+                  let digits = this.value.replace(/\D/g, '').slice(0, 9);
+                  let formatted = digits;
+                  if (digits.length > 5) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                  } else if (digits.length > 3) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                  }
+                  this.value = formatted;
+                });
+              }
+
+              // NPN
+              else if (fieldName === 'npn') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control form-control-sm';
+                input.maxLength = 8;
+                input.value = currentValue || '';
+                input.dataset.original = currentValue || '';
+
+                input.addEventListener('input', function () {
+                  this.value = this.value.replace(/\D/g, '').slice(0, 8);
+                });
+              }
+
+              // Date of Birth
+              else if (fieldName === 'dateOfBirth') {
+                input = document.createElement('input');
+                input.type = 'date';
+                input.className = 'form-control form-control-sm';
+
+                let isoDate = '';
+                if (currentValue) {
+                  const dateObj = new Date(currentValue);
+                  if (!isNaN(dateObj.getTime())) {
+                    isoDate = dateObj.toISOString().split('T')[0];
+                  }
+                }
+                input.value = isoDate;
+                input.dataset.original = isoDate;
+              }
+
+              // Phone
+              else if ((fieldName === 'personalPhone' || fieldName === 'secondaryPhone') && sectionKey === 'contactInfo') {
+                input = document.createElement('input');
+                input.type = 'tel';
+                input.className = 'form-control form-control-sm';
+                input.value = formatPhone(currentValue);
+                input.dataset.original = input.value;
+                input.maxLength = 14;
+
+                input.addEventListener('input', function () {
+                  let digits = this.value.replace(/\D/g, '');
+                  if (digits.length > 10) digits = digits.slice(0, 10);
+                  let formatted = digits;
+                  if (digits.length > 6) {
+                    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+                  } else if (digits.length > 3) {
+                    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+                  }
+                  this.value = formatted;
+                });
+              }
+
+              // Email
+              else if ((fieldName === 'personalEmail' || fieldName === 'secondaryEmail') && sectionKey === 'contactInfo') {
+                input = document.createElement('input');
+                input.type = 'email';
+                input.className = 'form-control form-control-sm';
+                input.value = currentValue || '';
+                input.dataset.original = input.value;
+                // Opt-out of the global uppercase handler
+                input.setAttribute('data-preserve-case', 'true');
+              }
+
+
+              // Default
+              else {
+                input = document.createElement('input');
+                input.value = currentValue === 'None' ? '' : currentValue;
+                input.dataset.original = input.value;
+                input.className = 'form-control form-control-sm';
+              }
+
+              span.replaceWith(input);
             }
 
-            // State (contactInfo)
-            else if (fieldName === 'state' && sectionKey === 'contactInfo') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-              input.dataset.original = currentValue || '';
-              const US_STATES = [
-                { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" },
-                { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" },
-                { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" },
-                { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" },
-                { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" },
-                { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" },
-                { name: "Maine", abbr: "ME" }, { name: "Maryland", abbr: "MD" }, { name: "Massachusetts", abbr: "MA" },
-                { name: "Michigan", abbr: "MI" }, { name: "Minnesota", abbr: "MN" }, { name: "Mississippi", abbr: "MS" },
-                { name: "Missouri", abbr: "MO" }, { name: "Montana", abbr: "MT" }, { name: "Nebraska", abbr: "NE" },
-                { name: "Nevada", abbr: "NV" }, { name: "New Hampshire", abbr: "NH" }, { name: "New Jersey", abbr: "NJ" },
-                { name: "New Mexico", abbr: "NM" }, { name: "New York", abbr: "NY" }, { name: "North Carolina", abbr: "NC" },
-                { name: "North Dakota", abbr: "ND" }, { name: "Ohio", abbr: "OH" }, { name: "Oklahoma", abbr: "OK" },
-                { name: "Oregon", abbr: "OR" }, { name: "Pennsylvania", abbr: "PA" }, { name: "Rhode Island", abbr: "RI" },
-                { name: "South Carolina", abbr: "SC" }, { name: "South Dakota", abbr: "SD" }, { name: "Tennessee", abbr: "TN" },
-                { name: "Texas", abbr: "TX" }, { name: "Utah", abbr: "UT" }, { name: "Vermont", abbr: "VT" },
-                { name: "Virginia", abbr: "VA" }, { name: "Washington", abbr: "WA" }, { name: "West Virginia", abbr: "WV" },
-                { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
-              ];
-              const noneOption = document.createElement('option');
-              noneOption.value = '';
-              noneOption.textContent = 'None';
-              if (!currentValue || currentValue === 'None') noneOption.selected = true;
-              input.appendChild(noneOption);
-              US_STATES.forEach(st => {
-                const option = document.createElement('option');
-                option.value = st.abbr;
-                option.textContent = st.name;
-                if (currentValue === st.abbr || currentValue === st.name) option.selected = true;
-                input.appendChild(option);
-              });
-            }
+            editIcon.className = 'ti ti-device-floppy';
+            editing = true;
 
-            // City (dynamic load)
-            else if (fieldName === 'city' && sectionKey === 'contactInfo') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-              input.dataset.original = currentValue || '';
+          } else {
+            const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
+            const updatedValues = {};
 
-              const noneOption = document.createElement('option');
-              noneOption.value = '';
-              noneOption.textContent = 'None';
-              if (!currentValue || currentValue === 'None') noneOption.selected = true;
-              input.appendChild(noneOption);
+            for (const input of inputs) {
+              let fieldName = input.closest('li').dataset.field;
+              const originalValue = input.dataset.original;
 
-              async function loadCitiesForState(stateAbbr, selectedCity = null) {
-                input.innerHTML = '';
-                const none = document.createElement('option');
-                none.value = '';
-                none.textContent = 'None';
-                input.appendChild(none);
+              input.classList.remove('is-invalid');
+              let newValue = input.value || null;
 
-                if (!stateAbbr || stateAbbr === 'None') return;
+              // --- SSN ---
+              if (fieldName === 'ssn') {
+                const rawDigits = (input.value || '').replace(/\D/g, '').slice(0, 9);
+                const originalDigits = (originalValue || '').replace(/\D/g, '');
+                newValue = rawDigits;
 
-                try {
-                  const res = await fetch(`/utils/get-city?state=${stateAbbr}`);
-                  const cities = await res.json();
-
-                  if (!Array.isArray(cities)) return;
-
-                  cities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city;
-                    option.textContent = city;
-                    if (selectedCity && selectedCity.toLowerCase() === city.toLowerCase()) {
-                      option.selected = true;
-                    }
-                    input.appendChild(option);
-                  });
-                } catch (err) {
-                  showToast("Error", "Failed to load cities: " + err.message);
+                if (rawDigits !== originalDigits) {
+                  updatedValues[fieldName] = rawDigits;
                 }
               }
 
-              const selectedState = contactInfo.state;
-              loadCitiesForState(selectedState, currentValue);
-
-              setTimeout(() => {
-                const stateSelect = list.querySelector('li[data-field="state"] select');
-                if (stateSelect) {
-                  stateSelect.addEventListener('change', () => {
-                    loadCitiesForState(stateSelect.value);
-                  });
+              // --- Date of Birth ---
+              else if (fieldName === 'dateOfBirth') {
+                if (newValue) {
+                  const dateObj = new Date(newValue);
+                  if (!isNaN(dateObj.getTime())) {
+                    newValue = dateObj.toISOString();
+                  }
                 }
-              }, 0);
-            }
-
-            // --- Account Type ---
-            else if (fieldName === 'bankAccountType') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-              input.dataset.original = currentValue || '';
-
-              ['checking', 'saving'].forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt;
-                option.textContent = opt;
-                if ((currentValue || '').toLowerCase() === opt) {
-                  option.selected = true;
-                }
-                input.appendChild(option);
-              });
-            }
-
-            // Documents
-            else if (sectionKey === 'documents') {
-              input = document.createElement('input');
-              input.type = 'file';
-              input.className = 'form-control form-control-sm';
-              input.dataset.original = currentValue || '';
-            }
-
-            // Sex
-            else if (fieldName === 'legalSex') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-
-              ['Male', 'Female'].forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.toLowerCase();
-                option.textContent = opt;
-                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
-                  option.selected = true;
-                }
-                input.appendChild(option);
-              });
-
-              input.dataset.original = currentValue?.toLowerCase() || '';
-            }
-
-            // Contact Type
-            else if (fieldName === 'contactType') {
-              input = document.createElement('select');
-              input.className = 'form-select form-select-sm';
-
-              ['Individual', 'Business'].forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.toLowerCase();
-                option.textContent = opt;
-                if (currentValue?.toLowerCase() === opt.toLowerCase()) {
-                  option.selected = true;
-                }
-                input.appendChild(option);
-              });
-
-              input.dataset.original = currentValue?.toLowerCase() || '';
-            }
-
-            // SSN
-            else if (fieldName === 'ssn') {
-              input = document.createElement('input');
-              input.type = 'text';
-              input.className = 'form-control form-control-sm';
-              input.maxLength = 11;
-              input.value = formatSSN(currentValue);
-              input.dataset.original = (currentValue || '').replace(/\D/g, ''); // solo dígitos
-
-              input.addEventListener('input', function () {
-                let digits = this.value.replace(/\D/g, '').slice(0, 9);
-                let formatted = digits;
-                if (digits.length > 5) {
-                  formatted = `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-                } else if (digits.length > 3) {
-                  formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                }
-                this.value = formatted;
-              });
-            }
-
-            // NPN
-            else if (fieldName === 'npn') {
-              input = document.createElement('input');
-              input.type = 'text';
-              input.className = 'form-control form-control-sm';
-              input.maxLength = 8;
-              input.value = currentValue || '';
-              input.dataset.original = currentValue || '';
-
-              input.addEventListener('input', function () {
-                this.value = this.value.replace(/\D/g, '').slice(0, 8);
-              });
-            }
-
-            // Date of Birth
-            else if (fieldName === 'dateOfBirth') {
-              input = document.createElement('input');
-              input.type = 'date';
-              input.className = 'form-control form-control-sm';
-
-              let isoDate = '';
-              if (currentValue) {
-                const dateObj = new Date(currentValue);
-                if (!isNaN(dateObj.getTime())) {
-                  isoDate = dateObj.toISOString().split('T')[0];
-                }
-              }
-              input.value = isoDate;
-              input.dataset.original = isoDate;
-            }
-
-            // Phone
-            else if ((fieldName === 'personalPhone' || fieldName === 'secondaryPhone') && sectionKey === 'contactInfo') {
-              input = document.createElement('input');
-              input.type = 'tel';
-              input.className = 'form-control form-control-sm';
-              input.value = formatPhone(currentValue);
-              input.dataset.original = input.value;
-              input.maxLength = 14;
-
-              input.addEventListener('input', function () {
-                let digits = this.value.replace(/\D/g, '');
-                if (digits.length > 10) digits = digits.slice(0, 10);
-                let formatted = digits;
-                if (digits.length > 6) {
-                  formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-                } else if (digits.length > 3) {
-                  formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-                }
-                this.value = formatted;
-              });
-            }
-
-            // Email
-            else if ((fieldName === 'personalEmail' || fieldName === 'secondaryEmail') && sectionKey === 'contactInfo') {
-              input = document.createElement('input');
-              input.type = 'email';
-              input.className = 'form-control form-control-sm';
-              input.value = currentValue || '';
-              input.dataset.original = input.value;
-              // Opt-out of the global uppercase handler
-              input.setAttribute('data-preserve-case', 'true');
-            }
-
-
-            // Default
-            else {
-              input = document.createElement('input');
-              input.value = currentValue === 'None' ? '' : currentValue;
-              input.dataset.original = input.value;
-              input.className = 'form-control form-control-sm';
-            }
-
-            span.replaceWith(input);
-          }
-
-          editIcon.className = 'ti ti-device-floppy';
-          editing = true;
-
-        } else {
-          const inputs = list.querySelectorAll(`li[data-section="${sectionKey}"] input, li[data-section="${sectionKey}"] select`);
-          const updatedValues = {};
-
-          for (const input of inputs) {
-            let fieldName = input.closest('li').dataset.field;
-            const originalValue = input.dataset.original;
-
-            input.classList.remove('is-invalid');
-            let newValue = input.value || null;
-
-            // --- SSN ---
-            if (fieldName === 'ssn') {
-              const rawDigits = (input.value || '').replace(/\D/g, '').slice(0, 9);
-              const originalDigits = (originalValue || '').replace(/\D/g, '');
-              newValue = rawDigits;
-
-              if (rawDigits !== originalDigits) {
-                updatedValues[fieldName] = rawDigits;
-              }
-            }
-
-            // --- Date of Birth ---
-            else if (fieldName === 'dateOfBirth') {
-              if (newValue) {
-                const dateObj = new Date(newValue);
-                if (!isNaN(dateObj.getTime())) {
-                  newValue = dateObj.toISOString();
-                }
-              }
-              if (newValue !== originalValue) {
-                updatedValues[fieldName] = newValue;
-              }
-            }
-
-            // --- Agency ---
-            else if (fieldName === 'agency') {
-              const selectedOption = input.options[input.selectedIndex];
-              const isAgency = selectedOption.dataset.isAgency === "true";
-
-              let selectedAgency = null;
-              let selectedFranchise = null;
-
-              if (newValue) {
-                if (isAgency) {
-                  selectedAgency = newValue;
-                } else {
-                  selectedFranchise = newValue;
+                if (newValue !== originalValue) {
+                  updatedValues[fieldName] = newValue;
                 }
               }
 
-              if (selectedAgency != personalInfo.agency || selectedFranchise != personalInfo.franchise) {
-                updatedValues.agency = selectedAgency;
-                updatedValues.franchise = selectedFranchise;
-              }
-            }
+              // --- Agency ---
+              else if (fieldName === 'agency') {
+                const selectedOption = input.options[input.selectedIndex];
+                const isAgency = selectedOption.dataset.isAgency === "true";
 
-            // --- Documents ---
-            else if (sectionKey === 'documents' && input.type === 'file') {
-              if (input.files.length > 0) {
-                const formData = new FormData();
-                formData.append('file', input.files[0]);
-                formData.append('field', fieldName);
+                let selectedAgency = null;
+                let selectedFranchise = null;
 
-                try {
-                  const uploadRes = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                  });
-                  const uploadResult = await uploadRes.json();
-
-                  if (uploadResult.success && uploadResult.path) {
-                    updatedValues[fieldName] = uploadResult.path;
-                    newValue = uploadResult.path;
+                if (newValue) {
+                  if (isAgency) {
+                    selectedAgency = newValue;
                   } else {
-                    showToast("Error", "Error uploading document.");
+                    selectedFranchise = newValue;
+                  }
+                }
+
+                if (selectedAgency != personalInfo.agency || selectedFranchise != personalInfo.franchise) {
+                  updatedValues.agency = selectedAgency;
+                  updatedValues.franchise = selectedFranchise;
+                }
+              }
+
+              // --- Documents ---
+              else if (sectionKey === 'documents' && input.type === 'file') {
+                if (input.files.length > 0) {
+                  const formData = new FormData();
+                  formData.append('file', input.files[0]);
+                  formData.append('field', fieldName);
+
+                  try {
+                    const uploadRes = await fetch('/upload', {
+                      method: 'POST',
+                      body: formData
+                    });
+                    const uploadResult = await uploadRes.json();
+
+                    if (uploadResult.success && uploadResult.path) {
+                      updatedValues[fieldName] = uploadResult.path;
+                      newValue = uploadResult.path;
+                    } else {
+                      showToast("Error", "Error uploading document.");
+                      newValue = input.dataset.original;
+                    }
+                  } catch (err) {
+                    showToast("Error", "Upload failed: " + err.message);
                     newValue = input.dataset.original;
                   }
-                } catch (err) {
-                  showToast("Error", "Upload failed: " + err.message);
+                } else {
                   newValue = input.dataset.original;
                 }
-              } else {
-                newValue = input.dataset.original;
               }
-            }
-            else {
-              if (newValue !== originalValue) {
-                updatedValues[fieldName] = newValue;
-              }
-            }
-
-            const span = document.createElement('span');
-            span.dataset.value = 'true';
-
-            if (fieldName === 'ssn') {
-              const sensitiveSpan = document.createElement("span");
-              sensitiveSpan.dataset.full = newValue;
-              sensitiveSpan.textContent = maskSSN(newValue);
-
-              const toggleIcon = document.createElement("i");
-              toggleIcon.className = "ti ti-eye ms-2";
-              toggleIcon.style.cursor = "pointer";
-              toggleIcon.title = "Mostrar SSN";
-
-              let showing = false;
-              toggleIcon.addEventListener("click", () => {
-                if (!showing) {
-                  sensitiveSpan.textContent = formatSSN(newValue);
-                  toggleIcon.className = "ti ti-eye-off ms-2";
-                  toggleIcon.title = "Ocultar SSN";
-                  showing = true;
-                } else {
-                  sensitiveSpan.textContent = maskSSN(newValue);
-                  toggleIcon.className = "ti ti-eye ms-2";
-                  toggleIcon.title = "Mostrar SSN";
-                  showing = false;
+              else {
+                if (newValue !== originalValue) {
+                  updatedValues[fieldName] = newValue;
                 }
+              }
+
+              const span = document.createElement('span');
+              span.dataset.value = 'true';
+
+              if (fieldName === 'ssn') {
+                const sensitiveSpan = document.createElement("span");
+                sensitiveSpan.dataset.full = newValue;
+                sensitiveSpan.textContent = maskSSN(newValue);
+
+                const toggleIcon = document.createElement("i");
+                toggleIcon.className = "ti ti-eye ms-2";
+                toggleIcon.style.cursor = "pointer";
+                toggleIcon.title = "Mostrar SSN";
+
+                let showing = false;
+                toggleIcon.addEventListener("click", () => {
+                  if (!showing) {
+                    sensitiveSpan.textContent = formatSSN(newValue);
+                    toggleIcon.className = "ti ti-eye-off ms-2";
+                    toggleIcon.title = "Ocultar SSN";
+                    showing = true;
+                  } else {
+                    sensitiveSpan.textContent = maskSSN(newValue);
+                    toggleIcon.className = "ti ti-eye ms-2";
+                    toggleIcon.title = "Mostrar SSN";
+                    showing = false;
+                  }
+                });
+
+                span.appendChild(sensitiveSpan);
+                span.appendChild(toggleIcon);
+
+              } else if (fieldName === 'agency') {
+                const selectedOption = input.options[input.selectedIndex];
+                span.textContent = selectedOption ? selectedOption.textContent : 'None';
+
+              } else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
+                span.textContent = formatPhone(newValue);
+
+              } else {
+                span.textContent = newValue || 'None';
+              }
+
+              input.replaceWith(span);
+            }
+
+            if (Object.keys(updatedValues).length > 0) {
+              const response = await fetch("/users/profile/save-section", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: profile.user_id,
+                  sectionKey: sectionKey,
+                  values: updatedValues
+                })
               });
 
-              span.appendChild(sensitiveSpan);
-              span.appendChild(toggleIcon);
-
-            } else if (fieldName === 'agency') {
-              const selectedOption = input.options[input.selectedIndex];
-              span.textContent = selectedOption ? selectedOption.textContent : 'None';
-
-            } else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
-              span.textContent = formatPhone(newValue);
-
-            } else {
-              span.textContent = newValue || 'None';
+              const result = await response.json();
+              if (!result.success) {
+                showToast("Error", "Error saving data.");
+              } else {
+                showToast("Success", "Profile updated successfully.");
+                location.reload();
+              }
             }
 
-            input.replaceWith(span);
-          }
-
-          if (Object.keys(updatedValues).length > 0) {
-            const response = await fetch("/users/profile/save-section", {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: profile.user_id,
-                sectionKey: sectionKey,
-                values: updatedValues
-              })
-            });
-
-            const result = await response.json();
-            if (!result.success) {
-              showToast("Error", "Error saving data.");
-            } else {
-              showToast("Success", "Profile updated successfully.");
-              location.reload();
-            }
-          }
-
-          editIcon.className = 'ti ti-edit';
-          editing = false;
-        }
-      });
-
-      header.appendChild(editIcon);
-      list.appendChild(header);
-    }
-
-    function addListItem(label, value, fieldName, isLink = false, isSensitive = false, sectionKey = '', hidden = false) {
-      const li = document.createElement('li');
-      li.className = 'mb-2' + (hidden ? ' d-none' : '');
-      li.dataset.section = sectionKey;
-      li.dataset.label = label;
-      li.dataset.field = fieldName;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'd-flex align-items-center';
-
-      const labelSpan = document.createElement('span');
-      labelSpan.className = 'h6 me-2 mb-0';
-      labelSpan.textContent = `${label}:`;
-
-      const contentSpan = document.createElement('span');
-      contentSpan.className = 'mb-0';
-      contentSpan.dataset.value = 'true';
-
-      if (isLink && value) {
-        const fullUrl = getDocumentUrl(value);
-        const link = document.createElement('a');
-        link.href = fullUrl;
-        link.textContent = 'View Document';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        contentSpan.appendChild(link);
-      }
-      else if (fieldName === "personalEmail" || fieldName === "secondaryEmail") {
-        const email = document.createElement("a");
-        email.textContent = value || 'None';
-        contentSpan.appendChild(email);
-      }
-
-      // Phones
-      else if ((fieldName === "phoneNumber" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
-        contentSpan.textContent = formatPhone(value);
-      }
-      // SSN
-      else if (isSensitive && fieldName === "ssn") {
-        const sensitiveSpan = document.createElement("span");
-        sensitiveSpan.dataset.full = value || "";
-        sensitiveSpan.textContent = maskSSN(value);
-
-        const toggleIcon = document.createElement("i");
-        toggleIcon.className = "ti ti-eye ms-2";
-        toggleIcon.style.cursor = "pointer";
-        toggleIcon.title = "Mostrar SSN";
-
-        let showing = false;
-        toggleIcon.addEventListener("click", () => {
-          if (!showing) {
-            sensitiveSpan.textContent = formatSSN(value);
-            toggleIcon.className = "ti ti-eye-off ms-2";
-            toggleIcon.title = "Ocultar SSN";
-            showing = true;
-          } else {
-            sensitiveSpan.textContent = maskSSN(value);
-            toggleIcon.className = "ti ti-eye ms-2";
-            toggleIcon.title = "Mostrar SSN";
-            showing = false;
+            editIcon.className = 'ti ti-edit';
+            editing = false;
           }
         });
 
-        contentSpan.appendChild(sensitiveSpan);
-        contentSpan.appendChild(toggleIcon);
-      }
-      else {
-        contentSpan.textContent = value || 'None';
+        header.appendChild(editIcon);
+        list.appendChild(header);
       }
 
-      wrapper.appendChild(labelSpan);
-      wrapper.appendChild(contentSpan);
-      li.appendChild(wrapper);
-      list.appendChild(li);
-    }
+      function addListItem(label, value, fieldName, isLink = false, isSensitive = false, sectionKey = '', hidden = false) {
+        const li = document.createElement('li');
+        li.className = 'mb-2' + (hidden ? ' d-none' : '');
+        li.dataset.section = sectionKey;
+        li.dataset.label = label;
+        li.dataset.field = fieldName;
 
-    const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'd-flex align-items-center';
 
-    // Personal Info
-    let sectionKey = 'personalInfo';
-    addSectionHeader('Personal Info', sectionKey);
-    addListItem('Full name', personalInfo.legalName, 'legalName', false, false, sectionKey);
-    addListItem('Preferred Name', personalInfo.preferredName, 'preferredName', false, false, sectionKey);
-    addListItem('Contact Type', personalInfo.contactType, 'contactType', false, false, sectionKey);
-    const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';
-    addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey, !isBusiness);
-    addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey, !isBusiness);
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'h6 me-2 mb-0';
+        labelSpan.textContent = `${label}:`;
 
-    const dobRaw = personalInfo.dateOfBirth
-      ? new Date(personalInfo.dateOfBirth).toISOString().split("T")[0]
-      : null;
-    addListItem('DoB', dobRaw, 'dateOfBirth', false, false, sectionKey);
-    addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
-    addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
-    addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
+        const contentSpan = document.createElement('span');
+        contentSpan.className = 'mb-0';
+        contentSpan.dataset.value = 'true';
 
-    let agencyName = "None";
-    if (personalInfo.agency) {
-      agencyName = agencies?.find(a => a.id == personalInfo.agency)?.name || "None";
-    } else if (personalInfo.franchise) {
-      agencyName = agencies?.find(a => a.id == personalInfo.franchise)?.name || "None";
-    }
-    addListItem("Agency", agencyName, "agency", false, false, sectionKey);
+        if (isLink && value) {
+          const fullUrl = getDocumentUrl(value);
+          const link = document.createElement('a');
+          link.href = fullUrl;
+          link.textContent = 'View Document';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          contentSpan.appendChild(link);
+        }
+        else if (fieldName === "personalEmail" || fieldName === "secondaryEmail") {
+          const email = document.createElement("a");
+          email.textContent = value || 'None';
+          contentSpan.appendChild(email);
+        }
 
-    // Contact Info
-    sectionKey = 'contactInfo';
-    addSectionHeader('Contact Info', sectionKey);
-    addListItem('Email', contactInfo.personalEmail, 'personalEmail', false, false, sectionKey);
-    addListItem('Alt Email', contactInfo.secondaryEmail, 'secondaryEmail', false, false, sectionKey);
-    addListItem('Phone', contactInfo.personalPhone, 'personalPhone', false, false, sectionKey);
-    addListItem('Alt Phone', contactInfo.secondaryPhone, 'secondaryPhone', false, false, sectionKey);
-    addListItem('State', contactInfo.state, 'state', false, false, sectionKey);
-    addListItem('City', contactInfo.city, 'city', false, false, sectionKey);
-    addListItem('Address', contactInfo.addressLine1, 'addressLine1', false, false, sectionKey);
-    addListItem('Zip Code', contactInfo.zipCode, 'zipCode', false, false, sectionKey);
+        // Phones
+        else if ((fieldName === "phoneNumber" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
+          contentSpan.textContent = formatPhone(value);
+        }
+        // SSN
+        else if (isSensitive && fieldName === "ssn") {
+          const sensitiveSpan = document.createElement("span");
+          sensitiveSpan.dataset.full = value || "";
+          sensitiveSpan.textContent = maskSSN(value);
 
-    // Payment Method
-    sectionKey = 'paymentMethod';
-    addSectionHeader('Payment Method', sectionKey);
-    addListItem('Account Type', paymentMethod.bankAccountType, 'bankAccountType', false, false, sectionKey);
-    addListItem('Account Number', paymentMethod.bankAccountNum, 'bankAccountNum', false, true, sectionKey);
-    addListItem('Routing Number', paymentMethod.bankRoutingNum, 'bankRoutingNum', false, false, sectionKey);
+          const toggleIcon = document.createElement("i");
+          toggleIcon.className = "ti ti-eye ms-2";
+          toggleIcon.style.cursor = "pointer";
+          toggleIcon.title = "Mostrar SSN";
 
-    // Documents
-    const documentFields = [
-      { key: 'directDepositForm', label: 'Direct Deposit Form' },
-      { key: 'driverLicense', label: 'Driver License' },
-      { key: 'EINconfirmation', label: 'EIN Confirmation' },
-      { key: 'eANDo', label: 'E&O' },
-      { key: 'proLicense', label: 'Pro License' },
-      { key: 'corporationLicense', label: 'Corporation License' },
-      { key: 'ffmCertification', label: 'FFM Certification' },
-      { key: 'gaCertification', label: 'GA Certification' },
-      { key: 'gaLicense', label: 'GA License' },
-      { key: 'sunbiz', label: 'Sunbiz' },
-      { key: 'taxIdentificationW9', label: 'Tax ID (W9)' }
-    ];
+          let showing = false;
+          toggleIcon.addEventListener("click", () => {
+            if (!showing) {
+              sensitiveSpan.textContent = formatSSN(value);
+              toggleIcon.className = "ti ti-eye-off ms-2";
+              toggleIcon.title = "Ocultar SSN";
+              showing = true;
+            } else {
+              sensitiveSpan.textContent = maskSSN(value);
+              toggleIcon.className = "ti ti-eye ms-2";
+              toggleIcon.title = "Mostrar SSN";
+              showing = false;
+            }
+          });
 
-    sectionKey = 'documents';
-    addSectionHeader('Documents', sectionKey);
-    documentFields.forEach(({ key, label }) => {
-      const isRequired = necesaryDocs?.[key];
-      if (isRequired) {
-        const filePath = documents?.[key];
-        if (filePath) {
-          addListItem(label, filePath, key, true, false, sectionKey);
-        } else {
-          addListItem(label, 'Missing', key, false, false, sectionKey);
+          contentSpan.appendChild(sensitiveSpan);
+          contentSpan.appendChild(toggleIcon);
+        }
+        else {
+          contentSpan.textContent = value || 'None';
+        }
+
+        wrapper.appendChild(labelSpan);
+        wrapper.appendChild(contentSpan);
+        li.appendChild(wrapper);
+        list.appendChild(li);
+      }
+
+      const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
+
+      // Personal Info
+      let sectionKey = 'personalInfo';
+      addSectionHeader('Personal Info', sectionKey);
+      addListItem('Full name', personalInfo.legalName, 'legalName', false, false, sectionKey);
+      addListItem('Preferred Name', personalInfo.preferredName, 'preferredName', false, false, sectionKey);
+      addListItem('Contact Type', personalInfo.contactType, 'contactType', false, false, sectionKey);
+      const isBusiness = personalInfo?.contactType?.toLowerCase() === 'business';
+      addListItem('Business Name', personalInfo.businessName, 'businessName', false, false, sectionKey, !isBusiness);
+      addListItem('Company EIN', personalInfo.companyEIN, 'companyEIN', false, false, sectionKey, !isBusiness);
+
+      let dobRaw = null;
+      if (personalInfo.dateOfBirth) {
+        const date = new Date(personalInfo.dateOfBirth);
+        if (!isNaN(date.getTime())) {
+          dobRaw = date.toISOString().split("T")[0];
         }
       }
-    });
+      addListItem('DoB', dobRaw, 'dateOfBirth', false, false, sectionKey);
+      addListItem('Sex', personalInfo.legalSex, 'legalSex', false, false, sectionKey);
+      addListItem('NPN', personalInfo.npn, 'npn', false, false, sectionKey);
+      addListItem('SSN', personalInfo.ssn, 'ssn', false, true, sectionKey);
+
+      let agencyName = "None";
+      if (personalInfo.agency) {
+        agencyName = agencies?.find(a => a.id == personalInfo.agency)?.name || "None";
+      } else if (personalInfo.franchise) {
+        agencyName = agencies?.find(a => a.id == personalInfo.franchise)?.name || "None";
+      }
+      addListItem("Agency", agencyName, "agency", false, false, sectionKey);
+
+      // Contact Info
+      sectionKey = 'contactInfo';
+      addSectionHeader('Contact Info', sectionKey);
+      addListItem('Email', contactInfo.personalEmail, 'personalEmail', false, false, sectionKey);
+      addListItem('Alt Email', contactInfo.secondaryEmail, 'secondaryEmail', false, false, sectionKey);
+      addListItem('Phone', contactInfo.personalPhone, 'personalPhone', false, false, sectionKey);
+      addListItem('Alt Phone', contactInfo.secondaryPhone, 'secondaryPhone', false, false, sectionKey);
+      addListItem('State', contactInfo.state, 'state', false, false, sectionKey);
+      addListItem('City', contactInfo.city, 'city', false, false, sectionKey);
+      addListItem('Address', contactInfo.addressLine1, 'addressLine1', false, false, sectionKey);
+      addListItem('Zip Code', contactInfo.zipCode, 'zipCode', false, false, sectionKey);
+
+      // Payment Method
+      sectionKey = 'paymentMethod';
+      addSectionHeader('Payment Method', sectionKey);
+      addListItem('Account Type', paymentMethod.bankAccountType, 'bankAccountType', false, false, sectionKey);
+      addListItem('Account Number', paymentMethod.bankAccountNum, 'bankAccountNum', false, true, sectionKey);
+      addListItem('Routing Number', paymentMethod.bankRoutingNum, 'bankRoutingNum', false, false, sectionKey);
+
+      // Documents
+      const documentFields = [
+        { key: 'directDepositForm', label: 'Direct Deposit Form' },
+        { key: 'driverLicense', label: 'Driver License' },
+        { key: 'EINconfirmation', label: 'EIN Confirmation' },
+        { key: 'eANDo', label: 'E&O' },
+        { key: 'proLicense', label: 'Pro License' },
+        { key: 'corporationLicense', label: 'Corporation License' },
+        { key: 'ffmCertification', label: 'FFM Certification' },
+        { key: 'gaCertification', label: 'GA Certification' },
+        { key: 'gaLicense', label: 'GA License' },
+        { key: 'sunbiz', label: 'Sunbiz' },
+        { key: 'taxIdentificationW9', label: 'Tax ID (W9)' }
+      ];
+
+      sectionKey = 'documents';
+      addSectionHeader('Documents', sectionKey);
+      documentFields.forEach(({ key, label }) => {
+        const isRequired = necesaryDocs?.[key];
+        if (isRequired) {
+          const filePath = documents?.[key];
+          if (filePath) {
+            addListItem(label, filePath, key, true, false, sectionKey);
+          } else {
+            addListItem(label, 'Missing', key, false, false, sectionKey);
+          }
+        }
+      });
+    }); // End of DOMContentLoaded
   </script>
   <!-- /User Data-->
 

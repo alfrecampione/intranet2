@@ -193,10 +193,18 @@ export const processS3Urls = async (data) => {
     }
 
     if (typeof data === 'object') {
+        // Handle Date objects specially - don't process them recursively
+        if (data instanceof Date) {
+            return data;
+        }
+
         const processed = {};
         for (const [key, value] of Object.entries(data)) {
             if (typeof value === 'string' && isS3Url(value)) {
                 processed[key] = await getSignedS3Url(value);
+            } else if (value instanceof Date) {
+                // Preserve Date objects as-is
+                processed[key] = value;
             } else if (typeof value === 'object') {
                 processed[key] = await processS3Urls(value);
             } else {
