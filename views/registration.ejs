@@ -860,7 +860,8 @@
 
       function getCompaniesByState(abbr) {
         return companies
-          .filter(c => Array.isArray(c.States) && c.States.includes(abbr));
+          .filter(c => Array.isArray(c.States) && c.States.includes(abbr))
+          .map(c => ({ id: c.id, name: c.name }));
       }
 
       function updateAllStateDropdowns() {
@@ -942,8 +943,8 @@
           if (newState) selectedStates.add(newState);
 
           const newCompanies = getCompaniesByState(newState);
-          companySelect.innerHTML = newCompanies.map(name =>
-            `<option value="${name}">${name}</option>`
+          companySelect.innerHTML = newCompanies.map(comp =>
+            `<option value="${comp.id}">${comp.name}</option>`
           ).join('');
           $(`#${companySelectId}`).val(null).trigger('change');
 
