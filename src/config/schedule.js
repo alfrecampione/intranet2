@@ -6,74 +6,116 @@ import { prisma } from "../config/dbConfig.js";
     CRON JOB (every hour) 
 ---------------------------- */
 export async function scheduleCronJobs() {
-    // Schedule tasks to be run on the server.
-    cron.schedule("0 * * * *", async () => {
-        await readEmails();
-        await checkReleasedToNot_Agents();
-    });
+  console.log('🕐 Scheduling cron jobs...');
 
-    // Schedule tasks to be run on the server. Every day at midnight
-    cron.schedule("0 0 * * *", async () => {
-        await readSentOnboardingEmails();
-        await sendPendingOnboardingEmails();
-    });
+  // Schedule tasks to be run on the server.
+  cron.schedule("0 * * * *", async () => {
+    console.log('⏰ Running hourly cron job...');
+    await readEmails();
+    await checkReleasedToNot_Agents();
+  });
 
+  // Schedule tasks to be run on the server. Every day at midnight
+  cron.schedule("0 0 * * *", async () => {
+    console.log('⏰ Running daily cron job (midnight)...');
     await readSentOnboardingEmails();
+    await sendPendingOnboardingEmails();
+  });
+
+  console.log('✅ Initial run: Reading sent onboarding emails...');
+  await readSentOnboardingEmails();
+  console.log('✅ Cron jobs scheduled successfully.');
 };
 
 
 const checkReleasedToNot_Agents = async () => {
+  try {
     const releasedAgents = await prisma.user.findMany({
-        where: { isReleased: true },
-        include: { statesAndCarriers: true }
+      where: { isReleased: true },
+      include: { statesAndCarriers: true }
     });
 
+    console.log(`🔍 Checking ${releasedAgents.length} released agents...`);
+    let updatedCount = 0;
+
     for (const agent of releasedAgents) {
-        if (agent.statesAndCarriers.length > 0) {
-            await prisma.user.update({
-                where: { user_id: agent.user_id },
-                data: { isReleased: false }
-            });
-        }
+      if (agent.statesAndCarriers.length > 0) {
+        await prisma.user.update({
+          where: { user_id: agent.user_id },
+          data: { isReleased: false }
+        });
+        updatedCount++;
+        console.log(`✅ Agent ${agent.email} marked as NOT released (has carriers)`);
+      }
     }
+
+    if (updatedCount > 0) {
+      console.log(`✅ Updated ${updatedCount} agent(s) from released to not released.`);
+    }
+  } catch (error) {
+    console.error('❌ Error in checkReleasedToNot_Agents:', error);
+  }
 };
 
 const checkNotToReleased_Agents = async () => {
+  try {
     const notReleasedAgents = await prisma.user.findMany({
-        where: { isReleased: false },
-        include: { statesAndCarriers: true }
+      where: { isReleased: false },
+      include: { statesAndCarriers: true }
     });
 
+    console.log(`🔍 Checking ${notReleasedAgents.length} not released agents...`);
+    let updatedCount = 0;
+
     for (const agent of notReleasedAgents) {
-        if (agent.statesAndCarriers.length === 0) {
-            await prisma.user.update({
-                where: { user_id: agent.user_id },
-                data: { isReleased: true }
-            });
-        }
+      if (agent.statesAndCarriers.length === 0) {
+        await prisma.user.update({
+          where: { user_id: agent.user_id },
+          data: { isReleased: true }
+        });
+        updatedCount++;
+        console.log(`✅ Agent ${agent.email} marked as released (no carriers)`);
+      }
     }
+
+    if (updatedCount > 0) {
+      console.log(`✅ Updated ${updatedCount} agent(s) from not released to released.`);
+    }
+  } catch (error) {
+    console.error('❌ Error in checkNotToReleased_Agents:', error);
+  }
 };
 
 const sendPendingOnboardingEmails = async () => {
-    const pendingEmails = await prisma.onboardingSentEmails.findMany({
-        where: { pending: true },
+  const pendingEmails = await prisma.onboardingSentEmails.findMany({
+    where: { pending: true },
+  });
+
+  if (pendingEmails.length === 0) {
+    console.log('✅ No pending onboarding emails to send.');
+    return;
+  }
+
+  console.log(`📧 Found ${pendingEmails.length} pending onboarding email(s) to send.`);
+
+  const baseUrl = process.env.BASE_URL;
+
+  // Get emails to notify
+  const alertEmails = await prisma.newUserAlerts.findMany();
+
+  for (const emailRecord of pendingEmails) {
+    const encryptedEmail = await prisma.crypto.findFirst({
+      where: { data: emailRecord.email },
     });
 
-    const baseUrl = process.env.BASE_URL;
+    if (!encryptedEmail) {
+      console.warn(`⚠️ No encrypted email found for ${emailRecord.email}`);
+      continue;
+    }
 
-    for (const emailRecord of pendingEmails) {
-        const encryptedEmail = await prisma.crypto.findFirst({
-            where: { data: emailRecord.email },
-        });
+    const link = `${baseUrl}/signUp/${encryptedEmail.encrypted_data}`;
 
-        if (!encryptedEmail) {
-            console.warn(`No encrypted email found for ${emailRecord.email}`);
-            continue;
-        }
-
-        const link = `${baseUrl}/signUp/${encryptedEmail.encrypted_data}`;
-
-        const htmlBody = `
+    const htmlBody = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -140,15 +182,45 @@ const sendPendingOnboardingEmails = async () => {
       </html>
     `;
 
-        try {
+    try {
+      await sendMail(
+        emailRecord.email,
+        "Bienvenido a / Welcome to GoldenTrust Insurance",
+        htmlBody
+      );
+      console.log(`✅ Onboarding reminder sent to ${emailRecord.email}`);
+
+      // Notify all configured admin emails
+      if (alertEmails && alertEmails.length > 0) {
+        const notificationBody = `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="font-family: Arial, sans-serif;">
+                        <h3>Onboarding Reminder Sent</h3>
+                        <p>A reminder email has been sent to: <strong>${emailRecord.email}</strong></p>
+                        <p>Date sent: ${new Date().toLocaleString()}</p>
+                        <p>The agent has not yet completed their onboarding process.</p>
+                    </body>
+                    </html>
+                `;
+
+        for (const alert of alertEmails) {
+          try {
             await sendMail(
-                emailRecord.email,
-                "Bienvenido a / Welcome to GoldenTrust Insurance",
-                htmlBody
+              alert.email,
+              `Onboarding Reminder Sent - ${emailRecord.email}`,
+              notificationBody
             );
-        } catch (error) {
-            console.error(`❌ Error sending onboarding email to ${emailRecord.email}:`, error);
+            console.log(`✅ Notification sent to admin: ${alert.email}`);
+          } catch (notifyError) {
+            console.error(`❌ Error notifying admin ${alert.email}:`, notifyError);
+          }
         }
-        await sendMail('wvalle@goldentrust.com', "Bienvenido a / Welcome to GoldenTrust Insurance", htmlBody);
+      }
+    } catch (error) {
+      console.error(`❌ Error sending onboarding email to ${emailRecord.email}:`, error);
     }
+  }
+
+  console.log(`✅ Finished processing ${pendingEmails.length} pending onboarding email(s).`);
 };

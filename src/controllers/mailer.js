@@ -227,10 +227,13 @@ const new_user_notification = async (req, res) => {
   try {
     const alerts = await getEmailsToAlert();
     if (!alerts || alerts.length === 0) {
+      console.warn("⚠️ No notification emails configured in newUserAlerts table.");
       return res
         .status(200)
         .json({ message: "No notification emails configured." });
     }
+
+    console.log(`📧 Sending new user notification for ${email} to ${alerts.length} recipient(s)...`);
 
     const subject = "New user created";
     const body = {
@@ -247,9 +250,17 @@ const new_user_notification = async (req, res) => {
       outro:
         "This is an automated message from the GoldenHealth.",
     };
-    try {
-      for (const alert of alerts) {
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const alert of alerts) {
+      try {
         await sendMail(alert.email, subject, body);
+        console.log(`✅ Notification sent to: ${alert.email}`);
+        successCount++;
+
+        // Create in-app notification for User
         const agent = await prisma.user.findUnique({
           where: { email: alert.email },
         });
@@ -263,6 +274,8 @@ const new_user_notification = async (req, res) => {
             },
           });
         }
+
+        // Create in-app notification for AllowedAgent
         const allowedAgent = await prisma.allowedAgents.findUnique({
           where: { email: alert.email },
         });
@@ -276,14 +289,21 @@ const new_user_notification = async (req, res) => {
             },
           });
         }
+      } catch (err) {
+        console.error(`❌ Error sending notification to ${alert.email}:`, err);
+        errorCount++;
       }
-    } catch (err) {
-      console.error(`Error sending notification: `, err);
     }
 
-    return res.status(200).json({ message: "Notifications sent." });
+    console.log(`📊 Notification summary: ${successCount} sent, ${errorCount} failed out of ${alerts.length} total.`);
+
+    return res.status(200).json({
+      message: "Notifications processed.",
+      sent: successCount,
+      failed: errorCount
+    });
   } catch (error) {
-    console.error("Error sending new user notifications:", error);
+    console.error("❌ Error sending new user notifications:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };

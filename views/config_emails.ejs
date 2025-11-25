@@ -288,7 +288,7 @@
                 }
                 const admins = emails.map(email => {
                     const admin = JSON.parse(document.getElementById("admins-data").textContent)
-                        .find(admin => admin.mail === email);
+                        .find(admin => admin.email === email);
                     return {
                         mail: email,
                         display_name: admin ? admin.display_name : email
@@ -298,7 +298,7 @@
                 const existingAdmins = Array.from(document.querySelectorAll("table .delete-email-btn"))
                     .map(btn => btn.getAttribute("data-email"));
 
-                const newAdmins = admins.filter(admin => !existingAdmins.includes(admin));
+                const newAdmins = admins.filter(admin => !existingAdmins.includes(admin.mail));
 
                 if (!newAdmins.length) {
                     alert("Selected email(s) already exist in the list.");
