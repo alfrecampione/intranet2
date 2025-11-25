@@ -1,5 +1,5 @@
 import { pool, prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getAllCompanies } from "../config/utils.js";
+import { getAllAgencyIds, getAllCompanies, getCompanyNamesMap } from "../config/utils.js";
 import { register } from "./registration.js";
 
 const redirect_dashboard = (req, res) => {
@@ -19,13 +19,23 @@ const renderDashboard = async (req, res) => {
         where: { isAgent: true },
         include: { statesAndCarriers: { include: { carrier: true } } }
       });
+
+      // Get externalIds from all carriers
+      const externalIds = agents.flatMap(agent =>
+        agent.statesAndCarriers
+          .filter(c => c.company && c.carrier?.externalId)
+          .map(c => c.carrier.externalId)
+      );
+
+      const companyNamesMap = await getCompanyNamesMap(externalIds);
+
       userCompanyStateData = agents.flatMap(agent =>
         agent.statesAndCarriers
           .filter(c => c.company) // Filter out null companies
           .map(c => ({
             userId: agent.user_id,
             companyId: c.company,
-            companyName: c.carrier?.name || 'Unknown',
+            companyName: c.carrier?.externalId ? (companyNamesMap.get(c.carrier.externalId) || 'Unknown') : 'Unknown',
             state: c.state
           }))
       );
@@ -52,12 +62,20 @@ const renderDashboard = async (req, res) => {
           include: { carrier: true },
           select: { userId: true, company: true, state: true, carrier: true }
         });
+
+        // Get externalIds from carriers
+        const externalIds = statesAndCarriers
+          .filter(c => c.company && c.carrier?.externalId)
+          .map(c => c.carrier.externalId);
+
+        const companyNamesMap = await getCompanyNamesMap(externalIds);
+
         userCompanyStateData = statesAndCarriers
           .filter(c => c.company) // Filter out null companies
           .map(c => ({
             userId: c.userId,
             companyId: c.company,
-            companyName: c.carrier?.name || 'Unknown',
+            companyName: c.carrier?.externalId ? (companyNamesMap.get(c.carrier.externalId) || 'Unknown') : 'Unknown',
             state: c.state
           }));
         companies = await getAllCompanies();
@@ -75,17 +93,31 @@ const renderDashboard = async (req, res) => {
         include: { personalInfo: true, statesAndCarriers: { include: { carrier: true } } }
       });
       companies = await getAllCompanies();
+
+      // Get externalIds from carriers
+      const externalIds = user.statesAndCarriers
+        .filter(c => c.company && c.carrier?.externalId)
+        .map(c => c.carrier.externalId);
+
+      const companyNamesMap = await getCompanyNamesMap(externalIds);
+
+      // Add company names to statesAndCarriers for frontend use
+      user.statesAndCarriers = user.statesAndCarriers.map(c => ({
+        ...c,
+        companyName: c.carrier?.externalId ? (companyNamesMap.get(c.carrier.externalId) || 'Unknown') : 'Unknown'
+      }));
+
       userCompanyStateData = user.statesAndCarriers
         .filter(c => c.company) // Filter out null companies
         .map(c => ({
           userId: user.user_id,
           companyId: c.company,
-          companyName: c.carrier?.name || 'Unknown',
+          companyName: c.companyName,
           state: c.state
         }));
       states = [...new Set(userCompanyStateData.map(d => d.state))];
     }
-    // 4. Otro caso
+    // 4. Other case
     else {
       companies = [];
       userCompanyStateData = [];

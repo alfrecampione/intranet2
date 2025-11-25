@@ -1,6 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getSignedS3Url } from "../config/s3Config.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 const renderLeadCenter = async (req, res) => {
     try {
@@ -103,31 +104,20 @@ const renderNewLead = async (req, res) => {
         .filter(hc => hc.externalId)
         .map(hc => hc.externalId);
 
-    // Get companies from qq.contacts only for those with externalId in health
-    let qqCompanies = [];
-    if (externalIds.length > 0) {
-        qqCompanies = await prisma.$queryRaw`
-            SELECT entity_id, display_name
-            FROM qq.contacts
-            WHERE entity_id = ANY(${externalIds}::int[])
-            ORDER BY display_name ASC
-        `;
-    }
+    const qqNamesMap = await getCompanyNamesMap(externalIds);
 
     // Combine both sources
     const companies = [];
 
-    // Add companies with externalId (from qq.contacts)
-    for (const qqComp of qqCompanies) {
-        const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
-        if (healthMatch) {
-            let iconPath = healthMatch.iconPath || null;
+    for (const hc of healthCompanies) {
+        if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+            let iconPath = hc.iconPath || null;
             if (iconPath) {
                 iconPath = await getSignedS3Url(iconPath);
             }
             companies.push({
-                id: healthMatch.id,
-                name: qqComp.display_name,
+                id: hc.id,
+                name: qqNamesMap.get(hc.externalId),
                 iconPath: iconPath
             });
         }
@@ -157,31 +147,20 @@ const loadLead = async (req, res) => {
             .filter(hc => hc.externalId)
             .map(hc => hc.externalId);
 
-        // Get companies from qq.contacts only for those with externalId in health
-        let qqCompanies = [];
-        if (externalIds.length > 0) {
-            qqCompanies = await prisma.$queryRaw`
-                SELECT entity_id, display_name
-                FROM qq.contacts
-                WHERE entity_id = ANY(${externalIds}::int[])
-                ORDER BY display_name ASC
-            `;
-        }
+        const qqNamesMap = await getCompanyNamesMap(externalIds);
 
         // Combine both sources
         const companies = [];
 
-        // Add companies with externalId (from qq.contacts)
-        for (const qqComp of qqCompanies) {
-            const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
-            if (healthMatch) {
-                let iconPath = healthMatch.iconPath || null;
+        for (const hc of healthCompanies) {
+            if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+                let iconPath = hc.iconPath || null;
                 if (iconPath) {
                     iconPath = await getSignedS3Url(iconPath);
                 }
                 companies.push({
-                    id: healthMatch.id,
-                    name: qqComp.display_name,
+                    id: hc.id,
+                    name: qqNamesMap.get(hc.externalId),
                     iconPath: iconPath
                 });
             }

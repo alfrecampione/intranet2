@@ -431,6 +431,27 @@ function getMSARealId(userId) {
 };
 
 /**
+ * Get company names from qq.contacts by their external IDs
+ * @param {Array<number>} externalIds - Array of external IDs to fetch
+ * @returns {Promise<Map<number, string>>} Map of externalId to company name
+ */
+async function getCompanyNamesMap(externalIds) {
+    const companyNamesMap = new Map();
+    if (externalIds.length > 0) {
+        const uniqueExternalIds = [...new Set(externalIds)];
+        const qqCompanies = await prisma.$queryRaw`
+            SELECT entity_id, display_name
+            FROM qq.contacts
+            WHERE entity_id = ANY(${uniqueExternalIds}::int[])
+        `;
+        qqCompanies.forEach(c => {
+            companyNamesMap.set(c.entity_id, c.display_name);
+        });
+    }
+    return companyNamesMap;
+}
+
+/**
  * Get all companies combining qq.contacts and health schema
  * @returns {Promise<Array>} Array of companies with id, name, iconPath, and States
  */
@@ -481,4 +502,4 @@ async function getAllCompanies() {
     return companies;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies };
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap };

@@ -666,7 +666,7 @@
             `;
 
             carriersByState[state].forEach(carrier => {
-              const companyName = carrier.carrier?.name || 'Unknown';
+              const companyName = carrier.companyName || 'Unknown';
               const iconPath = carrier.carrier?.iconPath;
               accordionHTML += `
                 <li class="list-group-item">

@@ -1,6 +1,7 @@
 import { pool, prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getSignedS3Url } from "../config/s3Config.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
@@ -279,23 +280,13 @@ const renderConfigCommisions = async (req, res) => {
     .filter(hc => hc.externalId)
     .map(hc => hc.externalId);
 
-  // Get companies from qq.contacts only for those with externalId in health
-  let qqCompanies = [];
-  if (externalIds.length > 0) {
-    qqCompanies = await prisma.$queryRaw`
-      SELECT entity_id, display_name
-      FROM qq.contacts
-      WHERE entity_id = ANY(${externalIds}::int[])
-      ORDER BY display_name ASC
-    `;
-  }
+  const qqNamesMap = await getCompanyNamesMap(externalIds);
 
-  // Create a map of company names
+  // Create a map of company names (health.id -> name)
   const companyNameMap = new Map();
-  for (const qqComp of qqCompanies) {
-    const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
-    if (healthMatch) {
-      companyNameMap.set(healthMatch.id, qqComp.display_name);
+  for (const hc of healthCompanies) {
+    if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+      companyNameMap.set(hc.id, qqNamesMap.get(hc.externalId));
     }
   }
 
@@ -344,24 +335,14 @@ const updateCommisions = async (req, res) => {
       .filter(hc => hc.externalId)
       .map(hc => hc.externalId);
 
-    // Get companies from qq.contacts only for those with externalId in health
-    let qqCompanies = [];
-    if (externalIds.length > 0) {
-      qqCompanies = await prisma.$queryRaw`
-        SELECT entity_id, display_name
-        FROM qq.contacts
-        WHERE entity_id = ANY(${externalIds}::int[])
-      `;
-    }
+    const qqNamesMap = await getCompanyNamesMap(externalIds);
 
     // Create name to ID mapping
     const nameToId = {};
-
-    // Map companies with externalId (from qq.contacts)
-    for (const qqComp of qqCompanies) {
-      const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
-      if (healthMatch) {
-        nameToId[qqComp.display_name] = healthMatch.id;
+    for (const hc of healthCompanies) {
+      if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+        const companyName = qqNamesMap.get(hc.externalId);
+        nameToId[companyName] = hc.id;
       }
     }
 
@@ -646,7 +627,6 @@ export {
   addHeadCarrier,
   head_carrier_list,
   addCarrier,
-  deleteCarrier,
   getEmailsToAlert,
   postAdminToAlert,
   deleteEmailToAlert,
