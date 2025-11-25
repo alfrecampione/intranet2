@@ -69,6 +69,10 @@ const initialize = (passport) => {
           },
         });
 
+        if (!user) {
+          return done(null, false);
+        }
+
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: user.email },
           include: { AgentRights: true },
@@ -81,7 +85,7 @@ const initialize = (passport) => {
             ? userRights.AgentRights.map((ar) => ar.idRight)
             : [],
         };
-        return done(null, filledUser || false);
+        return done(null, filledUser);
       } else if (obj.type === "ms") {
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: obj.email },

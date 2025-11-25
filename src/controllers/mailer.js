@@ -158,6 +158,7 @@ const passwordMail = async (req, res) => {
         encrypted_data: encryptedData,
         key: key,
         id: iv,
+        data: email
       },
     });
   } catch (error) {

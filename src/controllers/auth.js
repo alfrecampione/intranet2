@@ -187,7 +187,6 @@ const validateEmail = async (req, res, next) => {
           console.error("Login error:", err);
           return next(err);
         }
-        await deleteEncryptedEmail(encryptedEmail);
 
         return res.status(200).json({ success: true, redirect: "/users/registration" });
       });
