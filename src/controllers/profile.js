@@ -47,6 +47,7 @@ const renderProfile = async (req, res) => {
 
     const carriers = await prisma.statesANDCarriers.findMany({
         where: { userId },
+        include: { carrier: true },
         orderBy: { state: 'asc' },
     });
 
@@ -227,19 +228,38 @@ async function createActivityEntry(log) {
         }
     } else if (table.includes('carriers')) {
         const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-        const company = carrierObj?.company ?? '(unknown)';
+        const companyId = carrierObj?.company ?? null;
         const state = carrierObj?.state ?? '(unknown)';
 
+        // Get company name from ID
+        let companyName = '(unknown)';
+        if (companyId) {
+            const company = await prisma.company.findUnique({
+                where: { id: companyId },
+                select: { name: true }
+            });
+            companyName = company?.name ?? '(unknown)';
+        }
+
         if (isUpdate) {
-            title = `Carrier ${company} Updated by ${legalName}`;
+            title = `Carrier ${companyName} Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
         } else if (isCreate) {
-            title = `Carrier ${company} Created by ${legalName}`;
+            title = `Carrier ${companyName} Created by ${legalName}`;
             description = '';
         } else if (isDelete) {
             const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
-            title = `Carrier ${oldCarrierObj.company ?? '(unknown)'} Deleted by ${legalName}`;
-            description = `The carrier ${oldCarrierObj.company ?? '(unknown)'} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
+            const oldCompanyId = oldCarrierObj.company ?? null;
+            let oldCompanyName = '(unknown)';
+            if (oldCompanyId) {
+                const oldCompany = await prisma.company.findUnique({
+                    where: { id: oldCompanyId },
+                    select: { name: true }
+                });
+                oldCompanyName = oldCompany?.name ?? '(unknown)';
+            }
+            title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
+            description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
         }
     } else {
         if (isUpdate) {

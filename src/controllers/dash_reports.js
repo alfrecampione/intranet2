@@ -17,14 +17,17 @@ const renderDashboard = async (req, res) => {
       companies = await getAllCompanies();
       const agents = await prisma.user.findMany({
         where: { isAgent: true },
-        include: { statesAndCarriers: true }
+        include: { statesAndCarriers: { include: { carrier: true } } }
       });
       userCompanyStateData = agents.flatMap(agent =>
-        agent.statesAndCarriers.map(c => ({
-          userId: agent.user_id,
-          company: c.company,
-          state: c.state
-        }))
+        agent.statesAndCarriers
+          .filter(c => c.company) // Filter out null companies
+          .map(c => ({
+            userId: agent.user_id,
+            companyId: c.company,
+            companyName: c.carrier?.name || 'Unknown',
+            state: c.state
+          }))
       );
       states = [...new Set(userCompanyStateData.map(d => d.state))];
     }
@@ -44,10 +47,19 @@ const renderDashboard = async (req, res) => {
           select: { user_id: true }
         });
         const userIds = users.map(u => u.user_id);
-        userCompanyStateData = await prisma.statesANDCarriers.findMany({
+        const statesAndCarriers = await prisma.statesANDCarriers.findMany({
           where: { userId: { in: userIds } },
-          select: { userId: true, company: true, state: true }
+          include: { carrier: true },
+          select: { userId: true, company: true, state: true, carrier: true }
         });
+        userCompanyStateData = statesAndCarriers
+          .filter(c => c.company) // Filter out null companies
+          .map(c => ({
+            userId: c.userId,
+            companyId: c.company,
+            companyName: c.carrier?.name || 'Unknown',
+            state: c.state
+          }));
         companies = await getAllCompanies();
         states = [...new Set(userCompanyStateData.map(d => d.state))];
       } else {
@@ -60,14 +72,17 @@ const renderDashboard = async (req, res) => {
     else if (user && user.isAgent) {
       user = await prisma.user.findUnique({
         where: { user_id: user.user_id },
-        include: { personalInfo: true, statesAndCarriers: true }
+        include: { personalInfo: true, statesAndCarriers: { include: { carrier: true } } }
       });
       companies = await getAllCompanies();
-      userCompanyStateData = user.statesAndCarriers.map(c => ({
-        userId: user.user_id,
-        company: c.company,
-        state: c.state
-      }));
+      userCompanyStateData = user.statesAndCarriers
+        .filter(c => c.company) // Filter out null companies
+        .map(c => ({
+          userId: user.user_id,
+          companyId: c.company,
+          companyName: c.carrier?.name || 'Unknown',
+          state: c.state
+        }));
       states = [...new Set(userCompanyStateData.map(d => d.state))];
     }
     // 4. Otro caso

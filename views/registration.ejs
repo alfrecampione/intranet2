@@ -860,8 +860,7 @@
 
       function getCompaniesByState(abbr) {
         return companies
-          .filter(c => Array.isArray(c.States) && c.States.includes(abbr))
-          .map(c => c.name);
+          .filter(c => Array.isArray(c.States) && c.States.includes(abbr));
       }
 
       function updateAllStateDropdowns() {
@@ -901,8 +900,8 @@
           ).join('');
 
         const initialCompanies = selectedState ? getCompaniesByState(selectedState) : [];
-        const companyOptions = initialCompanies.map(name =>
-          `<option value="${name}"${selectedCompanies.includes(name) ? ' selected' : ''}>${name}</option>`
+        const companyOptions = initialCompanies.map(comp =>
+          `<option value="${comp.id}"${selectedCompanies.includes(comp.id) ? ' selected' : ''}>${comp.name}</option>`
         ).join('');
 
         cardBody.innerHTML = `
@@ -975,19 +974,20 @@
           if (!sel.state || !sel.company) return acc;
 
           const state = sel.state;
+          // company is now an ID
           const companyList = Array.isArray(sel.company) ? sel.company : [sel.company];
 
           if (!acc[state]) {
             acc[state] = new Set();
           }
 
-          companyList.forEach(company => acc[state].add(company));
+          companyList.forEach(companyId => acc[state].add(companyId));
           return acc;
         }, {});
 
-        Object.entries(groupedSelections).forEach(([state, companiesSet]) => {
-          const companies = Array.from(companiesSet);
-          createCard(state, companies);
+        Object.entries(groupedSelections).forEach(([state, companyIdsSet]) => {
+          const companyIds = Array.from(companyIdsSet);
+          createCard(state, companyIds);
         });
       }
 
@@ -1298,14 +1298,14 @@
         const companySelect = card.querySelector(".company-select");
 
         const state = stateSelect?.value;
-        const selectedCompanies = Array.from(companySelect?.selectedOptions || []).map(opt => opt.value);
+        const selectedCompanyIds = Array.from(companySelect?.selectedOptions || []).map(opt => opt.value);
 
-        if (!state || selectedCompanies.length === 0) return;
+        if (!state || selectedCompanyIds.length === 0) return;
 
-        selectedCompanies.forEach(company => {
-          let carrier = carriers.find(c => c.name === company);
+        selectedCompanyIds.forEach(companyId => {
+          let carrier = carriers.find(c => c.id === companyId);
           if (!carrier) {
-            carrier = { name: company, states: [] };
+            carrier = { id: companyId, states: [] };
             carriers.push(carrier);
           }
           if (!carrier.states.includes(state)) {

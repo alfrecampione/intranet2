@@ -241,22 +241,22 @@ export const saveStatesCarriers = async (req, res) => {
       }
       const results = [];
       for (const carrier of carriers) {
-        if (carrier.name && Array.isArray(carrier.states)) {
+        if (carrier.id && Array.isArray(carrier.states)) {
           for (const state of carrier.states) {
             const record = await prisma.statesANDCarriers.upsert({
               where: {
                 userId_company_state: {
                   userId,
-                  company: carrier.name,
+                  company: carrier.id,
                   state,
                 },
               },
               update: {},
               create: {
                 userId,
-                company: carrier.name,
+                company: carrier.id,
                 state,
-                status: "Pending",
+                status: "Empty",
               },
             });
             results.push(record);

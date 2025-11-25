@@ -401,7 +401,7 @@
           }
 
           const tdName = document.createElement("td");
-          tdName.textContent = carrier.company;
+          tdName.textContent = carrier.carrier?.name || 'Unknown';
           tr.appendChild(tdName);
 
           const tdStatusProgress = document.createElement("td");
@@ -691,8 +691,7 @@
 
       function getCompaniesByState(abbr) {
         return companies
-          .filter(c => Array.isArray(c.States) && c.States.includes(abbr))
-          .map(c => c.name);
+          .filter(c => Array.isArray(c.States) && c.States.includes(abbr));
       }
 
       // Populate state dropdown in modal
@@ -722,10 +721,10 @@
         if (!selectedState) return;
 
         const carriersForState = getCompaniesByState(selectedState);
-        carriersForState.forEach(carrierName => {
+        carriersForState.forEach(carrier => {
           const option = document.createElement("option");
-          option.value = carrierName;
-          option.textContent = carrierName;
+          option.value = carrier.id;
+          option.textContent = carrier.name;
           modalCompanySelect.appendChild(option);
         });
       });

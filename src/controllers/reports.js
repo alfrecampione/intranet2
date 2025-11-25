@@ -17,7 +17,7 @@ async function loadAgents(agentsIds) {
         include: {
             personalInfo: true,
             contactInfo: true,
-            statesAndCarriers: true
+            statesAndCarriers: { include: { carrier: true } }
         },
         orderBy: { display_name: 'asc' }
     });
@@ -115,14 +115,17 @@ async function handleAgencySummaryFilter(requester) {
  * Handles carrier & state filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} state - State filter value
- * @param {string} carrier - Carrier filter value
+ * @param {string} carrier - Carrier name filter value
  * @returns {Array} Filtered agents
  */
 function handleCarrierStateFilter(processedAgents, state, carrier) {
     // Match agents that have at least one state/carrier record with both values
+    // Note: sc.company is now an ID, so we need to compare against carrier name via the relation
     return processedAgents.filter(agent =>
         Array.isArray(agent.statesAndCarriers) &&
-        agent.statesAndCarriers.some(sc => sc.state === state && sc.company === carrier)
+        agent.statesAndCarriers.some(sc =>
+            sc.state === state && sc.carrier?.name === carrier
+        )
     );
 }
 
@@ -295,7 +298,7 @@ function handleGenericFilter(processedAgents, filterType, filterValue) {
     if (filterType === 'carrier') {
         return processedAgents.filter(agent =>
             Array.isArray(agent.statesAndCarriers) &&
-            agent.statesAndCarriers.some(sc => sc.company === filterValue)
+            agent.statesAndCarriers.some(sc => sc.carrier?.name === filterValue)
         );
     }
     // Primitive top-level agent fields

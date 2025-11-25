@@ -139,12 +139,13 @@ model NecesaryDocuments {
 }
 
 model StatesANDCarriers {
-  id      String  @id @default(uuid())
+  id      String   @id @default(uuid())
   state   String?
   userId  String
   company String?
   status  String?
-  user    User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  carrier Company? @relation(fields: [company], references: [id], onDelete: SetNull)
 
   @@unique([userId, company, state])
   @@schema("health")
@@ -178,7 +179,8 @@ model Company {
   States     String[]
   iconPath   String?
 
-  Commisions Commisions[]
+  Commisions        Commisions[]
+  statesANDCarriers StatesANDCarriers[]
 
   @@schema("health")
 }

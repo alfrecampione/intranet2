@@ -186,7 +186,8 @@ const renderReferingAgents = async (req, res) => {
         }
       },
       statesAndCarriers: {
-        where: { status: { equals: "refering", mode: "insensitive" } }
+        where: { status: { equals: "refering", mode: "insensitive" } },
+        include: { carrier: true }
       }
     }
   });
@@ -512,9 +513,22 @@ const massiveCreateAgents = async (req, res) => {
         }
       });
 
+      // Fetch all companies once to map names to IDs
+      const companies = await prisma.company.findMany({
+        select: { id: true, name: true }
+      });
+      const companyNameToId = new Map(companies.map(c => [c.name, c.id]));
+
       for (const field of carrierFields) {
         const rawValue = agent[field];
         const entries = normalizeCarrierValue(rawValue);
+
+        // Get company ID from name
+        const companyId = companyNameToId.get(field);
+        if (!companyId) {
+          console.warn(`Company not found for field: ${field}`);
+          continue;
+        }
 
         for (const entry of entries) {
           try {
@@ -522,7 +536,7 @@ const massiveCreateAgents = async (req, res) => {
               data: {
                 userId: user.user_id,
                 state: entry.state,
-                company: field,
+                company: companyId,
                 status: entry.status
               }
             });

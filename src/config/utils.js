@@ -374,8 +374,23 @@ async function createMessage(log, options = {}) {
     let targetLabel = table;
     if (table.includes('carriers')) {
         const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-        const company = carrierObj?.company ?? '(unknown carrier)';
-        targetLabel = `carrier ${company}`;
+        const companyId = carrierObj?.company ?? null;
+        let companyName = '(unknown carrier)';
+
+        // Fetch company name from ID
+        if (companyId) {
+            try {
+                const company = await prisma.company.findUnique({
+                    where: { id: companyId },
+                    select: { name: true }
+                });
+                companyName = company?.name ?? '(unknown carrier)';
+            } catch (err) {
+                console.warn('Failed to fetch company name:', err.message);
+            }
+        }
+
+        targetLabel = `carrier ${companyName}`;
     } else if (table.includes('user')) {
         targetLabel = 'user';
     }
