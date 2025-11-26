@@ -16,15 +16,13 @@ export async function scheduleCronJobs() {
     await checkReleasedToNot_Agents();
   });
 
-  // Schedule tasks to be run on the server. Every day at midnight
-  cron.schedule("0 0 * * *", async () => {
-    console.log('⏰ Running daily cron job (midnight)...');
+  // Schedule tasks to be run on the server. Every Monday at 8am
+  cron.schedule("0 8 * * 1", async () => {
+    console.log('⏰ Running weekly cron job (Monday 8am)...');
     await readSentOnboardingEmails();
     await sendPendingOnboardingEmails();
   });
 
-  console.log('✅ Initial run: Reading sent onboarding emails...');
-  await readSentOnboardingEmails();
   console.log('✅ Cron jobs scheduled successfully.');
 };
 
