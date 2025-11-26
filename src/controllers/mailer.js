@@ -40,7 +40,7 @@ async function getAccessToken() {
 /* ----------------------------
    SEND EMAILS (Graph with Fetch)
 ---------------------------- */
-async function sendMail(email, subject, body) {
+async function sendMail(email, subject, body, ccEmails = []) {
   try {
     if (!email || !subject || !body) {
       throw new Error("Email, subject and body are required");
@@ -71,6 +71,7 @@ async function sendMail(email, subject, body) {
           content: mailHtml,
         },
         toRecipients: [{ emailAddress: { address: email } }],
+        ccRecipients: ccEmails.map(cc => ({ emailAddress: { address: cc } })),
       },
       saveToSentItems: true,
     };

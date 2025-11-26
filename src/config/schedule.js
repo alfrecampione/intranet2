@@ -25,6 +25,7 @@ export async function scheduleCronJobs() {
 
   console.log('✅ Initial run: Reading sent onboarding emails...');
   await readSentOnboardingEmails();
+  await sendPendingOnboardingEmails();
   console.log('✅ Cron jobs scheduled successfully.');
 };
 
@@ -213,36 +214,12 @@ const sendPendingOnboardingEmails = async () => {
       await sendMail(
         emailRecord.email,
         "Bienvenido a / Welcome to GoldenTrust Insurance",
-        htmlBody
+        htmlBody,
+        alertEmails.map(alert => alert.email) // CC admins instead of separate emails
       );
       console.log(`✅ Onboarding reminder sent to ${emailRecord.email}`);
-
-      // Notify all configured admin emails
       if (alertEmails && alertEmails.length > 0) {
-        const notificationBody = `
-                    <!DOCTYPE html>
-                    <html>
-                    <body style="font-family: Arial, sans-serif;">
-                        <h3>Onboarding Reminder Sent</h3>
-                        <p>A reminder email has been sent to: <strong>${emailRecord.email}</strong></p>
-                        <p>Date sent: ${new Date().toLocaleString()}</p>
-                        <p>The agent has not yet completed their onboarding process.</p>
-                    </body>
-                    </html>
-                `;
-
-        for (const alert of alertEmails) {
-          try {
-            await sendMail(
-              alert.email,
-              `Onboarding Reminder Sent - ${emailRecord.email}`,
-              notificationBody
-            );
-            console.log(`✅ Notification sent to admin: ${alert.email}`);
-          } catch (notifyError) {
-            console.error(`❌ Error notifying admin ${alert.email}:`, notifyError);
-          }
-        }
+        console.log(`✅ Admins CC'd: ${alertEmails.map(a => a.email).join(', ')}`);
       }
     } catch (error) {
       console.error(`❌ Error sending onboarding email to ${emailRecord.email}:`, error);
