@@ -11,7 +11,6 @@ export async function scheduleCronJobs() {
 
   // Schedule tasks to be run on the server.
   cron.schedule("0 * * * *", async () => {
-    console.log('⏰ Running hourly cron job...');
     await readEmails();
     await checkReleasedToNot_Agents();
   });
