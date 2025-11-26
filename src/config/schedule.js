@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { readEmails, sendMail, readSentOnboardingEmails } from "../controllers/mailer.js";
 import { prisma } from "../config/dbConfig.js";
+import { encrypt } from "../controllers/crypto.js";
 
 /* ---------------------------- 
     CRON JOB (every hour) 
@@ -104,13 +105,39 @@ const sendPendingOnboardingEmails = async () => {
   const alertEmails = await prisma.newUserAlerts.findMany();
 
   for (const emailRecord of pendingEmails) {
-    const encryptedEmail = await prisma.crypto.findFirst({
+    // Ensure NecesaryDocuments record exists
+    const existingDocs = await prisma.necesaryDocuments.findUnique({
+      where: { email: emailRecord.email }
+    });
+
+    if (!existingDocs) {
+      console.warn(`⚠️ No necessary documents record found for ${emailRecord.email}, creating one...`);
+      await prisma.necesaryDocuments.create({
+        data: { email: emailRecord.email }
+      });
+      console.log(`✅ Created necessary documents record for ${emailRecord.email}`);
+    }
+
+    // Ensure crypto record exists
+    let encryptedEmail = await prisma.crypto.findFirst({
       where: { data: emailRecord.email },
     });
 
     if (!encryptedEmail) {
-      console.warn(`⚠️ No encrypted email found for ${emailRecord.email}`);
-      continue;
+      console.warn(`⚠️ No encrypted email found for ${emailRecord.email}, creating one...`);
+
+      // Create encrypted email on-the-fly
+      const { encryptedData, key, iv } = encrypt(emailRecord.email);
+      encryptedEmail = await prisma.crypto.create({
+        data: {
+          encrypted_data: encryptedData,
+          key: key,
+          id: iv,
+          data: emailRecord.email
+        }
+      });
+
+      console.log(`✅ Created encrypted email for ${emailRecord.email}`);
     }
 
     const link = `${baseUrl}/signUp/${encryptedEmail.encrypted_data}`;
