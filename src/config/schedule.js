@@ -25,7 +25,6 @@ export async function scheduleCronJobs() {
 
   console.log('✅ Initial run: Reading sent onboarding emails...');
   await readSentOnboardingEmails();
-  await sendPendingOnboardingEmails();
   console.log('✅ Cron jobs scheduled successfully.');
 };
 
