@@ -440,6 +440,7 @@ const searchNews = async (req, res) => {
 const deleteEmail = async (email, subject = 'Create your account on GoldenHealth') => {
   try {
     const token = await getAccessToken();
+    let deletedCount = 0;
 
     // Search for emails with subject and recipient
     const searchUrl = `https://graph.microsoft.com/v1.0/users/${senderEmail}/mailFolders/SentItems/messages?$filter=subject eq '${subject}'&$select=id,toRecipients&$top=100`;
@@ -453,7 +454,7 @@ const deleteEmail = async (email, subject = 'Create your account on GoldenHealth
 
     const messagesData = await messagesRes.json();
 
-    // Find and delete emails sent to this specific email
+    // Find and delete ALL emails sent to this specific email with matching subject
     if (messagesData.value) {
       for (const msg of messagesData.value) {
         const recipient = msg.toRecipients?.[0]?.emailAddress?.address;
@@ -465,10 +466,19 @@ const deleteEmail = async (email, subject = 'Create your account on GoldenHealth
               Authorization: `Bearer ${token}`,
             },
           });
-          console.log(`✅ Deleted email from Sent Items for ${email}`);
+          deletedCount++;
+          console.log(`✅ Deleted email from Sent Items for ${email} (subject: "${subject}")`);
         }
       }
     }
+
+    if (deletedCount > 0) {
+      console.log(`📧 Total deleted: ${deletedCount} email(s) for ${email} with subject "${subject}"`);
+    } else {
+      console.log(`⚠️ No emails found to delete for ${email} with subject "${subject}"`);
+    }
+
+    return deletedCount;
   } catch (error) {
     console.error("❌ Error deleting email from Sent Items:", error);
     throw error;
