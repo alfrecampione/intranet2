@@ -30,7 +30,7 @@ import { agency } from "./controllers/agency_reports.js";
 import { dataSearch, getNotifications, renderNotifications, readNotification } from "./controllers/navbar.js";
 import { passwordMail, email_sender, new_user_notification, searchNews, readEmails } from "./controllers/mailer.js";
 import { postLogin } from "./config/passportConfig.js";
-import { register, editRegister, renderOnboardingPending } from "./controllers/registration.js";
+import { register, editRegister, renderOnboardingPending, deleteOnboardingPending } from "./controllers/registration.js";
 import { renderAgents, renderReleasedAgents, renderReferingAgents, renderMyAgents, markDocsAsNecessary, addAgent, onboardingSentEmail, deleteAgent, recoverAgent } from "./controllers/agents.js";
 import { renderProfile, renderNotes, postNote, editNote, deleteNote, saveSection, addCarrierToUser, deleteCarrierToUser, releaseAgent } from "./controllers/profile.js";
 
@@ -121,6 +121,7 @@ router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
 
 router.post("/onboardingSentEmail/:email", checkNotAuthenticated, checkWriteRight, onboardingSentEmail);
 router.get("/pending-onboarding", checkNotAuthenticated, checkReadRight, renderOnboardingPending);
+router.delete("/pending-onboarding/:email", checkNotAuthenticated, checkWriteRight, deleteOnboardingPending);
 
 router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 router.get("/search-news", checkNotAuthenticated, searchNews);

@@ -434,4 +434,45 @@ const searchNews = async (req, res) => {
   return res.status(200).json({ results: textMatches });
 };
 
-export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews };
+/* ----------------------------
+   DELETE EMAIL FROM SENT ITEMS
+---------------------------- */
+const deleteEmail = async (email, subject = 'Create your account on GoldenHealth') => {
+  try {
+    const token = await getAccessToken();
+
+    // Search for emails with subject and recipient
+    const searchUrl = `https://graph.microsoft.com/v1.0/users/${senderEmail}/mailFolders/SentItems/messages?$filter=subject eq '${subject}'&$select=id,toRecipients&$top=100`;
+
+    const messagesRes = await fetch(searchUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const messagesData = await messagesRes.json();
+
+    // Find and delete emails sent to this specific email
+    if (messagesData.value) {
+      for (const msg of messagesData.value) {
+        const recipient = msg.toRecipients?.[0]?.emailAddress?.address;
+        if (recipient && recipient.toLowerCase() === email.toLowerCase()) {
+          // Delete the email
+          await fetch(`https://graph.microsoft.com/v1.0/users/${senderEmail}/messages/${msg.id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log(`✅ Deleted email from Sent Items for ${email}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error deleting email from Sent Items:", error);
+    throw error;
+  }
+};
+
+export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews, deleteEmail };

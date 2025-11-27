@@ -1,6 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { getAgencies, getAllCompanies } from "../config/utils.js";
 import { uploadToS3, isValidFileType, deleteFromS3, processS3Urls } from "../config/s3Config.js";
+import { deleteEmail } from "./mailer.js";
 
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
@@ -205,6 +206,51 @@ const renderOnboardingPending = async (req, res) => {
   }
 };
 
+const deleteOnboardingPending = async (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  try {
+    // Delete emails from Microsoft Graph Sent Items
+    try {
+      await deleteEmail(email);
+    } catch (graphError) {
+      console.warn("⚠️ Error deleting emails from Graph API (continuing):", graphError.message);
+    }
+
+    // Delete crypto record (invalidates onboarding link)
+    await prisma.crypto.deleteMany({
+      where: { data: email }
+    });
+
+    // Delete necessary documents
+    await prisma.necesaryDocuments.deleteMany({
+      where: { email: email }
+    });
+
+    // Delete onboarding sent email record
+    await prisma.onboardingSentEmails.deleteMany({
+      where: { email: email }
+    });
+
+    console.log(`✅ Deleted all onboarding data for ${email}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Onboarding data deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting onboarding data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting onboarding data"
+    });
+  }
+};
 
 
-export { register, handleFileUpload, editRegister, renderOnboardingPending };
+
+export { register, handleFileUpload, editRegister, renderOnboardingPending, deleteOnboardingPending };

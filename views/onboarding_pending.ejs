@@ -124,6 +124,12 @@
                                                             aria-label="SentAt: activate to sort column ascending">
                                                             Sent at
                                                         </th>
+                                                        <th class="sorting_disabled" tabindex="4"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 80px"
+                                                            aria-label="Actions: activate to sort column ascending">
+                                                            Actions
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -272,6 +278,24 @@
                         tdSentAt.textContent = "";
                     }
                     tr.appendChild(tdSentAt);
+
+                    const tdAction = document.createElement("td");
+                    tdAction.innerHTML = `
+    <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Onboarding"
+       onclick="if(confirm('Are you sure you want to delete this onboarding? This will invalidate the link and remove the email from pending list.')) { 
+           fetch('/pending-onboarding/${encodeURIComponent(user.email)}', { method: 'DELETE' })
+               .then(res => res.json())
+               .then(data => {
+                   if(data.success) {
+                       location.reload();
+                   } else {
+                       alert('Error: ' + data.message);
+                   }
+               })
+               .catch(err => alert('Error deleting onboarding'));
+       }">
+    </a>`;
+                    tr.appendChild(tdAction);
 
                     tbody.appendChild(tr);
                 });
