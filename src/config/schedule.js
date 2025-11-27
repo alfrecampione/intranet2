@@ -62,7 +62,6 @@ const checkNotToReleased_Agents = async () => {
       include: { statesAndCarriers: true }
     });
 
-    console.log(`🔍 Checking ${notReleasedAgents.length} not released agents...`);
     let updatedCount = 0;
 
     for (const agent of notReleasedAgents) {
