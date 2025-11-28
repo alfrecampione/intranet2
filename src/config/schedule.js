@@ -33,7 +33,6 @@ const checkReleasedToNot_Agents = async () => {
       include: { statesAndCarriers: true }
     });
 
-    console.log(`🔍 Checking ${releasedAgents.length} released agents...`);
     let updatedCount = 0;
 
     for (const agent of releasedAgents) {
@@ -43,12 +42,7 @@ const checkReleasedToNot_Agents = async () => {
           data: { isReleased: false }
         });
         updatedCount++;
-        console.log(`✅ Agent ${agent.email} marked as NOT released (has carriers)`);
       }
-    }
-
-    if (updatedCount > 0) {
-      console.log(`✅ Updated ${updatedCount} agent(s) from released to not released.`);
     }
   } catch (error) {
     console.error('❌ Error in checkReleasedToNot_Agents:', error);
@@ -71,12 +65,7 @@ const checkNotToReleased_Agents = async () => {
           data: { isReleased: true }
         });
         updatedCount++;
-        console.log(`✅ Agent ${agent.email} marked as released (no carriers)`);
       }
-    }
-
-    if (updatedCount > 0) {
-      console.log(`✅ Updated ${updatedCount} agent(s) from not released to released.`);
     }
   } catch (error) {
     console.error('❌ Error in checkNotToReleased_Agents:', error);
@@ -89,11 +78,8 @@ const sendPendingOnboardingEmails = async () => {
   });
 
   if (pendingEmails.length === 0) {
-    console.log('✅ No pending onboarding emails to send.');
     return;
   }
-
-  console.log(`📧 Found ${pendingEmails.length} pending onboarding email(s) to send.`);
 
   const baseUrl = process.env.BASE_URL;
 
@@ -218,9 +204,6 @@ const sendPendingOnboardingEmails = async () => {
         alertEmails.map(alert => alert.email) // CC admins instead of separate emails
       );
       console.log(`✅ Onboarding reminder sent to ${emailRecord.email}`);
-      if (alertEmails && alertEmails.length > 0) {
-        console.log(`✅ Admins CC'd: ${alertEmails.map(a => a.email).join(', ')}`);
-      }
     } catch (error) {
       console.error(`❌ Error sending onboarding email to ${emailRecord.email}:`, error);
     }
