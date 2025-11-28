@@ -830,20 +830,133 @@
                         // Use firstName and lastName if available, otherwise use email
                         const fullName = [firstName, lastName].filter(Boolean).join(' ');
                         const displayName = fullName || email;
+                        const signUpLink = `${url}/signUp/${encryptedEmail.data.encryptedData}`;
 
-                        const body = {
-                            name: displayName,
-                            intro: "Welcome! Please follow the instructions below.",
-                            action: {
-                                instructions: "To create your account, please click here:",
-                                button: {
-                                    color: "#27388B",
-                                    text: "Create your account",
-                                    link: `${url}/signUp/${encryptedEmail.data.encryptedData}`
-                                }
-                            },
-                            outro: "If you have questions, you can reply to this email."
-                        };
+                        // Create HTML email body similar to Veterans Day template
+                        const body = `
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<!--[if gte mso 15]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Create your account on GoldenHealth</title>
+<style>
+img{-ms-interpolation-mode:bicubic;}
+table, td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+p, a, li, td, blockquote{mso-line-height-rule:exactly;}
+p, a, li, td, body, table, blockquote{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;}
+body{height:100%;margin:0;padding:0;width:100%;background:#f0f4f9;}
+p{margin:0;padding:0;}
+table{border-collapse:collapse;}
+td, p, a{word-break:break-word;}
+h1, h2, h3, h4, h5, h6{display:block;margin:0;padding:0;}
+img, a img{border:0;height:auto;outline:none;text-decoration:none;}
+body, #bodyTable{background-color:#f0f4f9;}
+.mceText, .mceLabel{font-family:'Public Sans', Verdana, Geneva, sans-serif;color:#000;}
+.mceText h1{color:#27388B;font-size:32px;font-weight:bold;line-height:1.25;text-align:center;margin:20px 0;}
+.mceText p{color:#000;font-size:16px;line-height:1.5;text-align:center;margin:15px 0;}
+.mceButton{background-color:#27388B;border-radius:5px;text-align:center;margin:20px 0;}
+.mceButton a{color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:12px 24px;display:inline-block;}
+@media only screen and (max-width: 480px) {
+body, table, td, p, a, li, blockquote{-webkit-text-size-adjust:none!important;}
+body{width:100%!important;min-width:100%!important;}
+.mceText h1{font-size:24px!important;}
+.mceText p{font-size:14px!important;}
+}
+</style>
+</head>
+<body>
+<center>
+<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable" style="background-color:#f0f4f9;">
+<tbody><tr>
+<td align="center" valign="top" style="padding-top:40px;padding-bottom:40px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:660px;background-color:#ffffff;" role="presentation">
+<tbody>
+<!-- Logo Section -->
+<tr>
+<td style="padding:24px;text-align:center;">
+<a href="https://goldentrust.com/" target="_blank">
+<img src="${url}/img/branding/GoldenHealth-2.png" alt="GoldenHealth" style="max-width:300px;height:auto;display:block;margin:0 auto;"/>
+</a>
+</td>
+</tr>
+<!-- Main Content -->
+<tr>
+<td style="padding:0 24px 24px 24px;" class="mceText">
+<h1>Welcome to GoldenHealth!</h1>
+<p style="font-size:18px;margin-top:20px;">
+Hello ${displayName},
+</p>
+<p>
+We're excited to have you join our team. To get started and complete your registration, please click the button below to create your account.
+</p>
+<div class="mceButton" style="text-align:center;margin:30px 0;">
+<a href="${signUpLink}" style="background-color:#27388B;color:#ffffff;padding:14px 28px;border-radius:5px;text-decoration:none;font-weight:bold;display:inline-block;">
+Create Your Account
+</a>
+</div>
+<p>
+If you have any questions or need assistance, feel free to reply to this email. We're here to help!
+</p>
+<p style="margin-top:30px;color:#666;">
+Best regards,<br>
+<strong>GoldenHealth Team</strong>
+</p>
+</td>
+</tr>
+<!-- Footer Section -->
+<tr>
+<td style="background-color:#27388B;padding:20px;text-align:center;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+<tbody>
+<tr>
+<td style="text-align:center;padding-bottom:10px;">
+<a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+</a>
+</td>
+</tr>
+<tr>
+<td style="color:#ffffff;font-size:12px;line-height:1.5;text-align:center;">
+<p style="margin:5px 0;color:#ffffff;">
+Golden Trust Insurance<br/>
+Email: <a href="mailto:info@goldentrust.com" style="color:#ffffff;text-decoration:underline;">info@goldentrust.com</a><br/>
+Phone: <a href="tel:+1234567890" style="color:#ffffff;text-decoration:underline;">+1 (234) 567-890</a>
+</p>
+<p style="margin:10px 0;color:#ffffff;font-size:11px;">
+© 2025 Golden Trust Insurance. All rights reserved.
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</center>
+</body>
+</html>
+`;
 
                         const response = await fetch(`/sendEmail/${email}`, {
                             method: "POST",

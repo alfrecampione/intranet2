@@ -126,74 +126,169 @@ const sendPendingOnboardingEmails = async () => {
 
     // Build greeting using firstName and lastName if available
     const fullName = [emailRecord.firstName, emailRecord.lastName].filter(Boolean).join(' ');
-    const greetingES = fullName ? `Buenos días, estimado(a) ${fullName}:` : 'Buenos días, estimado(a) Agente:';
-    const greetingEN = fullName ? `Good morning, dear ${fullName}:` : 'Good morning, dear Agent:';
+    const displayName = fullName || 'Agent';
 
     const htmlBody = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<!--[if gte mso 15]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Welcome to GoldenTrust Insurance</title>
 <style>
-  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-  .button { 
-    display: inline-block; 
-    background-color: #27388B; 
-    color: #fff;
-    padding: 12px 24px; 
-    border-radius: 5px; 
-    text-decoration: none; 
-    font-weight: bold; 
-    margin: 20px 0; 
-  }
-  hr { margin: 30px 0; border: none; border-top: 1px solid #ccc; }
+img{-ms-interpolation-mode:bicubic;}
+table, td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+p, a, li, td, blockquote{mso-line-height-rule:exactly;}
+p, a, li, td, body, table, blockquote{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;}
+body{height:100%;margin:0;padding:0;width:100%;background:#f0f4f9;}
+p{margin:0;padding:0;}
+table{border-collapse:collapse;}
+td, p, a{word-break:break-word;}
+h1, h2, h3, h4, h5, h6{display:block;margin:0;padding:0;}
+img, a img{border:0;height:auto;outline:none;text-decoration:none;}
+body, #bodyTable{background-color:#f0f4f9;}
+.mceText{font-family:'Public Sans', Verdana, Geneva, sans-serif;color:#000;}
+.mceText h1{color:#27388B;font-size:28px;font-weight:bold;line-height:1.3;margin:20px 0;}
+.mceText p{color:#000;font-size:16px;line-height:1.6;margin:15px 0;}
+.mceButton{background-color:#27388B;border-radius:5px;text-align:center;margin:25px 0;}
+.mceButton a{color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:12px 24px;display:inline-block;}
+.divider{border-top:2px solid #27388B;margin:30px 0;}
+@media only screen and (max-width: 480px) {
+body, table, td, p, a, li, blockquote{-webkit-text-size-adjust:none!important;}
+body{width:100%!important;min-width:100%!important;}
+.mceText h1{font-size:22px!important;}
+.mceText p{font-size:14px!important;}
+}
 </style>
-      </head>
-      <body>
-        <div class="container">
-          <p>${greetingES}</p>
-          <p>
-            Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente
-            para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes
-            Compañías de Seguros.
-          </p>
-          <p>
-            Aprovechamos esta oportunidad para darle la más cordial bienvenida a nuestra familia de
-            <b>Golden Trust Insurance</b>. Nos alegra contar con usted y estamos a su disposición para cualquier apoyo que necesite.
-          </p>
-          <p>Quedamos atentos a su respuesta.</p>
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${link}" class="button">Iniciar Onboarding</a>
-          </div>
-          <p>
-            Con saludos cordiales,<br>
-            Departamento de Salud<br>
-            Golden Trust Insurance
-          </p>
-          <hr>
-          <p>${greetingEN}</p>
-          <p>
-            We have checked our system and, so far, we have not received your onboarding information required
-            to register you on our platform and begin the contracting process with the different Insurance Companies.
-          </p>
-          <p>
-            We would like to take this opportunity to warmly welcome you to the <b>Golden Trust Insurance</b> family.
-            We are glad to have you with us and remain available to assist you with anything you may need.
-          </p>
-          <p>We look forward to hearing from you.</p>
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${link}" class="button">Start Onboarding</a>
-          </div>
-          <p>
-            Kind regards,<br>
-            Health Department<br>
-            Golden Trust Insurance
-          </p>
-        </div>
-      </body>
-      </html>
+</head>
+<body>
+<center>
+<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable" style="background-color:#f0f4f9;">
+<tbody><tr>
+<td align="center" valign="top" style="padding-top:40px;padding-bottom:40px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:660px;background-color:#ffffff;" role="presentation">
+<tbody>
+<!-- Logo Section -->
+<tr>
+<td style="padding:24px;text-align:center;">
+<a href="https://goldentrust.com/" target="_blank">
+<img src="${baseUrl}/img/branding/GoldenHealth-2.png" alt="GoldenHealth" style="max-width:300px;height:auto;display:block;margin:0 auto;"/>
+</a>
+</td>
+</tr>
+<!-- Spanish Content -->
+<tr>
+<td style="padding:0 24px;" class="mceText">
+<h1 style="text-align:left;">Buenos días, estimado(a) ${displayName}:</h1>
+<p style="text-align:justify;">
+Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente
+para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes
+Compañías de Seguros.
+</p>
+<p style="text-align:justify;">
+Aprovechamos esta oportunidad para darle la más cordial bienvenida a nuestra familia de
+<strong>Golden Trust Insurance</strong>. Nos alegra contar con usted y estamos a su disposición para cualquier apoyo que necesite.
+</p>
+<p style="text-align:justify;">
+Quedamos atentos a su respuesta.
+</p>
+<div class="mceButton" style="text-align:center;">
+<a href="${link}" style="background-color:#27388B;color:#ffffff;padding:14px 28px;border-radius:5px;text-decoration:none;font-weight:bold;display:inline-block;">
+Iniciar Onboarding
+</a>
+</div>
+<p style="text-align:left;margin-top:20px;">
+Con saludos cordiales,<br>
+<strong>Departamento de Salud</strong><br>
+Golden Trust Insurance
+</p>
+</td>
+</tr>
+<!-- Divider -->
+<tr>
+<td style="padding:0 24px;">
+<div class="divider"></div>
+</td>
+</tr>
+<!-- English Content -->
+<tr>
+<td style="padding:0 24px 24px 24px;" class="mceText">
+<h1 style="text-align:left;">Good morning, dear ${displayName}:</h1>
+<p style="text-align:justify;">
+We have checked our system and, so far, we have not received your onboarding information required
+to register you on our platform and begin the contracting process with the different Insurance Companies.
+</p>
+<p style="text-align:justify;">
+We would like to take this opportunity to warmly welcome you to the <strong>Golden Trust Insurance</strong> family.
+We are glad to have you with us and remain available to assist you with anything you may need.
+</p>
+<p style="text-align:justify;">
+We look forward to hearing from you.
+</p>
+<div class="mceButton" style="text-align:center;">
+<a href="${link}" style="background-color:#27388B;color:#ffffff;padding:14px 28px;border-radius:5px;text-decoration:none;font-weight:bold;display:inline-block;">
+Start Onboarding
+</a>
+</div>
+<p style="text-align:left;margin-top:20px;">
+Kind regards,<br>
+<strong>Health Department</strong><br>
+Golden Trust Insurance
+</p>
+</td>
+</tr>
+<!-- Footer Section -->
+<tr>
+<td style="background-color:#27388B;padding:20px;text-align:center;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+<tbody>
+<tr>
+<td style="text-align:center;padding-bottom:10px;">
+<a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+</a>
+</td>
+</tr>
+<tr>
+<td style="color:#ffffff;font-size:12px;line-height:1.5;text-align:center;">
+<p style="margin:5px 0;color:#ffffff;">
+Golden Trust Insurance<br/>
+Email: <a href="mailto:info@goldentrust.com" style="color:#ffffff;text-decoration:underline;">info@goldentrust.com</a><br/>
+Phone: <a href="tel:+1234567890" style="color:#ffffff;text-decoration:underline;">+1 (234) 567-890</a>
+</p>
+<p style="margin:10px 0;color:#ffffff;font-size:11px;">
+© 2025 Golden Trust Insurance. All rights reserved.
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</center>
+</body>
+</html>
     `;
 
     try {
