@@ -119,7 +119,7 @@ router.get("/users/released-agents", checkNotAuthenticated, checkReadRight, rend
 router.get("/users/refering-agents", checkNotAuthenticated, checkReadRight, renderReferingAgents);
 router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
 
-router.post("/onboardingSentEmail/:email", checkNotAuthenticated, checkWriteRight, onboardingSentEmail);
+router.post("/onboardingSent/:email", checkNotAuthenticated, checkWriteRight, onboardingSentEmail);
 router.get("/pending-onboarding", checkNotAuthenticated, checkReadRight, renderOnboardingPending);
 router.delete("/pending-onboarding/:email", checkNotAuthenticated, checkWriteRight, deleteOnboardingPending);
 

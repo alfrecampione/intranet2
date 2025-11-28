@@ -116,6 +116,12 @@
                                                             aria-label="Email: activate to sort column ascending">
                                                             Email
                                                         </th>
+                                                        <th class="sorting_disabled" tabindex="2"
+                                                            aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
+                                                            style="width: 130px"
+                                                            aria-label="Name: activate to sort column ascending">
+                                                            Name
+                                                        </th>
                                                         <th class="sorting_disabled" tabindex="3"
                                                             aria-controls="DataTables_Table_0" rowspan="1" colspan="1"
                                                             style="width: 130px"
@@ -245,7 +251,9 @@
             tbody.innerHTML = "";
 
             const filtered = users.filter(u =>
-                (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
+                (u.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (u.firstName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (u.lastName || "").toLowerCase().includes(searchTerm.toLowerCase())
             );
 
             const start = (page - 1) * pageSize;
@@ -254,7 +262,7 @@
 
             if (pageUsers.length === 0) {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td valign="top" colspan="4" class="dataTables_empty">No pending onboarding found.</td>`;
+                tr.innerHTML = `<td valign="top" colspan="5" class="dataTables_empty">No pending onboarding found.</td>`;
                 tbody.appendChild(tr);
             } else {
                 pageUsers.forEach((user, idx) => {
@@ -267,6 +275,11 @@
                     const tdEmail = document.createElement("td");
                     tdEmail.innerHTML = user.email ? `<a href="mailto:${user.email}">${user.email}</a>` : "";
                     tr.appendChild(tdEmail);
+
+                    const tdName = document.createElement("td");
+                    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+                    tdName.textContent = fullName || "—";
+                    tr.appendChild(tdName);
 
                     const tdSentAt = document.createElement("td");
                     if (user.sentAt) {

@@ -233,6 +233,16 @@
                                                         aria-label="example@mail.com" aria-describedby="email" />
                                                 </div>
                                             </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label" for="firstName">First Name</label>
+                                                <input type="text" id="firstName" class="form-control" name="firstName"
+                                                    placeholder="First Name" />
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label" for="lastName">Last Name</label>
+                                                <input type="text" id="lastName" class="form-control" name="lastName"
+                                                    placeholder="Last Name" />
+                                            </div>
                                             <div class="col-12 mb-3">
                                                 <label class="form-label mb-2">Required Documents</label>
                                                 <div class="row g-2">
@@ -753,6 +763,8 @@
                     e.preventDefault();
                     const emailInput = document.getElementById("email");
                     const email = emailInput.value.trim();
+                    const firstName = document.getElementById("firstName").value.trim();
+                    const lastName = document.getElementById("lastName").value.trim();
 
                     if (!email) {
                         showToast("Error", "Please enter an email address.");
@@ -815,8 +827,12 @@
                         if (!docsResponse.ok) throw new Error("Error adding necessary documents");
                         if (!encryptEmail.ok) throw new Error("Error encrypting email");
 
+                        // Use firstName and lastName if available, otherwise use email
+                        const fullName = [firstName, lastName].filter(Boolean).join(' ');
+                        const displayName = fullName || email;
+
                         const body = {
-                            name: email,
+                            name: displayName,
                             intro: "Welcome! Please follow the instructions below.",
                             action: {
                                 instructions: "To create your account, please click here:",
@@ -844,11 +860,15 @@
                         if (response.ok) {
                             showToast("Success", "Email sent successfully!");
 
-                            await fetch(`/onboardingSentEmail/${email}`, {
-                                method: "POST"
+                            await fetch(`/onboardingSent/${email}`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ firstName, lastName })
                             });
 
                             emailInput.value = "";
+                            document.getElementById("firstName").value = "";
+                            document.getElementById("lastName").value = "";
                             docFields.forEach(field => {
                                 document.getElementById(field).checked = false;
                             });

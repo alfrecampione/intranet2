@@ -138,6 +138,11 @@ const sendPendingOnboardingEmails = async () => {
 
     const link = `${baseUrl}/signUp/${encryptedEmail.encrypted_data}`;
 
+    // Build greeting using firstName and lastName if available
+    const fullName = [emailRecord.firstName, emailRecord.lastName].filter(Boolean).join(' ');
+    const greetingES = fullName ? `Buenos días, estimado(a) ${fullName}:` : 'Buenos días, estimado(a) Agente:';
+    const greetingEN = fullName ? `Good morning, dear ${fullName}:` : 'Good morning, dear Agent:';
+
     const htmlBody = `
       <!DOCTYPE html>
       <html>
@@ -162,7 +167,7 @@ const sendPendingOnboardingEmails = async () => {
       </head>
       <body>
         <div class="container">
-          <p>Buenos días, estimado(a) Agente:</p>
+          <p>${greetingES}</p>
           <p>
             Estamos revisando en nuestro sistema y, hasta el momento, no hemos recibido el onboarding correspondiente
             para poder registrarle en nuestra plataforma y dar inicio al proceso de contratación con las diferentes
@@ -182,7 +187,7 @@ const sendPendingOnboardingEmails = async () => {
             Golden Trust Insurance
           </p>
           <hr>
-          <p>Good morning, dear Agent:</p>
+          <p>${greetingEN}</p>
           <p>
             We have checked our system and, so far, we have not received your onboarding information required
             to register you on our platform and begin the contracting process with the different Insurance Companies.

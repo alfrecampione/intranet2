@@ -300,14 +300,27 @@ const addAgent = async (req, res) => {
 
 const onboardingSentEmail = async (req, res) => {
   const { email } = req.params;
+  const { firstName, lastName } = req.body;
+
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
   try {
     await prisma.onboardingSentEmails.upsert({
       where: { email },
-      update: { sentAt: new Date(), pending: true },
-      create: { email, sentAt: new Date(), pending: true }
+      update: {
+        sentAt: new Date(),
+        pending: true,
+        firstName: firstName || null,
+        lastName: lastName || null
+      },
+      create: {
+        email,
+        sentAt: new Date(),
+        pending: true,
+        firstName: firstName || null,
+        lastName: lastName || null
+      }
     });
     res.status(200).json({ message: "Onboarding email record updated." });
   } catch (error) {
