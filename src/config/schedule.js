@@ -18,7 +18,7 @@ export async function scheduleCronJobs() {
   // Schedule tasks to be run on the server. Every Monday at 8am
   cron.schedule("0 8 * * 1", async () => {
     console.log('⏰ Running weekly cron job (Monday 8am)...');
-    await readSentOnboardingEmails();
+    // await readSentOnboardingEmails();
     await sendPendingOnboardingEmails();
   });
 

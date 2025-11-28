@@ -214,13 +214,6 @@ const deleteOnboardingPending = async (req, res) => {
   }
 
   try {
-    // Delete emails from Microsoft Graph Sent Items
-    try {
-      await deleteEmail(email);
-    } catch (graphError) {
-      console.warn("⚠️ Error deleting emails from Graph API (continuing):", graphError.message);
-    }
-
     // Delete crypto record (invalidates onboarding link)
     await prisma.crypto.deleteMany({
       where: { data: email }
