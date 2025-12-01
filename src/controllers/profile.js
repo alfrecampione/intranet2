@@ -19,16 +19,6 @@ const renderProfile = async (req, res) => {
         where: { userId }
     });
 
-    // For Microsoft users, fetch photoPath from user_avatars table
-    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
-        const msaPhotoPath = await getMSAPhotoPath(realId);
-        if (msaPhotoPath && personalInfo) {
-            // Generate signed URL for MSA photo
-            personalInfo.photoPath = await getSignedS3Url(msaPhotoPath);
-        }
-    }
-
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }
     });
@@ -85,7 +75,27 @@ const renderProfile = async (req, res) => {
 
     const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));
 
-    // Process S3 URLs to generate signed URLs
+    // Process photoPath similar to agents.js
+    let photoPath = personalInfo?.photoPath || null;
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getMSARealId(profile.user_id);
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        photoPath = msaPhotoPath || photoPath;
+    }
+
+    // Generate signed URL for photoPath if it exists (from S3 or MSA)
+    if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
+    }
+
+    // Update personalInfo with the processed photoPath
+    if (personalInfo) {
+        personalInfo.photoPath = photoPath;
+    }
+
+    // Process S3 URLs to generate signed URLs for documents and companies
     const processedPersonalInfo = await processS3Urls(personalInfo);
     const processedDocuments = await processS3Urls(documents);
     const processedAllCompanies = await processS3Urls(allCompanies);
@@ -323,16 +333,6 @@ const renderNotes = async (req, res) => {
         where: { userId }
     });
 
-    // For Microsoft users, fetch photoPath from user_avatars table
-    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
-        const msaPhotoPath = await getMSAPhotoPath(realId);
-        if (msaPhotoPath && personalInfo) {
-            // Generate signed URL for MSA photo
-            personalInfo.photoPath = await getSignedS3Url(msaPhotoPath);
-        }
-    }
-
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }
     });
@@ -341,6 +341,26 @@ const renderNotes = async (req, res) => {
         where: { userId },
         orderBy: { createdAt: 'desc' }
     });
+
+    // Process photoPath similar to agents.js
+    let photoPath = personalInfo?.photoPath || null;
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getMSARealId(profile.user_id);
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        photoPath = msaPhotoPath || photoPath;
+    }
+
+    // Generate signed URL for photoPath if it exists (from S3 or MSA)
+    if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
+    }
+
+    // Update personalInfo with the processed photoPath
+    if (personalInfo) {
+        personalInfo.photoPath = photoPath;
+    }
 
     // Process S3 URLs to generate signed URLs
     const processedPersonalInfo = await processS3Urls(personalInfo);
