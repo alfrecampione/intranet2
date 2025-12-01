@@ -5,8 +5,8 @@
             <div class="user-avatar-section">
                 <div class="d-flex align-items-center flex-column">
                     <% if (personalInfo && personalInfo.photoPath) { %>
-                        <% const photoSrc=personalInfo.photoPath.startsWith('http') ? personalInfo.photoPath : '/' +
-                            personalInfo.photoPath.replace(/^\/+/, '' ); %>
+                        <% const photoSrc=personalInfo.photoPath.startsWith('http') ? personalInfo.photoPath :
+                            `/${personalInfo.photoPath.replace(/^\/+/, '' )}`; %>
                             <img class="img-fluid rounded mb-4" src="<%= photoSrc %>" height="120" width="120" alt=""
                                 style="object-fit:cover;" />
                             <% } else { %>

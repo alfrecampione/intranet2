@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 
 const renderProfile = async (req, res) => {
@@ -80,7 +80,7 @@ const renderProfile = async (req, res) => {
 
     // For Microsoft users, fetch photoPath from user_avatars table
     if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
+        const realId = await getEntraId(profile.email.toLowerCase());
         const msaPhotoPath = await getMSAPhotoPath(realId);
         photoPath = msaPhotoPath || photoPath;
     }
@@ -96,7 +96,6 @@ const renderProfile = async (req, res) => {
     }
 
     // Process S3 URLs to generate signed URLs for documents and companies
-    const processedPersonalInfo = await processS3Urls(personalInfo);
     const processedDocuments = await processS3Urls(documents);
     const processedAllCompanies = await processS3Urls(allCompanies);
 
@@ -104,7 +103,7 @@ const renderProfile = async (req, res) => {
         userId,
         user,
         profile,
-        personalInfo: processedPersonalInfo,
+        personalInfo: personalInfo,
         contactInfo,
         paymentMethod,
         documents: processedDocuments,
@@ -347,7 +346,7 @@ const renderNotes = async (req, res) => {
 
     // For Microsoft users, fetch photoPath from user_avatars table
     if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
+        const realId = await getEntraId(profile.email.toLowerCase());
         const msaPhotoPath = await getMSAPhotoPath(realId);
         photoPath = msaPhotoPath || photoPath;
     }
@@ -362,10 +361,7 @@ const renderNotes = async (req, res) => {
         personalInfo.photoPath = photoPath;
     }
 
-    // Process S3 URLs to generate signed URLs
-    const processedPersonalInfo = await processS3Urls(personalInfo);
-
-    res.render("notes", { userId, user, profile, personalInfo: processedPersonalInfo, contactInfo, notes, activePage: 'profile' });
+    res.render("notes", { userId, user, profile, personalInfo: personalInfo, contactInfo, notes, activePage: 'profile' });
 }
 
 const postNote = async (req, res) => {
