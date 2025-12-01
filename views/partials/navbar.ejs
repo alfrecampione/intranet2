@@ -182,8 +182,10 @@
                             <div class="avatar avatar-online">
                                 <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
                                     <% const photoSrc=user.personalInfo.photoPath.startsWith('http') ?
-                                        user.personalInfo.photoPath : '/' + user.personalInfo.photoPath; %>
-                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle" />
+                                        user.personalInfo.photoPath : '/' +
+                                        user.personalInfo.photoPath.replace(/^\/+/, '' ); %>
+                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle"
+                                            style="object-fit:cover;" />
                                         <% } else { %>
                                             <span class="avatar-initial rounded-circle bg-label-primary">
                                                 <% if (user && user.display_name) { %>
@@ -206,9 +208,10 @@
                                             <div class="avatar avatar-online">
                                                 <% if (user && user.personalInfo && user.personalInfo.photoPath) { %>
                                                     <% const photoSrc=user.personalInfo.photoPath.startsWith('http') ?
-                                                        user.personalInfo.photoPath : '/' + user.personalInfo.photoPath;
-                                                        %>
-                                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle" />
+                                                        user.personalInfo.photoPath : '/' +
+                                                        user.personalInfo.photoPath.replace(/^\/+/, '' ); %>
+                                                        <img src="<%= photoSrc %>" alt="" class="rounded-circle"
+                                                            style="object-fit:cover;" />
                                                         <% } else { %>
                                                             <span
                                                                 class="avatar-initial rounded-circle bg-label-primary">
