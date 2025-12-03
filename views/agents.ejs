@@ -1007,7 +1007,8 @@ Phone: <a href="tel:+1234567890" style="color:#ffffff;text-decoration:underline;
                             showToast("Error", responseData.message || "Error sending email.");
                         }
                     } catch (err) {
-                        showToast("Error", "Error sending email.")
+                        const errorMessage = err.message || "Error sending email.";
+                        showToast("Error", errorMessage);
                         console.log(err);
                     } finally {
                         overlay.style.display = "none";
