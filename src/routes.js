@@ -1,4 +1,5 @@
 import express from "express";
+import { asyncHandler } from "./config/errorHandler.js";
 import {
   login,
   renderResetPassword,
@@ -111,15 +112,15 @@ router.post("/signUp", createAccount);
 router.get("/email-validation", renderEmailValidation);
 router.post("/email-validation", validateEmail);
 
-router.get("/users/agents", checkNotAuthenticated, checkReadRight, renderAgents);
-router.post("/users/agents", checkNotAuthenticated, addAgent)
-router.delete("/users/agents/:id", checkNotAuthenticated, deleteAgent);
-router.post("/users/agents/recover/:id", checkNotAuthenticated, recoverAgent);
-router.get("/users/released-agents", checkNotAuthenticated, checkReadRight, renderReleasedAgents);
-router.get("/users/refering-agents", checkNotAuthenticated, checkReadRight, renderReferingAgents);
-router.get("/users/my-agents", checkNotAuthenticated, renderMyAgents);
+router.get("/users/agents", checkNotAuthenticated, checkReadRight, asyncHandler(renderAgents));
+router.post("/users/agents", checkNotAuthenticated, asyncHandler(addAgent));
+router.delete("/users/agents/:id", checkNotAuthenticated, asyncHandler(deleteAgent));
+router.post("/users/agents/recover/:id", checkNotAuthenticated, asyncHandler(recoverAgent));
+router.get("/users/released-agents", checkNotAuthenticated, checkReadRight, asyncHandler(renderReleasedAgents));
+router.get("/users/refering-agents", checkNotAuthenticated, checkReadRight, asyncHandler(renderReferingAgents));
+router.get("/users/my-agents", checkNotAuthenticated, asyncHandler(renderMyAgents));
 
-router.post("/onboardingSent/:email", checkNotAuthenticated, checkWriteRight, onboardingSentEmail);
+router.post("/onboardingSent/:email", checkNotAuthenticated, checkWriteRight, asyncHandler(onboardingSentEmail));
 router.get("/pending-onboarding", checkNotAuthenticated, checkReadRight, renderOnboardingPending);
 router.delete("/pending-onboarding/:email", checkNotAuthenticated, checkWriteRight, deleteOnboardingPending);
 
@@ -127,7 +128,7 @@ router.post("/sendEmail/:email", checkNotAuthenticated, email_sender);
 router.get("/search-news", checkNotAuthenticated, searchNews);
 router.get("/start-search", readEmails)
 
-router.post("/necessaryDocs", checkNotAuthenticated, markDocsAsNecessary);
+router.post("/necessaryDocs", checkNotAuthenticated, asyncHandler(markDocsAsNecessary));
 
 router.post("/email/config", checkNotAuthenticated, new_user_notification)
 
@@ -210,7 +211,7 @@ router.delete("/users/config/allowed-agents/delete", checkNotAuthenticated, chec
 router.put("/users/config/agent-rights", checkNotAuthenticated, checkWriteRight, updateAgentRights);
 
 import { massiveCreateAgents } from "./controllers/agents.js";
-router.post("/agents/massiveCreate", massiveCreateAgents);
+router.post("/agents/massiveCreate", asyncHandler(massiveCreateAgents));
 
 import { sendSMSHandler } from "./controllers/communication.js";
 router.post("/sendSMS", checkNotAuthenticated, sendSMSHandler);

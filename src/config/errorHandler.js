@@ -5,8 +5,6 @@ import { Prisma } from '@prisma/client';
  * Converts Prisma errors and other errors into user-friendly messages
  */
 export const errorHandler = (err, req, res, next) => {
-    console.error('Error caught by errorHandler:', err);
-
     // Prisma Error: Known request error
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
         const meta = err.meta || {};

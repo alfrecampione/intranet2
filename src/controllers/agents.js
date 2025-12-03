@@ -76,47 +76,41 @@ const renderMyAgents = async (req, res) => {
     return;
   }
 
-  try {
-    let where = { isReleased: false };
+  let where = { isReleased: false };
 
-    const agency = await prisma.agency.findUnique({
-      where: { owner: user.user_id },
-    });
+  const agency = await prisma.agency.findUnique({
+    where: { owner: user.user_id },
+  });
 
-    if (agency) {
-      const allAgencyIds = await getAllAgencyIds(agency.id);
-      where = {
-        ...where,
-        OR: [
-          { personalInfo: { is: { agency: { in: allAgencyIds } } } },
-          { user_id: user.user_id }
-        ]
-      };
-    }
+  if (agency) {
+    const allAgencyIds = await getAllAgencyIds(agency.id);
+    where = {
+      ...where,
+      OR: [
+        { personalInfo: { is: { agency: { in: allAgencyIds } } } },
+        { user_id: user.user_id }
+      ]
+    };
+  }
 
-    const users = await prisma.user.findMany({
-      where,
-      orderBy: [{ display_name: "asc" }, { email: "asc" }],
-      include: {
-        personalInfo: {
-          include: {
-            underAgency: {
-              select: { name: true }
-            }
+  const users = await prisma.user.findMany({
+    where,
+    orderBy: [{ display_name: "asc" }, { email: "asc" }],
+    include: {
+      personalInfo: {
+        include: {
+          underAgency: {
+            select: { name: true }
           }
         }
       }
-    });
+    }
+  });
 
-    const registeredUsers = await getData(users);
-    const allAgencies = await getAgencies();
+  const registeredUsers = await getData(users);
+  const allAgencies = await getAgencies();
 
-    res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
-
-  } catch (err) {
-    console.error("Error in renderMyAgents:", err);
-    res.status(500).send("Internal server error");
-  }
+  res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
 
 const renderAgents = async (req, res) => {
@@ -207,95 +201,89 @@ const addAgent = async (req, res) => {
     franchise
   } = req.body
 
-  try {
-    const {
-      password = "12345678",
-      cellPhone = phone,
-      contactType = "individual",
-    } = req.body;
+  const {
+    password = "12345678",
+    cellPhone = phone,
+    contactType = "individual",
+  } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required." });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required." });
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser && !existingUser.isReleased) {
+    return res.status(400).json({ message: "Agent already exists." });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      display_name: legalName,
+      registrationCompleted: false,
+      hastoChangePassword: true
     }
+  });
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
+  await prisma.necesaryDocuments.create({
+    data: { email: user.email }
+  });
 
-    if (existingUser && !existingUser.isReleased) {
-      return res.status(400).json({ message: "Agent already exists." });
-    }
+  await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [user.user_id] }, async () => {
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
+    await prisma.personalInfo.create({
       data: {
-        email,
-        password: hashedPassword,
-        display_name: legalName,
-        registrationCompleted: false,
-        hastoChangePassword: true
+        userId: user.user_id,
+        legalName: legalName,
+        preferredName: null,
+        legalSex: null,
+        dateOfBirth: null,
+        ssn: null,
+        npn: npn || null,
+        businessName: null,
+        companyEIN: null,
+        contactType,
+        agency: agency || null,
+        franchise: franchise || null
       }
     });
 
-    await prisma.necesaryDocuments.create({
-      data: { email: user.email }
+    await prisma.contactInfo.create({
+      data: {
+        userId: user.user_id,
+        personalEmail: email,
+        personalPhone: cellPhone || null,
+        city: "",
+        state: "",
+        zipCode: "",
+        addressLine1: "",
+        addressLine2: null
+      }
     });
 
-    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [user.user_id] }, async () => {
-
-      await prisma.personalInfo.create({
-        data: {
-          userId: user.user_id,
-          legalName: legalName,
-          preferredName: null,
-          legalSex: null,
-          dateOfBirth: null,
-          ssn: null,
-          npn: npn || null,
-          businessName: null,
-          companyEIN: null,
-          contactType,
-          agency: agency || null,
-          franchise: franchise || null
-        }
-      });
-
-      await prisma.contactInfo.create({
-        data: {
-          userId: user.user_id,
-          personalEmail: email,
-          personalPhone: cellPhone || null,
-          city: "",
-          state: "",
-          zipCode: "",
-          addressLine1: "",
-          addressLine2: null
-        }
-      });
-
-      await prisma.paymentMethod.create({
-        data: {
-          userId: user.user_id,
-          bankAccountType: null,
-          bankAccountNum: null,
-          bankRoutingNum: null,
-          accountNickname: null,
-          assignToGTI: true,
-        }
-      });
+    await prisma.paymentMethod.create({
+      data: {
+        userId: user.user_id,
+        bankAccountType: null,
+        bankAccountNum: null,
+        bankRoutingNum: null,
+        accountNickname: null,
+        assignToGTI: true,
+      }
     });
+  });
 
-    return res.status(201).json({
-      message: "Agent created successfully",
-      userId: user.user_id,
-      email: user.email
-    });
-
-  } catch (error) {
-    console.error("Error creating agent:", error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
+  return res.status(201).json({
+    message: "Agent created successfully",
+    userId: user.user_id,
+    email: user.email
+  });
 };
 
 const onboardingSentEmail = async (req, res) => {
@@ -305,28 +293,23 @@ const onboardingSentEmail = async (req, res) => {
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
-  try {
-    await prisma.onboardingSentEmails.upsert({
-      where: { email },
-      update: {
-        sentAt: new Date(),
-        pending: true,
-        firstName: firstName || null,
-        lastName: lastName || null
-      },
-      create: {
-        email,
-        sentAt: new Date(),
-        pending: true,
-        firstName: firstName || null,
-        lastName: lastName || null
-      }
-    });
-    res.status(200).json({ message: "Onboarding email record updated." });
-  } catch (error) {
-    console.error("Error updating onboarding email record:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
+  await prisma.onboardingSentEmails.upsert({
+    where: { email },
+    update: {
+      sentAt: new Date(),
+      pending: true,
+      firstName: firstName || null,
+      lastName: lastName || null
+    },
+    create: {
+      email,
+      sentAt: new Date(),
+      pending: true,
+      firstName: firstName || null,
+      lastName: lastName || null
+    }
+  });
+  res.status(200).json({ message: "Onboarding email record updated." });
 };
 
 const deleteAgent = async (req, res) => {
@@ -337,24 +320,20 @@ const deleteAgent = async (req, res) => {
   }
 
   await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { user_id: id }
-      })
+    const user = await prisma.user.findUnique({
+      where: { user_id: id }
+    })
 
-      await prisma.user.delete({
-        where: { user_id: id }
-      });
+    await prisma.user.delete({
+      where: { user_id: id }
+    });
 
-      await prisma.necesaryDocuments.delete({
-        where: { email: user.email }
-      })
-
-      res.status(200).json({ message: "Agent deleted successfully." });
-    } catch (error) {
-      res.status(500).json({ message: "Error deleting agent.", error: error.message });
-    }
+    await prisma.necesaryDocuments.delete({
+      where: { email: user.email }
+    })
   });
+
+  res.status(200).json({ message: "Agent deleted successfully." });
 };
 
 const markDocsAsNecessary = async (req, res) => {
@@ -373,18 +352,14 @@ const markDocsAsNecessary = async (req, res) => {
   }
 
   await prismaContext.run({ userId: req.user.user_id }, async () => {
-    try {
-      const doc = await prisma.necesaryDocuments.create({
-        data: {
-          email,
-          ...requiredDocuments
-        }
-      });
+    const doc = await prisma.necesaryDocuments.create({
+      data: {
+        email,
+        ...requiredDocuments
+      }
+    });
 
-      res.status(200).json({ message: "Necessary documents saved.", doc });
-    } catch (error) {
-      res.status(500).json({ message: "Error saving necessary documents.", error: error.message });
-    }
+    res.status(200).json({ message: "Necessary documents saved.", doc });
   });
 };
 
@@ -576,18 +551,13 @@ const recoverAgent = async (req, res) => {
     return res.status(400).json({ message: "Agent ID is required." });
   }
 
-  try {
-    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
-      await prisma.user.update({
-        where: { user_id: id },
-        data: { isReleased: false }
-      });
+  await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
+    await prisma.user.update({
+      where: { user_id: id },
+      data: { isReleased: false }
     });
-    res.status(200).json({ message: "Agent recovered successfully." });
-  }
-  catch (error) {
-    res.status(500).json({ message: "Error recovering agent.", error: error.message });
-  }
+  });
+  res.status(200).json({ message: "Agent recovered successfully." });
 }
 
 export {

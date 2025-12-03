@@ -726,11 +726,14 @@
                         body: JSON.stringify(payload),
                     });
 
+                    const result = await response.json();
+
                     if (!response.ok) {
-                        showToast("Error", "Error adding the new agent")
+                        const errorMessage = result.message || "Error adding the new agent";
+                        showToast("Error", errorMessage);
+                        return;
                     }
 
-                    const result = await response.json();
                     showToast("Success", "The agent was added")
 
                     const modalEl = document.getElementById("addAgentModal");
@@ -742,7 +745,8 @@
 
                     location.reload();
                 } catch (error) {
-                    showToast("Error", error)
+                    const errorMessage = error.message || "Error adding the new agent";
+                    showToast("Error", errorMessage);
                 }
             });
         });
