@@ -293,6 +293,18 @@ const onboardingSentEmail = async (req, res) => {
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
+
+  // Check if onboarding was already sent and is still pending
+  const existingRecord = await prisma.onboardingSentEmails.findUnique({
+    where: { email }
+  });
+
+  if (existingRecord && existingRecord.pending) {
+    return res.status(400).json({
+      message: "An onboarding email has already been sent to this address and is still pending completion."
+    });
+  }
+
   await prisma.onboardingSentEmails.upsert({
     where: { email },
     update: {

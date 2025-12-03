@@ -819,6 +819,13 @@
                             }),
                         });
 
+                        const docsData = await docsResponse.json();
+
+                        if (!docsResponse.ok) {
+                            const errorMessage = docsData.message || "Error adding necessary documents";
+                            throw new Error(errorMessage);
+                        }
+
                         const encryptEmail = await fetch(`/email/encrypt/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -826,8 +833,10 @@
 
                         const encryptedEmail = await encryptEmail.json();
 
-                        if (!docsResponse.ok) throw new Error("Error adding necessary documents");
-                        if (!encryptEmail.ok) throw new Error("Error encrypting email");
+                        if (!encryptEmail.ok) {
+                            const errorMessage = encryptedEmail.message || "Error encrypting email";
+                            throw new Error(errorMessage);
+                        }
 
                         // Use firstName and lastName if available, otherwise use email
                         const fullName = [firstName, lastName].filter(Boolean).join(' ');
@@ -972,11 +981,18 @@ Phone: <a href="tel:+1234567890" style="color:#ffffff;text-decoration:underline;
                         if (response.ok) {
                             showToast("Success", "Email sent successfully!");
 
-                            await fetch(`/onboardingSent/${email}`, {
+                            const onboardingResponse = await fetch(`/onboardingSent/${email}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ firstName, lastName })
                             });
+
+                            const onboardingData = await onboardingResponse.json();
+
+                            if (!onboardingResponse.ok) {
+                                const errorMessage = onboardingData.message || "Error recording onboarding";
+                                showToast("Warning", errorMessage);
+                            }
 
                             emailInput.value = "";
                             document.getElementById("firstName").value = "";
