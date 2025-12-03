@@ -176,7 +176,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (error) {
             console.error('Error saving step:', error);
-            showToast("Error", "Failed to save information. Please try again.");
+            const errorMessage = error.message || "Failed to save information. Please try again.";
+            showToast("Error", errorMessage);
             stepper.to(currentStepIndex + 1);
         }
     });
@@ -228,7 +229,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } catch (error) {
                 console.error('Error saving step:', error);
-                showToast("Error", "Failed to save information. Please try again.");
+                const errorMessage = error.message || "Failed to save information. Please try again.";
+                showToast("Error", errorMessage);
             } finally {
                 // Restore button
                 btn.disabled = false;
