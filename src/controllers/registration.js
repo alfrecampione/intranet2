@@ -169,6 +169,7 @@ const handleFileUpload = asyncHandler(async (req, res) => {
 const renderOnboardingPending = asyncHandler(async (req, res) => {
   const onboardingPending = await prisma.onboardingSentEmails.findMany({
     where: { pending: true },
+    orderBy: { sentAt: 'desc' }
   });
 
   const formatted = onboardingPending.map(u => ({
