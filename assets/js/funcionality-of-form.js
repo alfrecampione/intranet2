@@ -7,7 +7,7 @@ function showToast(headerText, bodyText) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // --- INICIALIZACIÓN DEL STEPPER ---
+    // --- STEPPER INITIALIZATION ---
     const stepperElement = document.getElementById('multiStepsValidation');
     if (!stepperElement) return;
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         linear: false
     });
 
-    // --- FUNCIÓN PARA VALIDAR UN PASO COMPLETO ---
+    // --- FUNCTION TO VALIDATE A COMPLETE STEP ---
     const validateStep = (stepContent) => {
         const requiredElements = stepContent.querySelectorAll(
             "[required]:not([type='hidden'])"
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let valid = true;
         let message = "";
 
-        // Agrupar radios por name
+        // Group radios by name
         const radioGroups = {};
 
         requiredElements.forEach((field) => {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const type = field.type;
 
-            // Agrupar radios
+            // Group radios
             if (type === "radio") {
                 if (!radioGroups[field.name]) {
                     radioGroups[field.name] = [];
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Validar grupos de radio
+        // Validate radio groups
         Object.entries(radioGroups).forEach(([name, radios]) => {
             const visibleRadios = radios.filter(r => r.offsetParent !== null);
             const anyChecked = visibleRadios.some(r => r.checked);
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Validación específica: account number
+        // Specific validation: account number
         const accountNumber = stepContent.querySelector('#accountNumber');
         const confirmAccountNumber = stepContent.querySelector('#confirmAccountNumber');
 
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const stepperHeader = stepperElement.querySelector('.bs-stepper-header');
 
-    stepperHeader.addEventListener('click', function (e) {
+    stepperHeader.addEventListener('click', async function (e) {
         const trigger = e.target.closest('.step-trigger');
         if (!trigger) return;
 
@@ -131,32 +131,113 @@ document.addEventListener('DOMContentLoaded', function () {
         const stepContents = stepperElement.querySelectorAll('.bs-stepper-content > .content');
         const currentStepContent = stepContents[currentStepIndex];
 
+        // If attempting to go backwards, allow without validating
+        if (stepIndex < currentStepIndex) {
+            stepper.to(stepIndex + 1);
+            return;
+        }
+
         const [valid, message] = validateStep(currentStepContent);
 
         if (!valid) {
-            stepper.to(currentStepIndex)
+            stepper.to(currentStepIndex + 1);
             showToast("Error", message);
+            return;
         }
-        else
-            stepper.to(stepIndex + 1);
+
+        // Save current step before advancing
+        const stepId = currentStepContent.id;
+        let saveSuccess = false;
+
+        try {
+            switch (stepId) {
+                case 'personalInfoValidation':
+                    await savePersonalInfo();
+                    saveSuccess = true;
+                    break;
+                case 'contactInfoValidation':
+                    await saveContactInfo();
+                    saveSuccess = true;
+                    break;
+                case 'paymentMethodValidation':
+                    await savePaymentMethod();
+                    saveSuccess = true;
+                    break;
+                case 'documentsValidation':
+                    await saveDocuments();
+                    saveSuccess = true;
+                    break;
+                default:
+                    saveSuccess = true;
+            }
+
+            if (saveSuccess) {
+                stepper.to(stepIndex + 1);
+            }
+        } catch (error) {
+            console.error('Error saving step:', error);
+            showToast("Error", "Failed to save information. Please try again.");
+            stepper.to(currentStepIndex + 1);
+        }
     });
 
-    // --- LÓGICA DE BOTONES "NEXT" ---
+    // --- "NEXT" BUTTONS LOGIC ---
     const btnNextList = document.querySelectorAll('.btn-next');
     btnNextList.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const currentStep = stepperElement.querySelector('.content.active');
             const [isValid, message] = validateStep(currentStep);
 
             if (!isValid) {
                 showToast("Error", message);
+                return;
             }
-            else
-                stepper.next();
+
+            // Identify which step we are validating
+            const stepId = currentStep.id;
+            let saveSuccess = false;
+
+            try {
+                // Disable button while processing
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+                switch (stepId) {
+                    case 'personalInfoValidation':
+                        await savePersonalInfo();
+                        saveSuccess = true;
+                        break;
+                    case 'contactInfoValidation':
+                        await saveContactInfo();
+                        saveSuccess = true;
+                        break;
+                    case 'paymentMethodValidation':
+                        await savePaymentMethod();
+                        saveSuccess = true;
+                        break;
+                    case 'documentsValidation':
+                        await saveDocuments();
+                        saveSuccess = true;
+                        break;
+                    default:
+                        saveSuccess = true; // Allow advancing if no save function exists
+                }
+
+                if (saveSuccess) {
+                    stepper.next();
+                }
+            } catch (error) {
+                console.error('Error saving step:', error);
+                showToast("Error", "Failed to save information. Please try again.");
+            } finally {
+                // Restore button
+                btn.disabled = false;
+                btn.innerHTML = 'Next <i class="ti ti-arrow-right ti-xs"></i>';
+            }
         });
     });
 
-    // --- LÓGICA DE BOTONES "PREVIOUS" ---
+    // --- "PREVIOUS" BUTTONS LOGIC ---
     const btnPrevList = document.querySelectorAll('.btn-prev');
     btnPrevList.forEach(btn => {
         btn.addEventListener('click', () => {

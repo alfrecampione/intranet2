@@ -2,6 +2,7 @@ import { prisma } from "../config/dbConfig.js";
 import { getAgencies, getAllCompanies } from "../config/utils.js";
 import { uploadToS3, isValidFileType, deleteFromS3, processS3Urls } from "../config/s3Config.js";
 import { deleteEmail } from "./mailer.js";
+import { asyncHandler } from "../config/errorHandler.js";
 
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
@@ -78,171 +79,139 @@ const US_STATES = [
   { name: "Wisconsin", abbr: "WI" }, { name: "Wyoming", abbr: "WY" }
 ];
 
-const register = async (req, res) => {
-  try {
-    const userId = req.user.user_id;
-    const data = await getRegistrationData(userId, false, req.user);
+const register = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+  const data = await getRegistrationData(userId, false, req.user);
 
-    const allAgencies = await getAgencies();
+  const allAgencies = await getAgencies();
 
-    res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
-  } catch (error) {
-    console.error("Error loading registration data:", error.message);
-    res.status(500).send("Error loading registration data.");
+  res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
+});
+
+const editRegister = asyncHandler(async (req, res) => {
+  const user = req.user;
+  const userId = req.params.id || user.user_id;
+  const data = await getRegistrationData(userId, true, req.user);
+
+  const allAgencies = await getAgencies();
+
+  res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
+});
+
+const handleFileUpload = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: "No file uploaded" });
   }
-};
 
-const editRegister = async (req, res) => {
-  try {
-    const user = req.user;
-    const userId = req.params.id || user.user_id;
-    const data = await getRegistrationData(userId, true, req.user);
-
-    const allAgencies = await getAgencies();
-
-    res.render("registration", { ...data, US_STATES, allAgencies, activePage: "registration" });
-  } catch (error) {
-    console.error("Error loading registration data:", error.message);
-    res.status(500).send("Error loading registration data.");
-  }
-};
-
-const handleFileUpload = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: "No file uploaded" });
-    }
-
-    // Validate file type
-    if (!isValidFileType(req.file.originalname, req.file.mimetype)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid file type. Allowed: jpeg, jpg, png, pdf, doc, docx",
-      });
-    }
-
-    // Check file size (2MB limit)
-    if (req.file.size > 2 * 1024 * 1024) {
-      return res.status(400).json({
-        success: false,
-        error: "File size exceeds 2MB limit",
-      });
-    }
-
-    const userId = req.user?.user_id || "general";
-    const fieldName = req.body.field; // Field name sent from frontend
-
-    // If updating an existing field, delete the old file first
-    if (fieldName && userId !== "general") {
-      try {
-        // Get current file URL from database
-        let oldFileUrl = null;
-
-        if (fieldName === "photoPath") {
-          const personalInfo = await prisma.personalInfo.findUnique({
-            where: { userId },
-            select: { photoPath: true }
-          });
-          oldFileUrl = personalInfo?.photoPath;
-        } else {
-          // It's a document field
-          const documents = await prisma.documents.findUnique({
-            where: { userId },
-          });
-          oldFileUrl = documents?.[fieldName];
-        }
-
-        // Delete old file from S3 if it exists
-        if (oldFileUrl && oldFileUrl.includes('s3.amazonaws.com')) {
-          await deleteFromS3(oldFileUrl);
-        }
-      } catch (deleteError) {
-        console.error("Error deleting old file:", deleteError);
-        // Continue with upload even if deletion fails
-      }
-    }
-
-    // Upload to S3
-    const s3Url = await uploadToS3(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
-      userId
-    );
-
-    res.json({
-      success: true,
-      path: s3Url,
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({
+  // Validate file type
+  if (!isValidFileType(req.file.originalname, req.file.mimetype)) {
+    return res.status(400).json({
       success: false,
-      error: "Upload failed",
-      details: error.message,
+      error: "Invalid file type. Allowed: jpeg, jpg, png, pdf, doc, docx",
     });
   }
-};
 
-const renderOnboardingPending = async (req, res) => {
-  try {
-    const onboardingPending = await prisma.onboardingSentEmails.findMany({
-      where: { pending: true },
+  // Check file size (2MB limit)
+  if (req.file.size > 2 * 1024 * 1024) {
+    return res.status(400).json({
+      success: false,
+      error: "File size exceeds 2MB limit",
     });
-
-    const formatted = onboardingPending.map(u => ({
-      ...u,
-      sentAt: u.sentAt.toISOString(),
-    }));
-
-    res.render("onboarding_pending", {
-      user: req.user,
-      activePage: "pending-onboarding",
-      onboardingPending: formatted,
-    });
-  } catch (error) {
-    console.error("Error rendering onboarding pending page:", error.message);
-    res.status(500).send("Error rendering onboarding pending page.");
   }
-};
 
-const deleteOnboardingPending = async (req, res) => {
+  const userId = req.user?.user_id || "general";
+  const fieldName = req.body.field; // Field name sent from frontend
+
+  // If updating an existing field, delete the old file first
+  if (fieldName && userId !== "general") {
+    try {
+      // Get current file URL from database
+      let oldFileUrl = null;
+
+      if (fieldName === "photoPath") {
+        const personalInfo = await prisma.personalInfo.findUnique({
+          where: { userId },
+          select: { photoPath: true }
+        });
+        oldFileUrl = personalInfo?.photoPath;
+      } else {
+        // It's a document field
+        const documents = await prisma.documents.findUnique({
+          where: { userId },
+        });
+        oldFileUrl = documents?.[fieldName];
+      }
+
+      // Delete old file from S3 if it exists
+      if (oldFileUrl && oldFileUrl.includes('s3.amazonaws.com')) {
+        await deleteFromS3(oldFileUrl);
+      }
+    } catch (deleteError) {
+      console.error("Error deleting old file:", deleteError);
+      // Continue with upload even if deletion fails
+    }
+  }
+
+  // Upload to S3
+  const s3Url = await uploadToS3(
+    req.file.buffer,
+    req.file.originalname,
+    req.file.mimetype,
+    userId
+  );
+
+  res.json({
+    success: true,
+    path: s3Url,
+  });
+});
+
+const renderOnboardingPending = asyncHandler(async (req, res) => {
+  const onboardingPending = await prisma.onboardingSentEmails.findMany({
+    where: { pending: true },
+  });
+
+  const formatted = onboardingPending.map(u => ({
+    ...u,
+    sentAt: u.sentAt.toISOString(),
+  }));
+
+  res.render("onboarding_pending", {
+    user: req.user,
+    activePage: "pending-onboarding",
+    onboardingPending: formatted,
+  });
+});
+
+const deleteOnboardingPending = asyncHandler(async (req, res) => {
   const { email } = req.params;
 
   if (!email) {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
 
-  try {
-    // Delete crypto record (invalidates onboarding link)
-    await prisma.crypto.deleteMany({
-      where: { data: email }
-    });
+  // Delete crypto record (invalidates onboarding link)
+  await prisma.crypto.deleteMany({
+    where: { data: email }
+  });
 
-    // Delete necessary documents
-    await prisma.necesaryDocuments.deleteMany({
-      where: { email: email }
-    });
+  // Delete necessary documents
+  await prisma.necesaryDocuments.deleteMany({
+    where: { email: email }
+  });
 
-    // Delete onboarding sent email record
-    await prisma.onboardingSentEmails.deleteMany({
-      where: { email: email }
-    });
+  // Delete onboarding sent email record
+  await prisma.onboardingSentEmails.deleteMany({
+    where: { email: email }
+  });
 
-    console.log(`✅ Deleted all onboarding data for ${email}`);
+  console.log(`✅ Deleted all onboarding data for ${email}`);
 
-    return res.status(200).json({
-      success: true,
-      message: "Onboarding data deleted successfully"
-    });
-  } catch (error) {
-    console.error("Error deleting onboarding data:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error deleting onboarding data"
-    });
-  }
-};
+  return res.status(200).json({
+    success: true,
+    message: "Onboarding data deleted successfully"
+  });
+});
 
 
 

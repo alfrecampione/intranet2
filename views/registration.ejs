@@ -1141,8 +1141,17 @@
         body: JSON.stringify(personalInfo)
       });
 
-      if (!response.ok) throw new Error("Error uploading personal info");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading personal info");
+      }
+
+      return data;
     }
 
     async function saveContactInfo() {
@@ -1174,8 +1183,17 @@
         body: contactInfoJSON
       });
 
-      if (!response.ok) throw new Error("Error uploading contact info");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading contact info");
+      }
+
+      return data;
     }
 
     async function savePaymentMethod() {
@@ -1233,8 +1251,17 @@
         body: JSON.stringify(bankAccount)
       });
 
-      if (!response.ok) throw new Error("Error saving payment method");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error saving payment method");
+      }
+
+      return data;
     }
 
     async function saveDocuments() {
@@ -1282,8 +1309,17 @@
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error("Error uploading documents");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading documents");
+      }
+
+      return data;
     }
 
     let recommendation = "";
@@ -1323,13 +1359,34 @@
         body: JSON.stringify({ userId: currentUserId, carriers, recommendation, isDone })
       });
 
-      if (!response.ok) throw new Error("Error saving states and carriers");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error saving states and carriers");
+      }
+
+      return data;
     }
 
 
     document.querySelector(".btn-submit").addEventListener("click", async function (e) {
       e.preventDefault();
+
+      // Validar el último paso (States & Carriers)
+      const lastStep = document.getElementById('statesCarriersValidation');
+      if (typeof validateStep === 'function') {
+        const [isValid, message] = validateStep(lastStep);
+
+        if (!isValid) {
+          showToast("Error", message);
+          return;
+        }
+      }
+
       const submitBtn = this;
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Sending...`;
@@ -1337,10 +1394,7 @@
       try {
         if (currentUserId === null) throw new Error("Se requiere ID de usuario");
 
-        await savePersonalInfo();
-        await saveContactInfo();
-        await savePaymentMethod();
-        await saveDocuments();
+        // Solo guardar States & Carriers (los demás pasos ya se guardaron)
         await saveStatesCarriers();
 
         if (isEdit == "false") {

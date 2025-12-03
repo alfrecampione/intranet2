@@ -7,6 +7,7 @@ import passport from "passport";
 import { initialize } from "./config/passportConfig.js";
 import { sessionStore } from "./config/dbConfig.js";
 import { scheduleCronJobs } from "./config/schedule.js";
+import { errorHandler } from "./config/errorHandler.js";
 // import http from "http";
 import https from "https"
 import cors from "cors";
@@ -74,12 +75,16 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/", router);
 
+// Middleware de manejo de errores URI
 app.use((err, req, res, next) => {
   if (err instanceof URIError) {
     return res.status(400).send("Bad Request");
   }
   next(err);
 });
+
+// Middleware de manejo de errores global (debe ir al final)
+app.use(errorHandler);
 
 await scheduleCronJobs();
 
