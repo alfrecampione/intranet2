@@ -69,8 +69,7 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
     res.json(personalInfo);
   });
 });
-  });
-};
+
 
 export const getPersonalInfoById = asyncHandler(async (req, res) => {
   const personalInfo = await prisma.personalInfo.findUnique({
