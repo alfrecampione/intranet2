@@ -360,7 +360,7 @@ const markDocsAsNecessary = async (req, res) => {
     where: { email }
   });
   if (existingRecord) {
-    return res.status(400).json({ message: "Documents for this email have already been marked as necessary." });
+    return res.status(400).json({ message: "An onboarding email has already been sent to this address and is still pending completion." });
   }
 
   await prismaContext.run({ userId: req.user.user_id }, async () => {
