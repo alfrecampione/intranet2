@@ -59,7 +59,6 @@ const renderDashboard = async (req, res) => {
         const userIds = users.map(u => u.user_id);
         const statesAndCarriers = await prisma.statesANDCarriers.findMany({
           where: { userId: { in: userIds } },
-          include: { carrier: true },
           select: { userId: true, company: true, state: true, carrier: true }
         });
 
