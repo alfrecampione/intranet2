@@ -357,8 +357,27 @@ async function createMessage(log, options = {}) {
     const isDelete = action.includes('delete');
 
     const userId = log.userId;
+    let legalName = '(Administrator User)';
+
+    // Try to get name from Prisma personalInfo first
     const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-    const legalName = personalInfo?.legalName || '(Administrator User)';
+    if (personalInfo?.legalName) {
+        legalName = personalInfo.legalName;
+    } else {
+        // If not found, try to get from entra.users (Microsoft users)
+        try {
+            const entraUser = await prisma.$queryRaw`
+                SELECT display_name
+                FROM entra.users
+                WHERE user_id = ${userId}
+            `;
+            if (entraUser && entraUser.length > 0 && entraUser[0].display_name) {
+                legalName = entraUser[0].display_name;
+            }
+        } catch (err) {
+            console.warn('Failed to fetch user from entra.users:', err.message);
+        }
+    }
 
     let message = '';
     let actionVerb = '';

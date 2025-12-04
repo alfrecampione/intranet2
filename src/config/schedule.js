@@ -244,6 +244,17 @@ Kind regards,<br>
 <strong>Health Department</strong><br>
 Golden Trust Insurance
 </p>
+<div style="text-align:center;padding:20px 0;">
+<a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn.simpleicons.org/facebook/27388B" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn.simpleicons.org/instagram/27388B" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="https://cdn.simpleicons.org/linkedin/27388B" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+</a>
+</div>
 </td>
 </tr>
 <!-- Footer Section -->
@@ -251,19 +262,6 @@ Golden Trust Insurance
 <td style="background-color:#27388B;padding:20px;text-align:center;">
 <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
 <tbody>
-<tr>
-<td style="text-align:center;padding-bottom:10px;">
-<a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
-</a>
-<a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
-</a>
-<a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
-</a>
-</td>
-</tr>
 <tr>
 <td style="color:#ffffff;font-size:12px;line-height:1.5;text-align:center;">
 <p style="margin:5px 0;color:#ffffff;">
