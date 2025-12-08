@@ -5,6 +5,7 @@ import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
 import { createMessage } from "../config/utils.js";
 import { getEmailsToAlert } from "./config.js";
+import { socialIcons, logo } from "../config/emailAssets.js";
 import { get } from "https";
 import { on } from "events";
 
@@ -485,4 +486,4 @@ const deleteEmail = async (email, subject = 'Create your account on GoldenHealth
   }
 };
 
-export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews, deleteEmail };
+export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews, deleteEmail, socialIcons, logo };

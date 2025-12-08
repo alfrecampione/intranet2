@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { readEmails, sendMail, readSentOnboardingEmails } from "../controllers/mailer.js";
 import { prisma } from "../config/dbConfig.js";
 import { encrypt } from "../controllers/crypto.js";
+import { socialIcons, logo } from "./emailAssets.js";
 
 /* ---------------------------- 
     CRON JOB (every hour) 
@@ -181,7 +182,7 @@ body{width:100%!important;min-width:100%!important;}
 <tr>
 <td style="padding:24px;text-align:center;">
 <a href="https://goldentrust.com/" target="_blank">
-<img src="${baseUrl}/img/branding/GoldenHealth-2.png" alt="GoldenHealth" style="max-width:300px;height:auto;display:block;margin:0 auto;"/>
+<img src="${logo}" alt="GoldenHealth" style="max-width:300px;height:auto;display:block;margin:0 auto;"/>
 </a>
 </td>
 </tr>
@@ -246,13 +247,13 @@ Golden Trust Insurance
 </p>
 <div style="text-align:center;padding:20px 0;">
 <a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="/img/icons/brands/facebook.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+<img src="${socialIcons.facebook}" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
 </a>
 <a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="/img/icons/brands/instagram.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+<img src="${socialIcons.instagram}" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
 </a>
 <a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="/img/icons/brands/linkedin.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+<img src="${socialIcons.linkedin}" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
 </a>
 </div>
 </td>
