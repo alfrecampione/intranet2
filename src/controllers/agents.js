@@ -134,7 +134,7 @@ const renderAgents = async (req, res) => {
   const registeredUsers = await getData(users);
   const allAgencies = await getAgencies();
 
-  res.render("agents", { user, registeredUsers, allAgencies, socialIcons, logo, activePage: "agents" });
+  res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
 
 const renderReleasedAgents = async (req, res) => {
