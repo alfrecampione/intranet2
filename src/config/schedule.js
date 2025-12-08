@@ -246,13 +246,13 @@ Golden Trust Insurance
 </p>
 <div style="text-align:center;padding:20px 0;">
 <a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn.simpleicons.org/facebook/27388B" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+<img src="/img/icons/brands/facebook.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
 </a>
 <a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn.simpleicons.org/instagram/27388B" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+<img src="/img/icons/brands/instagram.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
 </a>
 <a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
-<img src="https://cdn.simpleicons.org/linkedin/27388B" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+<img src="/img/icons/brands/linkedin.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
 </a>
 </div>
 </td>
