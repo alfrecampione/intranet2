@@ -3,7 +3,6 @@ import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
-import { socialIcons, logo } from "../config/emailAssets.js";
 import bcrypt from "bcrypt";
 
 
