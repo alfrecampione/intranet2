@@ -1,7 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
-import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
+import { decryptEmailDirect, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { cca, LOGIN_SCOPES } from "../config/msalConfig.js";
 import { getVisibleAgentsId } from "../config/utils.js";
@@ -17,17 +17,13 @@ const signUp = async (req, res) => {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
   try {
-    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted_email } }, {
-      status: () => ({
-        json: (data) => data,
-      })
-    });
+    const email = await decryptEmailDirect(encrypted_email);
 
-    if (!emailResult || !emailResult.data || !emailResult.data.email) {
+    if (!email) {
       return res.status(400).json({ success: false, message: "Invalid encrypted email" });
     }
 
-    res.render("signUp", { email: emailResult.data.email, encrypted_email: encrypted_email });
+    res.render("signUp", { email: email, encrypted_email: encrypted_email });
   } catch (error) {
     console.error("signUp function error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -146,16 +142,11 @@ const validateEmail = async (req, res, next) => {
 
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
-      const emailResult = await decryptEmail({ params: { encrypted_email: encryptedEmail } }, {
-        status: () => ({
-          json: (data) => data,
-        })
-      });
+      const email = await decryptEmailDirect(encryptedEmail);
 
-      if (!emailResult || !emailResult.data || !emailResult.data.email) {
+      if (!email) {
         return res.status(400).json({ success: false, message: "Invalid encrypted email" });
       }
-      const email = emailResult.data.email;
       await deleteEncryptedEmail(encryptedEmail);
 
       const existingUser = await prisma.user.findFirst({
@@ -212,17 +203,11 @@ const resetPassword = async (req, res) => {
   const { password } = req.body;
 
   try {
-    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted } }, {
-      status: () => ({
-        json: (data) => data,
-      })
-    });
+    const email = await decryptEmailDirect(encrypted);
 
-    if (!emailResult || !emailResult.data?.email) {
+    if (!email) {
       return res.redirect("/login");
     }
-
-    const email = emailResult.data.email;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {

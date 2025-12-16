@@ -70,6 +70,20 @@ async function sendMail(email, subject, body, ccEmails = []) {
           contentType: "HTML",
           content: mailHtml,
         },
+        from: {
+          emailAddress: {
+            address: "noreply@goldentrust.com",
+            name: "GoldenHealth"
+          }
+        },
+        replyTo: [
+          {
+            emailAddress: {
+              address: "goldenhealth@goldentrust.com",
+              name: "GoldenHealth Support"
+            }
+          }
+        ],
         toRecipients: [{ emailAddress: { address: email } }],
         ccRecipients: ccEmails.map(cc => ({ emailAddress: { address: cc } })),
       },
@@ -101,6 +115,37 @@ async function sendMail(email, subject, body, ccEmails = []) {
 /* ----------------------------
    READ EMAILS FUNCTION (Graph with Fetch)
 ---------------------------- */
+// Lightweight fetch with retry and timeout to handle Graph 5xx/504
+async function fetchWithRetry(url, options, { retries = 3, backoffMs = 800, timeoutMs = 15000 } = {}) {
+  let attempt = 0;
+  let lastErr;
+  while (attempt <= retries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      // Retry on 5xx (including 504) responses
+      if (!res.ok && res.status >= 500) {
+        lastErr = new Error(`Graph API error: ${res.status}`);
+        attempt++;
+        if (attempt > retries) throw lastErr;
+        await new Promise(r => setTimeout(r, backoffMs * attempt));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      // AbortError or network errors: retry
+      lastErr = err;
+      attempt++;
+      if (attempt > retries) throw lastErr;
+      await new Promise(r => setTimeout(r, backoffMs * attempt));
+    }
+  }
+  throw lastErr;
+}
+
 async function getAllMessages(userEmail, folderName = "Inbox") {
   try {
     const token = await getAccessToken();
@@ -108,7 +153,7 @@ async function getAllMessages(userEmail, folderName = "Inbox") {
     let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/mailFolders('${folderName}')/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,toRecipients,sentDateTime,conversationId&$top=50`;
 
     while (url) {
-      const response = await fetch(url, {
+      const response = await fetchWithRetry(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

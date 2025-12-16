@@ -119,10 +119,15 @@ const initialize = (passport) => {
 
 // ---------------------- POST LOGIN ----------------------
 const postLogin = async (req, res, next) => {
-  const { email } = req.body;
+  const rawEmail = req?.body?.email ?? req?.query?.email ?? req?.user?.email ?? "";
+  const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
+
+  if (!email) {
+    return res.status(400).json({ msg: "Email is required" });
+  }
 
   // MICROSOFT LOGIN
-  if (email.endsWith("@goldentrust.com")) {
+  if (email.toLowerCase().endsWith("@goldentrust.com")) {
     try {
       const isAllowed = await prisma.allowedAgents.findUnique({ where: { email } });
       const healthAgent = await prisma.user.findUnique({ where: { email } });

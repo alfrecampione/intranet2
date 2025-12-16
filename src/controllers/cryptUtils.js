@@ -53,6 +53,26 @@ const decryptEmail = async (req, res) => {
     }
 }
 
+const decryptEmailDirect = async (encryptedEmail) => {
+    try {
+        const result = await prisma.crypto.findFirst({
+            where: { encrypted_data: encryptedEmail }
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        const { encrypted_data, key, id: iv } = result;
+        const email = decrypt(encrypted_data, key, iv);
+
+        return email;
+    } catch (error) {
+        console.error("Error decrypting email:", error);
+        return null;
+    }
+};
+
 const deleteEncryptedEmail = async (encryptedEmail) => {
     try {
         const record = await prisma.crypto.findFirst({
@@ -70,4 +90,4 @@ const deleteEncryptedEmail = async (encryptedEmail) => {
     }
 };
 
-export { encryptEmail, decryptEmail, deleteEncryptedEmail };
+export { encryptEmail, decryptEmail, decryptEmailDirect, deleteEncryptedEmail };
