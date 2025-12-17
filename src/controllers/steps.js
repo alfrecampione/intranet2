@@ -5,7 +5,6 @@ import { asyncHandler } from "../config/errorHandler.js";
 
 // Step 1: Personal Info
 export const createPersonalInfo = asyncHandler(async (req, res) => {
-  console.log("Creating/Updating personal info for user:", req.user.user_id);
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const {
       contactType,
@@ -82,7 +81,6 @@ export const getPersonalInfoById = asyncHandler(async (req, res) => {
 
 // Step 2: Contact Info
 export const createContactInfo = asyncHandler(async (req, res) => {
-  console.log("Creating/Updating contact info for user:", req.user.user_id);
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const {
       personalEmail,
@@ -126,7 +124,6 @@ export const getContactInfoById = asyncHandler(async (req, res) => {
 
 // Step 3: Payment Method
 export const createPaymentMethod = asyncHandler(async (req, res) => {
-  console.log("Creating/Updating payment method for user:", req.user.user_id);
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const {
       userId,
@@ -170,8 +167,8 @@ export const getPaymentMethodById = asyncHandler(async (req, res) => {
   res.json(paymentMethods);
 });
 
+// Step 4: Documents
 export const createDocuments = asyncHandler(async (req, res) => {
-  console.log("Creating/Updating documents for user:", req.user.user_id);
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const { userId, ...documentData } = req.body;
 
@@ -200,8 +197,8 @@ export const getStateCarriers = asyncHandler(async (req, res) => {
   res.json(statesCarriers);
 });
 
+// Step 5: Save States and Carriers Selection
 export const saveStatesCarriers = asyncHandler(async (req, res) => {
-  console.log("Saving states and carriers for user:", req.user.user_id);
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const { userId, carriers, recommendation, isDone } = req.body;
 
