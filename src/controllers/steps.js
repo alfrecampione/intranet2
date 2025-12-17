@@ -58,7 +58,7 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
 
     await prisma.user.update({
       where: { user_id: userId },
-      data: { registrationCompleted: true, display_name: legalName },
+      data: { display_name: legalName },
     });
 
     await prisma.onboardingSentEmails.update({
@@ -240,6 +240,27 @@ export const saveStatesCarriers = asyncHandler(async (req, res) => {
       },
     });
 
-    res.status(201).json({ success: true, statesAndCarriers: results });
+    // Verify that all steps are completed before marking registration as complete
+    const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
+    const contactInfo = await prisma.contactInfo.findUnique({ where: { userId } });
+    const paymentMethod = await prisma.paymentMethod.findUnique({ where: { userId } });
+    const documents = await prisma.documents.findUnique({ where: { userId } });
+    const statesAndCarriers = await prisma.statesANDCarriers.findMany({ where: { userId } });
+
+    // Check if all required steps have data
+    const allStepsComplete = personalInfo && contactInfo && paymentMethod && documents && statesAndCarriers.length > 0;
+
+    if (allStepsComplete) {
+      await prisma.user.update({
+        where: { user_id: userId },
+        data: { registrationCompleted: true },
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      statesAndCarriers: results,
+      registrationCompleted: allStepsComplete
+    });
   });
 });

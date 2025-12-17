@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             switch (stepId) {
-                case 'personalInfoValidation':
+                case 'accountDetailsValidation':
                     await savePersonalInfo();
                     saveSuccess = true;
                     break;
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await saveContactInfo();
                     saveSuccess = true;
                     break;
-                case 'paymentMethodValidation':
+                case 'commisionValidation':
                     await savePaymentMethod();
                     saveSuccess = true;
                     break;
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
 
                 switch (stepId) {
-                    case 'personalInfoValidation':
+                    case 'accountDetailsValidation':
                         await savePersonalInfo();
                         saveSuccess = true;
                         break;
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         await saveContactInfo();
                         saveSuccess = true;
                         break;
-                    case 'paymentMethodValidation':
+                    case 'commisionValidation':
                         await savePaymentMethod();
                         saveSuccess = true;
                         break;

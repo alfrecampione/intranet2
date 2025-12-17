@@ -1043,6 +1043,10 @@
     });
   </script>
 
+  <script id="user-data" type="application/json">
+    <%- JSON.stringify(user) %>
+  </script>
+
   <!-- Push the info -->
   <script>
     const currentUserId = "<%= userId %>";
@@ -1397,11 +1401,13 @@
         // Solo guardar States & Carriers (los demás pasos ya se guardaron)
         await saveStatesCarriers();
 
+        const user = JSON.parse(document.getElementById('user-data').textContent);
+
         if (isEdit == "false") {
           const response = await fetch(`/email/config`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: user_email, recommendation: recommendation })
+            body: JSON.stringify({ email: user.email, recommendation: recommendation })
           });
           if (!response.ok) throw new Error("Error sending the email");
           window.location.href = `${url}/users/dashboard`;
