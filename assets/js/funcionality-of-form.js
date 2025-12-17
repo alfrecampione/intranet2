@@ -147,27 +147,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Save current step before advancing
         const stepId = currentStepContent.id;
+        console.log('🔍 [DEBUG] Current step ID:', stepId);
+        console.log('🔍 [DEBUG] savePersonalInfo exists?', typeof savePersonalInfo !== 'undefined');
+        console.log('🔍 [DEBUG] savePaymentMethod exists?', typeof savePaymentMethod !== 'undefined');
         let saveSuccess = false;
 
         try {
             switch (stepId) {
                 case 'accountDetailsValidation':
+                    console.log('✅ Calling savePersonalInfo...');
                     await savePersonalInfo();
+                    console.log('✅ savePersonalInfo completed');
                     saveSuccess = true;
                     break;
                 case 'contactInfoValidation':
+                    console.log('✅ Calling saveContactInfo...');
                     await saveContactInfo();
+                    console.log('✅ saveContactInfo completed');
                     saveSuccess = true;
                     break;
                 case 'commisionValidation':
+                    console.log('✅ Calling savePaymentMethod...');
                     await savePaymentMethod();
+                    console.log('✅ savePaymentMethod completed');
                     saveSuccess = true;
                     break;
                 case 'documentsValidation':
+                    console.log('✅ Calling saveDocuments...');
                     await saveDocuments();
+                    console.log('✅ saveDocuments completed');
                     saveSuccess = true;
                     break;
                 default:
+                    console.log('⚠️ No matching case for stepId:', stepId);
                     saveSuccess = true;
             }
 
@@ -196,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Identify which step we are validating
             const stepId = currentStep.id;
+            console.log('🔍 [NEXT BTN] Current step ID:', stepId);
             let saveSuccess = false;
 
             try {
@@ -205,22 +218,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 switch (stepId) {
                     case 'accountDetailsValidation':
+                        console.log('✅ [NEXT BTN] Calling savePersonalInfo...');
                         await savePersonalInfo();
+                        console.log('✅ [NEXT BTN] savePersonalInfo completed');
                         saveSuccess = true;
                         break;
                     case 'contactInfoValidation':
+                        console.log('✅ [NEXT BTN] Calling saveContactInfo...');
                         await saveContactInfo();
+                        console.log('✅ [NEXT BTN] saveContactInfo completed');
                         saveSuccess = true;
                         break;
                     case 'commisionValidation':
+                        console.log('✅ [NEXT BTN] Calling savePaymentMethod...');
                         await savePaymentMethod();
+                        console.log('✅ [NEXT BTN] savePaymentMethod completed');
                         saveSuccess = true;
                         break;
                     case 'documentsValidation':
+                        console.log('✅ [NEXT BTN] Calling saveDocuments...');
                         await saveDocuments();
+                        console.log('✅ [NEXT BTN] saveDocuments completed');
                         saveSuccess = true;
                         break;
                     default:
+                        console.log('⚠️ [NEXT BTN] No matching case for stepId:', stepId);
                         saveSuccess = true; // Allow advancing if no save function exists
                 }
 
