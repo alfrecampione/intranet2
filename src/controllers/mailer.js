@@ -70,20 +70,6 @@ async function sendMail(email, subject, body, ccEmails = []) {
           contentType: "HTML",
           content: mailHtml,
         },
-        from: {
-          emailAddress: {
-            address: "noreply@goldentrust.com",
-            name: "GoldenHealth"
-          }
-        },
-        replyTo: [
-          {
-            emailAddress: {
-              address: "goldenhealth@goldentrust.com",
-              name: "GoldenHealth Support"
-            }
-          }
-        ],
         toRecipients: [{ emailAddress: { address: email } }],
         ccRecipients: ccEmails.map(cc => ({ emailAddress: { address: cc } })),
       },
