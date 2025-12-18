@@ -99,7 +99,7 @@
                                   </h5>
                                 </div>
 
-                                <% if (canEdit) { %>
+                                <% if (canEdit && user && user.rights && user.rights.includes(2)) { %>
                                   <div id="edit-controls" class="d-flex gap-2">
                                     <a href="javascript:void(0)" id="add-carrier" class="ti ti-plus fs-3 text-primary"
                                       title="Add Carrier"></a>
@@ -345,6 +345,8 @@
     const allStatusOptions = [...normalStatusOptions, ...specialStatusOptions];
     const user = JSON.parse(document.getElementById("user").textContent);
     const profile = JSON.parse(document.getElementById("profile").textContent);
+    const hasWriteRight = Array.isArray(user?.rights) && user.rights.includes(2);
+    const effectiveCanEdit = Boolean(canEdit && hasWriteRight);
 
     let isEditing = false;
     let carriersData = [];
@@ -408,7 +410,7 @@
           tdStatusProgress.dataset.company = carrier.company;
           tdStatusProgress.dataset.state = carrier.state;
 
-          if (isEditing && canEdit) {
+          if (isEditing && effectiveCanEdit) {
             const wrapper = document.createElement("div");
             wrapper.className = "d-flex align-items-center";
 
@@ -500,9 +502,14 @@
         }),
       });
 
-      const result = await response.json();
-      if (!result.success) {
-        alert("Error when updating status: " + result.message);
+      const isJson = (response.headers.get("content-type") || "").includes("application/json");
+      const result = isJson
+        ? await response.json()
+        : { success: response.ok, message: await response.text() };
+
+      if (!response.ok || !result.success) {
+        alert("Error when updating status: " + (result.message || response.statusText || "Request failed"));
+        return carriers;
       }
       const filteredCarriers = carriers.filter(c =>
         !carriersToDelete.some(d => d.company === c.company && d.state === c.state)
@@ -526,7 +533,7 @@
 
       const editButton = document.getElementById("edit-toggle");
 
-      if (!canEdit) {
+      if (!effectiveCanEdit) {
         editButton.style.display = "none";
         return;
       }
@@ -829,7 +836,7 @@
         text.textContent = title;
         header.appendChild(text);
 
-        if (!canEdit) {
+        if (!effectiveCanEdit) {
           list.appendChild(header);
           return;
         }
