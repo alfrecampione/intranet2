@@ -533,6 +533,10 @@
 
       const editButton = document.getElementById("edit-toggle");
 
+      if (!editButton) {
+        return; // Edit controls are not rendered for users without permission
+      }
+
       if (!effectiveCanEdit) {
         editButton.style.display = "none";
         return;
@@ -737,6 +741,9 @@
       });
 
       const releaseAgentBtn = document.getElementById("release");
+      if (!releaseAgentBtn || !effectiveCanEdit) {
+        return; // No action buttons rendered; skip binding handlers
+      }
       releaseAgentBtn.addEventListener("click", async () => {
         if (confirm("Are you sure you want to release this agent? This action cannot be undone.")) {
           await releaseAgent();
@@ -747,6 +754,9 @@
 
       // Show modal on add carrier button click
       const addCarrierBtn = document.getElementById("add-carrier");
+      if (!addCarrierBtn) {
+        return;
+      }
       addCarrierBtn.addEventListener("click", () => {
         document.getElementById("addCarrierForm").reset();
         modalCompanySelect.innerHTML = '<option value="">-- Select a carrier --</option>';
