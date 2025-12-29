@@ -111,6 +111,31 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // --- Custom validation for States & Carriers step ---
+        if (stepContent.id === 'statesCarriersValidation') {
+            // At least one .carrier-card with valid data
+            const cards = stepContent.querySelectorAll('.carrier-card');
+            let hasValidCard = false;
+            cards.forEach(card => {
+                const stateSelect = card.querySelector('.state-dropdown');
+                const companySelect = card.querySelector('.company-select');
+                if (stateSelect && stateSelect.value && companySelect && companySelect.selectedOptions.length > 0) {
+                    hasValidCard = true;
+                }
+            });
+            if (!hasValidCard) {
+                valid = false;
+                message = "Please add at least one state and select at least one carrier.";
+                // Optionally, highlight the first invalid card
+                if (cards.length > 0) {
+                    cards[0].classList.add('border', 'border-danger');
+                }
+            } else {
+                // Remove highlight if previously set
+                cards.forEach(card => card.classList.remove('border', 'border-danger'));
+            }
+        }
+
         return [valid, message];
     };
 
@@ -140,8 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const [valid, message] = validateStep(currentStepContent);
 
         if (!valid) {
+            // Solo mostrar el Toast si hay mensaje de error
+            if (message) {
+                showToast("Error", message);
+            }
             stepper.to(currentStepIndex + 1);
-            showToast("Error", message);
             return;
         }
 
