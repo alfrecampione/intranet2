@@ -5,6 +5,7 @@ import { cca, LOGIN_SCOPES } from "./msalConfig.js";
 import passport from "passport";
 import { getMSAPhotoPath, getMSARealId } from "./utils.js";
 import { get } from "https";
+import { getSignedS3Url } from "./s3Config.js";
 
 // ---------------------- PASSPORT INITIALIZE ----------------------
 const initialize = (passport) => {
@@ -61,9 +62,6 @@ const initialize = (passport) => {
 
   passport.deserializeUser(async (obj, done) => {
     try {
-      // Importa aquí para evitar ciclos si es necesario
-      const { getSignedS3Url } = await import("../controllers/profile.js");
-
       if (obj.type === "local") {
         const user = await prisma.user.findFirst({
           where: { user_id: obj.user_id },
