@@ -61,6 +61,9 @@ const initialize = (passport) => {
 
   passport.deserializeUser(async (obj, done) => {
     try {
+      // Importa aquí para evitar ciclos si es necesario
+      const { getSignedS3Url } = await import("../controllers/profile.js");
+
       if (obj.type === "local") {
         const user = await prisma.user.findFirst({
           where: { user_id: obj.user_id },
@@ -71,6 +74,11 @@ const initialize = (passport) => {
 
         if (!user) {
           return done(null, false);
+        }
+
+        // Firmar photoPath si existe
+        if (user.personalInfo && user.personalInfo.photoPath) {
+          user.personalInfo.photoPath = await getSignedS3Url(user.personalInfo.photoPath);
         }
 
         const userRights = await prisma.allowedAgents.findUnique({
@@ -93,15 +101,18 @@ const initialize = (passport) => {
         });
 
         const realId = getMSARealId(obj.user_id);
-
         const entra_photoPath = await getMSAPhotoPath(realId);
+        let signedPhotoPath = null;
+        if (entra_photoPath) {
+          signedPhotoPath = await getSignedS3Url(entra_photoPath);
+        }
 
         const user = {
           user_id: realId,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
-          personalInfo: { photoPath: entra_photoPath },
+          personalInfo: { photoPath: signedPhotoPath },
           isMicrosoftLogin: true,
           rights: userRights
             ? userRights.AgentRights.map((ar) => ar.idRight)
