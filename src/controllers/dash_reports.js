@@ -6,11 +6,18 @@ const redirect_dashboard = (req, res) => {
   res.redirect("/users/dashboard");
 };
 
-const renderDashboard = async (req, res) => {
 
+import { getSignedS3Url, isS3Url } from "../config/s3Config.js";
+
+const renderDashboard = async (req, res) => {
   try {
     let companies, userCompanyStateData, states;
     let user = req.user;
+
+    // Firmar la foto de S3 si existe
+    if (user && user.personalInfo && user.personalInfo.photoPath && isS3Url(user.personalInfo.photoPath)) {
+      user.personalInfo.photoPath = await getSignedS3Url(user.personalInfo.photoPath);
+    }
 
     // 1. Si tiene derecho 1 (admin)
     if (user && user.rights && user.rights.includes(1)) {
@@ -146,99 +153,6 @@ const renderDashboard = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
-// const dashboard = async (req, res) => {
-
-//   let data = {}, production, agency, result;
-//   const date = new Date();
-//   const initial_date = new Date(date.getFullYear(), date.getMonth(), 1);
-//   const final_date = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-//   ////////////////////Production/////////////////////////////
-
-//   production = req.user.location_type != 1
-//     ? (await pool.query(`SELECT * FROM intranet.dashboard_location_daily($1)`, [req.user.location_id])).rows
-//     : (await pool.query(`SELECT * FROM intranet.dashboard_company_today`)).rows
-
-//   data.agency = req.user.location_type != 1 ? req.user.location_alias : 'Company';
-
-//   data.ct_nb_prem = production[0].premium ? production[0].premium.substring(0, production[0].premium.length - 3) : '$0';
-//   data.ct_nb_pol = production[0].policies;
-//   data.ct_rn_prem = production[1].premium ? production[1].premium.substring(0, production[1].premium.length - 3) : '$0';
-//   data.ct_rn_pol = production[1].policies;
-//   data.ct_rw_prem = production[2].premium ? production[2].premium.substring(0, production[2].premium.length - 3) : '$0';
-//   data.ct_rw_pol = production[2].policies;
-//   data.ct_tot_prem = production[3].premium ? production[3].premium.substring(0, production[3].premium.length - 3) : '$0';
-//   data.ct_tot_pol = production[3].policies;
-
-//   production = req.user.location_type != 1
-//     ? (await pool.query(`SELECT * FROM intranet.dashboard_location_month($1, $2, $3)`, [initial_date, final_date, req.user.location_id])).rows
-//     : (await pool.query(`SELECT * FROM intranet.dashboard_sales_month_total_by_type_tkg($1, $2)`, [initial_date, final_date])).rows
-
-//   data.cm_nb_prem = production[0].premium ? production[0].premium.substring(0, production[0].premium.length - 3) : '$0.00';
-//   data.cm_nb_pol = production[0].policies;
-//   data.cm_rn_prem = production[1].premium ? production[1].premium.substring(0, production[1].premium.length - 3) : '$0.00';
-//   data.cm_rn_pol = production[1].policies;
-//   data.cm_rw_prem = production[2].premium ? production[2].premium.substring(0, production[2].premium.length - 3) : '$0.00';
-//   data.cm_rw_pol = production[2].policies;
-//   data.cm_tot_prem = production[3].premium ? production[3].premium.substring(0, production[3].premium.length - 3) : '$0.00';
-//   data.cm_tot_pol = production[3].policies;
-
-//   production = req.user.location_type != 1
-//     ? (await pool.query(`SELECT * FROM intranet.dashboard_location_year($1)`, [req.user.location_id])).rows
-//     : (await pool.query(`SELECT * FROM intranet.dashboard_company_year`)).rows
-
-//   data.cy_nb_prem = production[0].premium ? production[0].premium.substring(0, production[0].premium.length - 3) : '$0.00';
-//   data.cy_nb_pol = production[0].policies;
-//   data.cy_rn_prem = production[1].premium ? production[1].premium.substring(0, production[1].premium.length - 3) : '$0.00';
-//   data.cy_rn_pol = production[1].policies;
-//   data.cy_rw_prem = production[2].premium ? production[2].premium.substring(0, production[2].premium.length - 3) : '$0.00';
-//   data.cy_rw_pol = production[2].policies;
-//   data.cy_tot_prem = production[3].premium ? production[3].premium.substring(0, production[3].premium.length - 3) : '$0.00';
-//   data.cy_tot_pol = production[3].policies;
-
-//   data.ck_nb_prem = production[0].premiumtkg ? production[0].premiumtkg.substring(0, production[0].premiumtkg.length - 3) : '$0.00';
-//   data.ck_nb_pol = production[0].policiestkg;
-//   data.ck_rn_prem = production[1].premiumtkg ? production[1].premiumtkg.substring(0, production[1].premiumtkg.length - 3) : '$0.00';
-//   data.ck_rn_pol = production[1].policiestkg;
-//   data.ck_rw_prem = production[2].premiumtkg ? production[2].premiumtkg.substring(0, production[2].premiumtkg.length - 3) : '$0.00';
-//   data.ck_rw_pol = production[2].policiestkg;
-//   data.ck_tot_prem = production[3].premiumtkg ? production[3].premiumtkg.substring(0, production[3].premiumtkg.length - 3) : '$0.00';
-//   data.ck_tot_pol = production[3].policiestkg;
-
-//   //////////////////// CSR Ranking //////////////////////////////////
-
-//   result = await pool.query(`SELECT * FROM intranet.dashboard_csr_nb_location(DATE($1),DATE($2),ARRAY[CAST($3 AS INTEGER)])`, [initial_date, final_date, req.user.location_id]);
-
-//   data.csr_nb_ranking = result.rows;
-//   let inicial1, inicial2, state, states;
-
-//   for (let i = 0; i < data.csr_nb_ranking.length; i++) {
-//     try {
-//       if (fs.accessSync('./assets/img/avatars/users/' + data.csr_nb_ranking[i].csr_id + '.png')) {
-//         data.csr_nb_ranking[i].avatar = '' + data.csr_nb_ranking[i].csr_id + '.png';
-//       }
-//       data.csr_nb_ranking[i].avatar = '' + data.csr_nb_ranking[i].csr_id + '.png';
-//     } catch (e) {
-//       data.csr_nb_ranking[i].avatar = '';
-//       //const stateNum = Math.floor(Math.random() * 6);
-//       //const states = ['success', 'danger', 'warning', 'info', 'primary', 'secondary'];
-//       //const state = states[stateNum];
-//       const state = 'primary';
-//       const aux = data.csr_nb_ranking[i].csr.trim();
-//       inicial1 = aux.substring(0, 1);
-//       inicial2 = (aux.substring(aux.indexOf(' '), aux.length)).trim();
-//       inicial2 = inicial2.substring(0, 1);
-//       data.csr_nb_ranking[i].output = '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + inicial1 + inicial2 + '</span>';
-//     }
-//     const p = data.csr_nb_ranking[i].premium.toString();
-//     data.csr_nb_ranking[i].premium = p.substring(0, p.length - 3);
-//   }
-
-//   //////////////////// Render //////////////////////////////////
-//   data.user = req.user;
-//   res.render("dashboard", data);
-// };
 
 const dashboardLastQuarter = async (req, res) => {
   let array = {},
