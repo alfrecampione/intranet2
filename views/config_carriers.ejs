@@ -180,12 +180,14 @@
                                                                         <td>
                                                                             <a href="javascript:void(0)"
                                                                                 class="btn-outline-warning edit-company-btn ti ti-edit"
+                                                                                data-company-id="<%= company.id %>"
                                                                                 data-company="<%= company.name %>"
                                                                                 data-phone="<%= company.phone %>"
                                                                                 data-states='<%= JSON.stringify(company.states) %>'>
                                                                             </a>
                                                                             <a href="javascript:void(0)"
                                                                                 class="btn-outline-danger delete-email-btn ti ti-trash"
+                                                                                data-company-id="<%= company.id %>"
                                                                                 data-company="<%= company.name %>"></a>
                                                                         </td>
                                                                     </tr>
