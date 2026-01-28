@@ -32,8 +32,14 @@ const signUp = async (req, res) => {
 
 const createAccount = async (req, res) => {
   const { email, password } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
 
-  if (!email || !password) {
+  const isMicrosoftEmail = email.toLowerCase().endsWith("@goldentrust.com");
+  const requiresPassword = !isMicrosoftEmail;
+
+  if (requiresPassword && !password) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are required" });
@@ -49,25 +55,55 @@ const createAccount = async (req, res) => {
           .json({ success: false, message: "Email already exists" });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      if (result && result.confirmationCode) {
-        await prisma.user.update({
-          where: { email },
-          data: {
-            password: hashedPassword,
-            confirmationCode: confirmationCode
-          }
-        });
+      if (isMicrosoftEmail) {
+        // For Microsoft SSO users: no password required, mark password field and still send confirmation code
+        const passwordValue = "Microsoft Login";
+
+        if (result && result.confirmationCode) {
+          await prisma.user.update({
+            where: { email },
+            data: {
+              password: passwordValue,
+              confirmationCode
+            }
+          });
+        } else if (result && result.confirmationCode === null) {
+          // Email exists and already confirmed
+          return res.status(400).json({ success: false, message: "Email already exists" });
+        } else {
+          await prisma.user.create({
+            data: {
+              email,
+              password: passwordValue,
+              confirmationCode
+            }
+          });
+        }
       } else {
-        await prisma.user.create({
-          data: {
-            email,
-            password: hashedPassword,
-            confirmationCode: confirmationCode
-          }
-        });
+        // Standard local signup
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        if (result && result.confirmationCode) {
+          await prisma.user.update({
+            where: { email },
+            data: {
+              password: hashedPassword,
+              confirmationCode
+            }
+          });
+        } else if (result && result.confirmationCode === null) {
+          return res.status(400).json({ success: false, message: "Email already exists" });
+        } else {
+          await prisma.user.create({
+            data: {
+              email,
+              password: hashedPassword,
+              confirmationCode
+            }
+          });
+        }
       }
 
       const subject = "Email Confirmation Code";

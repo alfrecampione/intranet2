@@ -202,11 +202,18 @@ export const saveStatesCarriers = asyncHandler(async (req, res) => {
   await prismaContext.run({ userId: req.user.user_id }, async () => {
     const { userId, carriers, recommendation, isDone } = req.body;
 
-    if (!userId || !Array.isArray(carriers) || carriers.length === 0) {
+    if (!userId) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
+
+    const carrierList = Array.isArray(carriers) ? carriers : [];
+    // Clear previous selections if caller sends empty list
+    if (carrierList.length === 0) {
+      await prisma.statesANDCarriers.deleteMany({ where: { userId } });
+    }
+
     const results = [];
-    for (const carrier of carriers) {
+    for (const carrier of carrierList) {
       if (carrier.id && Array.isArray(carrier.states)) {
         for (const state of carrier.states) {
           const record = await prisma.statesANDCarriers.upsert({
@@ -248,10 +255,7 @@ export const saveStatesCarriers = asyncHandler(async (req, res) => {
     const contactInfo = await prisma.contactInfo.findUnique({ where: { userId } });
     const paymentMethod = await prisma.paymentMethod.findUnique({ where: { userId } });
     const documents = await prisma.documents.findUnique({ where: { userId } });
-    const statesAndCarriers = await prisma.statesANDCarriers.findMany({ where: { userId } });
-
-    // Check if all required steps have data
-    const allStepsComplete = personalInfo && contactInfo && paymentMethod && documents && statesAndCarriers.length > 0;
+    const allStepsComplete = personalInfo && contactInfo && paymentMethod && documents;
 
     if (allStepsComplete) {
       await prisma.user.update({
