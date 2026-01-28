@@ -89,7 +89,7 @@ app.use(errorHandler);
 
 await scheduleCronJobs();
 
-await extract();
+// await extract();
 
 https.createServer(options, app).listen(PORT, () => {
   console.log(`Server started at port ${PORT}`);
