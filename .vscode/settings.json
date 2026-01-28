@@ -1,6 +1,7 @@
 {
   "prisma.languageServerEnabled": false,
   "prisma.prismaFmtBinPath": "node_modules/prisma/prisma-fmt-windows.exe",
+  "prisma.pinToPrisma6": true,
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   }

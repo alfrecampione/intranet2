@@ -183,6 +183,7 @@
                                                                                 data-company-id="<%= company.id %>"
                                                                                 data-company="<%= company.name %>"
                                                                                 data-phone="<%= company.phone %>"
+                                                                                data-external-id="<%= company.externalId %>"
                                                                                 data-states='<%= JSON.stringify(company.states) %>'>
                                                                             </a>
                                                                             <a href="javascript:void(0)"
@@ -392,8 +393,23 @@
 
                         // Disable company select when editing (can't change the company)
                         const companySelect = document.getElementById("companySelect");
+                        const externalId = btn.getAttribute("data-external-id");
+
+                        // Ensure the option exists and is selected for the current company
+                        if (externalId) {
+                            let option = companySelect.querySelector(`option[value="${externalId}"]`);
+                            if (!option) {
+                                option = document.createElement("option");
+                                option.value = externalId;
+                                option.textContent = editingCompany.name;
+                                companySelect.appendChild(option);
+                            }
+                            option.selected = true;
+                            if ($(companySelect).data('select2')) {
+                                $(companySelect).trigger('change');
+                            }
+                        }
                         companySelect.disabled = true;
-                        $('#companySelect').trigger('change');
 
                         const states = JSON.parse(btn.getAttribute("data-states") || "[]");
                         const select = document.getElementById("select2Primary");
@@ -439,7 +455,7 @@
                                     "Content-Type": "application/json"
                                 },
                                 body: JSON.stringify({
-                                    companyId: parseInt(editingCompany.id),
+                                    companyId: editingCompany.id,
                                     states
                                 })
                             });
@@ -508,7 +524,7 @@
                 // Handler Delete
                 document.querySelectorAll(".delete-email-btn").forEach(function (btn) {
                     btn.addEventListener("click", async function () {
-                        const companyId = parseInt(this.getAttribute("data-company-id"));
+                        const companyId = this.getAttribute("data-company-id");
                         if (!companyId) return;
 
                         if (!confirm("Are you sure you want to delete this company?")) return;
