@@ -766,11 +766,17 @@
     <%- JSON.stringify(personalInfo || {}) %>
   </script>
 
+  <script id="onboarding-agency-data" type="application/json">
+    <%- JSON.stringify(onboardingAgencyId || null) %>
+  </script>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
       const personalInfo = JSON.parse(document.getElementById('personalInfo-data').textContent);
+      const onboardingAgencyId = JSON.parse(document.getElementById('onboarding-agency-data').textContent);
       const input = document.getElementById('agencySelect');
+      let matchedOnboardingAgency = false;
 
       agencies.forEach(a => {
         const option = document.createElement('option');
@@ -778,11 +784,20 @@
         option.textContent = a.name;
         option.dataset.isAgency = a.isAgency ? "true" : "false";
 
-        if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
+        if (onboardingAgencyId && a.isAgency && onboardingAgencyId === a.id) {
+          option.selected = true;
+          matchedOnboardingAgency = true;
+        } else if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
           option.selected = true;
         }
         input.appendChild(option);
       });
+
+      if (matchedOnboardingAgency) {
+        input.value = onboardingAgencyId;
+        input.setAttribute('disabled', 'disabled');
+        input.title = 'Agency preselected from onboarding';
+      }
     });
   </script>
   <!--/ Personal Info -->

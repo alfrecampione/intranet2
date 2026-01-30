@@ -4,6 +4,7 @@ import { prismaContext } from "../config/prismaContext.js";
 import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 import bcrypt from "bcrypt";
+import { encryptWithSecret } from "./crypto.js";
 
 
 
@@ -288,7 +289,7 @@ const addAgent = async (req, res) => {
 
 const onboardingSentEmail = async (req, res) => {
   const { email } = req.params;
-  const { firstName, lastName } = req.body;
+  const { firstName, lastName, agencyId } = req.body;
 
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
@@ -311,14 +312,16 @@ const onboardingSentEmail = async (req, res) => {
       sentAt: new Date(),
       pending: true,
       firstName: firstName || null,
-      lastName: lastName || null
+      lastName: lastName || null,
+      agencyId: agencyId || null
     },
     create: {
       email,
       sentAt: new Date(),
       pending: true,
       firstName: firstName || null,
-      lastName: lastName || null
+      lastName: lastName || null,
+      agencyId: agencyId || null
     }
   });
   res.status(200).json({ message: "Onboarding email record updated." });
@@ -473,6 +476,8 @@ const massiveCreateAgents = async (req, res) => {
         data: { email: user.email }
       });
 
+      const encryptedSsn = ssn ? encryptWithSecret(ssn) : null;
+
       await prisma.personalInfo.create({
         data: {
           userId: user.user_id,
@@ -480,7 +485,7 @@ const massiveCreateAgents = async (req, res) => {
           preferredName: firstName,
           legalSex: null,
           dateOfBirth: birthDate ? new Date(birthDate) : null,
-          ssn: ssn || null,
+          ssn: encryptedSsn,
           npn: npn || null,
           businessName: agency || null,
           companyEIN: companyEIN || null,

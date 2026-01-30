@@ -242,6 +242,17 @@
                                                     placeholder="Last Name" required />
                                             </div>
                                             <div class="col-12 mb-3">
+                                                <label class="form-label" for="agency">Agency</label>
+                                                <select id="agency" class="form-select" name="agency">
+                                                    <option value="">Select agency</option>
+                                                    <% allAgencies.filter(a=> a.isAgency).forEach(a => { %>
+                                                        <option value="<%= a.id %>">
+                                                            <%= a.name %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 mb-3">
                                                 <label class="form-label mb-2">Required Documents</label>
                                                 <div class="row g-2">
                                                     <div class="col-6">
@@ -767,6 +778,7 @@
                     const email = emailInput.value.trim();
                     const firstName = document.getElementById("firstName").value.trim();
                     const lastName = document.getElementById("lastName").value.trim();
+                    const agencyId = document.getElementById("agency").value.trim();
 
                     if (!email) {
                         showToast("Error", "Please enter an email address.");
@@ -814,7 +826,7 @@
                         const onboardingCheckResponse = await fetch(`/onboardingSent/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ firstName, lastName })
+                            body: JSON.stringify({ firstName, lastName, agencyId: agencyId || null })
                         });
 
                         const onboardingCheckData = await onboardingCheckResponse.json();
@@ -1000,6 +1012,7 @@ Phone: <a href="tel:+18884546488" style="color:#ffffff;text-decoration:underline
                         emailInput.value = "";
                         document.getElementById("firstName").value = "";
                         document.getElementById("lastName").value = "";
+                        document.getElementById("agency").value = "";
                         docFields.forEach(field => {
                             document.getElementById(field).checked = false;
                         });

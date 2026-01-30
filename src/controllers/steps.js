@@ -2,6 +2,7 @@ import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { processS3Urls } from "../config/s3Config.js";
 import { asyncHandler } from "../config/errorHandler.js";
+import { encryptWithSecret, decryptWithSecret } from "./crypto.js";
 
 // Step 1: Personal Info
 export const createPersonalInfo = asyncHandler(async (req, res) => {
@@ -22,13 +23,15 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
       franchise,
     } = req.body;
 
+    const encryptedSsn = ssn ? encryptWithSecret(ssn) : null;
+
     const data = {
       contactType,
       legalName,
       preferredName: preferredName || null,
       legalSex,
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-      ssn,
+      ssn: encryptedSsn,
       userId,
       photoPath: photoPath || null,
       businessName: businessName || null,
@@ -75,7 +78,10 @@ export const getPersonalInfoById = asyncHandler(async (req, res) => {
   const personalInfo = await prisma.personalInfo.findUnique({
     where: { userId: req.params.id },
   });
-  const processedPersonalInfo = await processS3Urls(personalInfo);
+  const processedPersonalInfo = personalInfo ? await processS3Urls(personalInfo) : null;
+  if (processedPersonalInfo?.ssn) {
+    processedPersonalInfo.ssn = decryptWithSecret(processedPersonalInfo.ssn);
+  }
   res.json(processedPersonalInfo);
 });
 
@@ -134,12 +140,19 @@ export const createPaymentMethod = asyncHandler(async (req, res) => {
       accountNickname,
     } = req.body;
 
+    const encryptedAccountNum = assignToGTI && bankAccountNum
+      ? encryptWithSecret(bankAccountNum)
+      : null;
+    const encryptedRoutingNum = assignToGTI && bankRoutingNum
+      ? encryptWithSecret(bankRoutingNum)
+      : null;
+
     const paymentMethod = {
       userId,
       assignToGTI,
       bankAccountType: assignToGTI ? bankAccountType : null,
-      bankAccountNum: assignToGTI ? bankAccountNum : null,
-      bankRoutingNum: assignToGTI ? bankRoutingNum : null,
+      bankAccountNum: encryptedAccountNum,
+      bankRoutingNum: encryptedRoutingNum,
       accountNickname: assignToGTI ? accountNickname : null,
     };
 
@@ -164,7 +177,12 @@ export const getPaymentMethodById = asyncHandler(async (req, res) => {
     (await prisma.paymentMethod.findMany({
       where: { userId: req.params.id },
     })) || [];
-  res.json(paymentMethods);
+  const decryptedPaymentMethods = paymentMethods.map((method) => ({
+    ...method,
+    bankAccountNum: decryptWithSecret(method.bankAccountNum),
+    bankRoutingNum: decryptWithSecret(method.bankRoutingNum),
+  }));
+  res.json(decryptedPaymentMethods);
 });
 
 // Step 4: Documents

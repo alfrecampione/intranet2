@@ -2,6 +2,7 @@ import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
+import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -15,7 +16,7 @@ const renderProfile = async (req, res) => {
         return res.status(404).send("User not found");
     }
 
-    const personalInfo = await prisma.personalInfo.findUnique({
+    const personalInfoRecord = await prisma.personalInfo.findUnique({
         where: { userId }
     });
 
@@ -23,7 +24,7 @@ const renderProfile = async (req, res) => {
         where: { userId }
     });
 
-    const paymentMethod = await prisma.paymentMethod.findUnique({
+    const paymentMethodRecord = await prisma.paymentMethod.findUnique({
         where: { userId }
     });
 
@@ -65,6 +66,21 @@ const renderProfile = async (req, res) => {
         where: { userId, isPinned: true },
         orderBy: { createdAt: 'desc' }
     });
+
+    const personalInfo = personalInfoRecord
+        ? {
+            ...personalInfoRecord,
+            ssn: personalInfoRecord.ssn ? decryptWithSecret(personalInfoRecord.ssn) : personalInfoRecord.ssn,
+        }
+        : null;
+
+    const paymentMethod = paymentMethodRecord
+        ? {
+            ...paymentMethodRecord,
+            bankAccountNum: decryptWithSecret(paymentMethodRecord.bankAccountNum),
+            bankRoutingNum: decryptWithSecret(paymentMethodRecord.bankRoutingNum),
+        }
+        : null;
 
     // Can edit flag for frontend
     // If the user is viewing their own profile, they can edit
@@ -474,10 +490,38 @@ const saveSection = async (req, res) => {
                 prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
             }
 
+            const valuesToPersist = { ...values };
+
+            if (sectionKey === "personalInfo" && "ssn" in valuesToPersist) {
+                valuesToPersist.ssn = valuesToPersist.ssn ? encryptWithSecret(valuesToPersist.ssn) : null;
+            }
+
+            if (sectionKey === "paymentMethod") {
+                const assignToGTI = valuesToPersist.assignToGTI;
+
+                if (assignToGTI === false) {
+                    valuesToPersist.bankAccountNum = null;
+                    valuesToPersist.bankRoutingNum = null;
+                    valuesToPersist.bankAccountType = null;
+                    valuesToPersist.accountNickname = null;
+                } else {
+                    if ("bankAccountNum" in valuesToPersist) {
+                        valuesToPersist.bankAccountNum = valuesToPersist.bankAccountNum
+                            ? encryptWithSecret(valuesToPersist.bankAccountNum)
+                            : null;
+                    }
+                    if ("bankRoutingNum" in valuesToPersist) {
+                        valuesToPersist.bankRoutingNum = valuesToPersist.bankRoutingNum
+                            ? encryptWithSecret(valuesToPersist.bankRoutingNum)
+                            : null;
+                    }
+                }
+            }
+
             const updatedSection = await prisma[sectionKey].upsert({
                 where: { userId },
-                update: values,
-                create: { userId, ...values },
+                update: valuesToPersist,
+                create: { userId, ...valuesToPersist },
             });
 
             if (sectionKey === "personalInfo") {
@@ -508,7 +552,23 @@ const saveSection = async (req, res) => {
                 }
             }
 
-            res.status(200).json({ success: true, data: updatedSection });
+            let responseData = updatedSection;
+            if (sectionKey === "personalInfo") {
+                responseData = {
+                    ...updatedSection,
+                    ssn: updatedSection.ssn ? decryptWithSecret(updatedSection.ssn) : updatedSection.ssn,
+                };
+            }
+
+            if (sectionKey === "paymentMethod") {
+                responseData = {
+                    ...updatedSection,
+                    bankAccountNum: decryptWithSecret(updatedSection.bankAccountNum),
+                    bankRoutingNum: decryptWithSecret(updatedSection.bankRoutingNum),
+                };
+            }
+
+            res.status(200).json({ success: true, data: responseData });
         });
     } catch (error) {
         console.error("Error saving section:", error);

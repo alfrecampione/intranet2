@@ -3,6 +3,7 @@ import { getAgencies, getAllCompanies } from "../config/utils.js";
 import { uploadToS3, isValidFileType, deleteFromS3, processS3Urls } from "../config/s3Config.js";
 import { deleteEmail } from "./mailer.js";
 import { asyncHandler } from "../config/errorHandler.js";
+import { decryptWithSecret } from "./crypto.js";
 
 
 async function getRegistrationData(userId, isEdit = false, reqUser) {
@@ -15,7 +16,8 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     documents,
     statesAndCarriersbyUser,
     allCompanies,
-    recommendation
+    recommendation,
+    onboardingRecord
   ] = await Promise.all([
     prisma.personalInfo.findUnique({ where: { userId } }),
     prisma.contactInfo.findUnique({ where: { userId } }),
@@ -23,7 +25,8 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     prisma.documents.findUnique({ where: { userId } }),
     prisma.statesANDCarriers.findMany({ where: { userId } }),
     getAllCompanies(),
-    prisma.recommendation.findUnique({ where: { userId } })
+    prisma.recommendation.findUnique({ where: { userId } }),
+    prisma.onboardingSentEmails.findUnique({ where: { email: user.email } })
   ]);
 
   let necessaryDocuments;
@@ -44,18 +47,34 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
   const processedPersonalInfo = await processS3Urls(personalInfo);
   const processedDocuments = await processS3Urls(documents);
 
+  const decryptedPersonalInfo = processedPersonalInfo
+    ? {
+      ...processedPersonalInfo,
+      ssn: processedPersonalInfo.ssn ? decryptWithSecret(processedPersonalInfo.ssn) : processedPersonalInfo.ssn,
+    }
+    : null;
+
+  const decryptedPaymentMethod = paymentMethod
+    ? {
+      ...paymentMethod,
+      bankAccountNum: decryptWithSecret(paymentMethod.bankAccountNum),
+      bankRoutingNum: decryptWithSecret(paymentMethod.bankRoutingNum),
+    }
+    : null;
+
   return {
     user,
     userId,
-    personalInfo: processedPersonalInfo,
+    personalInfo: decryptedPersonalInfo,
     contactInfo,
-    paymentMethod,
+    paymentMethod: decryptedPaymentMethod,
     documents: processedDocuments,
     necessaryDocuments,
     isEdit,
     statesAndCarriersbyUser,
     allCompanies,
-    recommendation
+    recommendation,
+    onboardingAgencyId: onboardingRecord?.agencyId || null
   };
 }
 

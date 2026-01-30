@@ -308,6 +308,7 @@ model OnboardingSentEmails {
   email     String   @unique
   firstName String?
   lastName  String?
+  agencyId  String?
   sentAt    DateTime @default(now())
   pending   Boolean  @default(true)
 
