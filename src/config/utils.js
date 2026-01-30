@@ -10,6 +10,8 @@ const getCity = async (req, res) => {
     try {
         const stateAbbr = (req.query.state || "").toLowerCase();
 
+        console.log("Received state abbreviation:", stateAbbr);
+
         if (!stateAbbr) {
             return res.status(400).json({ error: "Invalid or missing state abbreviation" });
         }
