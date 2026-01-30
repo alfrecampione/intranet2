@@ -8,7 +8,7 @@ const citiesByState = JSON.parse(
 
 const getCity = async (req, res) => {
     try {
-        const stateAbbr = (req.query.state || "").toLowerCase();
+        const stateAbbr = (req.query.state || "").toUpperCase();
 
         console.log("Received state abbreviation:", stateAbbr);
 
@@ -18,7 +18,7 @@ const getCity = async (req, res) => {
 
         console.log("Fetching cities for state:", stateAbbr);
 
-        const cities = citiesByState[stateAbbr.charAt(0).toUpperCase() + stateAbbr.slice(1)] || [];
+        const cities = citiesByState[stateAbbr] || [];
 
         return res.json(cities.sort());
     } catch (err) {
