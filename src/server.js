@@ -9,6 +9,7 @@ import { sessionStore } from "./config/dbConfig.js";
 import { scheduleCronJobs } from "./config/schedule.js";
 import { errorHandler } from "./config/errorHandler.js";
 import { extract } from "./config/extract-us-states-cities.js";
+import { getSignedS3Url, isS3Url } from "./config/s3Config.js";
 // import http from "http";
 import https from "https"
 import cors from "cors";
@@ -57,6 +58,20 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Refirmar photoPath de S3 en cada request autenticada
+app.use(async (req, res, next) => {
+  try {
+    const photoPath = req.user?.personalInfo?.photoPath;
+    const isAlreadySigned = typeof photoPath === "string" && (photoPath.includes("X-Amz-Algorithm") || photoPath.includes("X-Amz-Signature"));
+    if (photoPath && typeof photoPath === "string" && !isAlreadySigned && isS3Url(photoPath)) {
+      req.user.personalInfo.photoPath = await getSignedS3Url(photoPath);
+    }
+  } catch (err) {
+    console.error("Failed to refresh signed photo URL", err);
+  }
+  next();
+});
 
 /** MIDDLEWARES */
 app.set("view engine", "ejs");

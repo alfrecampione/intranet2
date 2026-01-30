@@ -286,29 +286,43 @@
                             ssnInput.maxLength = 11;
 
                             function formatSSN(val) {
-                              let digits = (val || '').replace(/\D/g, '').slice(0, 9);
-                              if (digits.length > 5) {
-                                return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-                              } else if (digits.length > 3) {
-                                return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                              }
+                              const digits = (val || '').replace(/\D/g, '').slice(0, 9);
+                              if (digits.length > 5) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                              if (digits.length > 3) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
                               return digits;
                             }
 
-                            ssnInput.value = formatSSN(ssnInput.value);
+                            function maskSSN(val) {
+                              const digits = (val || '').replace(/\D/g, '').slice(0, 9);
+                              if (digits.length === 0) return '';
+                              const last4 = digits.slice(-4);
+                              return `***-**-${last4.padStart(4, '*')}`;
+                            }
+
+                            let ssnRaw = (ssnInput.value || '').replace(/\D/g, '').slice(0, 9);
+                            ssnInput.value = maskSSN(ssnRaw);
+
+                            ssnInput.addEventListener('focus', function () {
+                              this.value = formatSSN(ssnRaw);
+                            });
+
+                            ssnInput.addEventListener('blur', function () {
+                              this.value = maskSSN(ssnRaw);
+                            });
 
                             ssnInput.addEventListener('input', function () {
-                              this.value = formatSSN(this.value);
+                              ssnRaw = (this.value || '').replace(/\D/g, '').slice(0, 9);
+                              this.value = formatSSN(ssnRaw);
                             });
 
                             document.querySelector("form").addEventListener("submit", function (e) {
-                              const ssnInput = document.getElementById("ssn");
-                              if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
+                              const digits = ssnRaw;
+                              if (!/^\d{9}$/.test(digits)) {
                                 ssnInput.classList.add("is-invalid");
                                 e.preventDefault();
                                 return;
                               }
-                              ssnInput.value = ssnInput.value.replace(/\D/g, "");
+                              ssnInput.value = digits;
                             });
 
                             document.getElementById("npn").addEventListener("input", function (e) {
