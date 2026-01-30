@@ -784,7 +784,7 @@
         option.textContent = a.name;
         option.dataset.isAgency = a.isAgency ? "true" : "false";
 
-        if (onboardingAgencyId && a.isAgency && onboardingAgencyId === a.id) {
+        if (onboardingAgencyId && onboardingAgencyId === a.id) {
           option.selected = true;
           matchedOnboardingAgency = true;
         } else if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
