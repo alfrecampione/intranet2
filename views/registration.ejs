@@ -778,8 +778,6 @@
       const input = document.getElementById('agencySelect');
       let matchedOnboardingAgency = false;
 
-      console.log('Onboarding Agency ID:', onboardingAgencyId);
-
       agencies.forEach(a => {
         const option = document.createElement('option');
         option.value = a.id;
@@ -787,7 +785,6 @@
         option.dataset.isAgency = a.isAgency ? "true" : "false";
 
         if (onboardingAgencyId && onboardingAgencyId == a.id) {
-          console.log('Matching onboarding agency found:', a);
           option.selected = true;
           matchedOnboardingAgency = true;
         } else if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
