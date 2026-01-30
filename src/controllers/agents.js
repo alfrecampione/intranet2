@@ -109,7 +109,9 @@ const renderMyAgents = async (req, res) => {
   });
 
   const registeredUsers = await getData(users);
-  const allAgencies = await getAgencies();
+  const allAgencies = (await getAgencies())
+    ?.slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
@@ -132,7 +134,9 @@ const renderAgents = async (req, res) => {
   });
 
   const registeredUsers = await getData(users);
-  const allAgencies = await getAgencies();
+  const allAgencies = (await getAgencies())
+    ?.slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };

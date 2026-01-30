@@ -245,7 +245,7 @@
                                                 <label class="form-label" for="agency">Agency</label>
                                                 <select id="agency" class="form-select" name="agency">
                                                     <option value="">Select agency</option>
-                                                    <% allAgencies.filter(a=> a.isAgency).forEach(a => { %>
+                                                    <% allAgencies.forEach(a=> { %>
                                                         <option value="<%= a.id %>">
                                                             <%= a.name %>
                                                         </option>
