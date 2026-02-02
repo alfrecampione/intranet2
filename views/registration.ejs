@@ -282,60 +282,75 @@
                             </div>
                           </div>
                           <script>
+                            const form = document.querySelector("form");
                             const ssnInput = document.getElementById("ssn");
-                            ssnInput.maxLength = 11;
+                            const npnInput = document.getElementById("npn");
 
-                            function formatSSN(val) {
-                              const digits = (val || '').replace(/\D/g, '').slice(0, 9);
-                              if (digits.length > 5) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-                              if (digits.length > 3) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                              return digits;
+                            if (ssnInput) {
+                              const normalizeDigits = (val) => (val || '').replace(/\D/g, '').slice(0, 9);
+
+                              ssnInput.maxLength = 11;
+
+                              function formatSSN(val) {
+                                const digits = normalizeDigits(val);
+                                if (digits.length > 5) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                                if (digits.length > 3) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                                return digits;
+                              }
+
+                              function maskSSN(val) {
+                                const digits = normalizeDigits(val);
+                                if (!digits) return '';
+                                const last4 = digits.slice(-4);
+                                return `***-**-${last4}`;
+                              }
+
+                              let ssnRaw = normalizeDigits(ssnInput.value);
+                              ssnInput.value = maskSSN(ssnRaw);
+
+                              ssnInput.addEventListener('focus', function () {
+                                this.value = formatSSN(ssnRaw);
+                              });
+
+                              const applyMask = () => {
+                                ssnRaw = normalizeDigits(ssnInput.value);
+                                ssnInput.value = maskSSN(ssnRaw);
+                              };
+
+                              ssnInput.addEventListener('blur', applyMask);
+                              ssnInput.addEventListener('change', applyMask);
+
+                              ssnInput.addEventListener('input', function () {
+                                ssnRaw = normalizeDigits(this.value);
+                                this.value = formatSSN(ssnRaw);
+                              });
+
+                              if (form) {
+                                form.addEventListener("submit", function (e) {
+                                  const digits = ssnRaw;
+                                  if (!/^\d{9}$/.test(digits)) {
+                                    ssnInput.classList.add("is-invalid");
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  ssnInput.value = digits;
+                                });
+                              }
                             }
 
-                            function maskSSN(val) {
-                              const digits = (val || '').replace(/\D/g, '').slice(0, 9);
-                              if (digits.length === 0) return '';
-                              const last4 = digits.slice(-4);
-                              return `***-**-${last4.padStart(4, '*')}`;
+                            if (npnInput && form) {
+                              npnInput.addEventListener("input", function (e) {
+                                let value = e.target.value.replace(/\D/g, "");
+                                e.target.value = value.slice(0, 8);
+                              });
+
+                              form.addEventListener("submit", function (e) {
+                                if (!/^\d{8}$/.test(npnInput.value)) {
+                                  npnInput.classList.add("is-invalid");
+                                  e.preventDefault();
+                                }
+                              });
                             }
-
-                            let ssnRaw = (ssnInput.value || '').replace(/\D/g, '').slice(0, 9);
-                            ssnInput.value = maskSSN(ssnRaw);
-
-                            ssnInput.addEventListener('focus', function () {
-                              this.value = formatSSN(ssnRaw);
-                            });
-
-                            ssnInput.addEventListener('blur', function () {
-                              this.value = maskSSN(ssnRaw);
-                            });
-
-                            ssnInput.addEventListener('input', function () {
-                              ssnRaw = (this.value || '').replace(/\D/g, '').slice(0, 9);
-                              this.value = formatSSN(ssnRaw);
-                            });
-
-                            document.querySelector("form").addEventListener("submit", function (e) {
-                              const digits = ssnRaw;
-                              if (!/^\d{9}$/.test(digits)) {
-                                ssnInput.classList.add("is-invalid");
-                                e.preventDefault();
-                                return;
-                              }
-                              ssnInput.value = digits;
-                            });
-
-                            document.getElementById("npn").addEventListener("input", function (e) {
-                              let value = e.target.value.replace(/\D/g, "");
-                              e.target.value = value.slice(0, 8);
-                            });
-                            document.querySelector("form").addEventListener("submit", function (e) {
-                              const npnInput = document.getElementById("npn");
-                              if (!/^\d{8}$/.test(npnInput.value)) {
-                                npnInput.classList.add("is-invalid");
-                                e.preventDefault();
-                              }
-                            });
                           </script>
 
                           <div class="col-sm-6" id="UnderSelect">
