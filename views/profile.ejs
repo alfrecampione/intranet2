@@ -838,6 +838,14 @@
         return value;
       }
 
+      function maskAccountNumber(value) {
+        if (!value) return "None";
+        const digits = (value || "").replace(/\D/g, "");
+        if (!digits) return "None";
+        if (digits.length <= 3) return digits;
+        return `${"*".repeat(Math.max(digits.length - 3, 3))}${digits.slice(-3)}`;
+      }
+
       function addSectionHeader(title, sectionKey) {
         const header = document.createElement('li');
         header.className = 'fw-bold mt-3 mb-2 d-flex align-items-center justify-content-between';
@@ -1378,6 +1386,35 @@
               sensitiveSpan.textContent = maskSSN(value);
               toggleIcon.className = "ti ti-eye ms-2";
               toggleIcon.title = "Mostrar SSN";
+              showing = false;
+            }
+          });
+
+          contentSpan.appendChild(sensitiveSpan);
+          contentSpan.appendChild(toggleIcon);
+        }
+        // Bank Account Number
+        else if (isSensitive && fieldName === "bankAccountNum") {
+          const sensitiveSpan = document.createElement("span");
+          sensitiveSpan.dataset.full = value || "";
+          sensitiveSpan.textContent = maskAccountNumber(value);
+
+          const toggleIcon = document.createElement("i");
+          toggleIcon.className = "ti ti-eye ms-2";
+          toggleIcon.style.cursor = "pointer";
+          toggleIcon.title = "Mostrar Account Number";
+
+          let showing = false;
+          toggleIcon.addEventListener("click", () => {
+            if (!showing) {
+              sensitiveSpan.textContent = value || "None";
+              toggleIcon.className = "ti ti-eye-off ms-2";
+              toggleIcon.title = "Ocultar Account Number";
+              showing = true;
+            } else {
+              sensitiveSpan.textContent = maskAccountNumber(value);
+              toggleIcon.className = "ti ti-eye ms-2";
+              toggleIcon.title = "Mostrar Account Number";
               showing = false;
             }
           });
