@@ -277,13 +277,14 @@
                                 NPN <span class="text-danger">*</span>
                               </label>
                               <input type="text" name="npn" id="npn" class="form-control" placeholder="XXXXXXXX"
-                                aria-label="NPN" required pattern="\d{8}" maxlength="8"
+                                aria-label="NPN" required pattern="\d{8}" maxlength="8" inputmode="numeric"
                                 value="<%= personalInfo?.npn || '' %>" />
                             </div>
                           </div>
                           <script>
                             const form = document.querySelector("form");
                             const ssnInput = document.getElementById("ssn");
+                            const npnInput = document.getElementById("npn");
 
                             if (ssnInput) {
                               const normalizeDigits = (val) => (val || '').replace(/\D/g, '').slice(0, 9);
@@ -332,9 +333,15 @@
                                     e.preventDefault();
                                     return;
                                   }
-                                  ssnInput.value = ssnRaw; // enviar sin guiones ni máscara
+                                  ssnInput.value = ssnRaw;
                                 });
                               }
+                            }
+
+                            if (npnInput) {
+                              npnInput.addEventListener('input', () => {
+                                npnInput.value = npnInput.value.replace(/\D/g, '').slice(0, 8);
+                              });
                             }
                           </script>
 
