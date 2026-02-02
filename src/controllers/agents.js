@@ -226,61 +226,48 @@ const addAgent = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      display_name: legalName,
-      registrationCompleted: false,
-      hastoChangePassword: true
-    }
-  });
+  const user = await prismaContext.run({ userId: req.user.user_id }, async () => {
+    return prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          display_name: legalName,
+          registrationCompleted: false,
+          hastoChangePassword: true
+        }
+      });
 
-  await prisma.necesaryDocuments.create({
-    data: { email: user.email }
-  });
+      await tx.necesaryDocuments.create({
+        data: { email: createdUser.email }
+      });
 
-  await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [user.user_id] }, async () => {
+      await tx.personalInfo.create({
+        data: {
+          userId: createdUser.user_id,
+          legalName: legalName,
+          npn: npn || null,
+          contactType,
+          agency: agency || null,
+          franchise: franchise || null
+        }
+      });
 
-    await prisma.personalInfo.create({
-      data: {
-        userId: user.user_id,
-        legalName: legalName,
-        preferredName: null,
-        legalSex: null,
-        dateOfBirth: null,
-        ssn: null,
-        npn: npn || null,
-        businessName: null,
-        companyEIN: null,
-        contactType,
-        agency: agency || null,
-        franchise: franchise || null
-      }
-    });
+      await tx.contactInfo.create({
+        data: {
+          userId: createdUser.user_id,
+          personalEmail: email,
+          personalPhone: cellPhone || null
+        }
+      });
 
-    await prisma.contactInfo.create({
-      data: {
-        userId: user.user_id,
-        personalEmail: email,
-        personalPhone: cellPhone || null,
-        city: "",
-        state: "",
-        zipCode: "",
-        addressLine1: "",
-        addressLine2: null
-      }
-    });
+      await tx.paymentMethod.create({
+        data: {
+          userId: createdUser.user_id,
+        }
+      });
 
-    await prisma.paymentMethod.create({
-      data: {
-        userId: user.user_id,
-        bankAccountType: null,
-        bankAccountNum: null,
-        bankRoutingNum: null,
-        accountNickname: null,
-        assignToGTI: true,
-      }
+      return createdUser;
     });
   });
 
