@@ -8,12 +8,32 @@ const renderProfile = async (req, res) => {
     const user = req.user;
     const userId = req.params.id ?? user.user_id;
 
-    const profile = await prisma.user.findUnique({
+    let profile = await prisma.user.findUnique({
         where: { user_id: userId }
     });
 
     if (!profile) {
         return res.status(404).send("User not found");
+    }
+
+    // If an agent opens a user profile that has not completed onboarding,
+    // mark onboarding as cancelled so data will be filled manually.
+    if (!profile.registrationCompleted && user.user_id !== userId) {
+        try {
+            await prisma.user.update({
+                where: { user_id: userId },
+                data: { registrationCompleted: true }
+            });
+            profile = { ...profile, registrationCompleted: true };
+
+            // Mark pending onboarding record as no longer pending if it exists.
+            await prisma.onboardingSentEmails.update({
+                where: { email: profile.email },
+                data: { pending: false }
+            }).catch(() => { });
+        } catch (err) {
+            console.error("Error cancelling onboarding from profile view:", err);
+        }
     }
 
     const personalInfoRecord = await prisma.personalInfo.findUnique({
