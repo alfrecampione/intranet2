@@ -30,6 +30,29 @@ const signUp = async (req, res) => {
   }
 };
 
+// Ensure the user has the base profile-related records so the profile page renders editable sections
+const ensureUserProfileRecords = async (userId, email) => {
+  const [personalInfo, contactInfo, paymentMethod, documents, necesaryDocs] = await Promise.all([
+    prisma.personalInfo.findUnique({ where: { userId } }),
+    prisma.contactInfo.findUnique({ where: { userId } }),
+    prisma.paymentMethod.findUnique({ where: { userId } }),
+    prisma.documents.findUnique({ where: { userId } }),
+    email ? prisma.necesaryDocuments.findUnique({ where: { email } }) : Promise.resolve(null),
+  ]);
+
+  const creations = [];
+
+  if (!personalInfo) creations.push(prisma.personalInfo.create({ data: { userId } }));
+  if (!contactInfo) creations.push(prisma.contactInfo.create({ data: { userId } }));
+  if (!paymentMethod) creations.push(prisma.paymentMethod.create({ data: { userId } }));
+  if (!documents) creations.push(prisma.documents.create({ data: { userId } }));
+  if (email && !necesaryDocs) creations.push(prisma.necesaryDocuments.create({ data: { email } }));
+
+  if (creations.length) {
+    await Promise.all(creations);
+  }
+};
+
 const createAccount = async (req, res) => {
   const { email, password } = req.body;
   if (!email) {
@@ -208,6 +231,9 @@ const validateEmail = async (req, res, next) => {
       };
 
       await leadToAgent(existingUser, req.user?.user_id);
+
+      // Create placeholder profile records so the profile view can render editable sections immediately
+      await ensureUserProfileRecords(existingUser.user_id, email);
 
       await req.login(user, async (err) => {
         if (err) {
