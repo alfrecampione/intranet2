@@ -202,8 +202,8 @@ const addAgent = async (req, res) => {
     legalName,
     phone,
     npn,
-    agency,
-    franchise
+    agency: rawAgency,
+    franchise: rawFranchise
   } = req.body
 
   const {
@@ -225,6 +225,25 @@ const addAgent = async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Determine whether the provided ID belongs to an agency or franchise.
+  let agency = null;
+  let franchise = null;
+
+  if (rawAgency) {
+    const agencyRecord = await prisma.agency.findUnique({ where: { id: rawAgency } });
+    if (agencyRecord) {
+      agency = rawAgency;
+    } else {
+      const parsedFranchise = parseInt(rawAgency, 10);
+      franchise = Number.isNaN(parsedFranchise) ? null : parsedFranchise;
+    }
+  }
+
+  if (franchise === null && rawFranchise) {
+    const parsedFranchise = parseInt(rawFranchise, 10);
+    franchise = Number.isNaN(parsedFranchise) ? null : parsedFranchise;
+  }
 
   const user = await prismaContext.run({ userId: req.user.user_id }, async () => {
     return prisma.$transaction(async (tx) => {

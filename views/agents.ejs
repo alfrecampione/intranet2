@@ -388,17 +388,15 @@
                                                             required placeholder="123456" maxlength="10">
                                                     </div>
 
-                                                    <!-- Subordination -->
+                                                    <!-- Agency -->
                                                     <div class="mb-3">
                                                         <label for="agentSubordination"
-                                                            class="form-label">Subordination</label>
+                                                            class="form-label">Agency</label>
                                                         <select class="form-select" id="agentSubordination"
-                                                            name="subordination" required>
-                                                            <option value="" disabled selected>Select location or agency
-                                                            </option>
+                                                            name="agency" required>
+                                                            <option value="" disabled selected>Select agency</option>
                                                             <% allAgencies.forEach(a=> { %>
-                                                                <option
-                                                                    value="<%= a.isAgency ? `agency-${a.id}` : `franchise-${a.id}` %>">
+                                                                <option value="<%= a.id %>">
                                                                     <%= a.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -774,24 +772,20 @@
                 const legalName = document.getElementById("agentLegalName").value.trim();
                 const phone = document.getElementById("agentPhone").value.trim();
                 const npn = document.getElementById("agentNpn").value.trim();
-                const subordination = document.getElementById("agentSubordination").value;
+                const agencyId = document.getElementById("agentSubordination").value;
 
-                if (!subordination) {
-                    showToast("Error", "Please select a subordination");
+                if (!agencyId) {
+                    showToast("Error", "Please select an agency");
                     return;
                 }
-
-                // Parse "agency-5" or "franchise-12"
-                const [subType, ...subIdParts] = subordination.split("-");
-                const subId = subIdParts.join("-");
 
                 const payload = {
                     email,
                     legalName,
                     phone,
                     npn,
-                    agency: subType === "agency" ? subId : null,
-                    franchise: subType === "franchise" ? parseInt(subId) : null,
+                    agency: agencyId,
+                    franchise: null,
                 };
 
                 try {
