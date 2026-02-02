@@ -235,14 +235,13 @@ const addAgent = async (req, res) => {
     if (agencyRecord) {
       agency = rawAgency;
     } else {
-      const parsedFranchise = parseInt(rawAgency, 10);
-      franchise = Number.isNaN(parsedFranchise) ? null : parsedFranchise;
+      // Treat anything that is not an agency as a franchise identifier (keep as string)
+      franchise = rawAgency;
     }
   }
 
-  if (franchise === null && rawFranchise) {
-    const parsedFranchise = parseInt(rawFranchise, 10);
-    franchise = Number.isNaN(parsedFranchise) ? null : parsedFranchise;
+  if (!franchise && rawFranchise) {
+    franchise = rawFranchise;
   }
 
   const user = await prismaContext.run({ userId: req.user.user_id }, async () => {
