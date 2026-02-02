@@ -284,12 +284,9 @@
                           <script>
                             const form = document.querySelector("form");
                             const ssnInput = document.getElementById("ssn");
-                            const npnInput = document.getElementById("npn");
 
                             if (ssnInput) {
                               const normalizeDigits = (val) => (val || '').replace(/\D/g, '').slice(0, 9);
-
-                              ssnInput.maxLength = 11;
 
                               function formatSSN(val) {
                                 const digits = normalizeDigits(val);
@@ -301,55 +298,43 @@
                               function maskSSN(val) {
                                 const digits = normalizeDigits(val);
                                 if (!digits) return '';
-                                const last4 = digits.slice(-4);
-                                return `***-**-${last4}`;
+                                return `***-**-${digits.slice(-4)}`;
                               }
 
                               let ssnRaw = normalizeDigits(ssnInput.value);
+                              let isFocused = false;
+
                               ssnInput.value = maskSSN(ssnRaw);
 
                               ssnInput.addEventListener('focus', function () {
+                                isFocused = true;
                                 this.value = formatSSN(ssnRaw);
                               });
-
-                              const applyMask = () => {
-                                ssnRaw = normalizeDigits(ssnInput.value);
-                                ssnInput.value = maskSSN(ssnRaw);
-                              };
-
-                              ssnInput.addEventListener('blur', applyMask);
-                              ssnInput.addEventListener('change', applyMask);
 
                               ssnInput.addEventListener('input', function () {
                                 ssnRaw = normalizeDigits(this.value);
                                 this.value = formatSSN(ssnRaw);
                               });
 
+                              ssnInput.addEventListener('blur', function () {
+                                isFocused = false;
+                                setTimeout(() => {
+                                  if (!isFocused) {
+                                    ssnInput.value = maskSSN(ssnRaw);
+                                  }
+                                }, 0);
+                              });
+
                               if (form) {
                                 form.addEventListener("submit", function (e) {
-                                  const digits = ssnRaw;
-                                  if (!/^\d{9}$/.test(digits)) {
+                                  if (!/^\d{9}$/.test(ssnRaw)) {
                                     ssnInput.classList.add("is-invalid");
                                     e.preventDefault();
                                     return;
                                   }
-                                  ssnInput.value = digits;
+                                  ssnInput.value = ssnRaw; // enviar sin guiones ni máscara
                                 });
                               }
-                            }
-
-                            if (npnInput && form) {
-                              npnInput.addEventListener("input", function (e) {
-                                let value = e.target.value.replace(/\D/g, "");
-                                e.target.value = value.slice(0, 8);
-                              });
-
-                              form.addEventListener("submit", function (e) {
-                                if (!/^\d{8}$/.test(npnInput.value)) {
-                                  npnInput.classList.add("is-invalid");
-                                  e.preventDefault();
-                                }
-                              });
                             }
                           </script>
 
