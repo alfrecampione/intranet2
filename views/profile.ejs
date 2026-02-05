@@ -656,6 +656,7 @@
           carriersData.push({ state, company, status });
           renderCarrierTable(carriersData);
           showToast("Success", "Carrier added successfully.");
+          window.location.reload();
         } else {
           showToast("Error", "Failed to add carrier: " + result.message);
         }
