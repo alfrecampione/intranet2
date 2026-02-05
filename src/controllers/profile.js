@@ -659,6 +659,12 @@ const deleteCarrierToUser = async (req, res) => {
 
     try {
         await prismaContext.run({ requesterId, affectedUserIds: [userToUpdate] }, async () => {
+            // Mark status to preserve intent in audit logs before deletion
+            await prisma.statesANDCarriers.update({
+                where: { id: carrierId },
+                data: { status: skipReleaseFlag ? "Delete" : "Release" }
+            });
+
             await prisma.statesANDCarriers.delete({
                 where: { id: carrierId }
             });
