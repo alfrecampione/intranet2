@@ -295,6 +295,7 @@ async function createActivityEntry(log) {
         } else if (isDelete) {
             const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
             const oldCompanyId = oldCarrierObj.company ?? null;
+            const deletedStatus = (oldCarrierObj.status || '').toLowerCase();
             let oldCompanyName = '(unknown)';
             if (oldCompanyId) {
                 const oldCompany = await prisma.company.findUnique({
@@ -303,8 +304,18 @@ async function createActivityEntry(log) {
                 });
                 oldCompanyName = oldCompany?.name ?? '(unknown)';
             }
-            title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
-            description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
+            const isReleaseLog = deletedStatus === 'release';
+            const isDeleteLog = deletedStatus === 'delete';
+            if (isReleaseLog) {
+                title = `Carrier ${oldCompanyName} Released by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was removed due to Release.`;
+            } else if (isDeleteLog) {
+                title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was removed with Delete.`;
+            } else {
+                title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
+            }
         }
     } else {
         if (isUpdate) {
