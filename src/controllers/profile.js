@@ -631,26 +631,33 @@ const addCarrierToUser = async (req, res) => {
 const deleteCarrierToUser = async (req, res) => {
     const { carrierId } = req.params;
     const requesterId = req.user.user_id;
+    const skipReleaseFlag = req.query?.skipReleaseFlag === "true";
 
     if (!carrierId) {
         return res.status(400).json({ success: false, message: "Carrier ID is required." });
     }
-    try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
-            const userToUpdate = (await prisma.statesANDCarriers.findUnique({
-                where: { id: carrierId }
-            }))?.userId;
+    const carrierRecord = await prisma.statesANDCarriers.findUnique({
+        where: { id: carrierId }
+    });
 
+    if (!carrierRecord) {
+        return res.status(404).json({ success: false, message: "Carrier not found." });
+    }
+
+    const userToUpdate = carrierRecord.userId;
+
+    try {
+        await prismaContext.run({ requesterId, affectedUserIds: [userToUpdate] }, async () => {
             await prisma.statesANDCarriers.delete({
                 where: { id: carrierId }
             });
 
             const remainingCarriers = await prisma.statesANDCarriers.findMany({
                 where: {
-                    id: userToUpdate
+                    userId: userToUpdate
                 }
             });
-            if (remainingCarriers.length === 0) {
+            if (!skipReleaseFlag && remainingCarriers.length === 0) {
                 await prisma.user.update({
                     where: { user_id: userToUpdate },
                     data: { isReleased: true }

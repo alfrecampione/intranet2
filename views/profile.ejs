@@ -339,6 +339,7 @@
       "Withdrawn by Agent",
       "Need Release",
       "Release",
+      "Delete",
       "Refering"
     ];
 
@@ -467,7 +468,7 @@
 
     async function saveCarrierUpdates(carriers) {
       const carriersToDelete = carriers.filter(({ company, state, status }) => {
-        return !status || status === "Release";
+        return !status || status === "Release" || status === "Delete";
       });
 
       const carriersToUpdate = carriers.filter(({ company, state, status }) => {
@@ -476,7 +477,8 @@
 
       await Promise.all(carriersToDelete.map(async (carrier) => {
         try {
-          const res = await deleteCarrier(carrier.id);
+          const skipReleaseFlag = carrier.status === "Delete";
+          const res = await deleteCarrier(carrier.id, skipReleaseFlag);
           if (!res.ok) {
             alert("Failed to delete carrier: " + carrier.company);
           }
@@ -518,8 +520,9 @@
       return filteredCarriers;
     }
 
-    async function deleteCarrier(id) {
-      return await fetch(`/users/profile/carrier/${id}`, {
+    async function deleteCarrier(id, skipReleaseFlag = false) {
+      const qs = skipReleaseFlag ? "?skipReleaseFlag=true" : "";
+      return await fetch(`/users/profile/carrier/${id}${qs}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
