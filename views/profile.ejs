@@ -719,7 +719,8 @@
 
       // Populate status dropdown in modal
       const modalStatusSelect = document.getElementById("modalStatusSelect");
-      allStatusOptions.forEach(status => {
+      const addCarrierStatusOptions = allStatusOptions.filter(status => status !== "Release" && status !== "Delete");
+      addCarrierStatusOptions.forEach(status => {
         const option = document.createElement("option");
         option.value = status;
         option.textContent = status;
