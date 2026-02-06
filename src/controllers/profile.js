@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 
@@ -257,8 +257,7 @@ async function createActivityEntry(log) {
     const variant = isCreate ? 'success' : isUpdate ? 'info' : 'danger';
 
     const userId = log.userId;
-    const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-    const legalName = personalInfo?.legalName || '(Administrator User)';
+    const legalName = await resolveActorName(userId);
 
     if (table.includes('user')) {
         if (isCreate) {

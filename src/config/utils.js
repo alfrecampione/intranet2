@@ -430,6 +430,39 @@ async function getEntraId(email) {
     return (entra_id && entra_id.length > 0) ? entra_id[0].user_id : null;
 }
 
+async function resolveActorName(userId) {
+    let name = '(Administrator User)';
+
+    const personalInfo = await prisma.personalInfo.findUnique({
+        where: { userId },
+        select: { legalName: true },
+    });
+    if (personalInfo?.legalName) return personalInfo.legalName;
+
+    const user = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { display_name: true },
+    });
+    if (user?.display_name) return user.display_name;
+
+    try {
+        const entraUser = await prisma.$queryRaw`
+            SELECT display_name
+            FROM entra.users
+            WHERE user_id = ${userId}
+               OR split_part(user_id, '.', 1) = ${userId}
+        `;
+
+        if (entraUser && entraUser[0]?.display_name) {
+            name = entraUser[0].display_name;
+        }
+    } catch (err) {
+        console.warn('Failed to fetch user from entra.users:', err.message);
+    }
+
+    return name;
+}
+
 function getMSARealId(userId) {
     const realId = userId ? userId.split(".")[0] : userId;
     return realId;
@@ -507,4 +540,4 @@ async function getAllCompanies() {
     return companies;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap };
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName };
