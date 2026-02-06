@@ -514,7 +514,7 @@ const saveSection = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userId] }, async () => {
             let prevPersonalInfo = null;
             if (sectionKey === "personalInfo") {
                 prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
@@ -616,7 +616,7 @@ const addCarrierToUser = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userId] }, async () => {
             const newCarrier = await prisma.statesANDCarriers.create({
                 data: {
                     userId,
@@ -657,7 +657,7 @@ const deleteCarrierToUser = async (req, res) => {
     const userToUpdate = carrierRecord.userId;
 
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userToUpdate] }, async () => {
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userToUpdate] }, async () => {
             // Mark status to preserve intent in audit logs before deletion
             await prisma.statesANDCarriers.update({
                 where: { id: carrierId },

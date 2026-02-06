@@ -56,7 +56,7 @@ prisma.$use(async (params, next) => {
   if (!writeActions.includes(params.action)) return next(params);
 
   const store = prismaContext.getStore();
-  const actorUserId = store?.userId || "unknown";
+  const actorUserId = store?.userId || store?.requesterId || "unknown";
   const affectedUserIds = store?.affectedUserIds || [];
 
   let oldValue = null;
