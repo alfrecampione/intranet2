@@ -433,8 +433,6 @@ async function getEntraId(email) {
 async function resolveActorName(userId) {
     let name = 'Administrator User';
 
-    console.log('Resolving name for userId:', userId);
-
     const user = await prisma.user.findUnique({
         where: { user_id: userId },
         select: { display_name: true },
