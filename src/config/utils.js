@@ -431,13 +431,9 @@ async function getEntraId(email) {
 }
 
 async function resolveActorName(userId) {
-    let name = '(Administrator User)';
+    let name = 'Administrator User';
 
-    const personalInfo = await prisma.personalInfo.findUnique({
-        where: { userId },
-        select: { legalName: true },
-    });
-    if (personalInfo?.legalName) return personalInfo.legalName;
+    console.log('Resolving name for userId:', userId);
 
     const user = await prisma.user.findUnique({
         where: { user_id: userId },
@@ -450,7 +446,6 @@ async function resolveActorName(userId) {
             SELECT display_name
             FROM entra.users
             WHERE user_id = ${userId}
-               OR split_part(user_id, '.', 1) = ${userId}
         `;
 
         if (entraUser && entraUser[0]?.display_name) {
