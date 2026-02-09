@@ -63,9 +63,10 @@
     <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
     <link rel="stylesheet" href="/vendor/libs/select2/select2.css" />
     <style>
-        /* Keep the select2 inline search width constrained to the control width */
+        /* Keep Select2 inline search constrained to control width */
         .select2-container .select2-search__field {
-            width: 100% !important;
+            width: auto !important;
+            min-width: 24px;
             max-width: 100% !important;
         }
     </style>
@@ -380,7 +381,7 @@
                 destroySelect2IfExists();
                 $(filterValueSelect).select2({
                     placeholder: 'Select Location',
-                    width: '200px',
+                    width: 'resolve',
                     closeOnSelect: false
                 });
             }
