@@ -61,6 +61,7 @@
     <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
     <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
     <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/select2/select2.css" />
     <script src="/vendor/js/helpers.js"></script>
 
     <script src="/js/config.js"></script>
@@ -152,6 +153,7 @@
     <script src="/vendor/libs/i18n/i18n.js"></script>
     <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
     <script src="/vendor/js/menu.js"></script>
+    <script src="/vendor/libs/select2/select2.js"></script>
 
     <!-- endbuild -->
 
@@ -363,6 +365,21 @@
                 });
             }
 
+            function destroySelect2IfExists() {
+                if ($(filterValueSelect).hasClass('select2-hidden-accessible')) {
+                    $(filterValueSelect).select2('destroy');
+                }
+            }
+
+            function initAgencySelect2() {
+                destroySelect2IfExists();
+                $(filterValueSelect).select2({
+                    placeholder: 'Select Location',
+                    width: '240px',
+                    closeOnSelect: false
+                });
+            }
+
             // Filter type change
             filterTypeSelect.addEventListener('change', () => {
                 const type = filterTypeSelect.value;
@@ -373,6 +390,7 @@
                 // Reset multiselect when switching types
                 filterValueSelect.multiple = false;
                 filterValueSelect.size = 1;
+                destroySelect2IfExists();
 
                 if (type === 'carrier & state') {
                     filterValueSelect.innerHTML = '<option value="">Select State</option>';
@@ -408,6 +426,7 @@
                         });
                     }
                     filterValueSelect.disabled = false;
+                    initAgencySelect2();
 
                     // Agencies are no longer used for this filter
                     filterSubValue.innerHTML = '<option value="">Select Agency</option>';
@@ -416,10 +435,12 @@
                 } else if (type) {
                     populateFilterValues(type, type);
                     filterSubValue.style.display = 'none';
+                    destroySelect2IfExists();
                 } else {
                     filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                     filterValueSelect.disabled = true;
                     filterSubValue.style.display = 'none';
+                    destroySelect2IfExists();
                 }
 
                 if (type !== 'agency') {
