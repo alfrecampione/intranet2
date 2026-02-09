@@ -89,7 +89,7 @@
                                                 <option value="agency">Agency</option>
                                             </select>
 
-                                            <select id="filter-value" class="form-select" style="width: 240px;"
+                                            <select id="filter-value" class="form-select" style="width: 200px;"
                                                 disabled>
                                                 <option value="">Select Value</option>
                                             </select>
@@ -372,7 +372,7 @@
                 destroySelect2IfExists();
                 $(filterValueSelect).select2({
                     placeholder: 'Select Location',
-                    width: '240px',
+                    width: '200px',
                     closeOnSelect: false
                 });
             }
@@ -441,9 +441,8 @@
                     destroySelect2IfExists();
                 }
 
-                if (type !== 'agency') {
-                    applyFilterAndRender();
-                }
+                // Always apply when filter type changes (even for agency, which will show summary unless locations are picked)
+                applyFilterAndRender();
             });
 
             // When franchise (filterValue) changes, update agencies
