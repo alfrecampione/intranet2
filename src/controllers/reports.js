@@ -118,18 +118,21 @@ async function handleAgencySummaryFilter(requester) {
  * Handles carrier & state filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} state - State filter value
- * @param {string} carrierId - Carrier id filter value
+ * @param {string|null|undefined} carrierId - Carrier id filter value (optional)
  * @returns {Array} Filtered agents
  */
 function handleCarrierStateFilter(processedAgents, state, carrierId) {
     // Match agents that have at least one state/carrier record with both values
     // sc.company stores the carrier id; fallback to relation id just in case
-    return processedAgents.filter(agent =>
-        Array.isArray(agent.statesAndCarriers) &&
-        agent.statesAndCarriers.some(sc =>
-            sc.state === state && (sc.company === carrierId || sc.carrier?.id === carrierId)
-        )
-    );
+    return processedAgents.filter(agent => {
+        if (!Array.isArray(agent.statesAndCarriers)) return false;
+        return agent.statesAndCarriers.some(sc => {
+            if (sc.state !== state) return false;
+            // If no carrier provided, match by state only
+            if (!carrierId) return true;
+            return sc.company === carrierId || sc.carrier?.id === carrierId;
+        });
+    });
 }
 
 /**
@@ -502,8 +505,9 @@ const filterReport = async (req, res) => {
         const result = await handleAgencySummaryFilter(user);
         return res.json(result);
     }
-    else if (filterType === 'carrier & state' && filterValue && filterSubValue) {
-        processedAgents = handleCarrierStateFilter(processedAgents, filterValue, filterSubValue);
+    else if (filterType === 'carrier & state' && filterValue) {
+        // If carrier is empty, fallback to state-only filter
+        processedAgents = handleCarrierStateFilter(processedAgents, filterValue, filterSubValue || null);
     }
     else if (filterType === 'agency' && (filterValue || filterSubValue)) {
         processedAgents = await handleAgencyFilter(filterValue, filterSubValue);
