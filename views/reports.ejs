@@ -107,8 +107,7 @@
                                                 <option value="">Select Other Value</option>
                                             </select>
 
-                                            <button id="apply-filter-btn" class="btn btn-primary" type="button"
-                                                style="display: none;">
+                                            <button id="apply-filter-btn" class="btn btn-primary d-none" type="button">
                                                 <i class="ti ti-search"></i>
                                             </button>
                                             <button id="export-button" class="btn btn-success">Export to Excel</button>
@@ -386,12 +385,17 @@
                 });
             }
 
+            function toggleApplyFilterBtn(type) {
+                const isAgency = (type || '').toLowerCase() === 'agency';
+                // Keep button hidden unless agency filter is active
+                applyFilterBtn.classList.toggle('d-none', !isAgency);
+                applyFilterBtn.toggleAttribute('hidden', !isAgency);
+            }
+
             // Filter type change
             filterTypeSelect.addEventListener('change', () => {
                 const type = filterTypeSelect.value;
-
-                // Show the search button only for agency
-                applyFilterBtn.style.display = (type === 'agency') ? 'inline-block' : 'none';
+                toggleApplyFilterBtn(type);
 
                 // Reset multiselect when switching types
                 filterValueSelect.multiple = false;
@@ -470,6 +474,7 @@
             applyFilterBtn.addEventListener('click', applyFilterAndRender);
 
             // Initial render
+            toggleApplyFilterBtn(filterTypeSelect.value);
             applyFilterAndRender();
         });
     </script>

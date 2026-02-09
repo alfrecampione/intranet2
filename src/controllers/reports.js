@@ -195,10 +195,13 @@ async function handleAgencyFilter(locationIds) {
     // Remove duplicates by user_id
     const uniqueAgents = Array.from(new Map(collectedAgents.map(a => [a.user_id, a])).values());
 
-    // Map agency ids to names for quick lookup
+    // Map agency ids to names for quick lookup (normalize to avoid string/number mismatches)
     const agencyIds = uniqueAgents
         .map(agent => agent.personalInfo?.agency)
-        .filter(id => id != null);
+        .filter(id => id !== null && id !== undefined)
+        .map(id => Number(id))
+        .filter(Number.isFinite);
+
     const agencyMap = new Map();
     if (agencyIds.length > 0) {
         const uniqueAgencyIds = Array.from(new Set(agencyIds));
@@ -206,12 +209,12 @@ async function handleAgencyFilter(locationIds) {
             where: { id: { in: uniqueAgencyIds } },
             select: { id: true, name: true }
         });
-        agencies.forEach(a => agencyMap.set(a.id, a.name || ''));
+        agencies.forEach(a => agencyMap.set(String(a.id), a.name || ''));
     }
 
     return await Promise.all(uniqueAgents.map(async agent => {
         let photoPath = agent.personalInfo?.photoPath || '';
-        const agencyName = agencyMap.get(agent.personalInfo?.agency) || '';
+        const agencyName = agencyMap.get(String(agent.personalInfo?.agency ?? '')) || '';
 
         // For Microsoft users, fetch photoPath from user_avatars table
         if (agent.email && agent.email.endsWith('@goldentrust.com')) {
