@@ -250,9 +250,8 @@
                 if (filterType) params.append("filterType", filterType);
 
                 if (filterType === 'agency') {
-                    const selectedLocations = Array.from(filterValueSelect.selectedOptions || [])
-                        .map(opt => opt.value)
-                        .filter(Boolean);
+                    // Use select2 value to avoid mismatch with DOM selectedOptions
+                    const selectedLocations = ($(filterValueSelect).val() || []).filter(Boolean);
                     selectedLocations.forEach(loc => params.append("filterValue", loc));
                 } else {
                     const filterValue = filterValueSelect.value;
@@ -270,9 +269,7 @@
                 const { data, total, summary } = await fetchFilteredData();
 
                 const filterType = filterTypeSelect.value;
-                const selectedLocations = Array.from(filterValueSelect.selectedOptions || [])
-                    .map(opt => opt.value)
-                    .filter(Boolean);
+                const selectedLocations = ($(filterValueSelect).val() || []).filter(Boolean);
                 const filterSubValueVal = filterSubValue.value;
 
                 const isAgencySummaryView = (filterType === 'agency' && selectedLocations.length === 0);
@@ -426,6 +423,7 @@
                         });
                     }
                     filterValueSelect.disabled = false;
+                    filterValueSelect.selectedIndex = -1;
                     initAgencySelect2();
 
                     // Agencies are no longer used for this filter
