@@ -245,24 +245,25 @@
             const deleteModal = new bootstrap.Modal(deleteModalEl);
             const deleteEmailEl = document.getElementById('deleteOnboardingEmail');
             const overlay = document.getElementById('email-overlay');
-            let emailToDelete = null;
+            let emailToDeleteEncoded = null; // keep encoded value for safe requests
             let rowToDelete = null;
 
             $('#onboarding-table').on('click', '.btn-delete-onboarding', function (e) {
                 e.preventDefault();
                 const btn = $(this);
-                emailToDelete = btn.data('email');
+                emailToDeleteEncoded = btn.data('email');
                 rowToDelete = btn.closest('tr');
                 const name = btn.data('name');
-                const displayValue = name ? `${name} (${emailToDelete})` : emailToDelete;
+                const decodedEmail = decodeURIComponent(emailToDeleteEncoded || '');
+                const displayValue = name ? `${name} (${decodedEmail})` : decodedEmail;
                 deleteEmailEl.textContent = displayValue;
                 deleteModal.show();
             });
 
             $('#confirmDeleteOnboarding').on('click', function () {
-                if (!emailToDelete) return;
+                if (!emailToDeleteEncoded) return;
                 overlay.style.display = 'flex';
-                fetch(`/pending-onboarding/${emailToDelete}`, { method: 'DELETE' })
+                fetch(`/pending-onboarding/${emailToDeleteEncoded}`, { method: 'DELETE' })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
@@ -286,3 +287,4 @@
 </body>
 
 </html>
+emailToDeleteEncoded = null;

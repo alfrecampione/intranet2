@@ -13,7 +13,10 @@ import { getSignedS3Url } from "../config/s3Config.js";
  */
 async function loadAgents(agentsIds) {
     const agents = await prisma.user.findMany({
-        where: { user_id: { in: agentsIds } },
+        where: {
+            user_id: { in: agentsIds },
+            registrationCompleted: true // render only users who finished onboarding
+        },
         include: {
             personalInfo: true,
             contactInfo: true,
@@ -115,16 +118,16 @@ async function handleAgencySummaryFilter(requester) {
  * Handles carrier & state filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} state - State filter value
- * @param {string} carrier - Carrier name filter value
+ * @param {string} carrierId - Carrier id filter value
  * @returns {Array} Filtered agents
  */
-function handleCarrierStateFilter(processedAgents, state, carrier) {
+function handleCarrierStateFilter(processedAgents, state, carrierId) {
     // Match agents that have at least one state/carrier record with both values
-    // Note: sc.company is now an ID, so we need to compare against carrier name via the relation
+    // sc.company stores the carrier id; fallback to relation id just in case
     return processedAgents.filter(agent =>
         Array.isArray(agent.statesAndCarriers) &&
         agent.statesAndCarriers.some(sc =>
-            sc.state === state && sc.carrier?.name === carrier
+            sc.state === state && (sc.company === carrierId || sc.carrier?.id === carrierId)
         )
     );
 }
@@ -147,6 +150,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 personalInfo: {
                     franchise: filterValue
                 },
+                registrationCompleted: true
             }
         });
         const topAgencyIds = topAgents.filter(agent => agent.agency != null).map(agent => agent.agency);
@@ -165,6 +169,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 personalInfo: {
                     agency: { in: allAgencyIds }
                 },
+                registrationCompleted: true
             }
         });
 
@@ -216,6 +221,7 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 personalInfo: {
                     agency: { in: allAgencyIds }
                 },
+                registrationCompleted: true
             }
         });
         const allAgents = agentsInAgencies;
@@ -226,7 +232,10 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
         });
         if (owner) {
             const ownerAgent = await prisma.user.findUnique({
-                where: { user_id: owner.owner },
+                where: {
+                    user_id: owner.owner,
+                    registrationCompleted: true
+                },
                 include: {
                     personalInfo: true,
                     contactInfo: true,
@@ -298,7 +307,7 @@ function handleGenericFilter(processedAgents, filterType, filterValue) {
     if (filterType === 'carrier') {
         return processedAgents.filter(agent =>
             Array.isArray(agent.statesAndCarriers) &&
-            agent.statesAndCarriers.some(sc => sc.carrier?.name === filterValue)
+            agent.statesAndCarriers.some(sc => sc.company === filterValue || sc.carrier?.id === filterValue)
         );
     }
     // Primitive top-level agent fields
@@ -313,8 +322,10 @@ async function getStatesAndCarriers() {
     const uniqueStates = new Set(states);
     const sortedStates = Array.from(uniqueStates).sort();
 
-    // Extract unique carriers
-    const carriers = statesAndCarriers.map(item => item.name).sort();
+    // Extract carriers with id and name
+    const carriers = statesAndCarriers
+        .map(item => ({ id: item.id, name: item.name || '' }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     return { states: sortedStates, carriers };
 };

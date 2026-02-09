@@ -187,9 +187,10 @@
                 if (!dataKey || !filtersData[dataKey]) return;
 
                 filtersData[dataKey].forEach(value => {
+                    const isObj = value && typeof value === 'object';
                     const opt = document.createElement('option');
-                    opt.value = value;
-                    opt.textContent = value;
+                    opt.value = isObj ? (value.id ?? '') : value;
+                    opt.textContent = isObj ? (value.name ?? value.id ?? '') : value;
                     filterValueSelect.appendChild(opt);
                 });
 
@@ -340,9 +341,10 @@
 
                     filterSubValue.innerHTML = '<option value="">Select Carrier</option>';
                     filtersData['carrier'].forEach(carrier => {
+                        const isObj = carrier && typeof carrier === 'object';
                         const opt = document.createElement('option');
-                        opt.value = carrier;
-                        opt.textContent = carrier;
+                        opt.value = isObj ? (carrier.id ?? '') : carrier;
+                        opt.textContent = isObj ? (carrier.name ?? carrier.id ?? '') : carrier;
                         filterSubValue.appendChild(opt);
                     });
                     filterSubValue.style.display = 'block';
