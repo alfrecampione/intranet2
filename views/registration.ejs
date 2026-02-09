@@ -431,6 +431,10 @@
                               return formatted;
                             }
 
+                            function phoneDigits(val) {
+                              return (val || '').replace(/\D/g, '').slice(0, 10);
+                            }
+
                             // On load, format the value if present
                             phoneInput.value = formatPhoneDisplay(phoneInput.value);
 
@@ -440,7 +444,7 @@
 
                             // On form submit, strip formatting so only digits are sent
                             document.getElementById('multiStepsForm').addEventListener('submit', function (e) {
-                              phoneInput.value = phoneInput.value.replace(/\D/g, "");
+                              phoneInput.value = phoneDigits(phoneInput.value);
                             });
                           </script>
 
@@ -1192,7 +1196,8 @@
 
     async function saveContactInfo() {
       const personalEmail = document.getElementById("personalEmail")?.value || "";
-      const personalPhone = document.getElementById("personalPhone")?.value || "";
+      const personalPhone = phoneDigits(document.getElementById("personalPhone")?.value || "");
+      document.getElementById("personalPhone").value = formatPhoneDisplay(personalPhone);
       const addressLine1 = document.getElementById("addressLine1")?.value || "";
       const addressLine2 = document.getElementById("addressLine2")?.value || "";
       const city = document.getElementById("city")?.value || "";

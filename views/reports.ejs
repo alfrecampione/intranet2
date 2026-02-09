@@ -88,7 +88,7 @@
                                                 <option value="agency">Agency</option>
                                             </select>
 
-                                            <select id="filter-value" class="form-select" style="width: 200px;"
+                                            <select id="filter-value" class="form-select" style="width: 240px;"
                                                 disabled>
                                                 <option value="">Select Value</option>
                                             </select>
@@ -97,6 +97,9 @@
                                                 <option value="">Select Other Value</option>
                                             </select>
 
+                                            <button id="apply-filter-btn" class="btn btn-primary" type="button">
+                                                <i class="ti ti-search"></i>
+                                            </button>
                                             <button id="export-button" class="btn btn-success">Export to Excel</button>
                                         </div>
                                     </div>
@@ -175,11 +178,20 @@
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
             const filterSubValue = document.getElementById('filter-sub-value');
+            const applyFilterBtn = document.getElementById('apply-filter-btn');
             const resultsCount = document.getElementById('results-count');
             const resultsTable = document.getElementById('results-table');
 
             let dataTable;
             const pageLength = 10;
+
+            function formatPhone(val) {
+                const digits = (val || '').replace(/\D/g, '').slice(0, 10);
+                if (digits.length === 10) {
+                    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+                }
+                return digits || val || '';
+            }
 
             // Populate filterValue dropdown
             function populateFilterValues(type, dataKey) {
@@ -230,13 +242,21 @@
             // Fetch filtered data from server
             async function fetchFilteredData() {
                 const filterType = filterTypeSelect.value;
-                const filterValue = filterValueSelect.value;
-                const filterSubValueVal = filterSubValue.value;
-
                 const params = new URLSearchParams();
+
                 if (filterType) params.append("filterType", filterType);
-                if (filterValue) params.append("filterValue", filterValue);
-                if (filterSubValueVal) params.append("filterSubValue", filterSubValueVal);
+
+                if (filterType === 'agency') {
+                    const selectedLocations = Array.from(filterValueSelect.selectedOptions || [])
+                        .map(opt => opt.value)
+                        .filter(Boolean);
+                    selectedLocations.forEach(loc => params.append("filterValue", loc));
+                } else {
+                    const filterValue = filterValueSelect.value;
+                    const filterSubValueVal = filterSubValue.value;
+                    if (filterValue) params.append("filterValue", filterValue);
+                    if (filterSubValueVal) params.append("filterSubValue", filterSubValueVal);
+                }
 
                 const response = await fetch(`/users/reports/filter?${params.toString()}`);
                 const result = await response.json();
@@ -247,10 +267,13 @@
                 const { data, total, summary } = await fetchFilteredData();
 
                 const filterType = filterTypeSelect.value;
-                const filterValue = filterValueSelect.value;
+                const selectedLocations = Array.from(filterValueSelect.selectedOptions || [])
+                    .map(opt => opt.value)
+                    .filter(Boolean);
                 const filterSubValueVal = filterSubValue.value;
 
-                const isAgencySummaryView = (filterType === 'agency' && !filterValue && !filterSubValueVal);
+                const isAgencySummaryView = (filterType === 'agency' && selectedLocations.length === 0);
+                const isAgencyListView = (filterType === 'agency' && selectedLocations.length > 0);
 
                 resultsCount.textContent = `Results found: ${total}`;
 
@@ -301,11 +324,25 @@
                         title: "Email",
                         data: "email",
                         render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
-                    }, {
+                    }];
+
+                    if (isAgencyListView) {
+                        columns.splice(2, 0, {
+                            title: "Agency",
+                            data: "agencyName",
+                            render: data => data || ''
+                        });
+                    }
+
+                    columns.push({
                         title: "Number",
                         data: "number",
-                        render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
-                    }];
+                        render: data => {
+                            const digits = (data || '').replace(/\D/g, '');
+                            const formatted = formatPhone(digits);
+                            return digits ? `<a href="tel:${digits}">${formatted}</a>` : '';
+                        }
+                    });
                 }
 
                 // Destroy the old table (if it exists) because columns are changing
@@ -329,6 +366,10 @@
             filterTypeSelect.addEventListener('change', () => {
                 const type = filterTypeSelect.value;
 
+                // Reset multiselect when switching types
+                filterValueSelect.multiple = false;
+                filterValueSelect.size = 1;
+
                 if (type === 'carrier & state') {
                     filterValueSelect.innerHTML = '<option value="">Select State</option>';
                     filtersData['state'].forEach(state => {
@@ -350,8 +391,10 @@
                     filterSubValue.style.display = 'block';
 
                 } else if (type === 'agency') {
-                    // Populate franchises first
-                    filterValueSelect.innerHTML = '<option value="">Select Location</option>';
+                    // Populate locations as a multiselect
+                    filterValueSelect.innerHTML = '';
+                    filterValueSelect.multiple = true;
+                    filterValueSelect.size = 6;
                     if (filtersData['franchise']) {
                         filtersData['franchise'].forEach(franchise => {
                             const opt = document.createElement('option');
@@ -362,7 +405,7 @@
                     }
                     filterValueSelect.disabled = false;
 
-                    // Initially hide agency dropdown until a franchise is selected
+                    // Agencies are no longer used for this filter
                     filterSubValue.innerHTML = '<option value="">Select Agency</option>';
                     filterSubValue.style.display = 'none';
 
@@ -375,18 +418,26 @@
                     filterSubValue.style.display = 'none';
                 }
 
-                applyFilterAndRender();
+                // For agency we wait for the search button; others fetch immediately
+                if (type !== 'agency') {
+                    applyFilterAndRender();
+                }
             });
 
             // When franchise (filterValue) changes, update agencies
             filterValueSelect.addEventListener('change', () => {
-                if (filterTypeSelect.value === 'agency') {
-                    populateAgenciesUnderFranchise(filterValueSelect.value);
+                if (filterTypeSelect.value !== 'agency') {
+                    applyFilterAndRender();
                 }
-                applyFilterAndRender();
             });
 
-            filterSubValue.addEventListener('change', applyFilterAndRender);
+            filterSubValue.addEventListener('change', () => {
+                if (filterTypeSelect.value !== 'agency') {
+                    applyFilterAndRender();
+                }
+            });
+
+            applyFilterBtn.addEventListener('click', applyFilterAndRender);
 
             // Initial render
             applyFilterAndRender();

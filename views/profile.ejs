@@ -819,11 +819,15 @@
       }
 
       function formatPhone(number) {
-        const digits = (number || "").replace(/\D/g, "");
+        const digits = (number || "").replace(/\D/g, "").slice(0, 10);
         if (digits.length === 10) {
           return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
         }
-        return number || "None";
+        return digits || number || "None";
+      }
+
+      function phoneDigits(number) {
+        return (number || "").replace(/\D/g, "").slice(0, 10);
       }
 
       function formatSSN(value) {
@@ -1124,7 +1128,7 @@
                 input.type = 'tel';
                 input.className = 'form-control form-control-sm';
                 input.value = formatPhone(currentValue);
-                input.dataset.original = input.value;
+                input.dataset.original = phoneDigits(currentValue);
                 input.maxLength = 14;
 
                 input.addEventListener('input', function () {
@@ -1252,6 +1256,14 @@
                   newValue = input.dataset.original;
                 }
               }
+              else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
+                const digits = phoneDigits(newValue);
+                newValue = digits || null;
+
+                if (newValue !== originalValue) {
+                  updatedValues[fieldName] = newValue;
+                }
+              }
               else {
                 if (newValue !== originalValue) {
                   updatedValues[fieldName] = newValue;
@@ -1366,7 +1378,7 @@
         }
 
         // Phones
-        else if ((fieldName === "phoneNumber" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
+        else if ((fieldName === "personalPhone" || fieldName === "secondaryPhone") && sectionKey === "contactInfo") {
           contentSpan.textContent = formatPhone(value);
         }
         // SSN
