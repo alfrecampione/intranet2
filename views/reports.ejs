@@ -259,7 +259,10 @@
 
                 if (filterType === 'agency') {
                     // Use select2 value to avoid mismatch with DOM selectedOptions
-                    const selectedLocations = ($(filterValueSelect).val() || []).filter(Boolean);
+                    const rawSelection = $(filterValueSelect).val();
+                    const selectedLocations = Array.isArray(rawSelection)
+                        ? rawSelection.filter(Boolean)
+                        : rawSelection ? [rawSelection] : [];
                     selectedLocations.forEach(loc => params.append("filterValue", loc));
                 } else {
                     const filterValue = filterValueSelect.value;
@@ -277,7 +280,10 @@
                 const { data, total, summary } = await fetchFilteredData();
 
                 const filterType = filterTypeSelect.value;
-                const selectedLocations = ($(filterValueSelect).val() || []).filter(Boolean);
+                const rawSelection = $(filterValueSelect).val();
+                const selectedLocations = Array.isArray(rawSelection)
+                    ? rawSelection.filter(Boolean)
+                    : rawSelection ? [rawSelection] : [];
                 const filterSubValueVal = filterSubValue.value;
 
                 const isAgencySummaryView = (filterType === 'agency' && selectedLocations.length === 0);
