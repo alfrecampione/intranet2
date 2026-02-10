@@ -194,7 +194,7 @@
             const resultsTable = document.getElementById('results-table');
 
             let dataTable;
-            const pageLength = 10;
+            const pageLength = 25;
 
             function formatPhone(val) {
                 const digits = (val || '').replace(/\D/g, '').slice(0, 10);
@@ -371,7 +371,7 @@
                     columns,
                     responsive: true,
                     pageLength: pageLength,
-                    lengthMenu: [7, 10, 25, 50, 75, 100],
+                    lengthMenu: [25, 50, 75, 100],
                     autoWidth: false
                 });
             }
