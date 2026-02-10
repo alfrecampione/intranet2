@@ -458,17 +458,18 @@
                 applyFilterAndRender();
             });
 
-            // When franchise (filterValue) changes, update agencies
+            function isSelect2Active() {
+                return $(filterValueSelect).hasClass('select2-hidden-accessible');
+            }
+
             filterValueSelect.addEventListener('change', () => {
-                if (filterTypeSelect.value !== 'agency') {
-                    applyFilterAndRender();
-                }
+                if (isSelect2Active()) return;
+                applyFilterAndRender();
             });
 
             filterSubValue.addEventListener('change', () => {
-                if (filterTypeSelect.value !== 'agency') {
-                    applyFilterAndRender();
-                }
+                if (isSelect2Active()) return;
+                applyFilterAndRender();
             });
 
             applyFilterBtn.addEventListener('click', applyFilterAndRender);
