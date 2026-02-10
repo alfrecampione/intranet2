@@ -142,16 +142,13 @@ function handleCarrierStateFilter(processedAgents, state, carrierId) {
  * @param {string} filterSubValue - Secondary filter value (agency under franchise)
  * @returns {Promise<Array>} Filtered agents
  */
-async function handleAgencyFilter(locationIds) {
+async function handleAgencyFilter(locationIds, franchiseMap = new Map()) {
     const franchises = Array.isArray(locationIds) ? locationIds : [locationIds];
     const validFranchises = franchises.filter(Boolean);
 
     if (validFranchises.length === 0) {
-        console.log('reports: agency filter skipped — no franchise ids provided');
         return [];
     }
-
-    console.log('reports: agency filter start', { franchises: validFranchises });
 
     const collectedAgents = [];
 
@@ -193,16 +190,10 @@ async function handleAgencyFilter(locationIds) {
         });
 
         collectedAgents.push(...topAgents, ...agentsInAgencies);
-        console.log('reports: collected agents for franchise', {
-            franchiseId: franchiseId,
-            topAgents: topAgents.length,
-            agenciesFound: agentsInAgencies.length
-        });
     }
 
     // Remove duplicates by user_id
     const uniqueAgents = Array.from(new Map(collectedAgents.map(a => [a.user_id, a])).values());
-    console.log('reports: unique agents after dedupe', { count: uniqueAgents.length });
 
     // Map agency ids to names for quick lookup (normalize to avoid string/number mismatches)
     const agencyIds = uniqueAgents
@@ -219,22 +210,14 @@ async function handleAgencyFilter(locationIds) {
             select: { id: true, name: true }
         });
         agencies.forEach(a => agencyMap.set(String(a.id), a.name || ''));
-        console.log('reports: agency lookup', {
-            requestedIds: uniqueAgencyIds,
-            foundCount: agencies.length
-        });
     }
 
     return await Promise.all(uniqueAgents.map(async agent => {
         let photoPath = agent.personalInfo?.photoPath || '';
-        const agencyName = agencyMap.get(String(agent.personalInfo?.agency ?? '')) || '';
+        // Always display the franchise name in the agency column
+        let agencyName = franchiseMap.get(String(agent.personalInfo?.franchise ?? '')) || '';
 
-        if (!agencyName && agent.personalInfo?.agency) {
-            console.log('reports: missing agency name for agent', {
-                userId: agent.user_id,
-                agencyId: agent.personalInfo.agency
-            });
-        }
+        // No logging; agencyName uses franchise fallback
 
         // For Microsoft users, fetch photoPath from user_avatars table
         if (agent.email && agent.email.endsWith('@goldentrust.com')) {
@@ -491,16 +474,22 @@ const filterReport = async (req, res) => {
     }
 
     // Apply appropriate filter
-    if (filterType === 'agency' && filterValues.length === 0) {
-        const result = await handleAgencySummaryFilter(user);
-        return res.json(result);
+    if (filterType === 'agency') {
+        const franchiseAgencyCombination = await getFranchiseAgencyCombinations(user);
+        const franchiseMap = new Map(
+            franchiseAgencyCombination.map(item => [String(item.franchise.id), item.franchise.name || ''])
+        );
+
+        if (filterValues.length === 0) {
+            const result = await handleAgencySummaryFilter(user);
+            return res.json(result);
+        }
+
+        processedAgents = await handleAgencyFilter(filterValues, franchiseMap);
     }
     else if (filterType === 'carrier & state' && singleFilterValue) {
         // If carrier is empty, fallback to state-only filter
         processedAgents = handleCarrierStateFilter(processedAgents, singleFilterValue, filterSubValue || null);
-    }
-    else if (filterType === 'agency' && filterValues.length > 0) {
-        processedAgents = await handleAgencyFilter(filterValues);
     }
     else if (filterType && singleFilterValue) {
         processedAgents = handleGenericFilter(processedAgents, filterType, singleFilterValue);
