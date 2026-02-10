@@ -147,8 +147,11 @@ async function handleAgencyFilter(locationIds) {
     const validFranchises = franchises.filter(Boolean);
 
     if (validFranchises.length === 0) {
+        console.log('reports: agency filter skipped — no franchise ids provided');
         return [];
     }
+
+    console.log('reports: agency filter start', { franchises: validFranchises });
 
     const collectedAgents = [];
 
@@ -190,10 +193,16 @@ async function handleAgencyFilter(locationIds) {
         });
 
         collectedAgents.push(...topAgents, ...agentsInAgencies);
+        console.log('reports: collected agents for franchise', {
+            franchiseId: franchiseId,
+            topAgents: topAgents.length,
+            agenciesFound: agentsInAgencies.length
+        });
     }
 
     // Remove duplicates by user_id
     const uniqueAgents = Array.from(new Map(collectedAgents.map(a => [a.user_id, a])).values());
+    console.log('reports: unique agents after dedupe', { count: uniqueAgents.length });
 
     // Map agency ids to names for quick lookup (normalize to avoid string/number mismatches)
     const agencyIds = uniqueAgents
@@ -210,11 +219,22 @@ async function handleAgencyFilter(locationIds) {
             select: { id: true, name: true }
         });
         agencies.forEach(a => agencyMap.set(String(a.id), a.name || ''));
+        console.log('reports: agency lookup', {
+            requestedIds: uniqueAgencyIds,
+            foundCount: agencies.length
+        });
     }
 
     return await Promise.all(uniqueAgents.map(async agent => {
         let photoPath = agent.personalInfo?.photoPath || '';
         const agencyName = agencyMap.get(String(agent.personalInfo?.agency ?? '')) || '';
+
+        if (!agencyName && agent.personalInfo?.agency) {
+            console.log('reports: missing agency name for agent', {
+                userId: agent.user_id,
+                agencyId: agent.personalInfo.agency
+            });
+        }
 
         // For Microsoft users, fetch photoPath from user_avatars table
         if (agent.email && agent.email.endsWith('@goldentrust.com')) {
