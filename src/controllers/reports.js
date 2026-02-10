@@ -199,8 +199,8 @@ async function handleAgencyFilter(locationIds) {
     const agencyIds = uniqueAgents
         .map(agent => agent.personalInfo?.agency)
         .filter(id => id !== null && id !== undefined)
-        .map(id => Number(id))
-        .filter(Number.isFinite);
+        .map(id => String(id).trim())
+        .filter(Boolean);
 
     const agencyMap = new Map();
     if (agencyIds.length > 0) {
