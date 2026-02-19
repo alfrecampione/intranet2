@@ -69,8 +69,8 @@ const renderProfile = async (req, res) => {
     carriers.forEach(carrier => {
         const externalId = carrier.carrier?.externalId;
         console.log(`Processing carrier with external ID ${externalId}:`, carrier);
-        carrier.carrier.carrierName = externalId ? carrierCompanyNamesMap.get(externalId)?.name ?? '(unknown)' : '(unknown)';
-        console.log(`Mapped to: ${carrier}`);
+        carrier.carrier.name = externalId ? carrierCompanyNamesMap.get(externalId)?.name ?? '(unknown)' : '(unknown)';
+        console.log(`Mapped to:`, carrier);
     });
 
     const allCompanies = await getAllCompanies();
