@@ -63,6 +63,13 @@ const renderProfile = async (req, res) => {
         orderBy: { state: 'asc' },
     });
 
+    const externalIds = carriers.map(carrier => carrier.carrier?.externalId).filter(Boolean);
+    const carrierCompanyNamesMap = await getCompanyNamesMap(externalIds);
+    carriers.forEach(carrier => {
+        const externalId = carrier.carrier?.externalId;
+        carrier.carrierName = externalId ? carrierCompanyNamesMap.get(externalId)?.name ?? '(unknown)' : '(unknown)';
+    });
+
     const allCompanies = await getAllCompanies();
 
     const allAgencies = await getAgencies();
