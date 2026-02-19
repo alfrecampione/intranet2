@@ -464,19 +464,23 @@ function getMSARealId(userId) {
 /**
  * Get company names from qq.contacts by their external IDs
  * @param {Array<number>} externalIds - Array of external IDs to fetch
- * @returns {Promise<Map<number, string>>} Map of externalId to company name
+ * @returns {Promise<Map<number, {name: string, phone: string}>>} Map of externalId to company name and phone
  */
 async function getCompanyNamesMap(externalIds) {
     const companyNamesMap = new Map();
     if (externalIds.length > 0) {
         const uniqueExternalIds = [...new Set(externalIds)];
-        const qqCompanies = await prisma.$queryRaw`
-            SELECT entity_id, display_name
+        const availableCompanies = await prisma.$queryRaw`
+            SELECT entity_id, display_name, phone
             FROM qq.contacts
             WHERE entity_id = ANY(${uniqueExternalIds}::int[])
         `;
-        qqCompanies.forEach(c => {
-            companyNamesMap.set(c.entity_id, c.display_name);
+
+        externalIds.forEach(id => {
+            const company = availableCompanies.find(c => c.entity_id === id);
+            if (company) {
+                companyNamesMap.set(id, { name: company.display_name, phone: company.phone });
+            }
         });
     }
     return companyNamesMap;

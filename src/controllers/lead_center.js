@@ -110,14 +110,16 @@ const renderNewLead = async (req, res) => {
     const companies = [];
 
     for (const hc of healthCompanies) {
-        if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+        if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+            const extComp = externalCompaniesMap.get(hc.externalId);
             let iconPath = hc.iconPath || null;
             if (iconPath) {
                 iconPath = await getSignedS3Url(iconPath);
             }
             companies.push({
                 id: hc.id,
-                name: qqNamesMap.get(hc.externalId),
+                name: extComp.name,
+                phone: extComp.phone || '',
                 iconPath: iconPath
             });
         }
@@ -147,20 +149,22 @@ const loadLead = async (req, res) => {
             .filter(hc => hc.externalId)
             .map(hc => hc.externalId);
 
-        const qqNamesMap = await getCompanyNamesMap(externalIds);
+        const externalCompaniesMap = await getCompanyNamesMap(externalIds);
 
         // Combine both sources
         const companies = [];
 
         for (const hc of healthCompanies) {
-            if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+            if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+                const extComp = externalCompaniesMap.get(hc.externalId);
                 let iconPath = hc.iconPath || null;
                 if (iconPath) {
                     iconPath = await getSignedS3Url(iconPath);
                 }
                 companies.push({
                     id: hc.id,
-                    name: qqNamesMap.get(hc.externalId),
+                    name: extComp.name,
+                    phone: extComp.phone || '',
                     iconPath: iconPath
                 });
             }

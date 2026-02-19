@@ -1,10 +1,10 @@
-import { get } from "https";
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 import bcrypt from "bcrypt";
 import { encryptWithSecret } from "./crypto.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 
 
@@ -528,9 +528,12 @@ const massiveCreateAgents = async (req, res) => {
       });
 
       // Fetch all companies once to map names to IDs
-      const companies = await prisma.company.findMany({
-        select: { id: true, name: true }
+      const companiesId = await prisma.company.findMany({
+        select: { id: true }
       });
+
+      const companies = await getCompanyNamesMap(companiesId.map(c => c.id));
+
       const companyNameToId = new Map(companies.map(c => [c.name, c.id]));
 
       for (const field of carrierFields) {

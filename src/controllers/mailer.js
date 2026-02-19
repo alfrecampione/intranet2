@@ -3,10 +3,7 @@ import dotenv from "dotenv";
 import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
-import { createMessage } from "../config/utils.js";
 import { getEmailsToAlert } from "./config.js";
-import { get } from "https";
-import { on } from "events";
 
 dotenv.config();
 

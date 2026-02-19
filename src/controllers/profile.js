@@ -3,6 +3,7 @@ import { prismaContext } from "../config/prismaContext.js";
 import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -280,9 +281,12 @@ async function createActivityEntry(log) {
         if (companyId) {
             const company = await prisma.company.findUnique({
                 where: { id: companyId },
-                select: { name: true }
+                select: { externalId: true }
             });
-            companyName = company?.name ?? '(unknown)';
+            if (company?.externalId) {
+                const companyNamesMap = await getCompanyNamesMap([company.externalId]);
+                companyName = companyNamesMap.get(company.externalId)?.name ?? '(unknown)';
+            }
         }
 
         if (isUpdate) {
@@ -299,9 +303,12 @@ async function createActivityEntry(log) {
             if (oldCompanyId) {
                 const oldCompany = await prisma.company.findUnique({
                     where: { id: oldCompanyId },
-                    select: { name: true }
+                    select: { externalId: true }
                 });
-                oldCompanyName = oldCompany?.name ?? '(unknown)';
+                if (oldCompany?.externalId) {
+                    const oldCompanyNamesMap = await getCompanyNamesMap([oldCompany.externalId]);
+                    oldCompanyName = oldCompanyNamesMap.get(oldCompany.externalId)?.name ?? '(unknown)';
+                }
             }
             const isReleaseLog = deletedStatus === 'release';
             const isDeleteLog = deletedStatus === 'delete';

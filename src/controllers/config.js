@@ -280,13 +280,15 @@ const renderConfigCommisions = async (req, res) => {
     .filter(hc => hc.externalId)
     .map(hc => hc.externalId);
 
-  const qqNamesMap = await getCompanyNamesMap(externalIds);
+  // Get external company data (name, phone) as a Map
+  const externalCompaniesMap = await getCompanyNamesMap(externalIds);
 
   // Create a map of company names (health.id -> name)
   const companyNameMap = new Map();
   for (const hc of healthCompanies) {
-    if (hc.externalId && qqNamesMap.has(hc.externalId)) {
-      companyNameMap.set(hc.id, qqNamesMap.get(hc.externalId));
+    if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+      const extComp = externalCompaniesMap.get(hc.externalId);
+      companyNameMap.set(hc.id, extComp.name);
     }
   }
 
