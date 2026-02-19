@@ -295,7 +295,8 @@ const renderConfigCommisions = async (req, res) => {
   // Format companies for the view
   const companies = Array.from(companyNameMap.entries()).map(([id, name]) => ({
     id,
-    name
+    name,
+    States: healthCompanies.find(hc => hc.id === id)?.States || []
   })).sort((a, b) => a.name.localeCompare(b.name));
 
   const commisionsRaw = await prisma.commisions.findMany({
