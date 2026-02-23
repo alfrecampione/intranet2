@@ -164,6 +164,13 @@
       const bsToast = new bootstrap.Toast(toast);
       bsToast.show();
     }
+
+    // Mostrar error si viene del backend
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof error !== 'undefined' && error && error !== 'None' && error !== '') {
+        showToast('Error', error.replace(/'/g, "&#39;").replace(/"/g, "&quot;"));
+      }
+    });
   </script>
 
   <script>
