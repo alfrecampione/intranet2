@@ -204,7 +204,8 @@ const validateEmail = async (req, res, next) => {
       const email = await decryptEmailDirect(encryptedEmail);
 
       if (!email) {
-        return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+        res.render("login", { error: "Invalid encrypted email" });
+        return;
       }
       await deleteEncryptedEmail(encryptedEmail);
 
@@ -213,10 +214,8 @@ const validateEmail = async (req, res, next) => {
       });
 
       if (!existingUser || existingUser.email !== email) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email or confirmation code"
-        });
+        res.render("login", { error: "Invalid confirmation code" });
+        return;
       }
 
       await prisma.user.update({

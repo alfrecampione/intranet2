@@ -40,11 +40,6 @@ try {
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
-
-
-
-
-
 prisma.$use(async (params, next) => {
   const skipModels = ['Logs', 'Notificacion'];
   if (skipModels.includes(params.model)) return next(params);
