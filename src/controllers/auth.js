@@ -20,13 +20,15 @@ const signUp = async (req, res) => {
     const email = await decryptEmailDirect(encrypted_email);
 
     if (!email) {
-      return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+      res.render("login", { error: "Invalid encrypted email" });
+      return;
     }
 
     res.render("signUp", { email: email, encrypted_email: encrypted_email });
   } catch (error) {
     console.error("signUp function error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    res.render("login", { error: "Server error" });
+    return;
   }
 };
 
