@@ -147,6 +147,7 @@ import {
   createDocuments,
   getDocumentsById,
   getStateCarriers,
+  initializeUserStepRecords,
   saveStatesCarriers,
 } from "./controllers/steps.js";
 
@@ -177,6 +178,7 @@ router.get(
 
 router.post("/steps/documents", checkNotAuthenticated, createDocuments);
 router.get("/steps/documents/:id", checkNotAuthenticated, getDocumentsById);
+router.post("/steps/initialize/:id", checkNotAuthenticated, initializeUserStepRecords);
 
 router.get("/steps/states-carriers", checkNotAuthenticated, getStateCarriers);
 router.post("/steps/states-carriers", checkNotAuthenticated, saveStatesCarriers);

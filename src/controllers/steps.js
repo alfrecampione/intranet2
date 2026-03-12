@@ -3,6 +3,7 @@ import { prismaContext } from "../config/prismaContext.js";
 import { processS3Urls } from "../config/s3Config.js";
 import { asyncHandler } from "../config/errorHandler.js";
 import { encryptWithSecret, decryptWithSecret } from "./crypto.js";
+import { ensureDefaultUserRecords } from "../config/utils.js";
 
 // Step 1: Personal Info
 export const createPersonalInfo = asyncHandler(async (req, res) => {
@@ -213,6 +214,32 @@ export const getStateCarriers = asyncHandler(async (req, res) => {
     orderBy: { state: "asc" },
   });
   res.json(statesCarriers);
+});
+
+export const initializeUserStepRecords = asyncHandler(async (req, res) => {
+  const targetUserId = req.params.id || req.body.userId;
+
+  if (!targetUserId) {
+    return res.status(400).json({ success: false, message: "userId is required" });
+  }
+
+  const canManageOwnUser = req.user?.user_id === targetUserId;
+  const canManageOthers = req.user?.rights?.includes(2);
+
+  if (!canManageOwnUser && !canManageOthers) {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+
+  const result = await prismaContext.run(
+    { userId: req.user.user_id, affectedUserIds: [targetUserId] },
+    async () => ensureDefaultUserRecords(targetUserId)
+  );
+
+  return res.status(201).json({
+    success: true,
+    message: "Default user records ensured successfully",
+    ...result,
+  });
 });
 
 // Step 5: Save States and Carriers Selection

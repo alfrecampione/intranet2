@@ -537,4 +537,102 @@ async function getAllCompanies() {
     return companies;
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName };
+async function ensureDefaultUserRecords(userId, options = {}) {
+    if (!userId) {
+        const error = new Error("userId is required");
+        error.status = 400;
+        throw error;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { user_id: true, email: true },
+    });
+
+    if (!user) {
+        const error = new Error("User not found");
+        error.status = 404;
+        throw error;
+    }
+
+    const includeEmailRecords = options.includeEmailRecords ?? true;
+    const email = options.email ?? user.email ?? null;
+
+    const [personalInfo, contactInfo, paymentMethod, documents, recommendation, necesaryDocs] = await Promise.all([
+        prisma.personalInfo.findUnique({ where: { userId } }),
+        prisma.contactInfo.findUnique({ where: { userId } }),
+        prisma.paymentMethod.findUnique({ where: { userId } }),
+        prisma.documents.findUnique({ where: { userId } }),
+        prisma.recommendation.findUnique({ where: { userId } }),
+        includeEmailRecords && email
+            ? prisma.necesaryDocuments.findUnique({ where: { email } })
+            : Promise.resolve(null),
+    ]);
+
+    const operations = [];
+    const created = [];
+    const existing = [];
+    const skipped = [];
+
+    if (!personalInfo) {
+        operations.push(prisma.personalInfo.create({ data: { userId } }));
+        created.push("personalInfo");
+    } else {
+        existing.push("personalInfo");
+    }
+
+    if (!contactInfo) {
+        operations.push(prisma.contactInfo.create({ data: { userId } }));
+        created.push("contactInfo");
+    } else {
+        existing.push("contactInfo");
+    }
+
+    if (!paymentMethod) {
+        operations.push(prisma.paymentMethod.create({ data: { userId } }));
+        created.push("paymentMethod");
+    } else {
+        existing.push("paymentMethod");
+    }
+
+    if (!documents) {
+        operations.push(prisma.documents.create({ data: { userId } }));
+        created.push("documents");
+    } else {
+        existing.push("documents");
+    }
+
+    if (!recommendation) {
+        operations.push(prisma.recommendation.create({ data: { userId } }));
+        created.push("recommendation");
+    } else {
+        existing.push("recommendation");
+    }
+
+    if (includeEmailRecords) {
+        if (email) {
+            if (!necesaryDocs) {
+                operations.push(prisma.necesaryDocuments.create({ data: { email } }));
+                created.push("necesaryDocuments");
+            } else {
+                existing.push("necesaryDocuments");
+            }
+        } else {
+            skipped.push("necesaryDocuments");
+        }
+    }
+
+    if (operations.length > 0) {
+        await prisma.$transaction(operations);
+    }
+
+    return {
+        userId,
+        email,
+        created,
+        existing,
+        skipped,
+    };
+}
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords };
