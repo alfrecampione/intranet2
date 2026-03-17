@@ -877,18 +877,27 @@
         let editing = false;
 
         editIcon.addEventListener('click', async () => {
+          const sectionRows = list.querySelectorAll(`li[data-section="${sectionKey}"]`);
           const sectionItems = list.querySelectorAll(`li[data-section="${sectionKey}"] span[data-value]`);
 
           if (!editing) {
+            if (sectionKey === 'documents') {
+              sectionRows.forEach(row => row.classList.remove('d-none'));
+            }
+
             for (const span of sectionItems) {
               const li = span.closest('li');
               const fieldName = li.dataset.field;
               let currentValue;
-              const sensitiveSpan = span.querySelector?.('span[data-full]');
-              if (sensitiveSpan) {
-                currentValue = sensitiveSpan.dataset.full || '';
+              if (sectionKey === 'documents') {
+                currentValue = li.dataset.rawValue || '';
               } else {
-                currentValue = span.textContent;
+                const sensitiveSpan = span.querySelector?.('span[data-full]');
+                if (sensitiveSpan) {
+                  currentValue = sensitiveSpan.dataset.full || '';
+                } else {
+                  currentValue = span.textContent;
+                }
               }
 
               let input;
@@ -1176,6 +1185,7 @@
             const updatedValues = {};
 
             for (const input of inputs) {
+              const li = input.closest('li');
               let fieldName = input.closest('li').dataset.field;
               const originalValue = input.dataset.original;
 
@@ -1273,6 +1283,7 @@
 
               const span = document.createElement('span');
               span.dataset.value = 'true';
+              li.dataset.rawValue = newValue || '';
 
               if (fieldName === 'ssn') {
                 const sensitiveSpan = document.createElement("span");
@@ -1308,6 +1319,21 @@
 
               } else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
                 span.textContent = formatPhone(newValue);
+
+              } else if (sectionKey === 'documents') {
+                if (newValue) {
+                  const fullUrl = getDocumentUrl(newValue);
+                  const link = document.createElement('a');
+                  link.href = fullUrl;
+                  link.textContent = 'View Document';
+                  link.target = '_blank';
+                  link.rel = 'noopener noreferrer';
+                  span.appendChild(link);
+                  li.classList.remove('d-none');
+                } else {
+                  span.textContent = 'None';
+                  li.classList.add('d-none');
+                }
 
               } else {
                 span.textContent = newValue || 'None';
@@ -1351,6 +1377,7 @@
         li.dataset.section = sectionKey;
         li.dataset.label = label;
         li.dataset.field = fieldName;
+        li.dataset.rawValue = value || '';
 
         const wrapper = document.createElement('div');
         wrapper.className = 'd-flex align-items-center';
@@ -1450,7 +1477,7 @@
         list.appendChild(li);
       }
 
-      const { personalInfo, contactInfo, paymentMethod, documents, necesaryDocs } = data;
+      const { personalInfo, contactInfo, paymentMethod, documents } = data;
 
       // Personal Info
       let sectionKey = 'personalInfo';
@@ -1519,15 +1546,8 @@
       sectionKey = 'documents';
       addSectionHeader('Documents', sectionKey);
       documentFields.forEach(({ key, label }) => {
-        const isRequired = necesaryDocs?.[key];
-        if (isRequired) {
-          const filePath = documents?.[key];
-          if (filePath) {
-            addListItem(label, filePath, key, true, false, sectionKey);
-          } else {
-            addListItem(label, 'Missing', key, false, false, sectionKey);
-          }
-        }
+        const filePath = documents?.[key];
+        addListItem(label, filePath, key, Boolean(filePath), false, sectionKey, !filePath);
       });
     }); // End of DOMContentLoaded
   </script>
