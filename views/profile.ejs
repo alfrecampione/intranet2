@@ -889,6 +889,7 @@
               const li = span.closest('li');
               const fieldName = li.dataset.field;
               let currentValue;
+              let replacementNode;
               if (sectionKey === 'documents') {
                 currentValue = li.dataset.rawValue || '';
               } else {
@@ -1042,6 +1043,47 @@
                 input.type = 'file';
                 input.className = 'form-control form-control-sm';
                 input.dataset.original = currentValue || '';
+
+                const fileEditor = document.createElement('div');
+                fileEditor.dataset.documentEditor = 'true';
+
+                const fileHint = document.createElement('div');
+                fileHint.className = 'form-text';
+
+                const renderFileHint = (selectedFile = null) => {
+                  fileHint.innerHTML = '';
+
+                  if (selectedFile) {
+                    fileHint.textContent = `New file selected: ${selectedFile}`;
+                    return;
+                  }
+
+                  if (currentValue) {
+                    const text = document.createElement('span');
+                    text.textContent = 'Current document loaded. ';
+
+                    const link = document.createElement('a');
+                    link.href = getDocumentUrl(currentValue);
+                    link.textContent = 'Open current file';
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+
+                    fileHint.appendChild(text);
+                    fileHint.appendChild(link);
+                    return;
+                  }
+
+                  fileHint.textContent = 'No document uploaded yet.';
+                };
+
+                input.addEventListener('change', () => {
+                  renderFileHint(input.files[0]?.name || null);
+                });
+
+                renderFileHint();
+                fileEditor.appendChild(input);
+                fileEditor.appendChild(fileHint);
+                replacementNode = fileEditor;
               }
 
               // Sex
@@ -1174,7 +1216,7 @@
                 input.className = 'form-control form-control-sm';
               }
 
-              span.replaceWith(input);
+              span.replaceWith(replacementNode || input);
             }
 
             editIcon.className = 'ti ti-device-floppy';
@@ -1339,7 +1381,8 @@
                 span.textContent = newValue || 'None';
               }
 
-              input.replaceWith(span);
+              const editorNode = input.closest('[data-document-editor="true"]') || input;
+              editorNode.replaceWith(span);
             }
 
             if (Object.keys(updatedValues).length > 0) {
