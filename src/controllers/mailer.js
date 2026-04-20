@@ -122,7 +122,11 @@ async function fetchWithRetry(url, options, { retries = 3, backoffMs = 800, time
       // AbortError or network errors: retry
       lastErr = err;
       attempt++;
-      if (attempt > retries) throw lastErr;
+      if (attempt > retries) {
+        console.error(`❌ fetchWithRetry failed after ${retries} retries:`, err.message);
+        throw lastErr;
+      }
+      console.log(`⚠️ Retry attempt ${attempt}/${retries} after error: ${err.message}`);
       await new Promise(r => setTimeout(r, backoffMs * attempt));
     }
   }
@@ -141,7 +145,7 @@ async function getAllMessages(userEmail, folderName = "Inbox") {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      });
+      }, { timeoutMs: 30000 }); // Increase timeout to 30 seconds for email fetching
 
       if (!response.ok) {
         throw new Error(`Graph API error: ${response.status}`);
