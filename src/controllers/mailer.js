@@ -122,7 +122,11 @@ async function fetchWithRetry(url, options, { retries = 3, backoffMs = 800, time
       // AbortError or network errors: retry
       lastErr = err;
       attempt++;
-      if (attempt > retries) throw lastErr;
+      if (attempt > retries) {
+        console.error(`❌ fetchWithRetry failed after ${retries} retries:`, err.message);
+        throw lastErr;
+      }
+      console.log(`⚠️ Retry attempt ${attempt}/${retries} after error: ${err.message}`);
       await new Promise(r => setTimeout(r, backoffMs * attempt));
     }
   }
