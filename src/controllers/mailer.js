@@ -145,7 +145,7 @@ async function getAllMessages(userEmail, folderName = "Inbox") {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      });
+      }, { timeoutMs: 30000 }); // Increase timeout to 30 seconds for email fetching
 
       if (!response.ok) {
         throw new Error(`Graph API error: ${response.status}`);
