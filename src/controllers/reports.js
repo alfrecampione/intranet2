@@ -254,6 +254,104 @@ async function handleAgencyFilter(locationIds, franchiseMap = new Map()) {
 }
 
 /**
+ * Handles agency filter by actual agency ID(s)
+ * @param {Array<string>} agencyIds - List of agency IDs to filter by
+ * @returns {Promise<Array>} Filtered agents with agencyName
+ */
+async function handleAgencyByIdFilter(agencyIds) {
+    const ids = Array.isArray(agencyIds) ? agencyIds : [agencyIds];
+    const validIds = ids.filter(Boolean);
+
+    if (validIds.length === 0) return [];
+
+    // Expand each selected agency to include all sub-agencies recursively
+    const allAgencyIds = [];
+    for (const agencyId of validIds) {
+        const subIds = await getAllAgencyIds(agencyId);
+        allAgencyIds.push(...subIds);
+    }
+
+    const uniqueAgencyIds = Array.from(new Set(allAgencyIds));
+
+    // Build agency name map and collect owner user_ids
+    const agencyMap = new Map();   // agencyId -> agencyName
+    const ownerMap = new Map();    // ownerUserId -> agencyName (the agency they own)
+    if (uniqueAgencyIds.length > 0) {
+        const agencies = await prisma.agency.findMany({
+            where: { id: { in: uniqueAgencyIds } },
+            select: { id: true, name: true, owner: true }
+        });
+        agencies.forEach(a => {
+            agencyMap.set(String(a.id), a.name || '');
+            if (a.owner) ownerMap.set(String(a.owner), a.name || '');
+        });
+    }
+
+    // Fetch agents who belong to any of these agencies (members)
+    const memberAgents = await prisma.user.findMany({
+        include: { personalInfo: true, contactInfo: true },
+        where: {
+            personalInfo: { agency: { in: uniqueAgencyIds } },
+            registrationCompleted: true
+        }
+    });
+
+    // Fetch agency owners who are not already captured as members
+    const memberIds = new Set(memberAgents.map(a => String(a.user_id)));
+    const ownerUserIds = Array.from(ownerMap.keys()).filter(id => !memberIds.has(id));
+
+    const ownerAgents = ownerUserIds.length > 0
+        ? await prisma.user.findMany({
+            include: { personalInfo: true, contactInfo: true },
+            where: {
+                user_id: { in: ownerUserIds },
+                registrationCompleted: true
+            }
+        })
+        : [];
+
+    const agents = [...memberAgents, ...ownerAgents];
+
+    return await Promise.all(agents.map(async agent => {
+        let photoPath = agent.personalInfo?.photoPath || '';
+        // Show the agent's own agency name; fall back to the agency they own (for owners)
+        const agencyName =
+            agencyMap.get(String(agent.personalInfo?.agency ?? '')) ||
+            ownerMap.get(String(agent.user_id)) ||
+            '';
+
+        if (agent.email && agent.email.endsWith('@goldentrust.com')) {
+            const entra_user = await prisma.$queryRaw`
+                SELECT user_id
+                FROM entra.users
+                WHERE mail = ${agent.email}
+            `;
+            if (entra_user.length !== 0) {
+                const user_avatar_photo_path = await prisma.$queryRaw`
+                    SELECT s3_url AS photoPath
+                    FROM entra.user_avatars
+                    WHERE entra_id = ${entra_user[0].user_id}
+                `;
+                photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
+            }
+        }
+
+        if (photoPath) {
+            photoPath = await getSignedS3Url(photoPath);
+        }
+
+        return {
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || '',
+            photoPath,
+            agencyName
+        };
+    }));
+}
+
+/**
  * Handles generic single-field filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} filterType - Field name to filter on
@@ -474,7 +572,7 @@ const filterReport = async (req, res) => {
     }
 
     // Apply appropriate filter
-    if (filterType === 'agency') {
+    if (filterType === 'location') {
         const franchiseAgencyCombination = await getFranchiseAgencyCombinations(user);
         const franchiseMap = new Map(
             franchiseAgencyCombination.map(item => [String(item.franchise.id), item.franchise.name || ''])
@@ -486,6 +584,12 @@ const filterReport = async (req, res) => {
         }
 
         processedAgents = await handleAgencyFilter(filterValues, franchiseMap);
+    }
+    else if (filterType === 'agency') {
+        if (filterValues.length === 0) {
+            return res.json({ data: [], total: 0 });
+        }
+        processedAgents = await handleAgencyByIdFilter(filterValues);
     }
     else if (filterType === 'carrier & state' && singleFilterValue) {
         // If carrier is empty, fallback to state-only filter

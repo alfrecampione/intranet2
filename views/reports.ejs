@@ -95,6 +95,7 @@
                                                 <option value="carrier">Carrier</option>
                                                 <option value="carrier & state">Carrier & State</option>
                                                 <option value="status">Status</option>
+                                                <option value="location">Location</option>
                                                 <option value="agency">Agency</option>
                                             </select>
 
@@ -257,7 +258,7 @@
 
                 if (filterType) params.append("filterType", filterType);
 
-                if (filterType === 'agency') {
+                if (filterType === 'location' || filterType === 'agency') {
                     // Use select2 value to avoid mismatch with DOM selectedOptions
                     const rawSelection = $(filterValueSelect).val();
                     const selectedLocations = Array.isArray(rawSelection)
@@ -286,16 +287,17 @@
                     : rawSelection ? [rawSelection] : [];
                 const filterSubValueVal = filterSubValue.value;
 
-                const isAgencySummaryView = (filterType === 'agency' && selectedLocations.length === 0);
-                const isAgencyListView = (filterType === 'agency' && selectedLocations.length > 0);
+                const isLocationSummaryView = (filterType === 'location' && selectedLocations.length === 0);
+                const isLocationListView = (filterType === 'location' && selectedLocations.length > 0);
+                const isAgencyListView = (filterType === 'agency');
 
                 resultsCount.textContent = `Results found: ${total}`;
 
                 let columns;
                 let tableData;
 
-                if (isAgencySummaryView && summary) {
-                    // --- Agency Summary View ---
+                if (isLocationSummaryView && summary) {
+                    // --- Location Summary View ---
                     tableData = summary;
                     columns = [{
                         title: "Location (NAME)",
@@ -340,6 +342,14 @@
                         render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
                     }];
 
+                    if (isLocationListView) {
+                        columns.splice(2, 0, {
+                            title: "Location",
+                            data: "agencyName",
+                            render: data => data || ''
+                        });
+                    }
+
                     if (isAgencyListView) {
                         columns.splice(2, 0, {
                             title: "Agency",
@@ -382,7 +392,7 @@
                 }
             }
 
-            function initAgencySelect2() {
+            function initLocationSelect2() {
                 destroySelect2IfExists();
                 $(filterValueSelect).select2({
                     placeholder: 'Select Location',
@@ -391,11 +401,19 @@
                 });
             }
 
+            function initAgencySelect2() {
+                destroySelect2IfExists();
+                $(filterValueSelect).select2({
+                    placeholder: 'Select Agency',
+                    width: 'style',
+                    closeOnSelect: false
+                });
+            }
+
             function toggleApplyFilterBtn(type) {
-                const isAgency = (type || '').toLowerCase() === 'agency';
-                // Keep button hidden unless agency filter is active
-                applyFilterBtn.classList.toggle('d-none', !isAgency);
-                applyFilterBtn.toggleAttribute('hidden', !isAgency);
+                const needsApplyBtn = ['location', 'agency'].includes((type || '').toLowerCase());
+                applyFilterBtn.classList.toggle('d-none', !needsApplyBtn);
+                applyFilterBtn.toggleAttribute('hidden', !needsApplyBtn);
             }
 
             // Filter type change
@@ -428,8 +446,8 @@
                     });
                     filterSubValue.style.display = 'block';
 
-                } else if (type === 'agency') {
-                    // Populate locations as a multiselect
+                } else if (type === 'location') {
+                    // Populate locations (franchises) as a multiselect
                     filterValueSelect.innerHTML = '';
                     filterValueSelect.multiple = true;
                     filterValueSelect.size = 6;
@@ -443,10 +461,27 @@
                     }
                     filterValueSelect.disabled = false;
                     filterValueSelect.selectedIndex = -1;
+                    initLocationSelect2();
+
+                    filterSubValue.style.display = 'none';
+
+                } else if (type === 'agency') {
+                    // Populate actual agencies as a multiselect
+                    filterValueSelect.innerHTML = '';
+                    filterValueSelect.multiple = true;
+                    filterValueSelect.size = 6;
+                    if (filtersData['agency']) {
+                        filtersData['agency'].forEach(agency => {
+                            const opt = document.createElement('option');
+                            opt.value = agency.id;
+                            opt.textContent = agency.name;
+                            filterValueSelect.appendChild(opt);
+                        });
+                    }
+                    filterValueSelect.disabled = false;
+                    filterValueSelect.selectedIndex = -1;
                     initAgencySelect2();
 
-                    // Agencies are no longer used for this filter
-                    filterSubValue.innerHTML = '<option value="">Select Agency</option>';
                     filterSubValue.style.display = 'none';
 
                 } else if (type) {
