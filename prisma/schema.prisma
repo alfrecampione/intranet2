@@ -227,8 +227,11 @@ model Note {
   createdAt DateTime @default(now())
   createdBy String
   isPinned  Boolean  @default(false)
+  parentId  String?
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  parent  Note?  @relation("NoteReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Note[] @relation("NoteReplies")
 
   @@schema("health")
 }

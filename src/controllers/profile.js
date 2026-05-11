@@ -398,8 +398,13 @@ const renderNotes = async (req, res) => {
     });
 
     const notes = await prisma.note.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' }
+        where: { userId, parentId: null },
+        include: {
+            replies: {
+                orderBy: { createdAt: 'desc' }
+            }
+        },
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }]
     });
 
     // Process photoPath similar to agents.js
@@ -426,11 +431,22 @@ const renderNotes = async (req, res) => {
 }
 
 const postNote = async (req, res) => {
-    const { text, isPinned } = req.body;
+    const { text, isPinned, parentId } = req.body;
     const userId = req.params.id ?? req.user.user_id;
 
     if (!text) {
         return res.status(400).json({ error: "Note text is required." });
+    }
+
+    // Enforce single-level threading: parent must be a top-level note
+    if (parentId) {
+        const parent = await prisma.note.findUnique({ where: { id: parentId }, select: { parentId: true } });
+        if (!parent) {
+            return res.status(404).json({ error: "Parent note not found." });
+        }
+        if (parent.parentId !== null) {
+            return res.status(400).json({ error: "Cannot reply to a reply. Only one level of threading is allowed." });
+        }
     }
 
     const creatorUser = await prisma.user.findUnique({
@@ -445,35 +461,38 @@ const postNote = async (req, res) => {
                 data: {
                     userId,
                     text,
-                    isPinned: isPinned || false,
-                    createdBy: creator
+                    isPinned: parentId ? false : (isPinned || false),
+                    createdBy: creator,
+                    parentId: parentId || null
                 }
             });
             res.status(201).json(note);
 
-            // Send email notification to the note recipient
-            const recipientUser = await prisma.user.findUnique({
-                where: { user_id: userId },
-                select: { email: true, display_name: true }
-            });
+            // Send email notification to the note recipient (only for top-level notes)
+            if (!parentId) {
+                const recipientUser = await prisma.user.findUnique({
+                    where: { user_id: userId },
+                    select: { email: true, display_name: true }
+                });
 
-            if (recipientUser?.email && recipientUser.email !== req.user.email) {
-                const subject = "You have a new note in GoldenHealth";
-                const body = {
-                    name: recipientUser.display_name || recipientUser.email,
-                    intro: `${creator} has left you a note in GoldenHealth.`,
-                    table: {
-                        data: [{ "Note": text }],
-                        columns: {
-                            customWidth: { "Note": "100%" },
-                            customAlignment: { "Note": "left" }
-                        }
-                    },
-                    outro: "Please log in to GoldenHealth to view and manage your notes."
-                };
-                sendMail(recipientUser.email, subject, body).catch(err =>
-                    console.error("Error sending note notification email:", err)
-                );
+                if (recipientUser?.email && recipientUser.email !== req.user.email) {
+                    const subject = "You have a new note in GoldenHealth";
+                    const body = {
+                        name: recipientUser.display_name || recipientUser.email,
+                        intro: `${creator} has left you a note in GoldenHealth.`,
+                        table: {
+                            data: [{ "Note": text }],
+                            columns: {
+                                customWidth: { "Note": "100%" },
+                                customAlignment: { "Note": "left" }
+                            }
+                        },
+                        outro: "Please log in to GoldenHealth to view and manage your notes."
+                    };
+                    sendMail(recipientUser.email, subject, body).catch(err =>
+                        console.error("Error sending note notification email:", err)
+                    );
+                }
             }
         });
     } catch (error) {

@@ -258,6 +258,7 @@
             let notes = JSON.parse(document.getElementById('notes-data').textContent) || [];
 
             let currentEditId = null;
+            let currentReplyParentId = null;
 
             const notesContainer = document.getElementById('notesContainer');
             const noNotesMsg = document.getElementById('noNotesMsg');
@@ -278,6 +279,80 @@
                     .replace(/'/g, '&#039;');
             }
 
+            function renderReply(reply) {
+                return `
+                <div class="d-flex align-items-start gap-2 py-2 border-top note-reply" data-id="${reply.id}">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="ti ti-corner-down-right text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="fw-semibold text-muted small">${escapeHtml(reply.createdBy ?? '')}</span>
+                                <span class="text-muted small ms-2">${formatDate(reply.createdAt)}</span>
+                            </div>
+                            <div class="d-flex gap-2 ms-2">
+                                <a href="javascript:void(0);" class="ti ti-edit text-secondary small" title="Edit Reply" data-id="${reply.id}" data-action="edit"></a>
+                                <a href="javascript:void(0);" class="ti ti-trash text-danger small" title="Delete Reply" data-id="${reply.id}" data-action="delete-reply"></a>
+                            </div>
+                        </div>
+                        <p class="mb-0 mt-1">${escapeHtml(reply.text)}</p>
+                    </div>
+                </div>`;
+            }
+
+            function renderNote(note) {
+                const repliesHtml = (note.replies || []).map(renderReply).join('');
+                const replyCount = (note.replies || []).length;
+
+                return `
+                <div class="col-12 note-thread" data-id="${note.id}">
+                    <div class="card shadow-sm${note.isPinned ? ' border-warning' : ''}">
+                        <div class="card-body">
+                            <!-- Main note row -->
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 fs-7 text-muted">${escapeHtml(note.createdBy ?? '')}</p>
+                                    <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted">${formatDate(note.createdAt)}</small>
+                                        ${note.isPinned ? '<span class="badge bg-warning text-dark"><i class="ti ti-pin"></i> Pinned</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="ms-3 d-flex flex-column align-items-end gap-1">
+                                    <a href="javascript:void(0);" class="ti ti-edit" title="Edit Note" data-id="${note.id}" data-action="edit"></a>
+                                    <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Note" data-id="${note.id}" data-action="delete"></a>
+                                </div>
+                            </div>
+
+                            <!-- Replies section -->
+                            <div class="mt-2">
+                                <!-- Toggle replies button -->
+                                <button class="btn btn-link btn-sm p-0 text-muted toggle-replies-btn" data-parent="${note.id}">
+                                    <i class="ti ti-message-circle me-1"></i>
+                                    <span class="reply-count-label">${replyCount > 0 ? replyCount + ' repl' + (replyCount === 1 ? 'y' : 'ies') : 'Reply'}</span>
+                                </button>
+
+                                <!-- Replies container (hidden by default if no replies) -->
+                                <div class="replies-container mt-2 ${replyCount === 0 ? 'd-none' : ''}" id="replies-${note.id}">
+                                    <div class="replies-list">
+                                        ${repliesHtml}
+                                    </div>
+                                    <!-- Reply input -->
+                                    <div class="reply-input-area mt-2 border-top pt-2 d-none" id="reply-input-${note.id}">
+                                        <textarea class="form-control form-control-sm reply-text mb-1" rows="2" placeholder="Write a reply..."></textarea>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button class="btn btn-secondary btn-sm cancel-reply-btn" data-parent="${note.id}">Cancel</button>
+                                            <button class="btn btn-primary btn-sm save-reply-btn" data-parent="${note.id}">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
             function render() {
                 notesContainer.innerHTML = '';
                 if (!notes.length) {
@@ -286,37 +361,12 @@
                 }
                 noNotesMsg.classList.add('d-none');
 
-                // Sort: pinned notes first, then by createdAt desc
-                const sortedNotes = [...notes].sort((a, b) => {
-                    if (b.isPinned === a.isPinned) {
-                        return new Date(b.createdAt) - new Date(a.createdAt);
-                    }
-                    return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
-                });
-
-                sortedNotes.forEach(note => {
-                    const col = document.createElement('div');
-                    col.className = "col-12";
-                    col.innerHTML = `
-                    <div class="card shadow-sm${note.isPinned ? ' border-warning' : ''}">
-                        <div class="card-body d-flex justify-content-between">
-                            <div>
-                                <p class="mb-1 fs-7 text-muted">${note.createdBy ?? ""}</p>
-                                <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
-                                <small class="text-muted">${formatDate(note.createdAt)}</small>
-                                ${note.isPinned ? '<span class="badge bg-warning text-dark ms-2"><i class="ti ti-pin"></i> Pinned</span>' : ''}
-                            </div>
-                            <div class="ms-3 d-flex flex-column align-items-end">
-                                <a href="javascript:void(0);" class="ti ti-edit mb-2" title="Edit Note" data-id="${note.id}" data-action="edit"></a>
-                                <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete Note" data-id="${note.id}" data-action="delete"></a>
-                            </div>
-                        </div>
-                    </div>`;
-                    notesContainer.appendChild(col);
+                notes.forEach(note => {
+                    notesContainer.insertAdjacentHTML('beforeend', renderNote(note));
                 });
             }
 
-            // Add Note
+            // Add top-level note
             saveNoteBtn.addEventListener('click', async () => {
                 const text = newNoteText.value.trim();
                 const isPinned = document.getElementById('pinNoteCheck').checked;
@@ -329,6 +379,7 @@
                 });
                 if (res.ok) {
                     const newNote = await res.json();
+                    newNote.replies = [];
                     notes.unshift(newNote);
                     render();
                     newNoteText.value = '';
@@ -337,27 +388,98 @@
                 }
             });
 
-            // Edit/Delete
-            notesContainer.addEventListener('click', (e) => {
-                const link = e.target.closest('a');
+            // Delegated events on notesContainer
+            notesContainer.addEventListener('click', async (e) => {
+                // Toggle replies visibility
+                const toggleBtn = e.target.closest('.toggle-replies-btn');
+                if (toggleBtn) {
+                    const parentId = toggleBtn.dataset.parent;
+                    const container = document.getElementById(`replies-${parentId}`);
+                    const inputArea = document.getElementById(`reply-input-${parentId}`);
+                    const isHidden = container.classList.contains('d-none');
+                    container.classList.toggle('d-none', !isHidden);
+                    // When opening, show reply input if it's a fresh open
+                    if (isHidden) {
+                        inputArea.classList.remove('d-none');
+                        inputArea.querySelector('.reply-text').focus();
+                    }
+                    return;
+                }
+
+                // Cancel reply
+                const cancelBtn = e.target.closest('.cancel-reply-btn');
+                if (cancelBtn) {
+                    const parentId = cancelBtn.dataset.parent;
+                    const inputArea = document.getElementById(`reply-input-${parentId}`);
+                    inputArea.classList.add('d-none');
+                    inputArea.querySelector('.reply-text').value = '';
+                    return;
+                }
+
+                // Save reply
+                const saveReplyBtn = e.target.closest('.save-reply-btn');
+                if (saveReplyBtn) {
+                    const parentId = saveReplyBtn.dataset.parent;
+                    const inputArea = document.getElementById(`reply-input-${parentId}`);
+                    const text = inputArea.querySelector('.reply-text').value.trim();
+                    if (!text) return;
+
+                    const res = await fetch(`/users/profile/${userId}/notes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, parentId })
+                    });
+                    if (res.ok) {
+                        const newReply = await res.json();
+                        const noteIndex = notes.findIndex(n => n.id === parentId);
+                        if (noteIndex > -1) {
+                            notes[noteIndex].replies = [newReply, ...(notes[noteIndex].replies || [])];
+                        }
+                        render();
+                    }
+                    return;
+                }
+
+                const link = e.target.closest('a[data-action]');
                 if (!link) return;
                 const noteId = link.getAttribute('data-id');
                 const action = link.getAttribute('data-action');
-                const note = notes.find(n => n.id === noteId);
 
-                if (action === 'edit' && note) {
-                    currentEditId = noteId;
-                    editNoteText.value = note.text;
-                    document.getElementById('editPinNoteCheck').checked = !!note.isPinned;
-                    new bootstrap.Modal(document.getElementById('editNoteModal')).show();
+                if (action === 'edit') {
+                    // Find note or reply
+                    let found = notes.find(n => n.id === noteId);
+                    let isReply = false;
+                    if (!found) {
+                        for (const n of notes) {
+                            const r = (n.replies || []).find(r => r.id === noteId);
+                            if (r) { found = r; isReply = true; break; }
+                        }
+                    }
+                    if (found) {
+                        currentEditId = noteId;
+                        editNoteText.value = found.text;
+                        document.getElementById('editPinNoteCheck').checked = !!found.isPinned;
+                        document.getElementById('editPinNoteCheck').closest('.form-check').style.display = isReply ? 'none' : '';
+                        new bootstrap.Modal(document.getElementById('editNoteModal')).show();
+                    }
                 }
 
-                if (action === 'delete' && noteId) {
-                    deleteNote(noteId);
+                if (action === 'delete') {
+                    await deleteNote(noteId);
+                }
+
+                if (action === 'delete-reply') {
+                    const res = await fetch(`/users/profile/${userId}/notes/${noteId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        for (const n of notes) {
+                            n.replies = (n.replies || []).filter(r => r.id !== noteId);
+                        }
+                        render();
+                    }
                 }
             });
 
-            // Update Note
+            // Update Note (top-level or reply)
             updateNoteBtn.addEventListener('click', async () => {
                 const text = editNoteText.value.trim();
                 const isPinned = document.getElementById('editPinNoteCheck').checked;
@@ -369,15 +491,22 @@
                     body: JSON.stringify({ text, isPinned })
                 });
                 if (res.ok) {
-                    const updatedNote = await res.json();
-                    const index = notes.findIndex(n => n.id === currentEditId);
-                    if (index > -1) notes[index] = updatedNote;
+                    const updated = await res.json();
+                    // Check if it's a top-level note
+                    const topIdx = notes.findIndex(n => n.id === currentEditId);
+                    if (topIdx > -1) {
+                        notes[topIdx] = { ...notes[topIdx], ...updated };
+                    } else {
+                        for (const n of notes) {
+                            const rIdx = (n.replies || []).findIndex(r => r.id === currentEditId);
+                            if (rIdx > -1) { n.replies[rIdx] = { ...n.replies[rIdx], ...updated }; break; }
+                        }
+                    }
                     render();
                     bootstrap.Modal.getInstance(document.getElementById('editNoteModal')).hide();
                 }
             });
 
-            // Delete Note
             async function deleteNote(noteId) {
                 const res = await fetch(`/users/profile/${userId}/notes/${noteId}`, { method: 'DELETE' });
                 if (res.ok) {
