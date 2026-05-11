@@ -382,14 +382,17 @@ async function createMessage(log, options = {}) {
         const companyId = carrierObj?.company ?? null;
         let companyName = '(unknown carrier)';
 
-        // Fetch company name from ID
+        // Fetch company name from qq.contacts via externalId
         if (companyId) {
             try {
                 const company = await prisma.company.findUnique({
                     where: { id: companyId },
-                    select: { name: true }
+                    select: { externalId: true }
                 });
-                companyName = company?.name ?? '(unknown carrier)';
+                if (company?.externalId) {
+                    const companyNamesMap = await getCompanyNamesMap([company.externalId]);
+                    companyName = companyNamesMap.get(company.externalId)?.name ?? '(unknown carrier)';
+                }
             } catch (err) {
                 console.warn('Failed to fetch company name:', err.message);
             }
