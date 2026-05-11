@@ -4,6 +4,7 @@ import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCom
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 import { getCompanyNamesMap } from "../config/utils.js";
+import { sendMail } from "./mailer.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
@@ -449,6 +450,31 @@ const postNote = async (req, res) => {
                 }
             });
             res.status(201).json(note);
+
+            // Send email notification to the note recipient
+            const recipientUser = await prisma.user.findUnique({
+                where: { user_id: userId },
+                select: { email: true, display_name: true }
+            });
+
+            if (recipientUser?.email && recipientUser.email !== req.user.email) {
+                const subject = "You have a new note in GoldenHealth";
+                const body = {
+                    name: recipientUser.display_name || recipientUser.email,
+                    intro: `${creator} has left you a note in GoldenHealth.`,
+                    table: {
+                        data: [{ "Note": text }],
+                        columns: {
+                            customWidth: { "Note": "100%" },
+                            customAlignment: { "Note": "left" }
+                        }
+                    },
+                    outro: "Please log in to GoldenHealth to view and manage your notes."
+                };
+                sendMail(recipientUser.email, subject, body).catch(err =>
+                    console.error("Error sending note notification email:", err)
+                );
+            }
         });
     } catch (error) {
         console.error("Error creating note:", error);

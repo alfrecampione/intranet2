@@ -92,7 +92,7 @@
     </div>
     <!-- /Agent Card -->
     <!-- Extra Agent Details -->
-    <% if(extra_data) { %>
+    <% if(extra_data && user && user.rights && user.rights.includes(2)) { %>
         <div class="card mb-6">
             <div class="card-body">
                 <h5 class="pb-4 border-bottom mb-4">Additional Info</h5>
