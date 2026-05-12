@@ -395,9 +395,9 @@ const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
 
-    // Filtra solo los mensajes con [NEWS] al inicio
+    // Filter messages whose subject starts with [NEWS] in any letter case
     const newsMessages = messages.filter(
-      (msg) => msg.subject && msg.subject.trim().startsWith("[NEWS]")
+      (msg) => msg.subject && /^\[news\]/i.test(msg.subject.trim())
     );
 
     const seenIds = new Set();
@@ -408,7 +408,8 @@ const readEmails = async () => {
       const title = msg.subject.replace(/^\[NEWS\]\s*/i, "").trim() || "(No Subject)";
 
       let cleanContent = msg.bodyPreview?.trim() || "(No Content)";
-      const nextNewsIndex = cleanContent.indexOf("[NEWS]");
+      const nextNewsMatch = cleanContent.match(/\[news\]/i);
+      const nextNewsIndex = nextNewsMatch ? nextNewsMatch.index : -1;
       if (nextNewsIndex !== -1) {
         cleanContent = cleanContent.substring(0, nextNewsIndex).trim();
       }

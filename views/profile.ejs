@@ -298,7 +298,7 @@
     }
   </script>
 
-  <% if(user && user.rights && user.rights.includes(2)) { %>
+  <% if(user && (user.rights && user.rights.includes(2) || user.user_id===profile.user_id)) { %>
     <script id="user-data" type="application/json">
         <%- JSON.stringify({ personalInfo, contactInfo, paymentMethod, documents, necesaryDocs}) %>
     </script>
