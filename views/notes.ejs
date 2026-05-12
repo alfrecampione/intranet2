@@ -250,11 +250,15 @@
     <script id="userId" type="application/json">
       <%- JSON.stringify(userId) %>
     </script>
+    <script id="currentUser" type="application/json">
+      <%- JSON.stringify(user.user_id) %>
+    </script>
 
     <!-- Client-side rendering -->
     <script>
         (function () {
             const userId = JSON.parse(document.getElementById('userId').textContent);
+            const currentUser = JSON.parse(document.getElementById('currentUser').textContent);
             let notes = JSON.parse(document.getElementById('notes-data').textContent) || [];
 
             let currentEditId = null;
@@ -280,23 +284,27 @@
             }
 
             function renderReply(reply) {
+                const isMine = reply.createdBy === currentUser;
+                const rowAlign = isMine ? 'justify-content-start' : 'justify-content-end';
+                const bubbleBg = isMine ? 'background:#e9ecef;color:#212529;' : 'background:#0d6efd;color:#fff;';
+                const metaColor = isMine ? 'color:#6c757d;' : 'color:rgba(255,255,255,0.7);';
+                const actionColor = isMine ? 'text-secondary' : 'text-white-50';
+                const trashColor = isMine ? 'text-danger' : 'text-white-50';
+
                 return `
-                <div class="d-flex align-items-start gap-2 py-2 border-top note-reply" data-id="${reply.id}">
-                    <div class="flex-shrink-0 mt-1">
-                        <i class="ti ti-corner-down-right text-muted"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <span class="fw-semibold text-muted small">${escapeHtml(reply.createdBy ?? '')}</span>
-                                <span class="text-muted small ms-2">${formatDate(reply.createdAt)}</span>
+                <div class="d-flex ${rowAlign} mb-2 note-reply" data-id="${reply.id}">
+                    <div style="max-width:75%;">
+                        <div class="rounded-3 p-2 px-3" style="${bubbleBg}">
+                            <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
+                                <span class="fw-semibold" style="font-size:0.78rem;${metaColor}">${escapeHtml(reply.createdByName ?? reply.createdBy ?? '')}</span>
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    <a href="javascript:void(0);" class="ti ti-edit ${actionColor}" style="font-size:0.8rem" title="Edit" data-id="${reply.id}" data-action="edit"></a>
+                                    <a href="javascript:void(0);" class="ti ti-trash ${trashColor}" style="font-size:0.8rem" title="Delete" data-id="${reply.id}" data-action="delete-reply"></a>
+                                </div>
                             </div>
-                            <div class="d-flex gap-2 ms-2">
-                                <a href="javascript:void(0);" class="ti ti-edit text-secondary small" title="Edit Reply" data-id="${reply.id}" data-action="edit"></a>
-                                <a href="javascript:void(0);" class="ti ti-trash text-danger small" title="Delete Reply" data-id="${reply.id}" data-action="delete-reply"></a>
-                            </div>
+                            <p class="mb-1" style="white-space:pre-wrap;font-size:0.9rem">${escapeHtml(reply.text)}</p>
+                            <small class="d-block text-end" style="font-size:0.68rem;${metaColor}">${formatDate(reply.createdAt)}</small>
                         </div>
-                        <p class="mb-0 mt-1">${escapeHtml(reply.text)}</p>
                     </div>
                 </div>`;
             }
@@ -312,7 +320,7 @@
                             <!-- Main note row -->
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
-                                    <p class="mb-1 fs-7 text-muted">${escapeHtml(note.createdBy ?? '')}</p>
+                                    <p class="mb-1 fs-7 text-muted">${escapeHtml(note.createdByName ?? note.createdBy ?? '')}</p>
                                     <p class="mb-2 fs-6">${escapeHtml(note.text)}</p>
                                     <div class="d-flex align-items-center gap-2">
                                         <small class="text-muted">${formatDate(note.createdAt)}</small>
@@ -335,7 +343,7 @@
 
                                 <!-- Replies container (hidden by default if no replies) -->
                                 <div class="replies-container mt-2 ${replyCount === 0 ? 'd-none' : ''}" id="replies-${note.id}">
-                                    <div class="replies-list">
+                                    <div class="replies-list border-top pt-2">
                                         ${repliesHtml}
                                     </div>
                                     <!-- Reply input -->
