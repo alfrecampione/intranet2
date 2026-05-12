@@ -27,7 +27,7 @@ const agency = async (req, res) => {
     req.user.id_location_type != 1
       ? (
         await pool.query(
-          `SELECT alias from qq.locations where location_id = $1`,
+          `SELECT alias from qq.locations where location_id = $1 AND active = true`,
           [req.user.location_id],
         )
       ).rows[0].alias

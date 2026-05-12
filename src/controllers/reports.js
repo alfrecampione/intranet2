@@ -416,6 +416,7 @@ async function getFranchiseAgencyCombinations(requester) {
         franchises = await prisma.$queryRaw`
             SELECT location_id, alias
             FROM qq.locations
+            WHERE active = true
         `;
 
         for (const franchise of franchises) {
@@ -459,7 +460,7 @@ async function getFranchiseAgencyCombinations(requester) {
         franchises = await prisma.$queryRaw`
             SELECT location_id, alias
             FROM qq.locations
-            WHERE location_id = ${topFranchise.id}
+            WHERE location_id = ${topFranchise.id} AND active = true
         `;
 
         const topAgency = await prisma.agency.findUnique({

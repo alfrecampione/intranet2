@@ -19,7 +19,7 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
       const franchiseId = parseInt(personalInfo.franchise, 10);
       if (!isNaN(franchiseId)) {
         const result = await pool.query(
-          `SELECT alias FROM qq.locations WHERE location_id = $1`,
+          `SELECT alias FROM qq.locations WHERE location_id = $1 AND active = true`,
           [franchiseId]
         );
         return result.rows[0]?.alias || null;

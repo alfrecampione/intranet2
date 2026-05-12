@@ -36,7 +36,7 @@ async function getAgencies() {
         const franchise = await prisma.$queryRaw`
       SELECT * 
       FROM qq.locations 
-      WHERE location_type = 2 OR location_id = 1
+      WHERE (location_type = 2 OR location_id = 1) AND active = true
       ORDER BY alias ASC
     `;
 
@@ -143,7 +143,7 @@ async function reverseGetAllAgencies(agencyId, franchiseId, visited = new Set())
                     const [franchise] = await prisma.$queryRaw`
                         SELECT location_id, alias 
                         FROM qq.locations 
-                        WHERE location_id = ${fid}
+                        WHERE location_id = ${fid} AND active = true
                     `;
                     franchiseCache.set(fid, franchise);
                 }
@@ -193,7 +193,7 @@ async function reverseGetAllAgencies(agencyId, franchiseId, visited = new Set())
                 const [franchise] = await prisma.$queryRaw`
                     SELECT location_id, alias 
                     FROM qq.locations 
-                    WHERE location_id = ${fid}
+                    WHERE location_id = ${fid} AND active = true
                 `;
                 franchiseCache.set(fid, franchise);
             }

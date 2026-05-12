@@ -486,7 +486,6 @@ const postNote = async (req, res) => {
 
             // Notifications (only for top-level notes)
             if (!parentId) {
-                const noteSubject = "You have a new note in GoldenHealth";
                 const buildNoteBody = (name) => ({
                     name,
                     intro: `${creator} has left a note in GoldenHealth.`,
@@ -500,16 +499,84 @@ const postNote = async (req, res) => {
                     outro: "Please log in to GoldenHealth to view and manage your notes."
                 });
 
-                // 1. Email + in-app notification to the note recipient
+                // Fetch profile user and alert group
                 const recipientUser = await prisma.user.findUnique({
                     where: { user_id: userId },
                     select: { email: true, display_name: true }
                 });
 
-                if (recipientUser?.email && recipientUser.email !== req.user.email) {
-                    sendMail(recipientUser.email, noteSubject, buildNoteBody(recipientUser.display_name || recipientUser.email)).catch(err =>
-                        console.error("Error sending note notification email to recipient:", err)
-                    );
+                const agentName = recipientUser?.display_name || recipientUser?.email || userId;
+                const alertEmails = await getEmailsToAlert();
+                const isSelfNote = req.user.user_id === userId;
+
+                if (isSelfNote) {
+                    // Case A: authenticated user IS the profile user → email each member of the notification group
+                    try {
+                        for (const alert of alertEmails) {
+                            if (alert.email === req.user.email) continue; // skip self
+
+                            sendMail(
+                                alert.email,
+                                `New note added on ${agentName} in GoldenHealth`,
+                                buildNoteBody(alert.display_name || alert.email)
+                            ).catch(err => console.error(`Error sending alert email to ${alert.email}:`, err));
+
+                            const alertUser = await prisma.user.findUnique({
+                                where: { email: alert.email },
+                                select: { user_id: true }
+                            });
+                            if (alertUser) {
+                                await prisma.notificacion.create({
+                                    data: {
+                                        userId: alertUser.user_id,
+                                        userEmail: alert.email,
+                                        message: `📝 ${creator} added a note on ${agentName}.`,
+                                        createdBy: req.user.user_id
+                                    }
+                                }).catch(err => console.error(`Error creating alert notification for ${alert.email}:`, err));
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error notifying alert list for note:", err);
+                    }
+                } else {
+                    // Case B: authenticated user is NOT the profile user → email profile user with CC to notification group
+                    const alertCcAddresses = alertEmails
+                        .filter(a => a.email !== req.user.email && a.email !== recipientUser?.email)
+                        .map(a => a.email);
+
+                    if (recipientUser?.email) {
+                        sendMail(
+                            recipientUser.email,
+                            `New note added on your profile in GoldenHealth`,
+                            buildNoteBody(recipientUser.display_name || recipientUser.email),
+                            alertCcAddresses
+                        ).catch(err => console.error("Error sending note email to profile user:", err));
+                    }
+
+                    // In-app notification for alert users
+                    try {
+                        for (const alert of alertEmails) {
+                            if (alert.email === req.user.email) continue;
+
+                            const alertUser = await prisma.user.findUnique({
+                                where: { email: alert.email },
+                                select: { user_id: true }
+                            });
+                            if (alertUser) {
+                                await prisma.notificacion.create({
+                                    data: {
+                                        userId: alertUser.user_id,
+                                        userEmail: alert.email,
+                                        message: `📝 ${creator} added a note on ${agentName}.`,
+                                        createdBy: req.user.user_id
+                                    }
+                                }).catch(err => console.error(`Error creating alert notification for ${alert.email}:`, err));
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error notifying alert list for note:", err);
+                    }
                 }
 
                 // 2. In-app notification to hierarchy owners above the recipient
@@ -535,67 +602,20 @@ const postNote = async (req, res) => {
 
                                 if (agency?.owner && agency.owner !== req.user.user_id && !notifiedOwners.has(agency.owner)) {
                                     notifiedOwners.add(agency.owner);
-                                    const agentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
+                                    const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
                                     await prisma.notificacion.create({
                                         data: {
                                             userId: agency.owner,
-                                            message: `📝 ${creator} added a note on ${agentName}.`,
+                                            message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
                                             createdBy: req.user.user_id
                                         }
                                     }).catch(err => console.error("Error creating hierarchy notification:", err));
-
-                                    // Also send email to hierarchy owner
-                                    const ownerUser = await prisma.user.findUnique({
-                                        where: { user_id: agency.owner },
-                                        select: { email: true, display_name: true }
-                                    });
-                                    if (ownerUser?.email && ownerUser.email !== req.user.email) {
-                                        sendMail(
-                                            ownerUser.email,
-                                            `Note added on agent in GoldenHealth`,
-                                            buildNoteBody(ownerUser.display_name || ownerUser.email)
-                                        ).catch(err => console.error("Error sending hierarchy email:", err));
-                                    }
                                 }
                             }
                         }
                     }
                 } catch (err) {
                     console.error("Error notifying hierarchy for note:", err);
-                }
-
-                // 3. Email + in-app notification to config alert list (newUserAlerts)
-                try {
-                    const alertEmails = await getEmailsToAlert();
-                    const agentName = recipientUser?.display_name || recipientUser?.email || userId;
-
-                    for (const alert of alertEmails) {
-                        if (alert.email === req.user.email) continue; // skip self
-
-                        sendMail(
-                            alert.email,
-                            `New note added on ${agentName} in GoldenHealth`,
-                            buildNoteBody(alert.display_name || alert.email)
-                        ).catch(err => console.error(`Error sending alert email to ${alert.email}:`, err));
-
-                        // In-app notification for alert users that exist in health.user
-                        const alertUser = await prisma.user.findUnique({
-                            where: { email: alert.email },
-                            select: { user_id: true }
-                        });
-                        if (alertUser) {
-                            await prisma.notificacion.create({
-                                data: {
-                                    userId: alertUser.user_id,
-                                    userEmail: alert.email,
-                                    message: `📝 ${creator} added a note on ${agentName}.`,
-                                    createdBy: req.user.user_id
-                                }
-                            }).catch(err => console.error(`Error creating alert notification for ${alert.email}:`, err));
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error notifying alert list for note:", err);
                 }
             }
         });
