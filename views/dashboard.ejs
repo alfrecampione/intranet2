@@ -344,17 +344,6 @@
     <%- JSON.stringify(states) %>
   </script>
 
-  <script>
-    // Create company icon lookup map from companies data
-    const companyIconMap = {};
-    const companiesData = JSON.parse(document.getElementById('companies-data').textContent);
-    companiesData.forEach(company => {
-      if (company.iconPath) {
-        companyIconMap[company.name] = company.iconPath;
-      }
-    });
-  </script>
-
   <% if (user.active ||!user.isAgent||user.personalInfo?.contactType?.toLowerCase()==='business' ) {%>
     <!-- Group by carriers -->
     <script>
@@ -365,19 +354,6 @@
       let selectedState = 'all';
 
       const originalLabels = [...companies.map(c => c.name), 'None'];
-
-      function getDataByState(state) {
-        const filtered = state === 'all'
-          ? userCompanyStateData
-          : userCompanyStateData.filter(d => d.state === state);
-
-        const counts = {};
-        filtered.forEach(({ company }) => {
-          counts[company] = (counts[company] || 0) + 1;
-        });
-
-        return companies.map(c => counts[c.name] || 0);
-      }
 
       const statesWithData = states.filter(state => {
         const data = userCompanyStateData.filter(d => d.state === state);
@@ -463,16 +439,22 @@
           : userCompanyStateData.filter(d => d.state === state);
 
         // --- DISTINCT COUNT PER COMPANY ---
-        const counts = {};
-        companies.forEach(c => counts[c.name] = new Set());
+        // Build a map from company ID to company object
+        const companyMap = {};
+        companies.forEach(c => {
+          companyMap[c.id] = c;
+        });
 
-        filtered.forEach(({ company, userId }) => {
-          if (company && counts[company]) {
-            counts[company].add(userId);
+        const counts = {};
+        companies.forEach(c => counts[c.id] = new Set());
+
+        filtered.forEach(({ companyId, userId }) => {
+          if (companyId && counts[companyId]) {
+            counts[companyId].add(userId);
           }
         });
 
-        const rawData = companies.map(c => counts[c.name].size);
+        const rawData = companies.map(c => counts[c.id].size);
 
         // --- DISTINCT TOTAL USERS ---
         const uniqueUsers = new Set(filtered.map(d => d.userId));
@@ -684,12 +666,13 @@
             `;
 
             carriersByState[state].forEach(carrier => {
-              const iconPath = companyIconMap[carrier.company];
+              const companyName = carrier.companyName || 'Unknown';
+              const iconPath = carrier.carrier?.iconPath;
               accordionHTML += `
                 <li class="list-group-item">
                   <div class="d-flex align-items-center">
                     ${iconPath ? `<img src="${iconPath}" alt="icon" class="me-2" style="width:28px; height:28px; object-fit:contain;">` : ''}
-                    <div class="me-3 fw-semibold">${carrier.company}</div>
+                    <div class="me-3 fw-semibold">${companyName}</div>
                     <div class="flex-grow-1">
                       <div class="progress carrier-progress" style="height: 14px; cursor: pointer;"
                         data-status="${carrier.status}">
@@ -718,6 +701,7 @@
 
           // Now apply progress bar logic
           const normalStatusOptions = [
+            "Empty",
             "Request Received from Agent",
             "Pending Submission",
             "Submitted to Carrier",
@@ -752,7 +736,8 @@
                 colorClass = "bg-success";
               } else if (specialStatusOptions.includes(status)) {
                 pct = 100;
-                colorClass = "bg-warning";
+                // Refering is green, all other special statuses are red
+                colorClass = status === "Refering" ? "bg-success" : "bg-danger";
               }
 
               bar.className = `progress-bar carrier-bar ${colorClass}`;

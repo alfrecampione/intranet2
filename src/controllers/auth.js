@@ -1,10 +1,10 @@
 import { prisma } from "../config/dbConfig.js";
 import bcrypt from "bcrypt";
 import { sendMail } from "./mailer.js";
-import { decryptEmail, deleteEncryptedEmail } from "./cryptUtils.js";
+import { decryptEmailDirect, deleteEncryptedEmail } from "./cryptUtils.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { cca, LOGIN_SCOPES } from "../config/msalConfig.js";
-import { getVisibleAgentsId } from "../config/utils.js";
+import { getVisibleAgentsId, ensureDefaultUserRecords } from "../config/utils.js";
 import e from "express";
 
 const login = (req, res) => {
@@ -17,27 +17,31 @@ const signUp = async (req, res) => {
     return res.status(400).json({ success: false, message: "Email is required" });
   }
   try {
-    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted_email } }, {
-      status: () => ({
-        json: (data) => data,
-      })
-    });
+    const email = await decryptEmailDirect(encrypted_email);
 
-    if (!emailResult || !emailResult.data || !emailResult.data.email) {
-      return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+    if (!email) {
+      res.render("login", { error: "Invalid encrypted email" });
+      return;
     }
 
-    res.render("signUp", { email: emailResult.data.email, encrypted_email: encrypted_email });
+    res.render("signUp", { email: email, encrypted_email: encrypted_email });
   } catch (error) {
     console.error("signUp function error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    res.render("login", { error: "Server error" });
+    return;
   }
 };
 
 const createAccount = async (req, res) => {
   const { email, password } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
 
-  if (!email || !password) {
+  const isMicrosoftEmail = email.toLowerCase().endsWith("@goldentrust.com");
+  const requiresPassword = !isMicrosoftEmail;
+
+  if (requiresPassword && !password) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are required" });
@@ -53,25 +57,55 @@ const createAccount = async (req, res) => {
           .json({ success: false, message: "Email already exists" });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
       const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      if (result && result.confirmationCode) {
-        await prisma.user.update({
-          where: { email },
-          data: {
-            password: hashedPassword,
-            confirmationCode: confirmationCode
-          }
-        });
+      if (isMicrosoftEmail) {
+        // For Microsoft SSO users: no password required, mark password field and still send confirmation code
+        const passwordValue = "Microsoft Login";
+
+        if (result && result.confirmationCode) {
+          await prisma.user.update({
+            where: { email },
+            data: {
+              password: passwordValue,
+              confirmationCode
+            }
+          });
+        } else if (result && result.confirmationCode === null) {
+          // Email exists and already confirmed
+          return res.status(400).json({ success: false, message: "Email already exists" });
+        } else {
+          await prisma.user.create({
+            data: {
+              email,
+              password: passwordValue,
+              confirmationCode
+            }
+          });
+        }
       } else {
-        await prisma.user.create({
-          data: {
-            email,
-            password: hashedPassword,
-            confirmationCode: confirmationCode
-          }
-        });
+        // Standard local signup
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        if (result && result.confirmationCode) {
+          await prisma.user.update({
+            where: { email },
+            data: {
+              password: hashedPassword,
+              confirmationCode
+            }
+          });
+        } else if (result && result.confirmationCode === null) {
+          return res.status(400).json({ success: false, message: "Email already exists" });
+        } else {
+          await prisma.user.create({
+            data: {
+              email,
+              password: hashedPassword,
+              confirmationCode
+            }
+          });
+        }
       }
 
       const subject = "Email Confirmation Code";
@@ -146,16 +180,12 @@ const validateEmail = async (req, res, next) => {
 
   await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
     try {
-      const emailResult = await decryptEmail({ params: { encrypted_email: encryptedEmail } }, {
-        status: () => ({
-          json: (data) => data,
-        })
-      });
+      const email = await decryptEmailDirect(encryptedEmail);
 
-      if (!emailResult || !emailResult.data || !emailResult.data.email) {
-        return res.status(400).json({ success: false, message: "Invalid encrypted email" });
+      if (!email) {
+        res.render("login", { error: "Invalid encrypted email" });
+        return;
       }
-      const email = emailResult.data.email;
       await deleteEncryptedEmail(encryptedEmail);
 
       const existingUser = await prisma.user.findFirst({
@@ -163,10 +193,8 @@ const validateEmail = async (req, res, next) => {
       });
 
       if (!existingUser || existingUser.email !== email) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email or confirmation code"
-        });
+        res.render("login", { error: "Invalid confirmation code" });
+        return;
       }
 
       await prisma.user.update({
@@ -182,12 +210,14 @@ const validateEmail = async (req, res, next) => {
 
       await leadToAgent(existingUser, req.user?.user_id);
 
+      // Create placeholder profile records so the profile view can render editable sections immediately
+      await ensureDefaultUserRecords(existingUser.user_id, { email });
+
       await req.login(user, async (err) => {
         if (err) {
           console.error("Login error:", err);
           return next(err);
         }
-        await deleteEncryptedEmail(encryptedEmail);
 
         return res.status(200).json({ success: true, redirect: "/users/registration" });
       });
@@ -213,17 +243,11 @@ const resetPassword = async (req, res) => {
   const { password } = req.body;
 
   try {
-    const emailResult = await decryptEmail({ params: { encrypted_email: encrypted } }, {
-      status: () => ({
-        json: (data) => data,
-      })
-    });
+    const email = await decryptEmailDirect(encrypted);
 
-    if (!emailResult || !emailResult.data?.email) {
+    if (!email) {
       return res.redirect("/login");
     }
-
-    const email = emailResult.data.email;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prismaContext.run({ userId: req.user?.user_id ?? "anonymous" }, async () => {
@@ -298,8 +322,13 @@ const checkNotAuthenticated = async (req, res, next) => {
     }
     return res.redirect('/users/registration');
   }
+  if (req.user && req.user.registrationCompleted === true) {
+    if (req.path === '/users/registration') {
+      return res.redirect('/users/dashboard');
+    }
+  }
   if (req.path.startsWith('/users/profile/') && req.method === 'GET') {
-    if (req.user.isMicrosoftLogin && req.user.rights.includes(1)) {
+    if (req.user && req.user.isMicrosoftLogin && req.user.rights.includes(1)) {
       return next();
     }
     const id = req.path.split('/')[3];

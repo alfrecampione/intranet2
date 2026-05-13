@@ -1,37 +1,24 @@
 import fs from "fs";
 import { prisma, pool } from "../config/dbConfig.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 
 const citiesByState = JSON.parse(
     fs.readFileSync("./src/config/US_States_and_Cities.json", "utf8")
 );
 
-
-const STATE_ABBR_TO_NAME = {
-    al: "alabama", ak: "alaska", az: "arizona", ar: "arkansas",
-    ca: "california", co: "colorado", ct: "connecticut", de: "delaware",
-    fl: "florida", ga: "georgia", hi: "hawaii", id: "idaho",
-    il: "illinois", in: "indiana", ia: "iowa", ks: "kansas",
-    ky: "kentucky", la: "louisiana", me: "maine", md: "maryland",
-    ma: "massachusetts", mi: "michigan", mn: "minnesota", ms: "mississippi",
-    mo: "missouri", mt: "montana", ne: "nebraska", nv: "nevada",
-    nh: "new hampshire", nj: "new jersey", nm: "new mexico", ny: "new york",
-    nc: "north carolina", nd: "north dakota", oh: "ohio", ok: "oklahoma",
-    or: "oregon", pa: "pennsylvania", ri: "rhode island", sc: "south carolina",
-    sd: "south dakota", tn: "tennessee", tx: "texas", ut: "utah",
-    vt: "vermont", va: "virginia", wa: "washington", wv: "west virginia",
-    wi: "wisconsin", wy: "wyoming",
-};
-
 const getCity = async (req, res) => {
     try {
-        const stateAbbr = (req.query.state || "").toLowerCase();
+        const stateAbbr = (req.query.state || "").toUpperCase();
 
-        if (!stateAbbr || !STATE_ABBR_TO_NAME[stateAbbr]) {
+        console.log("Received state abbreviation:", stateAbbr);
+
+        if (!stateAbbr) {
             return res.status(400).json({ error: "Invalid or missing state abbreviation" });
         }
 
-        const stateName = STATE_ABBR_TO_NAME[stateAbbr];
-        const cities = citiesByState[stateName.charAt(0).toUpperCase() + stateName.slice(1)] || [];
+        console.log("Fetching cities for state:", stateAbbr);
+
+        const cities = citiesByState[stateAbbr] || [];
 
         return res.json(cities.sort());
     } catch (err) {
@@ -49,7 +36,7 @@ async function getAgencies() {
         const franchise = await prisma.$queryRaw`
       SELECT * 
       FROM qq.locations 
-      WHERE location_type = 2 OR location_id = 1
+      WHERE (location_type in (1,2)) AND active = true
       ORDER BY alias ASC
     `;
 
@@ -156,7 +143,7 @@ async function reverseGetAllAgencies(agencyId, franchiseId, visited = new Set())
                     const [franchise] = await prisma.$queryRaw`
                         SELECT location_id, alias 
                         FROM qq.locations 
-                        WHERE location_id = ${fid}
+                        WHERE location_id = ${fid} AND active = true
                     `;
                     franchiseCache.set(fid, franchise);
                 }
@@ -206,7 +193,7 @@ async function reverseGetAllAgencies(agencyId, franchiseId, visited = new Set())
                 const [franchise] = await prisma.$queryRaw`
                     SELECT location_id, alias 
                     FROM qq.locations 
-                    WHERE location_id = ${fid}
+                    WHERE location_id = ${fid} AND active = true
                 `;
                 franchiseCache.set(fid, franchise);
             }
@@ -356,8 +343,27 @@ async function createMessage(log, options = {}) {
     const isDelete = action.includes('delete');
 
     const userId = log.userId;
+    let legalName = '(Administrator User)';
+
+    // Try to get name from Prisma personalInfo first
     const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-    const legalName = personalInfo?.legalName || '(Administrator User)';
+    if (personalInfo?.legalName) {
+        legalName = personalInfo.legalName;
+    } else {
+        // If not found, try to get from entra.users (Microsoft users)
+        try {
+            const entraUser = await prisma.$queryRaw`
+                SELECT display_name
+                FROM entra.users
+                WHERE user_id = ${userId}
+            `;
+            if (entraUser && entraUser.length > 0 && entraUser[0].display_name) {
+                legalName = entraUser[0].display_name;
+            }
+        } catch (err) {
+            console.warn('Failed to fetch user from entra.users:', err.message);
+        }
+    }
 
     let message = '';
     let actionVerb = '';
@@ -373,8 +379,26 @@ async function createMessage(log, options = {}) {
     let targetLabel = table;
     if (table.includes('carriers')) {
         const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-        const company = carrierObj?.company ?? '(unknown carrier)';
-        targetLabel = `carrier ${company}`;
+        const companyId = carrierObj?.company ?? null;
+        let companyName = '(unknown carrier)';
+
+        // Fetch company name from qq.contacts via externalId
+        if (companyId) {
+            try {
+                const company = await prisma.company.findUnique({
+                    where: { id: companyId },
+                    select: { externalId: true }
+                });
+                if (company?.externalId) {
+                    const companyNamesMap = await getCompanyNamesMap([company.externalId]);
+                    companyName = companyNamesMap.get(company.externalId)?.name ?? '(unknown carrier)';
+                }
+            } catch (err) {
+                console.warn('Failed to fetch company name:', err.message);
+            }
+        }
+
+        targetLabel = `carrier ${companyName}`;
     } else if (table.includes('user')) {
         targetLabel = 'user';
     }
@@ -409,9 +433,209 @@ async function getEntraId(email) {
     return (entra_id && entra_id.length > 0) ? entra_id[0].user_id : null;
 }
 
+async function resolveActorName(userId) {
+    let name = 'Administrator User';
+
+    const user = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { display_name: true },
+    });
+    if (user?.display_name) return user.display_name;
+
+    try {
+        const entraUser = await prisma.$queryRaw`
+            SELECT display_name
+            FROM entra.users
+            WHERE user_id = ${userId}
+        `;
+
+        if (entraUser && entraUser[0]?.display_name) {
+            name = entraUser[0].display_name;
+        }
+    } catch (err) {
+        console.warn('Failed to fetch user from entra.users:', err.message);
+    }
+
+    return name;
+}
+
 function getMSARealId(userId) {
     const realId = userId ? userId.split(".")[0] : userId;
     return realId;
 };
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId };
+/**
+ * Get company names from qq.contacts by their external IDs
+ * @param {Array<number>} externalIds - Array of external IDs to fetch
+ * @returns {Promise<Map<number, {name: string, phone: string}>>} Map of externalId to company name and phone
+ */
+async function getCompanyNamesMap(externalIds) {
+    const companyNamesMap = new Map();
+    if (externalIds.length > 0) {
+        const uniqueExternalIds = [...new Set(externalIds)];
+        const availableCompanies = await prisma.$queryRaw`
+            SELECT entity_id, display_name, phone
+            FROM qq.contacts
+            WHERE entity_id = ANY(${uniqueExternalIds}::int[])
+        `;
+
+        externalIds.forEach(id => {
+            const company = availableCompanies.find(c => c.entity_id === id);
+            if (company) {
+                companyNamesMap.set(id, { name: company.display_name, phone: company.phone });
+            }
+        });
+    }
+    return companyNamesMap;
+}
+
+/**
+ * Get all companies combining qq.contacts and health schema
+ * @returns {Promise<Array>} Array of companies with id, name, iconPath, and States
+ */
+async function getAllCompanies() {
+    // Get companies from health schema
+    const healthCompanies = await prisma.company.findMany();
+
+    // Get only the externalIds that exist in health schema
+    const externalIds = healthCompanies
+        .filter(hc => hc.externalId)
+        .map(hc => hc.externalId);
+
+    // Get companies from qq.contacts only for those with externalId in health
+    let qqCompanies = [];
+    if (externalIds.length > 0) {
+        qqCompanies = await prisma.$queryRaw`
+            SELECT entity_id, display_name, phone
+            FROM qq.contacts
+            WHERE entity_id = ANY(${externalIds}::int[])
+            ORDER BY display_name ASC
+        `;
+    }
+
+    // Combine both sources
+    const companies = [];
+
+    // Add companies with externalId (from qq.contacts)
+    for (const qqComp of qqCompanies) {
+        const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
+        if (healthMatch) {
+            let iconPath = healthMatch.iconPath || null;
+            // Generate signed URL for iconPath if it's from S3
+            if (iconPath) {
+                iconPath = await getSignedS3Url(iconPath);
+            }
+            companies.push({
+                id: healthMatch.id,
+                name: qqComp.display_name,
+                phone: qqComp.phone || '',
+                iconPath: iconPath,
+                States: healthMatch.States || [],
+                externalId: qqComp.entity_id
+            });
+        }
+    }
+
+    companies.sort((a, b) => a.name.localeCompare(b.name));
+    return companies;
+}
+
+async function ensureDefaultUserRecords(userId, options = {}) {
+    if (!userId) {
+        const error = new Error("userId is required");
+        error.status = 400;
+        throw error;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { user_id: true, email: true },
+    });
+
+    if (!user) {
+        const error = new Error("User not found");
+        error.status = 404;
+        throw error;
+    }
+
+    const includeEmailRecords = options.includeEmailRecords ?? true;
+    const email = options.email ?? user.email ?? null;
+
+    const [personalInfo, contactInfo, paymentMethod, documents, recommendation, necesaryDocs] = await Promise.all([
+        prisma.personalInfo.findUnique({ where: { userId } }),
+        prisma.contactInfo.findUnique({ where: { userId } }),
+        prisma.paymentMethod.findUnique({ where: { userId } }),
+        prisma.documents.findUnique({ where: { userId } }),
+        prisma.recommendation.findUnique({ where: { userId } }),
+        includeEmailRecords && email
+            ? prisma.necesaryDocuments.findUnique({ where: { email } })
+            : Promise.resolve(null),
+    ]);
+
+    const operations = [];
+    const created = [];
+    const existing = [];
+    const skipped = [];
+
+    if (!personalInfo) {
+        operations.push(prisma.personalInfo.create({ data: { userId } }));
+        created.push("personalInfo");
+    } else {
+        existing.push("personalInfo");
+    }
+
+    if (!contactInfo) {
+        operations.push(prisma.contactInfo.create({ data: { userId } }));
+        created.push("contactInfo");
+    } else {
+        existing.push("contactInfo");
+    }
+
+    if (!paymentMethod) {
+        operations.push(prisma.paymentMethod.create({ data: { userId } }));
+        created.push("paymentMethod");
+    } else {
+        existing.push("paymentMethod");
+    }
+
+    if (!documents) {
+        operations.push(prisma.documents.create({ data: { userId } }));
+        created.push("documents");
+    } else {
+        existing.push("documents");
+    }
+
+    if (!recommendation) {
+        operations.push(prisma.recommendation.create({ data: { userId } }));
+        created.push("recommendation");
+    } else {
+        existing.push("recommendation");
+    }
+
+    if (includeEmailRecords) {
+        if (email) {
+            if (!necesaryDocs) {
+                operations.push(prisma.necesaryDocuments.create({ data: { email } }));
+                created.push("necesaryDocuments");
+            } else {
+                existing.push("necesaryDocuments");
+            }
+        } else {
+            skipped.push("necesaryDocuments");
+        }
+    }
+
+    if (operations.length > 0) {
+        await prisma.$transaction(operations);
+    }
+
+    return {
+        userId,
+        email,
+        created,
+        existing,
+        skipped,
+    };
+}
+
+export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords };

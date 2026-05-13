@@ -39,7 +39,7 @@ const dataSearch = async (req, res) => {
 
     let whereClause = { OR: searchConditions };
 
-    if (!user.isMicrosoftLogin) {
+    if (user && !user.isMicrosoftLogin) {
       const agency = await prisma.agency.findUnique({
         where: { owner: agentId },
       });

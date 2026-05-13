@@ -110,9 +110,7 @@
                                                         <label>Show
                                                             <select name="DataTables_Table_0_length"
                                                                 aria-controls="DataTables_Table_0" class="form-select">
-                                                                <option value="7">7</option>
-                                                                <option value="10">10</option>
-                                                                <option value="25">25</option>
+                                                                <option value="25" selected>25</option>
                                                                 <option value="50">50</option>
                                                                 <option value="75">75</option>
                                                                 <option value="100">100</option>
@@ -232,6 +230,27 @@
                                                         name="email" placeholder="example@mail.com"
                                                         aria-label="example@mail.com" aria-describedby="email" />
                                                 </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label" for="firstName">First Name</label>
+                                                <input type="text" id="firstName" class="form-control" name="firstName"
+                                                    placeholder="First Name" required />
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label class="form-label" for="lastName">Last Name</label>
+                                                <input type="text" id="lastName" class="form-control" name="lastName"
+                                                    placeholder="Last Name" required />
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <label class="form-label" for="agency">Agency</label>
+                                                <select id="agency" class="form-select" name="agency">
+                                                    <option value="">Select agency</option>
+                                                    <% allAgencies.forEach(a=> { %>
+                                                        <option value="<%= a.id %>">
+                                                            <%= a.name %>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <label class="form-label mb-2">Required Documents</label>
@@ -369,17 +388,15 @@
                                                             required placeholder="123456" maxlength="10">
                                                     </div>
 
-                                                    <!-- Subordination -->
+                                                    <!-- Agency -->
                                                     <div class="mb-3">
                                                         <label for="agentSubordination"
-                                                            class="form-label">Subordination</label>
+                                                            class="form-label">Agency</label>
                                                         <select class="form-select" id="agentSubordination"
-                                                            name="subordination" required>
-                                                            <option value="" disabled selected>Select location or agency
-                                                            </option>
+                                                            name="agency" required>
+                                                            <option value="" disabled selected>Select agency</option>
                                                             <% allAgencies.forEach(a=> { %>
-                                                                <option
-                                                                    value="<%= a.isAgency ? `agency-${a.id}` : `franchise-${a.id}` %>">
+                                                                <option value="<%= a.id %>">
                                                                     <%= a.name %>
                                                                 </option>
                                                                 <% }) %>
@@ -397,6 +414,34 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Modal to confirm delete agent -->
+                                <div class="modal fade" id="deleteAgentModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Agent</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="mb-1">You are about to delete this agent:</p>
+                                                <p class="fw-bold mb-0" id="deleteAgentName">Name</p>
+                                                <p class="text-muted" id="deleteAgentEmail">email@example.com</p>
+                                                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                                                    This action cannot be undone.
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-danger"
+                                                    id="confirmDeleteAgent">Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--/ Modal to confirm delete agent -->
 
                                 <script>
                                     // Phone formatting: (XXX) XXX-XXXX
@@ -564,9 +609,9 @@
 
                     const tdAction = document.createElement("td");
                     tdAction.innerHTML = `
-    <a href="/users/profile/${user.user_id}" class="ti ti-search me-2" title="View Profile"></a>
-    <a href="javascript:void(0);" class="ti ti-trash text-danger" title="Delete User"
-       onclick="if(confirm('Are you sure you want to delete this agent?')) { fetch('/users/agents/${user.user_id}', { method: 'DELETE' }).then(() => location.reload()); }">
+     <a href="/users/profile/${user.user_id}" class="ti ti-search me-2" title="View Profile"></a>
+     <a href="javascript:void(0);" class="ti ti-trash text-danger btn-delete-agent" title="Delete User"
+         data-user-id="${user.user_id}" data-user-name="${user.display_name || ''}" data-user-email="${user.email || ''}"></a>
 `;
                     tr.appendChild(tdAction);
 
@@ -627,7 +672,7 @@
         // Estado global de paginado y búsqueda
         let users = [];
         let currentPage = 1;
-        let pageSize = 7;
+        let pageSize = 25;
         let searchTerm = "";
 
         function setPage(page) {
@@ -662,6 +707,44 @@
             document.querySelector('#DataTables_Table_0_filter input[type="search"]').addEventListener("input", function () {
                 setSearch(this.value);
             });
+
+            // Delete agent handlers via modal
+            const deleteModalEl = document.getElementById("deleteAgentModal");
+            const deleteModal = new bootstrap.Modal(deleteModalEl);
+            const deleteNameEl = document.getElementById("deleteAgentName");
+            const deleteEmailEl = document.getElementById("deleteAgentEmail");
+            const confirmDeleteBtn = document.getElementById("confirmDeleteAgent");
+            let userIdToDelete = null;
+
+            document.body.addEventListener("click", (e) => {
+                const target = e.target.closest(".btn-delete-agent");
+                if (!target) return;
+                e.preventDefault();
+
+                userIdToDelete = target.dataset.userId;
+                deleteNameEl.textContent = target.dataset.userName || "(No name)";
+                deleteEmailEl.textContent = target.dataset.userEmail || "(No email)";
+
+                deleteModal.show();
+            });
+
+            confirmDeleteBtn.addEventListener("click", async () => {
+                if (!userIdToDelete) return;
+                try {
+                    const response = await fetch(`/users/agents/${userIdToDelete}`, { method: "DELETE" });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        const msg = result.message || "Error deleting agent";
+                        showToast("Error", msg);
+                        return;
+                    }
+                    showToast("Success", "Agent deleted successfully");
+                    deleteModal.hide();
+                    location.reload();
+                } catch (err) {
+                    showToast("Error", err.message || "Error deleting agent");
+                }
+            });
         });
     </script>
 
@@ -689,24 +772,20 @@
                 const legalName = document.getElementById("agentLegalName").value.trim();
                 const phone = document.getElementById("agentPhone").value.trim();
                 const npn = document.getElementById("agentNpn").value.trim();
-                const subordination = document.getElementById("agentSubordination").value;
+                const agencyId = document.getElementById("agentSubordination").value;
 
-                if (!subordination) {
-                    showToast("Error", "Please select a subordination");
+                if (!agencyId) {
+                    showToast("Error", "Please select an agency");
                     return;
                 }
-
-                // Parse "agency-5" or "franchise-12"
-                const [subType, ...subIdParts] = subordination.split("-");
-                const subId = subIdParts.join("-");
 
                 const payload = {
                     email,
                     legalName,
                     phone,
                     npn,
-                    agency: subType === "agency" ? subId : null,
-                    franchise: subType === "franchise" ? parseInt(subId) : null,
+                    agency: agencyId,
+                    franchise: null,
                 };
 
                 try {
@@ -718,11 +797,14 @@
                         body: JSON.stringify(payload),
                     });
 
+                    const result = await response.json();
+
                     if (!response.ok) {
-                        showToast("Error", "Error adding the new agent")
+                        const errorMessage = result.message || "Error adding the new agent";
+                        showToast("Error", errorMessage);
+                        return;
                     }
 
-                    const result = await response.json();
                     showToast("Success", "The agent was added")
 
                     const modalEl = document.getElementById("addAgentModal");
@@ -734,7 +816,8 @@
 
                     location.reload();
                 } catch (error) {
-                    showToast("Error", error)
+                    const errorMessage = error.message || "Error adding the new agent";
+                    showToast("Error", errorMessage);
                 }
             });
         });
@@ -753,6 +836,9 @@
                     e.preventDefault();
                     const emailInput = document.getElementById("email");
                     const email = emailInput.value.trim();
+                    const firstName = document.getElementById("firstName").value.trim();
+                    const lastName = document.getElementById("lastName").value.trim();
+                    const agencyId = document.getElementById("agency").value.trim();
 
                     if (!email) {
                         showToast("Error", "Please enter an email address.");
@@ -796,6 +882,20 @@
                     overlay.style.display = "flex";
 
                     try {
+                        // First check if onboarding was already sent
+                        const onboardingCheckResponse = await fetch(`/onboardingSent/${email}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ firstName, lastName, agencyId: agencyId || null })
+                        });
+
+                        const onboardingCheckData = await onboardingCheckResponse.json();
+
+                        if (!onboardingCheckResponse.ok) {
+                            const errorMessage = onboardingCheckData.message || "Error checking onboarding status";
+                            throw new Error(errorMessage);
+                        }
+
                         const docsResponse = await fetch(`/necessaryDocs`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -805,6 +905,13 @@
                             }),
                         });
 
+                        const docsData = await docsResponse.json();
+
+                        if (!docsResponse.ok) {
+                            const errorMessage = docsData.message || "Error adding necessary documents";
+                            throw new Error(errorMessage);
+                        }
+
                         const encryptEmail = await fetch(`/email/encrypt/${email}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -812,22 +919,136 @@
 
                         const encryptedEmail = await encryptEmail.json();
 
-                        if (!docsResponse.ok) throw new Error("Error adding necessary documents");
-                        if (!encryptEmail.ok) throw new Error("Error encrypting email");
+                        if (!encryptEmail.ok) {
+                            const errorMessage = encryptedEmail.message || "Error encrypting email";
+                            throw new Error(errorMessage);
+                        }
 
-                        const body = {
-                            name: email,
-                            intro: "Welcome! Please follow the instructions below.",
-                            action: {
-                                instructions: "To create your account, please click here:",
-                                button: {
-                                    color: "#27388B",
-                                    text: "Create your account",
-                                    link: `${url}/signUp/${encryptedEmail.data.encryptedData}`
-                                }
-                            },
-                            outro: "If you have questions, you can reply to this email."
-                        };
+                        // Use firstName and lastName if available, otherwise use email
+                        const fullName = [firstName, lastName].filter(Boolean).join(' ');
+                        const displayName = fullName || email;
+                        const signUpLink = `${url}/signUp/${encryptedEmail.data.encryptedData}`;
+
+                        // Create HTML email body similar to Veterans Day template
+                        const body = `
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<!--[if gte mso 15]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Create your account on GoldenHealth</title>
+<style>
+img{-ms-interpolation-mode:bicubic;}
+table, td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+p, a, li, td, blockquote{mso-line-height-rule:exactly;}
+p, a, li, td, body, table, blockquote{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;}
+body{height:100%;margin:0;padding:0;width:100%;background:#f0f4f9;}
+p{margin:0;padding:0;}
+table{border-collapse:collapse;}
+td, p, a{word-break:break-word;}
+h1, h2, h3, h4, h5, h6{display:block;margin:0;padding:0;}
+img, a img{border:0;height:auto;outline:none;text-decoration:none;}
+body, #bodyTable{background-color:#f0f4f9;}
+.mceText, .mceLabel{font-family:'Public Sans', Verdana, Geneva, sans-serif;color:#000;}
+.mceText h1{color:#27388B;font-size:32px;font-weight:bold;line-height:1.25;text-align:center;margin:20px 0;}
+.mceText p{color:#000;font-size:16px;line-height:1.5;text-align:center;margin:15px 0;}
+.mceButton{background-color:#27388B;border-radius:5px;text-align:center;margin:20px 0;}
+.mceButton a{color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:12px 24px;display:inline-block;}
+@media only screen and (max-width: 480px) {
+body, table, td, p, a, li, blockquote{-webkit-text-size-adjust:none!important;}
+body{width:100%!important;min-width:100%!important;}
+.mceText h1{font-size:24px!important;}
+.mceText p{font-size:14px!important;}
+}
+</style>
+</head>
+<body>
+<center>
+<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable" style="background-color:#f0f4f9;">
+<tbody><tr>
+<td align="center" valign="top" style="padding-top:40px;padding-bottom:40px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:660px;background-color:#ffffff;" role="presentation">
+<tbody>
+<!-- Logo Section -->
+<tr>
+<td style="padding:24px;text-align:center;">
+<a href="https://goldentrust.com/" target="_blank">
+<img src="${url}/img/branding/GoldenHealth-2.png" alt="GoldenHealth" style="max-width:300px;height:auto;display:block;margin:0 auto;"/>
+</a>
+</td>
+</tr>
+<!-- Main Content -->
+<tr>
+<td style="padding:0 24px 24px 24px;" class="mceText">
+<h1>Welcome to GoldenHealth!</h1>
+<p style="font-size:18px;margin-top:20px;">
+Hello ${displayName},
+</p>
+<p>
+We're excited to have you join our team. To get started and complete your registration, please click the button below to create your account.
+</p>
+<div class="mceButton" style="text-align:center;margin:30px 0;">
+<a href="${signUpLink}" style="background-color:#27388B;color:#ffffff;padding:14px 28px;border-radius:5px;text-decoration:none;font-weight:bold;display:inline-block;">
+Create Your Account
+</a>
+</div>
+<p style="margin-top:30px;color:#666;">
+Best regards,<br>
+<strong>GoldenHealth Team</strong>
+</p>
+<div style="text-align:center;padding:20px 0;">
+<a href="https://www.facebook.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="${url}/img/icons/brands/facebook.png" alt="Facebook" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.instagram.com/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="${url}/img/icons/brands/instagram.png" alt="Instagram" width="24" height="24" style="display:inline-block;"/>
+</a>
+<a href="https://www.linkedin.com/company/goldentrust" target="_blank" style="margin:0 8px;">
+<img src="${url}/img/icons/brands/linkedin.png" alt="LinkedIn" width="24" height="24" style="display:inline-block;"/>
+</a>
+</div>
+</td>
+</tr>
+<!-- Footer Section -->
+<tr>
+<td style="background-color:#27388B;padding:20px;text-align:center;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+<tbody>
+<tr>
+<td style="color:#ffffff;font-size:12px;line-height:1.5;text-align:center;">
+<p style="margin:5px 0;color:#ffffff;">
+Golden Trust Insurance<br/>
+Email: <a href="mailto:goldenhealth@goldentrust.com" style="color:#ffffff;text-decoration:underline;">goldenhealth@goldentrust.com</a><br/>
+Phone: <a href="tel:+18884546488" style="color:#ffffff;text-decoration:underline;">+1 (888) 454-6488</a>
+</p>
+<p style="margin:10px 0;color:#ffffff;font-size:11px;">
+© 2025 Golden Trust Insurance. All rights reserved.
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</center>
+</body>
+</html>
+`;
 
                         const response = await fetch(`/sendEmail/${email}`, {
                             method: "POST",
@@ -841,25 +1062,26 @@
 
                         const responseData = await response.json();
 
-                        if (response.ok) {
-                            showToast("Success", "Email sent successfully!");
-
-                            await fetch(`/onboardingSentEmail/${email}`, {
-                                method: "POST"
-                            });
-
-                            emailInput.value = "";
-                            docFields.forEach(field => {
-                                document.getElementById(field).checked = false;
-                            });
-                            const offcanvas = document.getElementById("add-new-record");
-                            const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
-                            if (bsOffcanvas) bsOffcanvas.hide();
-                        } else {
-                            showToast("Error", responseData.message || "Error sending email.");
+                        if (!response.ok) {
+                            const errorMessage = responseData.message || "Error sending email.";
+                            throw new Error(errorMessage);
                         }
+
+                        showToast("Success", "Email sent successfully!");
+
+                        emailInput.value = "";
+                        document.getElementById("firstName").value = "";
+                        document.getElementById("lastName").value = "";
+                        document.getElementById("agency").value = "";
+                        docFields.forEach(field => {
+                            document.getElementById(field).checked = false;
+                        });
+                        const offcanvas = document.getElementById("add-new-record");
+                        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+                        if (bsOffcanvas) bsOffcanvas.hide();
                     } catch (err) {
-                        showToast("Error", "Error sending email.")
+                        const errorMessage = err.message || "Error sending email.";
+                        showToast("Error", errorMessage);
                         console.log(err);
                     } finally {
                         overlay.style.display = "none";

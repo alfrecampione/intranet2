@@ -52,10 +52,8 @@ const data = await response.json();
           searchable: false,
           render: function (data, type, full, meta) {
             return (
-              `<a href="javascript:;" class="btn btn-sm btn-icon item-edit" data-bs-target="#addCarrier" data-bs-toggle="modal"
-              data-bs-dismiss="modal"><i class="text-primary ti ti-plus"></i></a>` +
-              `<a href="javascript:;" class="btn btn-sm btn-icon item-edit" data-bs-target="#deleteCarrier" data-bs-toggle="modal"
-              data-bs-dismiss="modal"><i class="text-primary ti ti-trash"></i></a>`
+              `<a href="javascript:;" class="btn btn-sm btn-icon item-edit action-add" data-bs-target="#addCarrier" data-bs-toggle="modal" data-bs-dismiss="modal"><i class="text-primary ti ti-plus"></i></a>` +
+              `<a href="javascript:;" class="btn btn-sm btn-icon item-edit action-delete" data-bs-target="#deleteCarrier" data-bs-toggle="modal" data-bs-dismiss="modal" data-name="${full.name || ''}" data-display="${full.display_name || ''}" data-contact="${full.entity_id || ''}"><i class="text-primary ti ti-trash"></i></a>`
             );
           }
         }
@@ -123,6 +121,24 @@ const data = await response.json();
         document.getElementById('carrierMga').value = groupingTable.row(this).data().display_name;
       }
     })
+
+    groupingTable.on('click', '.action-delete', function (e) {
+      const rowData = groupingTable.row($(this).closest('tr')).data();
+      if (!rowData) return;
+      const nameField = document.getElementById('name2');
+      const contactField = document.getElementById('contact_id');
+      const carrierDisplay = document.getElementById('deleteCarrierName');
+
+      if (nameField) nameField.value = rowData.name || '';
+      if (contactField) contactField.value = rowData.entity_id || '';
+      if (carrierDisplay) carrierDisplay.textContent = rowData.display_name || rowData.name || '';
+
+      const deleteModalEl = document.getElementById('deleteCarrier');
+      if (deleteModalEl) {
+        const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+        deleteModal.show();
+      }
+    });
 
   }
 

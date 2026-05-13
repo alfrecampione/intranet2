@@ -1,5 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
    UTILITY FUNCTIONS
@@ -12,11 +13,14 @@ import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies } from "../c
  */
 async function loadAgents(agentsIds) {
     const agents = await prisma.user.findMany({
-        where: { user_id: { in: agentsIds } },
+        where: {
+            user_id: { in: agentsIds },
+            registrationCompleted: true // render only users who finished onboarding
+        },
         include: {
             personalInfo: true,
             contactInfo: true,
-            statesAndCarriers: true
+            statesAndCarriers: { include: { carrier: true } }
         },
         orderBy: { display_name: 'asc' }
     });
@@ -41,6 +45,11 @@ async function loadAgents(agentsIds) {
             `;
                 photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
             }
+        }
+
+        // Generate signed URL for photoPath if it's from S3
+        if (photoPath) {
+            photoPath = await getSignedS3Url(photoPath);
         }
 
         return {
@@ -109,15 +118,21 @@ async function handleAgencySummaryFilter(requester) {
  * Handles carrier & state filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} state - State filter value
- * @param {string} carrier - Carrier filter value
+ * @param {string|null|undefined} carrierId - Carrier id filter value (optional)
  * @returns {Array} Filtered agents
  */
-function handleCarrierStateFilter(processedAgents, state, carrier) {
+function handleCarrierStateFilter(processedAgents, state, carrierId) {
     // Match agents that have at least one state/carrier record with both values
-    return processedAgents.filter(agent =>
-        Array.isArray(agent.statesAndCarriers) &&
-        agent.statesAndCarriers.some(sc => sc.state === state && sc.company === carrier)
-    );
+    // sc.company stores the carrier id; fallback to relation id just in case
+    return processedAgents.filter(agent => {
+        if (!Array.isArray(agent.statesAndCarriers)) return false;
+        return agent.statesAndCarriers.some(sc => {
+            if (sc.state !== state) return false;
+            // If no carrier provided, match by state only
+            if (!carrierId) return true;
+            return sc.company === carrierId || sc.carrier?.id === carrierId;
+        });
+    });
 }
 
 /**
@@ -127,8 +142,17 @@ function handleCarrierStateFilter(processedAgents, state, carrier) {
  * @param {string} filterSubValue - Secondary filter value (agency under franchise)
  * @returns {Promise<Array>} Filtered agents
  */
-async function handleAgencyFilter(filterValue, filterSubValue) {
-    if (filterSubValue == null || filterSubValue === '') {
+async function handleAgencyFilter(locationIds, franchiseMap = new Map()) {
+    const franchises = Array.isArray(locationIds) ? locationIds : [locationIds];
+    const validFranchises = franchises.filter(Boolean);
+
+    if (validFranchises.length === 0) {
+        return [];
+    }
+
+    const collectedAgents = [];
+
+    for (const franchiseId of validFranchises) {
         const topAgents = await prisma.user.findMany({
             include: {
                 personalInfo: true,
@@ -136,17 +160,22 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
             },
             where: {
                 personalInfo: {
-                    franchise: filterValue
+                    franchise: franchiseId
                 },
+                registrationCompleted: true
             }
         });
-        const topAgencyIds = topAgents.filter(agent => agent.agency != null).map(agent => agent.agency);
+
+        const topAgencyIds = topAgents
+            .map(agent => agent.personalInfo?.agency)
+            .filter(id => id != null);
 
         const allAgencyIds = [];
         for (const agencyId of topAgencyIds) {
             const subAgencyIds = await getAllAgencyIds(agencyId);
             allAgencyIds.push(...subAgencyIds);
         }
+
         const agentsInAgencies = await prisma.user.findMany({
             include: {
                 personalInfo: true,
@@ -156,103 +185,170 @@ async function handleAgencyFilter(filterValue, filterSubValue) {
                 personalInfo: {
                     agency: { in: allAgencyIds }
                 },
+                registrationCompleted: true
             }
         });
 
-        const allAgents = topAgents.concat(agentsInAgencies);
+        collectedAgents.push(...topAgents, ...agentsInAgencies);
+    }
 
-        return await Promise.all(allAgents.map(async agent => {
-            let photoPath = agent.personalInfo?.photoPath || '';
+    // Remove duplicates by user_id
+    const uniqueAgents = Array.from(new Map(collectedAgents.map(a => [a.user_id, a])).values());
 
-            // For Microsoft users, fetch photoPath from user_avatars table
-            if (agent.email && agent.email.endsWith('@goldentrust.com')) {
-                const entra_user = await prisma.$queryRaw`
-                    SELECT user_id
-                    FROM entra.users
-                    WHERE mail = ${agent.email}
+    // Map agency ids to names for quick lookup (normalize to avoid string/number mismatches)
+    const agencyIds = uniqueAgents
+        .map(agent => agent.personalInfo?.agency)
+        .filter(id => id !== null && id !== undefined)
+        .map(id => String(id).trim())
+        .filter(Boolean);
+
+    const agencyMap = new Map();
+    if (agencyIds.length > 0) {
+        const uniqueAgencyIds = Array.from(new Set(agencyIds));
+        const agencies = await prisma.agency.findMany({
+            where: { id: { in: uniqueAgencyIds } },
+            select: { id: true, name: true }
+        });
+        agencies.forEach(a => agencyMap.set(String(a.id), a.name || ''));
+    }
+
+    return await Promise.all(uniqueAgents.map(async agent => {
+        let photoPath = agent.personalInfo?.photoPath || '';
+        // Always display the franchise name in the agency column
+        let agencyName = franchiseMap.get(String(agent.personalInfo?.franchise ?? '')) || '';
+
+        // No logging; agencyName uses franchise fallback
+
+        // For Microsoft users, fetch photoPath from user_avatars table
+        if (agent.email && agent.email.endsWith('@goldentrust.com')) {
+            const entra_user = await prisma.$queryRaw`
+                SELECT user_id
+                FROM entra.users
+                WHERE mail = ${agent.email}
+            `;
+
+            if (entra_user.length !== 0) {
+                const user_avatar_photo_path = await prisma.$queryRaw`
+                    SELECT s3_url AS photoPath
+                    FROM entra.user_avatars
+                    WHERE entra_id = ${entra_user[0].user_id}
                 `;
-
-                if (entra_user.length !== 0) {
-                    const user_avatar_photo_path = await prisma.$queryRaw`
-                        SELECT s3_url AS photoPath
-                        FROM entra.user_avatars
-                        WHERE entra_id = ${entra_user[0].user_id}
-                    `;
-                    photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
-                }
-            }
-
-            return {
-                user_id: agent.user_id,
-                name: agent.display_name || '',
-                email: agent.email || '',
-                number: agent.contactInfo?.personalPhone || '',
-                photoPath: photoPath
-            };
-        }));
-
-    } else {
-        const allAgencyIds = await getAllAgencyIds(filterSubValue);
-        const agentsInAgencies = await prisma.user.findMany({
-            include: {
-                personalInfo: true,
-                contactInfo: true,
-            },
-            where: {
-                personalInfo: {
-                    agency: { in: allAgencyIds }
-                },
-            }
-        });
-        const allAgents = agentsInAgencies;
-
-        const owner = await prisma.agency.findUnique({
-            where: { id: filterSubValue },
-            select: { owner: true }
-        });
-        if (owner) {
-            const ownerAgent = await prisma.user.findUnique({
-                where: { user_id: owner.owner },
-                include: {
-                    personalInfo: true,
-                    contactInfo: true,
-                }
-            });
-            if (ownerAgent) {
-                allAgents.push(ownerAgent);
+                photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
             }
         }
 
-        return await Promise.all(allAgents.map(async agent => {
-            let photoPath = agent.personalInfo?.photoPath || '';
+        // Generate signed URL for photoPath if it's from S3
+        if (photoPath) {
+            photoPath = await getSignedS3Url(photoPath);
+        }
 
-            // For Microsoft users, fetch photoPath from user_avatars table
-            if (agent.email && agent.email.endsWith('@goldentrust.com')) {
-                const entra_user = await prisma.$queryRaw`
-                    SELECT user_id
-                    FROM entra.users
-                    WHERE mail = ${agent.email}
-                `;
+        return {
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || '',
+            photoPath: photoPath,
+            agencyName
+        };
+    }));
+}
 
-                if (entra_user.length !== 0) {
-                    const user_avatar_photo_path = await prisma.$queryRaw`
-                        SELECT s3_url AS photoPath
-                        FROM entra.user_avatars
-                        WHERE entra_id = ${entra_user[0].user_id}
-                    `;
-                    photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
-                }
-            }
+/**
+ * Handles agency filter by actual agency ID(s)
+ * @param {Array<string>} agencyIds - List of agency IDs to filter by
+ * @returns {Promise<Array>} Filtered agents with agencyName
+ */
+async function handleAgencyByIdFilter(agencyIds) {
+    const ids = Array.isArray(agencyIds) ? agencyIds : [agencyIds];
+    const validIds = ids.filter(Boolean);
 
-            return {
-                user_id: agent.user_id,
-                name: agent.display_name || '',
-                email: agent.email || '',
-                number: agent.contactInfo?.personalPhone || '',
-                photoPath: photoPath
-            };
-        }));
+    if (validIds.length === 0) return [];
+
+    // Expand each selected agency to include all sub-agencies recursively
+    const allAgencyIds = [];
+    for (const agencyId of validIds) {
+        const subIds = await getAllAgencyIds(agencyId);
+        allAgencyIds.push(...subIds);
     }
+
+    const uniqueAgencyIds = Array.from(new Set(allAgencyIds));
+
+    // Build agency name map and collect owner user_ids
+    const agencyMap = new Map();   // agencyId -> agencyName
+    const ownerMap = new Map();    // ownerUserId -> agencyName (the agency they own)
+    if (uniqueAgencyIds.length > 0) {
+        const agencies = await prisma.agency.findMany({
+            where: { id: { in: uniqueAgencyIds } },
+            select: { id: true, name: true, owner: true }
+        });
+        agencies.forEach(a => {
+            agencyMap.set(String(a.id), a.name || '');
+            if (a.owner) ownerMap.set(String(a.owner), a.name || '');
+        });
+    }
+
+    // Fetch agents who belong to any of these agencies (members)
+    const memberAgents = await prisma.user.findMany({
+        include: { personalInfo: true, contactInfo: true },
+        where: {
+            personalInfo: { agency: { in: uniqueAgencyIds } },
+            registrationCompleted: true
+        }
+    });
+
+    // Fetch agency owners who are not already captured as members
+    const memberIds = new Set(memberAgents.map(a => String(a.user_id)));
+    const ownerUserIds = Array.from(ownerMap.keys()).filter(id => !memberIds.has(id));
+
+    const ownerAgents = ownerUserIds.length > 0
+        ? await prisma.user.findMany({
+            include: { personalInfo: true, contactInfo: true },
+            where: {
+                user_id: { in: ownerUserIds },
+                registrationCompleted: true
+            }
+        })
+        : [];
+
+    const agents = [...memberAgents, ...ownerAgents];
+
+    return await Promise.all(agents.map(async agent => {
+        let photoPath = agent.personalInfo?.photoPath || '';
+        // Show the agent's own agency name; fall back to the agency they own (for owners)
+        const agencyName =
+            agencyMap.get(String(agent.personalInfo?.agency ?? '')) ||
+            ownerMap.get(String(agent.user_id)) ||
+            '';
+
+        if (agent.email && agent.email.endsWith('@goldentrust.com')) {
+            const entra_user = await prisma.$queryRaw`
+                SELECT user_id
+                FROM entra.users
+                WHERE mail = ${agent.email}
+            `;
+            if (entra_user.length !== 0) {
+                const user_avatar_photo_path = await prisma.$queryRaw`
+                    SELECT s3_url AS photoPath
+                    FROM entra.user_avatars
+                    WHERE entra_id = ${entra_user[0].user_id}
+                `;
+                photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photoPath : '';
+            }
+        }
+
+        if (photoPath) {
+            photoPath = await getSignedS3Url(photoPath);
+        }
+
+        return {
+            user_id: agent.user_id,
+            name: agent.display_name || '',
+            email: agent.email || '',
+            number: agent.contactInfo?.personalPhone || '',
+            photoPath,
+            agencyName
+        };
+    }));
 }
 
 /**
@@ -279,7 +375,7 @@ function handleGenericFilter(processedAgents, filterType, filterValue) {
     if (filterType === 'carrier') {
         return processedAgents.filter(agent =>
             Array.isArray(agent.statesAndCarriers) &&
-            agent.statesAndCarriers.some(sc => sc.company === filterValue)
+            agent.statesAndCarriers.some(sc => sc.company === filterValue || sc.carrier?.id === filterValue)
         );
     }
     // Primitive top-level agent fields
@@ -287,18 +383,17 @@ function handleGenericFilter(processedAgents, filterType, filterValue) {
 }
 
 async function getStatesAndCarriers() {
-    const statesAndCarriers = await prisma.company.findMany({
-        select: { States: true, name: true },
-        orderBy: { name: 'asc' },
-    });
+    const statesAndCarriers = await getAllCompanies();
 
     // Extract unique states
     const states = statesAndCarriers.map(item => item.States).flat();
     const uniqueStates = new Set(states);
     const sortedStates = Array.from(uniqueStates).sort();
 
-    // Extract unique carriers
-    const carriers = statesAndCarriers.map(item => item.name).sort();
+    // Extract carriers with id and name
+    const carriers = statesAndCarriers
+        .map(item => ({ id: item.id, name: item.name || '' }))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     return { states: sortedStates, carriers };
 };
@@ -321,6 +416,7 @@ async function getFranchiseAgencyCombinations(requester) {
         franchises = await prisma.$queryRaw`
             SELECT location_id, alias
             FROM qq.locations
+            WHERE active = true
         `;
 
         for (const franchise of franchises) {
@@ -364,7 +460,7 @@ async function getFranchiseAgencyCombinations(requester) {
         franchises = await prisma.$queryRaw`
             SELECT location_id, alias
             FROM qq.locations
-            WHERE location_id = ${topFranchise.id}
+            WHERE location_id = ${topFranchise.id} AND active = true
         `;
 
         const topAgency = await prisma.agency.findUnique({
@@ -461,7 +557,13 @@ const renderReports = async (req, res) => {
  * Handles filter requests and returns filtered data
  */
 const filterReport = async (req, res) => {
-    const { filterType, filterValue, filterSubValue } = req.query;
+    const { filterType, filterSubValue } = req.query;
+    const rawFilterValue = req.query.filterValue;
+    const filterValues = Array.isArray(rawFilterValue)
+        ? rawFilterValue
+        : (rawFilterValue ? [rawFilterValue] : []);
+    const singleFilterValue = filterValues[0];
+
     const user = req.user;
     let processedAgents = await getAgentsToRender(user);
 
@@ -471,18 +573,31 @@ const filterReport = async (req, res) => {
     }
 
     // Apply appropriate filter
-    if (filterType === 'agency' && !filterValue && !filterSubValue) {
-        const result = await handleAgencySummaryFilter(user);
-        return res.json(result);
+    if (filterType === 'location') {
+        const franchiseAgencyCombination = await getFranchiseAgencyCombinations(user);
+        const franchiseMap = new Map(
+            franchiseAgencyCombination.map(item => [String(item.franchise.id), item.franchise.name || ''])
+        );
+
+        if (filterValues.length === 0) {
+            const result = await handleAgencySummaryFilter(user);
+            return res.json(result);
+        }
+
+        processedAgents = await handleAgencyFilter(filterValues, franchiseMap);
     }
-    else if (filterType === 'carrier & state' && filterValue && filterSubValue) {
-        processedAgents = handleCarrierStateFilter(processedAgents, filterValue, filterSubValue);
+    else if (filterType === 'agency') {
+        if (filterValues.length === 0) {
+            return res.json({ data: [], total: 0 });
+        }
+        processedAgents = await handleAgencyByIdFilter(filterValues);
     }
-    else if (filterType === 'agency' && (filterValue || filterSubValue)) {
-        processedAgents = await handleAgencyFilter(filterValue, filterSubValue);
+    else if (filterType === 'carrier & state' && singleFilterValue) {
+        // If carrier is empty, fallback to state-only filter
+        processedAgents = handleCarrierStateFilter(processedAgents, singleFilterValue, filterSubValue || null);
     }
-    else if (filterType && filterValue) {
-        processedAgents = handleGenericFilter(processedAgents, filterType, filterValue);
+    else if (filterType && singleFilterValue) {
+        processedAgents = handleGenericFilter(processedAgents, filterType, singleFilterValue);
     }
     // If filterType is set but filterValue is empty, return all agents (no filtering applied)
 

@@ -40,11 +40,6 @@ try {
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
-
-
-
-
-
 prisma.$use(async (params, next) => {
   const skipModels = ['Logs', 'Notificacion'];
   if (skipModels.includes(params.model)) return next(params);
@@ -56,7 +51,7 @@ prisma.$use(async (params, next) => {
   if (!writeActions.includes(params.action)) return next(params);
 
   const store = prismaContext.getStore();
-  const actorUserId = store?.userId || "unknown";
+  const actorUserId = store?.userId || store?.requesterId || "unknown";
   const affectedUserIds = store?.affectedUserIds || [];
 
   let oldValue = null;

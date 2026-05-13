@@ -1,8 +1,10 @@
-import { get } from "https";
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
 import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
+import { getSignedS3Url } from "../config/s3Config.js";
 import bcrypt from "bcrypt";
+import { encryptWithSecret } from "./crypto.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 
 
@@ -17,7 +19,7 @@ const getAgencyOrFranchiseName = async (personalInfo) => {
       const franchiseId = parseInt(personalInfo.franchise, 10);
       if (!isNaN(franchiseId)) {
         const result = await pool.query(
-          `SELECT alias FROM qq.locations WHERE location_id = $1`,
+          `SELECT alias FROM qq.locations WHERE location_id = $1 AND active = true`,
           [franchiseId]
         );
         return result.rows[0]?.alias || null;
@@ -42,6 +44,11 @@ const getData = async (users) => {
         const realId = await getEntraId(u.email.toLowerCase());
         const msaPhotoPath = await getMSAPhotoPath(realId);
         photoPath = msaPhotoPath || photoPath;
+      }
+
+      // Generate signed URL for photoPath if it's from S3
+      if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
       }
 
       return {
@@ -70,47 +77,43 @@ const renderMyAgents = async (req, res) => {
     return;
   }
 
-  try {
-    let where = { isReleased: false };
+  let where = { isReleased: false };
 
-    const agency = await prisma.agency.findUnique({
-      where: { owner: user.user_id },
-    });
+  const agency = await prisma.agency.findUnique({
+    where: { owner: user.user_id },
+  });
 
-    if (agency) {
-      const allAgencyIds = await getAllAgencyIds(agency.id);
-      where = {
-        ...where,
-        OR: [
-          { personalInfo: { is: { agency: { in: allAgencyIds } } } },
-          { user_id: user.user_id }
-        ]
-      };
-    }
+  if (agency) {
+    const allAgencyIds = await getAllAgencyIds(agency.id);
+    where = {
+      ...where,
+      OR: [
+        { personalInfo: { is: { agency: { in: allAgencyIds } } } },
+        { user_id: user.user_id }
+      ]
+    };
+  }
 
-    const users = await prisma.user.findMany({
-      where,
-      orderBy: [{ display_name: "asc" }, { email: "asc" }],
-      include: {
-        personalInfo: {
-          include: {
-            underAgency: {
-              select: { name: true }
-            }
+  const users = await prisma.user.findMany({
+    where,
+    orderBy: [{ display_name: "asc" }, { email: "asc" }],
+    include: {
+      personalInfo: {
+        include: {
+          underAgency: {
+            select: { name: true }
           }
         }
       }
-    });
+    }
+  });
 
-    const registeredUsers = await getData(users);
-    const allAgencies = await getAgencies();
+  const registeredUsers = await getData(users);
+  const allAgencies = (await getAgencies())
+    ?.slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-    res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
-
-  } catch (err) {
-    console.error("Error in renderMyAgents:", err);
-    res.status(500).send("Internal server error");
-  }
+  res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
 
 const renderAgents = async (req, res) => {
@@ -131,7 +134,9 @@ const renderAgents = async (req, res) => {
   });
 
   const registeredUsers = await getData(users);
-  const allAgencies = await getAgencies();
+  const allAgencies = (await getAgencies())
+    ?.slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   res.render("agents", { user, registeredUsers, allAgencies, activePage: "agents" });
 };
@@ -180,7 +185,8 @@ const renderReferingAgents = async (req, res) => {
         }
       },
       statesAndCarriers: {
-        where: { status: { equals: "refering", mode: "insensitive" } }
+        where: { status: { equals: "refering", mode: "insensitive" } },
+        include: { carrier: true }
       }
     }
   });
@@ -196,117 +202,138 @@ const addAgent = async (req, res) => {
     legalName,
     phone,
     npn,
-    agency,
-    franchise
+    agency: rawAgency,
+    franchise: rawFranchise
   } = req.body
 
-  try {
-    const {
-      password = "12345678",
-      cellPhone = phone,
-      contactType = "individual",
-    } = req.body;
+  const {
+    password = "12345678",
+    cellPhone = phone,
+    contactType = "individual",
+  } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required." });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required." });
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser && !existingUser.isReleased) {
+    return res.status(400).json({ message: "Agent already exists." });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Determine whether the provided ID belongs to an agency or franchise.
+  let agency = null;
+  let franchise = null;
+
+  if (rawAgency) {
+    const agencyRecord = await prisma.agency.findUnique({ where: { id: rawAgency } });
+    if (agencyRecord) {
+      agency = rawAgency;
+    } else {
+      // Treat anything that is not an agency as a franchise identifier (keep as string)
+      franchise = rawAgency;
     }
+  }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
+  if (!franchise && rawFranchise) {
+    franchise = rawFranchise;
+  }
 
-    if (existingUser && !existingUser.isReleased) {
-      return res.status(400).json({ message: "Agent already exists." });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        display_name: legalName,
-        registrationCompleted: false,
-        hastoChangePassword: true
-      }
-    });
-
-    await prisma.necesaryDocuments.create({
-      data: { email: user.email }
-    });
-
-    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [user.user_id] }, async () => {
-
-      await prisma.personalInfo.create({
+  const user = await prismaContext.run({ userId: req.user.user_id }, async () => {
+    return prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
         data: {
-          userId: user.user_id,
+          email,
+          password: hashedPassword,
+          display_name: legalName,
+          registrationCompleted: false,
+          hastoChangePassword: true
+        }
+      });
+
+      await tx.necesaryDocuments.create({
+        data: { email: createdUser.email }
+      });
+
+      await tx.personalInfo.create({
+        data: {
+          userId: createdUser.user_id,
           legalName: legalName,
-          preferredName: null,
-          legalSex: null,
-          dateOfBirth: null,
-          ssn: null,
           npn: npn || null,
-          businessName: null,
-          companyEIN: null,
           contactType,
           agency: agency || null,
           franchise: franchise || null
         }
       });
 
-      await prisma.contactInfo.create({
+      await tx.contactInfo.create({
         data: {
-          userId: user.user_id,
+          userId: createdUser.user_id,
           personalEmail: email,
-          personalPhone: cellPhone || null,
-          city: "",
-          state: "",
-          zipCode: "",
-          addressLine1: "",
-          addressLine2: null
+          personalPhone: cellPhone || null
         }
       });
 
-      await prisma.paymentMethod.create({
+      await tx.paymentMethod.create({
         data: {
-          userId: user.user_id,
-          bankAccountType: null,
-          bankAccountNum: null,
-          bankRoutingNum: null,
-          accountNickname: null,
-          assignToGTI: true,
+          userId: createdUser.user_id,
         }
       });
-    });
 
-    return res.status(201).json({
-      message: "Agent created successfully",
-      userId: user.user_id,
-      email: user.email
+      return createdUser;
     });
+  });
 
-  } catch (error) {
-    console.error("Error creating agent:", error);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
+  return res.status(201).json({
+    message: "Agent created successfully",
+    userId: user.user_id,
+    email: user.email
+  });
 };
 
 const onboardingSentEmail = async (req, res) => {
   const { email } = req.params;
+  const { firstName, lastName, agencyId } = req.body;
+
   if (!email) {
     return res.status(400).json({ message: "Email is required." });
   }
-  try {
-    await prisma.onboardingSentEmails.upsert({
-      where: { email },
-      update: { sentAt: new Date(), pending: true },
-      create: { email, sentAt: new Date(), pending: true }
+
+  // Check if onboarding was already sent and is still pending
+  const existingRecord = await prisma.onboardingSentEmails.findUnique({
+    where: { email }
+  });
+
+  if (existingRecord && existingRecord.pending) {
+    return res.status(400).json({
+      message: "An onboarding email has already been sent to this address and is still pending completion."
     });
-    res.status(200).json({ message: "Onboarding email record updated." });
-  } catch (error) {
-    console.error("Error updating onboarding email record:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
   }
+
+  await prisma.onboardingSentEmails.upsert({
+    where: { email },
+    update: {
+      sentAt: new Date(),
+      pending: true,
+      firstName: firstName || null,
+      lastName: lastName || null,
+      agencyId: agencyId || null
+    },
+    create: {
+      email,
+      sentAt: new Date(),
+      pending: true,
+      firstName: firstName || null,
+      lastName: lastName || null,
+      agencyId: agencyId || null
+    }
+  });
+  res.status(200).json({ message: "Onboarding email record updated." });
 };
 
 const deleteAgent = async (req, res) => {
@@ -317,24 +344,20 @@ const deleteAgent = async (req, res) => {
   }
 
   await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { user_id: id }
-      })
+    const user = await prisma.user.findUnique({
+      where: { user_id: id }
+    })
 
-      await prisma.user.delete({
-        where: { user_id: id }
-      });
+    await prisma.user.delete({
+      where: { user_id: id }
+    });
 
-      await prisma.necesaryDocuments.delete({
-        where: { email: user.email }
-      })
-
-      res.status(200).json({ message: "Agent deleted successfully." });
-    } catch (error) {
-      res.status(500).json({ message: "Error deleting agent.", error: error.message });
-    }
+    await prisma.necesaryDocuments.delete({
+      where: { email: user.email }
+    })
   });
+
+  res.status(200).json({ message: "Agent deleted successfully." });
 };
 
 const markDocsAsNecessary = async (req, res) => {
@@ -349,22 +372,18 @@ const markDocsAsNecessary = async (req, res) => {
     where: { email }
   });
   if (existingRecord) {
-    return res.status(400).json({ message: "Documents for this email have already been marked as necessary." });
+    return res.status(400).json({ message: "An onboarding email has already been sent to this address and is still pending completion." });
   }
 
   await prismaContext.run({ userId: req.user.user_id }, async () => {
-    try {
-      const doc = await prisma.necesaryDocuments.create({
-        data: {
-          email,
-          ...requiredDocuments
-        }
-      });
+    const doc = await prisma.necesaryDocuments.create({
+      data: {
+        email,
+        ...requiredDocuments
+      }
+    });
 
-      res.status(200).json({ message: "Necessary documents saved.", doc });
-    } catch (error) {
-      res.status(500).json({ message: "Error saving necessary documents.", error: error.message });
-    }
+    res.status(200).json({ message: "Necessary documents saved.", doc });
   });
 };
 
@@ -466,6 +485,8 @@ const massiveCreateAgents = async (req, res) => {
         data: { email: user.email }
       });
 
+      const encryptedSsn = ssn ? encryptWithSecret(ssn) : null;
+
       await prisma.personalInfo.create({
         data: {
           userId: user.user_id,
@@ -473,7 +494,7 @@ const massiveCreateAgents = async (req, res) => {
           preferredName: firstName,
           legalSex: null,
           dateOfBirth: birthDate ? new Date(birthDate) : null,
-          ssn: ssn || null,
+          ssn: encryptedSsn,
           npn: npn || null,
           businessName: agency || null,
           companyEIN: companyEIN || null,
@@ -506,9 +527,25 @@ const massiveCreateAgents = async (req, res) => {
         }
       });
 
+      // Fetch all companies once to map names to IDs
+      const companiesId = await prisma.company.findMany({
+        select: { id: true }
+      });
+
+      const companies = await getCompanyNamesMap(companiesId.map(c => c.id));
+
+      const companyNameToId = new Map(companies.map(c => [c.name, c.id]));
+
       for (const field of carrierFields) {
         const rawValue = agent[field];
         const entries = normalizeCarrierValue(rawValue);
+
+        // Get company ID from name
+        const companyId = companyNameToId.get(field);
+        if (!companyId) {
+          console.warn(`Company not found for field: ${field}`);
+          continue;
+        }
 
         for (const entry of entries) {
           try {
@@ -516,7 +553,7 @@ const massiveCreateAgents = async (req, res) => {
               data: {
                 userId: user.user_id,
                 state: entry.state,
-                company: field,
+                company: companyId,
                 status: entry.status
               }
             });
@@ -543,18 +580,13 @@ const recoverAgent = async (req, res) => {
     return res.status(400).json({ message: "Agent ID is required." });
   }
 
-  try {
-    await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
-      await prisma.user.update({
-        where: { user_id: id },
-        data: { isReleased: false }
-      });
+  await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
+    await prisma.user.update({
+      where: { user_id: id },
+      data: { isReleased: false }
     });
-    res.status(200).json({ message: "Agent recovered successfully." });
-  }
-  catch (error) {
-    res.status(500).json({ message: "Error recovering agent.", error: error.message });
-  }
+  });
+  res.status(200).json({ message: "Agent recovered successfully." });
 }
 
 export {

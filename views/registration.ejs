@@ -277,51 +277,72 @@
                                 NPN <span class="text-danger">*</span>
                               </label>
                               <input type="text" name="npn" id="npn" class="form-control" placeholder="XXXXXXXX"
-                                aria-label="NPN" required pattern="\d{8}" maxlength="8"
+                                aria-label="NPN" required pattern="\d{8}" maxlength="8" inputmode="numeric"
                                 value="<%= personalInfo?.npn || '' %>" />
                             </div>
                           </div>
                           <script>
+                            const form = document.querySelector("form");
                             const ssnInput = document.getElementById("ssn");
-                            ssnInput.maxLength = 11;
+                            const npnInput = document.getElementById("npn");
 
-                            function formatSSN(val) {
-                              let digits = (val || '').replace(/\D/g, '').slice(0, 9);
-                              if (digits.length > 5) {
-                                return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-                              } else if (digits.length > 3) {
-                                return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                            if (ssnInput) {
+                              const normalizeDigits = (val) => (val || '').replace(/\D/g, '').slice(0, 9);
+
+                              function formatSSN(val) {
+                                const digits = normalizeDigits(val);
+                                if (digits.length > 5) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+                                if (digits.length > 3) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                                return digits;
                               }
-                              return digits;
+
+                              function maskSSN(val) {
+                                const digits = normalizeDigits(val);
+                                if (!digits) return '';
+                                return `***-**-${digits.slice(-4)}`;
+                              }
+
+                              let ssnRaw = normalizeDigits(ssnInput.value);
+                              let isFocused = false;
+
+                              ssnInput.value = maskSSN(ssnRaw);
+
+                              ssnInput.addEventListener('focus', function () {
+                                isFocused = true;
+                                this.value = formatSSN(ssnRaw);
+                              });
+
+                              ssnInput.addEventListener('input', function () {
+                                ssnRaw = normalizeDigits(this.value);
+                                this.value = formatSSN(ssnRaw);
+                              });
+
+                              ssnInput.addEventListener('blur', function () {
+                                isFocused = false;
+                                setTimeout(() => {
+                                  if (!isFocused) {
+                                    ssnInput.value = maskSSN(ssnRaw);
+                                  }
+                                }, 0);
+                              });
+
+                              if (form) {
+                                form.addEventListener("submit", function (e) {
+                                  if (!/^\d{9}$/.test(ssnRaw)) {
+                                    ssnInput.classList.add("is-invalid");
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  ssnInput.value = ssnRaw;
+                                });
+                              }
                             }
 
-                            ssnInput.value = formatSSN(ssnInput.value);
-
-                            ssnInput.addEventListener('input', function () {
-                              this.value = formatSSN(this.value);
-                            });
-
-                            document.querySelector("form").addEventListener("submit", function (e) {
-                              const ssnInput = document.getElementById("ssn");
-                              if (!/^\d{3}-\d{2}-\d{4}$/.test(ssnInput.value)) {
-                                ssnInput.classList.add("is-invalid");
-                                e.preventDefault();
-                                return;
-                              }
-                              ssnInput.value = ssnInput.value.replace(/\D/g, "");
-                            });
-
-                            document.getElementById("npn").addEventListener("input", function (e) {
-                              let value = e.target.value.replace(/\D/g, "");
-                              e.target.value = value.slice(0, 8);
-                            });
-                            document.querySelector("form").addEventListener("submit", function (e) {
-                              const npnInput = document.getElementById("npn");
-                              if (!/^\d{8}$/.test(npnInput.value)) {
-                                npnInput.classList.add("is-invalid");
-                                e.preventDefault();
-                              }
-                            });
+                            if (npnInput) {
+                              npnInput.addEventListener('input', () => {
+                                npnInput.value = npnInput.value.replace(/\D/g, '').slice(0, 8);
+                              });
+                            }
                           </script>
 
                           <div class="col-sm-6" id="UnderSelect">
@@ -353,7 +374,9 @@
                               <script>
                                 const origin = window.location.origin;
                                 const photoPath = "<%= personalInfo.photoPath %>";
-                                document.getElementById("profilePhotoPreview").src = `${origin}/${photoPath}`;
+                                // Check if it's an S3 URL or local path
+                                const photoSrc = photoPath.startsWith('http') ? photoPath : `${origin}/${photoPath}`;
+                                document.getElementById("profilePhotoPreview").src = photoSrc;
                                 document.getElementById("profilePhotoInput").dataset.existingUrl = photoPath;
                               </script>
                               <% } %>
@@ -408,6 +431,10 @@
                               return formatted;
                             }
 
+                            function phoneDigits(val) {
+                              return (val || '').replace(/\D/g, '').slice(0, 10);
+                            }
+
                             // On load, format the value if present
                             phoneInput.value = formatPhoneDisplay(phoneInput.value);
 
@@ -417,7 +444,7 @@
 
                             // On form submit, strip formatting so only digits are sent
                             document.getElementById('multiStepsForm').addEventListener('submit', function (e) {
-                              phoneInput.value = phoneInput.value.replace(/\D/g, "");
+                              phoneInput.value = phoneDigits(phoneInput.value);
                             });
                           </script>
 
@@ -473,7 +500,7 @@
                       <!-- Contenido -->
                       <div id="commisionValidation" class="content">
                         <div class="content-header mb-6">
-                          <h4 class="mb-0">Would you like to assign your commissions to GoldenHealth?</h4>
+                          <h4 class="mb-0">Would you like to assign your commissions to GoldenTrust?</h4>
                           <div class="mt-2">
                             <div class="form-check form-check-inline">
                               <input class="form-check-input" type="radio" name="assignToGoldenTrust" value="yes"
@@ -596,8 +623,10 @@
                                           <label for="<%= doc.inputId %>"
                                             class="btn btn-sm btn-outline-primary">Upload</label>
                                           <% if (docs[doc.key]) { %>
-                                            <a href="/<%= docs[doc.key] %>" target="_blank" class="ms-2">View</a>
-                                            <% } %>
+                                            <% const docUrl=docs[doc.key].startsWith('http') ? docs[doc.key] : '/' +
+                                              docs[doc.key]; %>
+                                              <a href="<%= docUrl %>" target="_blank" class="ms-2">View</a>
+                                              <% } %>
                                         </div>
                                       </div>
                                     </div>
@@ -699,10 +728,6 @@
   <!-- Main JS -->
   <script src="/js/main.js"></script>
 
-  <!-- Funcionality of the formulary -->
-  <script src="/js/funcionality-of-form.js"></script>
-
-
   <script src="/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
   <!-- Flat Picker -->
   <script src="/vendor/libs/moment/moment.js"></script>
@@ -766,11 +791,17 @@
     <%- JSON.stringify(personalInfo || {}) %>
   </script>
 
+  <script id="onboarding-agency-data" type="application/json">
+    <%- JSON.stringify(onboardingAgencyId || null) %>
+  </script>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const agencies = JSON.parse(document.getElementById('agencies-data').textContent);
       const personalInfo = JSON.parse(document.getElementById('personalInfo-data').textContent);
+      const onboardingAgencyId = JSON.parse(document.getElementById('onboarding-agency-data').textContent);
       const input = document.getElementById('agencySelect');
+      let matchedOnboardingAgency = false;
 
       agencies.forEach(a => {
         const option = document.createElement('option');
@@ -778,11 +809,20 @@
         option.textContent = a.name;
         option.dataset.isAgency = a.isAgency ? "true" : "false";
 
-        if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
+        if (onboardingAgencyId && onboardingAgencyId == a.id) {
+          option.selected = true;
+          matchedOnboardingAgency = true;
+        } else if (personalInfo.agency == a.id || personalInfo.franchise == a.id) {
           option.selected = true;
         }
         input.appendChild(option);
       });
+
+      if (matchedOnboardingAgency) {
+        input.value = onboardingAgencyId;
+        input.setAttribute('disabled', 'disabled');
+        input.title = 'Agency preselected from onboarding';
+      }
     });
   </script>
   <!--/ Personal Info -->
@@ -857,7 +897,7 @@
       function getCompaniesByState(abbr) {
         return companies
           .filter(c => Array.isArray(c.States) && c.States.includes(abbr))
-          .map(c => c.name);
+          .map(c => ({ id: c.id, name: c.name }));
       }
 
       function updateAllStateDropdowns() {
@@ -897,8 +937,8 @@
           ).join('');
 
         const initialCompanies = selectedState ? getCompaniesByState(selectedState) : [];
-        const companyOptions = initialCompanies.map(name =>
-          `<option value="${name}"${selectedCompanies.includes(name) ? ' selected' : ''}>${name}</option>`
+        const companyOptions = initialCompanies.map(comp =>
+          `<option value="${comp.id}"${selectedCompanies.includes(comp.id) ? ' selected' : ''}>${comp.name}</option>`
         ).join('');
 
         cardBody.innerHTML = `
@@ -939,8 +979,8 @@
           if (newState) selectedStates.add(newState);
 
           const newCompanies = getCompaniesByState(newState);
-          companySelect.innerHTML = newCompanies.map(name =>
-            `<option value="${name}">${name}</option>`
+          companySelect.innerHTML = newCompanies.map(comp =>
+            `<option value="${comp.id}">${comp.name}</option>`
           ).join('');
           $(`#${companySelectId}`).val(null).trigger('change');
 
@@ -971,19 +1011,20 @@
           if (!sel.state || !sel.company) return acc;
 
           const state = sel.state;
+          // company is now an ID
           const companyList = Array.isArray(sel.company) ? sel.company : [sel.company];
 
           if (!acc[state]) {
             acc[state] = new Set();
           }
 
-          companyList.forEach(company => acc[state].add(company));
+          companyList.forEach(companyId => acc[state].add(companyId));
           return acc;
         }, {});
 
-        Object.entries(groupedSelections).forEach(([state, companiesSet]) => {
-          const companies = Array.from(companiesSet);
-          createCard(state, companies);
+        Object.entries(groupedSelections).forEach(([state, companyIdsSet]) => {
+          const companyIds = Array.from(companyIdsSet);
+          createCard(state, companyIds);
         });
       }
 
@@ -1036,6 +1077,10 @@
         });
       });
     });
+  </script>
+
+  <script id="user-data" type="application/json">
+    <%- JSON.stringify(user) %>
   </script>
 
   <!-- Push the info -->
@@ -1136,13 +1181,23 @@
         body: JSON.stringify(personalInfo)
       });
 
-      if (!response.ok) throw new Error("Error uploading personal info");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading personal info");
+      }
+
+      return data;
     }
 
     async function saveContactInfo() {
       const personalEmail = document.getElementById("personalEmail")?.value || "";
-      const personalPhone = document.getElementById("personalPhone")?.value || "";
+      const personalPhone = phoneDigits(document.getElementById("personalPhone")?.value || "");
+      document.getElementById("personalPhone").value = formatPhoneDisplay(personalPhone);
       const addressLine1 = document.getElementById("addressLine1")?.value || "";
       const addressLine2 = document.getElementById("addressLine2")?.value || "";
       const city = document.getElementById("city")?.value || "";
@@ -1169,8 +1224,17 @@
         body: contactInfoJSON
       });
 
-      if (!response.ok) throw new Error("Error uploading contact info");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading contact info");
+      }
+
+      return data;
     }
 
     async function savePaymentMethod() {
@@ -1228,8 +1292,17 @@
         body: JSON.stringify(bankAccount)
       });
 
-      if (!response.ok) throw new Error("Error saving payment method");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error saving payment method");
+      }
+
+      return data;
     }
 
     async function saveDocuments() {
@@ -1277,8 +1350,17 @@
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error("Error uploading documents");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error uploading documents");
+      }
+
+      return data;
     }
 
     let recommendation = "";
@@ -1294,14 +1376,14 @@
         const companySelect = card.querySelector(".company-select");
 
         const state = stateSelect?.value;
-        const selectedCompanies = Array.from(companySelect?.selectedOptions || []).map(opt => opt.value);
+        const selectedCompanyIds = Array.from(companySelect?.selectedOptions || []).map(opt => opt.value);
 
-        if (!state || selectedCompanies.length === 0) return;
+        if (!state || selectedCompanyIds.length === 0) return;
 
-        selectedCompanies.forEach(company => {
-          let carrier = carriers.find(c => c.name === company);
+        selectedCompanyIds.forEach(companyId => {
+          let carrier = carriers.find(c => c.id === companyId);
           if (!carrier) {
-            carrier = { name: company, states: [] };
+            carrier = { id: companyId, states: [] };
             carriers.push(carrier);
           }
           if (!carrier.states.includes(state)) {
@@ -1310,21 +1392,40 @@
         });
       });
 
-      if (carriers.length === 0) throw new Error("Please select at least one company for one state.");
-
       const response = await fetch(`${url}/steps/states-carriers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: currentUserId, carriers, recommendation, isDone })
       });
 
-      if (!response.ok) throw new Error("Error saving states and carriers");
-      return await response.json();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle backend errors
+        if (data.error && data.message) {
+          throw new Error(data.message);
+        }
+        throw new Error("Error saving states and carriers");
+      }
+
+      return data;
     }
 
 
     document.querySelector(".btn-submit").addEventListener("click", async function (e) {
       e.preventDefault();
+
+      // Validar el último paso (States & Carriers)
+      const lastStep = document.getElementById('statesCarriersValidation');
+      if (typeof validateStep === 'function') {
+        const [isValid, message] = validateStep(lastStep);
+
+        if (!isValid) {
+          showToast("Error", message);
+          return;
+        }
+      }
+
       const submitBtn = this;
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Sending...`;
@@ -1332,23 +1433,20 @@
       try {
         if (currentUserId === null) throw new Error("Se requiere ID de usuario");
 
-        await savePersonalInfo();
-        await saveContactInfo();
-        await savePaymentMethod();
-        await saveDocuments();
+        // Solo guardar States & Carriers (los demás pasos ya se guardaron)
         await saveStatesCarriers();
 
-        if (isEdit == "false") {
-          const response = await fetch(`/email/config`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: user_email, recommendation: recommendation })
-          });
-          if (!response.ok) throw new Error("Error sending the email");
-          window.location.href = `${url}/users/dashboard`;
-        } else {
-          window.location.href = `${url}/users/agents`;
-        }
+        const user = JSON.parse(document.getElementById('user-data').textContent);
+
+        const response = await fetch(`/email/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, recommendation: recommendation })
+        });
+        if (!response.ok) throw new Error("Error sending the email");
+
+        window.location.href = `${url}/users/dashboard`;
+
       } catch (error) {
         showToast("Error", error.message || "An unexpected error occurred. Please try again later.");
         submitBtn.disabled = false;
@@ -1440,6 +1538,9 @@
       await loadCities(contactInfo.state || '', contactInfo.city || '');
     });
   </script>
+
+  <!-- Funcionality of the formulary - Loaded at the end to ensure all inline functions are available -->
+  <script src="/js/funcionality-of-form.js"></script>
 </body>
 
 </html>

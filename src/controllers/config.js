@@ -1,5 +1,7 @@
 import { pool, prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { getSignedS3Url } from "../config/s3Config.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 const renderConfigEmails = async (req, res) => {
   const emails = await getEmailsToAlert()
@@ -85,20 +87,49 @@ async function getAdmins() {
 }
 const renderConfigCarriers = async (req, res) => {
   try {
-    const companies = await prisma.company.findMany({
-      orderBy: { name: 'asc' }
-    });
+    // Get all available companies from qq.contacts where type_display = 'R' and status = 'A'
+    const availableCompanies = await prisma.$queryRaw`
+      SELECT entity_id, display_name, phone
+      FROM qq.contacts
+      WHERE type_display = 'R' AND status = 'A'
+      ORDER BY display_name ASC
+    `;
 
-    // Format states as comma-separated string for display
-    const formattedCompanies = companies.map(c => ({
-      name: c.name,
-      states: Array.isArray(c.States) ? c.States.join('| ') : '',
-      phone: c.phone,
-    }));
+    // Get companies from health schema
+    const healthCompanies = await prisma.company.findMany();
+
+    // Build companies list with those that match health.company.externalId
+    const companies = [];
+
+    for (const qqComp of availableCompanies) {
+      const healthMatch = healthCompanies.find(hc => hc.externalId === qqComp.entity_id);
+      if (healthMatch) {
+        companies.push({
+          id: healthMatch.id,
+          name: qqComp.display_name,
+          phone: qqComp.phone || '',
+          states: Array.isArray(healthMatch.States) ? healthMatch.States.join('| ') : '',
+          externalId: qqComp.entity_id
+        });
+      }
+    }
+
+    // Sort by name
+    companies.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Get available companies that are NOT in health.company
+    const healthExternalIds = new Set(healthCompanies.map(hc => hc.externalId));
+    const availableCompaniesToAdd = availableCompanies
+      .filter(c => !healthExternalIds.has(c.entity_id))
+      .map(c => ({
+        entity_id: c.entity_id,
+        display_name: c.display_name
+      }));
 
     res.render("config_carriers", {
       user: req.user,
-      companies: formattedCompanies,
+      companies,
+      availableCompanies: availableCompaniesToAdd,
       activePage: 'config',
       open: 'carriers'
     });
@@ -108,21 +139,34 @@ const renderConfigCarriers = async (req, res) => {
 }
 
 const postCompany = async (req, res) => {
-  const { name, phone, states } = req.body;
+  const { entity_id, states } = req.body;
 
-  if (!name || !Array.isArray(states) || states.length === 0) {
-    return res.status(400).json({ message: "Company name and at least one state are required" });
+  if (!entity_id || !Array.isArray(states) || states.length === 0) {
+    return res.status(400).json({ message: "Entity ID and at least one state are required" });
   }
 
   try {
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
-      const company = await prisma.company.create({
-        data: {
-          name,
-          States: states,
-          phone,
-        }
+      // Check if company already exists with this externalId
+      const existing = await prisma.company.findUnique({
+        where: { externalId: entity_id }
       });
+
+      let company;
+
+      if (existing) {
+        res.status(409).json({ message: "Company already exists" });
+        return;
+      } else {
+        // Create new company with externalId
+        company = await prisma.company.create({
+          data: {
+            externalId: entity_id,
+            States: states,
+            iconPath: `https://goldentrust-img.s3.us-east-1.amazonaws.com/comp/avatar/${entity_id}.png`
+          }
+        });
+      }
 
       const commissionData = states.map(state => ({
         companyId: company.id,
@@ -146,16 +190,16 @@ const postCompany = async (req, res) => {
 };
 
 const updateCompany = async (req, res) => {
-  const { originalName, name, phone, states } = req.body;
+  const { companyId, states } = req.body;
 
-  if (!originalName || !name || !Array.isArray(states) || states.length === 0) {
-    return res.status(400).json({ message: "Original name, new name, and at least one state are required" });
+  if (!companyId || !Array.isArray(states) || states.length === 0) {
+    return res.status(400).json({ message: "Company ID and at least one state are required" });
   }
 
   try {
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
       const existingCompany = await prisma.company.findUnique({
-        where: { name: originalName },
+        where: { id: companyId },
         include: { Commisions: true }
       });
 
@@ -163,13 +207,10 @@ const updateCompany = async (req, res) => {
         return res.status(404).json({ message: "Company not found" });
       }
 
-      const updatedCompany = await prisma.company.update({
-        where: { name: originalName },
-        data: {
-          name,
-          States: states,
-          phone,
-        }
+      // Update States
+      await prisma.company.update({
+        where: { id: companyId },
+        data: { States: states }
       });
 
       // Add new commissions with amount 0
@@ -177,7 +218,7 @@ const updateCompany = async (req, res) => {
       const newStates = states.filter(state => !existingStatesWithCommissions.has(state));
 
       const newCommissionData = newStates.map(state => ({
-        companyId: existingCompany.id,
+        companyId: companyId,
         state,
         amount: 0
       }));
@@ -197,7 +238,7 @@ const updateCompany = async (req, res) => {
       if (removedStates.length > 0) {
         await prisma.commisions.deleteMany({
           where: {
-            companyId: existingCompany.id,
+            companyId: companyId,
             state: { in: removedStates }
           }
         });
@@ -206,24 +247,21 @@ const updateCompany = async (req, res) => {
 
     res.status(200).json({ message: "Company updated successfully" });
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: "Company with this name already exists" });
-    }
     console.error("Error updating company:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const deleteCompany = async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ message: "Company name is required" });
+  const { companyId } = req.body;
+  if (!companyId) {
+    return res.status(400).json({ message: "Company ID is required" });
   }
 
   try {
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
       await prisma.company.delete({
-        where: { name }
+        where: { id: companyId }
       });
     });
     res.status(200).json({ message: "Company deleted successfully" });
@@ -234,17 +272,46 @@ const deleteCompany = async (req, res) => {
 };
 
 const renderConfigCommisions = async (req, res) => {
-  const companies = await prisma.company.findMany({ orderBy: { name: 'asc' } });
+  // Get companies from health schema
+  const healthCompanies = await prisma.company.findMany();
+
+  // Get only the externalIds that exist in health schema
+  const externalIds = healthCompanies
+    .filter(hc => hc.externalId)
+    .map(hc => hc.externalId);
+
+  // Get external company data (name, phone) as a Map
+  const externalCompaniesMap = await getCompanyNamesMap(externalIds);
+
+  // Create a map of company names (health.id -> name)
+  const companyNameMap = new Map();
+  for (const hc of healthCompanies) {
+    if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+      const extComp = externalCompaniesMap.get(hc.externalId);
+      companyNameMap.set(hc.id, extComp.name);
+    }
+  }
+
+  // Format companies for the view
+  const companies = Array.from(companyNameMap.entries()).map(([id, name]) => ({
+    id,
+    name,
+    States: healthCompanies.find(hc => hc.id === id)?.States || []
+  })).sort((a, b) => a.name.localeCompare(b.name));
+
   const commisionsRaw = await prisma.commisions.findMany({
-    include: { company: { select: { name: true } } }
+    include: { company: true }
   });
 
   try {
-    const commisions = commisionsRaw.map(c => ({
-      company: c.company.name,
-      state: c.state,
-      amount: c.amount
-    }));
+    const commisions = commisionsRaw.map(c => {
+      const companyName = companyNameMap.get(c.companyId) || 'Unknown';
+      return {
+        company: companyName,
+        state: c.state,
+        amount: c.amount
+      };
+    });
     res.render("config_commisions", { user: req.user, companies, commisions, activePage: 'config', open: 'commisions' });
   } catch (error) {
     console.error("Error mapping commissions:", error);
@@ -260,13 +327,27 @@ const updateCommisions = async (req, res) => {
   }
 
   try {
+    // Get company names from commissions
     const companyNames = [...new Set(commissions.map(c => c.company))];
-    const companies = await prisma.company.findMany({
-      where: { name: { in: companyNames } }
-    });
 
+    // Get all companies from health schema
+    const healthCompanies = await prisma.company.findMany();
+
+    // Get only the externalIds that exist in health schema
+    const externalIds = healthCompanies
+      .filter(hc => hc.externalId)
+      .map(hc => hc.externalId);
+
+    const qqNamesMap = await getCompanyNamesMap(externalIds);
+
+    // Create name to ID mapping
     const nameToId = {};
-    companies.forEach(c => { nameToId[c.name] = c.id; });
+    for (const hc of healthCompanies) {
+      if (hc.externalId && qqNamesMap.has(hc.externalId)) {
+        const companyName = qqNamesMap.get(hc.externalId);
+        nameToId[companyName] = hc.id;
+      }
+    }
 
     await prismaContext.run({ userId: req.user?.user_id ?? "unknown" }, async () => {
       await prisma.$transaction(async (tx) => {
@@ -315,6 +396,11 @@ const renderConfigAgentRights = async (req, res) => {
           photoPath = user_avatar_photo_path.length > 0 ? user_avatar_photo_path[0].photo : '';
           display_name = entra_user[0].display_name;
         }
+      }
+
+      // Generate signed URL for photoPath if it's from S3
+      if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
       }
 
       return {
@@ -544,7 +630,6 @@ export {
   addHeadCarrier,
   head_carrier_list,
   addCarrier,
-  deleteCarrier,
   getEmailsToAlert,
   postAdminToAlert,
   deleteEmailToAlert,

@@ -61,6 +61,15 @@
     <link rel="stylesheet" href="/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
     <link rel="stylesheet" href="/vendor/css/pages/cards-advance.css" />
     <link rel="stylesheet" href="/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css" />
+    <link rel="stylesheet" href="/vendor/libs/select2/select2.css" />
+    <style>
+        /* Keep Select2 inline search constrained to control width */
+        .select2-container .select2-search__field {
+            width: auto !important;
+            min-width: 24px;
+            max-width: 100% !important;
+        }
+    </style>
     <script src="/vendor/js/helpers.js"></script>
 
     <script src="/js/config.js"></script>
@@ -78,13 +87,15 @@
                                     <div class="card-header flex-column flex-md-row align-items-center gap-2">
                                         <div class="head-label">
                                         </div>
-                                        <div class="d-flex gap-2 flex-wrap ms-md-auto">
+                                        <div
+                                            class="d-flex gap-2 flex-wrap flex-md-nowrap align-items-center ms-md-auto">
                                             <select id="filter-type" class="form-select" style="width: 200px;">
                                                 <option value="">Select Filter Type</option>
                                                 <option value="state">State</option>
                                                 <option value="carrier">Carrier</option>
                                                 <option value="carrier & state">Carrier & State</option>
                                                 <option value="status">Status</option>
+                                                <option value="location">Location</option>
                                                 <option value="agency">Agency</option>
                                             </select>
 
@@ -97,6 +108,9 @@
                                                 <option value="">Select Other Value</option>
                                             </select>
 
+                                            <button id="apply-filter-btn" class="btn btn-primary d-none" type="button">
+                                                <i class="ti ti-search"></i>
+                                            </button>
                                             <button id="export-button" class="btn btn-success">Export to Excel</button>
                                         </div>
                                     </div>
@@ -148,6 +162,7 @@
     <script src="/vendor/libs/i18n/i18n.js"></script>
     <script src="/vendor/libs/typeahead-js/typeahead.js"></script>
     <script src="/vendor/js/menu.js"></script>
+    <script src="/vendor/libs/select2/select2.js"></script>
 
     <!-- endbuild -->
 
@@ -175,11 +190,20 @@
             const filterTypeSelect = document.getElementById('filter-type');
             const filterValueSelect = document.getElementById('filter-value');
             const filterSubValue = document.getElementById('filter-sub-value');
+            const applyFilterBtn = document.getElementById('apply-filter-btn');
             const resultsCount = document.getElementById('results-count');
             const resultsTable = document.getElementById('results-table');
 
             let dataTable;
-            const pageLength = 10;
+            const pageLength = 25;
+
+            function formatPhone(val) {
+                const digits = (val || '').replace(/\D/g, '').slice(0, 10);
+                if (digits.length === 10) {
+                    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+                }
+                return digits || val || '';
+            }
 
             // Populate filterValue dropdown
             function populateFilterValues(type, dataKey) {
@@ -187,9 +211,10 @@
                 if (!dataKey || !filtersData[dataKey]) return;
 
                 filtersData[dataKey].forEach(value => {
+                    const isObj = value && typeof value === 'object';
                     const opt = document.createElement('option');
-                    opt.value = value;
-                    opt.textContent = value;
+                    opt.value = isObj ? (value.id ?? '') : value;
+                    opt.textContent = isObj ? (value.name ?? value.id ?? '') : value;
                     filterValueSelect.appendChild(opt);
                 });
 
@@ -229,13 +254,23 @@
             // Fetch filtered data from server
             async function fetchFilteredData() {
                 const filterType = filterTypeSelect.value;
-                const filterValue = filterValueSelect.value;
-                const filterSubValueVal = filterSubValue.value;
-
                 const params = new URLSearchParams();
+
                 if (filterType) params.append("filterType", filterType);
-                if (filterValue) params.append("filterValue", filterValue);
-                if (filterSubValueVal) params.append("filterSubValue", filterSubValueVal);
+
+                if (filterType === 'location' || filterType === 'agency') {
+                    // Use select2 value to avoid mismatch with DOM selectedOptions
+                    const rawSelection = $(filterValueSelect).val();
+                    const selectedLocations = Array.isArray(rawSelection)
+                        ? rawSelection.filter(Boolean)
+                        : rawSelection ? [rawSelection] : [];
+                    selectedLocations.forEach(loc => params.append("filterValue", loc));
+                } else {
+                    const filterValue = filterValueSelect.value;
+                    const filterSubValueVal = filterSubValue.value;
+                    if (filterValue) params.append("filterValue", filterValue);
+                    if (filterSubValueVal) params.append("filterSubValue", filterSubValueVal);
+                }
 
                 const response = await fetch(`/users/reports/filter?${params.toString()}`);
                 const result = await response.json();
@@ -246,18 +281,23 @@
                 const { data, total, summary } = await fetchFilteredData();
 
                 const filterType = filterTypeSelect.value;
-                const filterValue = filterValueSelect.value;
+                const rawSelection = $(filterValueSelect).val();
+                const selectedLocations = Array.isArray(rawSelection)
+                    ? rawSelection.filter(Boolean)
+                    : rawSelection ? [rawSelection] : [];
                 const filterSubValueVal = filterSubValue.value;
 
-                const isAgencySummaryView = (filterType === 'agency' && !filterValue && !filterSubValueVal);
+                const isLocationSummaryView = (filterType === 'location' && selectedLocations.length === 0);
+                const isLocationListView = (filterType === 'location' && selectedLocations.length > 0);
+                const isAgencyListView = (filterType === 'agency');
 
                 resultsCount.textContent = `Results found: ${total}`;
 
                 let columns;
                 let tableData;
 
-                if (isAgencySummaryView && summary) {
-                    // --- Agency Summary View ---
+                if (isLocationSummaryView && summary) {
+                    // --- Location Summary View ---
                     tableData = summary;
                     columns = [{
                         title: "Location (NAME)",
@@ -300,11 +340,101 @@
                         title: "Email",
                         data: "email",
                         render: data => data ? `<a href="mailto:${data}">${data}</a>` : ''
-                    }, {
+                    }];
+
+                    if (isLocationListView) {
+                        columns.splice(2, 0, {
+                            title: "Location",
+                            data: "agencyName",
+                            render: data => data || ''
+                        });
+                    }
+
+                    if (isAgencyListView) {
+                        columns.splice(2, 0, {
+                            title: "Agency",
+                            data: "agencyName",
+                            render: data => data || ''
+                        });
+                    }
+
+                    // Dynamic sub-filter columns: add when a filter type is selected but no specific value is chosen
+                    const filterValue = filterValueSelect.value;
+                    if (filterType === 'carrier' && !filterValue) {
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'state' && !filterValue) {
+                        columns.push({
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const states = [...new Set(data.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status' && !filterValue) {
+                        columns.push({
+                            title: "Status",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const statuses = [...new Set(data.map(sc => sc.status).filter(Boolean))];
+                                return statuses.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'carrier & state' && !filterValue) {
+                        columns.push({
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const states = [...new Set(data.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        }, {
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'carrier & state' && filterValue && !filterSubValueVal) {
+                        const stateSelected = filterValue;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.state === stateSelected);
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+
+                    columns.push({
                         title: "Number",
                         data: "number",
-                        render: data => data ? `<a href="tel:${data}">${data}</a>` : ''
-                    }];
+                        render: data => {
+                            const digits = (data || '').replace(/\D/g, '');
+                            const formatted = formatPhone(digits);
+                            return digits ? `<a href="tel:${digits}">${formatted}</a>` : '';
+                        }
+                    });
                 }
 
                 // Destroy the old table (if it exists) because columns are changing
@@ -319,14 +449,50 @@
                     columns,
                     responsive: true,
                     pageLength: pageLength,
-                    lengthMenu: [7, 10, 25, 50, 75, 100],
+                    lengthMenu: [25, 50, 75, 100],
                     autoWidth: false
                 });
+            }
+
+            function destroySelect2IfExists() {
+                if ($(filterValueSelect).hasClass('select2-hidden-accessible')) {
+                    $(filterValueSelect).select2('destroy');
+                }
+            }
+
+            function initLocationSelect2() {
+                destroySelect2IfExists();
+                $(filterValueSelect).select2({
+                    placeholder: 'Select Location',
+                    width: 'style',
+                    closeOnSelect: false
+                });
+            }
+
+            function initAgencySelect2() {
+                destroySelect2IfExists();
+                $(filterValueSelect).select2({
+                    placeholder: 'Select Agency',
+                    width: 'style',
+                    closeOnSelect: false
+                });
+            }
+
+            function toggleApplyFilterBtn(type) {
+                const needsApplyBtn = ['location', 'agency'].includes((type || '').toLowerCase());
+                applyFilterBtn.classList.toggle('d-none', !needsApplyBtn);
+                applyFilterBtn.toggleAttribute('hidden', !needsApplyBtn);
             }
 
             // Filter type change
             filterTypeSelect.addEventListener('change', () => {
                 const type = filterTypeSelect.value;
+                toggleApplyFilterBtn(type);
+
+                // Reset multiselect when switching types
+                filterValueSelect.multiple = false;
+                filterValueSelect.size = 1;
+                destroySelect2IfExists();
 
                 if (type === 'carrier & state') {
                     filterValueSelect.innerHTML = '<option value="">Select State</option>';
@@ -340,16 +506,19 @@
 
                     filterSubValue.innerHTML = '<option value="">Select Carrier</option>';
                     filtersData['carrier'].forEach(carrier => {
+                        const isObj = carrier && typeof carrier === 'object';
                         const opt = document.createElement('option');
-                        opt.value = carrier;
-                        opt.textContent = carrier;
+                        opt.value = isObj ? (carrier.id ?? '') : carrier;
+                        opt.textContent = isObj ? (carrier.name ?? carrier.id ?? '') : carrier;
                         filterSubValue.appendChild(opt);
                     });
                     filterSubValue.style.display = 'block';
 
-                } else if (type === 'agency') {
-                    // Populate franchises first
-                    filterValueSelect.innerHTML = '<option value="">Select Location</option>';
+                } else if (type === 'location') {
+                    // Populate locations (franchises) as a multiselect
+                    filterValueSelect.innerHTML = '';
+                    filterValueSelect.multiple = true;
+                    filterValueSelect.size = 6;
                     if (filtersData['franchise']) {
                         filtersData['franchise'].forEach(franchise => {
                             const opt = document.createElement('option');
@@ -359,34 +528,63 @@
                         });
                     }
                     filterValueSelect.disabled = false;
+                    filterValueSelect.selectedIndex = -1;
+                    initLocationSelect2();
 
-                    // Initially hide agency dropdown until a franchise is selected
-                    filterSubValue.innerHTML = '<option value="">Select Agency</option>';
+                    filterSubValue.style.display = 'none';
+
+                } else if (type === 'agency') {
+                    // Populate actual agencies as a multiselect
+                    filterValueSelect.innerHTML = '';
+                    filterValueSelect.multiple = true;
+                    filterValueSelect.size = 6;
+                    if (filtersData['agency']) {
+                        filtersData['agency'].forEach(agency => {
+                            const opt = document.createElement('option');
+                            opt.value = agency.id;
+                            opt.textContent = agency.name;
+                            filterValueSelect.appendChild(opt);
+                        });
+                    }
+                    filterValueSelect.disabled = false;
+                    filterValueSelect.selectedIndex = -1;
+                    initAgencySelect2();
+
                     filterSubValue.style.display = 'none';
 
                 } else if (type) {
                     populateFilterValues(type, type);
                     filterSubValue.style.display = 'none';
+                    destroySelect2IfExists();
                 } else {
                     filterValueSelect.innerHTML = '<option value="">Select Value</option>';
                     filterValueSelect.disabled = true;
                     filterSubValue.style.display = 'none';
+                    destroySelect2IfExists();
                 }
 
+                // Always apply when filter type changes (even for agency, which will show summary unless locations are picked)
                 applyFilterAndRender();
             });
 
-            // When franchise (filterValue) changes, update agencies
+            function isSelect2Active() {
+                return $(filterValueSelect).hasClass('select2-hidden-accessible');
+            }
+
             filterValueSelect.addEventListener('change', () => {
-                if (filterTypeSelect.value === 'agency') {
-                    populateAgenciesUnderFranchise(filterValueSelect.value);
-                }
+                if (isSelect2Active()) return;
                 applyFilterAndRender();
             });
 
-            filterSubValue.addEventListener('change', applyFilterAndRender);
+            filterSubValue.addEventListener('change', () => {
+                if (isSelect2Active()) return;
+                applyFilterAndRender();
+            });
+
+            applyFilterBtn.addEventListener('click', applyFilterAndRender);
 
             // Initial render
+            toggleApplyFilterBtn(filterTypeSelect.value);
             applyFilterAndRender();
         });
     </script>

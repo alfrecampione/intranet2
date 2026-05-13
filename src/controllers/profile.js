@@ -1,12 +1,17 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getMSARealId, getMSAPhotoPath } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies } from "../config/utils.js";
+import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
+import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
+import { getCompanyNamesMap } from "../config/utils.js";
+import { sendMail } from "./mailer.js";
+import { getEmailsToAlert } from "./config.js";
 
 const renderProfile = async (req, res) => {
     const user = req.user;
     const userId = req.params.id ?? user.user_id;
 
-    const profile = await prisma.user.findUnique({
+    let profile = await prisma.user.findUnique({
         where: { user_id: userId }
     });
 
@@ -14,24 +19,35 @@ const renderProfile = async (req, res) => {
         return res.status(404).send("User not found");
     }
 
-    const personalInfo = await prisma.personalInfo.findUnique({
-        where: { userId }
-    });
+    // If an agent opens a user profile that has not completed onboarding,
+    // mark onboarding as cancelled so data will be filled manually.
+    if (!profile.registrationCompleted && user.user_id !== userId) {
+        try {
+            await prisma.user.update({
+                where: { user_id: userId },
+                data: { registrationCompleted: true }
+            });
+            profile = { ...profile, registrationCompleted: true };
 
-    // For Microsoft users, fetch photoPath from user_avatars table
-    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
-        const msaPhotoPath = await getMSAPhotoPath(realId);
-        if (msaPhotoPath && personalInfo) {
-            personalInfo.photoPath = msaPhotoPath;
+            // Mark pending onboarding record as no longer pending if it exists.
+            await prisma.onboardingSentEmails.update({
+                where: { email: profile.email },
+                data: { pending: false }
+            }).catch(() => { });
+        } catch (err) {
+            console.error("Error cancelling onboarding from profile view:", err);
         }
     }
+
+    const personalInfoRecord = await prisma.personalInfo.findUnique({
+        where: { userId }
+    });
 
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }
     });
 
-    const paymentMethod = await prisma.paymentMethod.findUnique({
+    const paymentMethodRecord = await prisma.paymentMethod.findUnique({
         where: { userId }
     });
 
@@ -45,10 +61,18 @@ const renderProfile = async (req, res) => {
 
     const carriers = await prisma.statesANDCarriers.findMany({
         where: { userId },
+        include: { carrier: true },
         orderBy: { state: 'asc' },
     });
 
-    const allCompanies = await prisma.company.findMany();
+    const externalIds = carriers.map(carrier => carrier.carrier?.externalId).filter(Boolean);
+    const carrierCompanyNamesMap = await getCompanyNamesMap(externalIds);
+    carriers.forEach(carrier => {
+        const externalId = carrier.carrier?.externalId;
+        carrier.carrier.name = externalId ? carrierCompanyNamesMap.get(externalId)?.name ?? '(unknown)' : '(unknown)';
+    });
+
+    const allCompanies = await getAllCompanies();
 
     const allAgencies = await getAgencies();
 
@@ -73,6 +97,21 @@ const renderProfile = async (req, res) => {
         orderBy: { createdAt: 'desc' }
     });
 
+    const personalInfo = personalInfoRecord
+        ? {
+            ...personalInfoRecord,
+            ssn: personalInfoRecord.ssn ? decryptWithSecret(personalInfoRecord.ssn) : personalInfoRecord.ssn,
+        }
+        : null;
+
+    const paymentMethod = paymentMethodRecord
+        ? {
+            ...paymentMethodRecord,
+            bankAccountNum: decryptWithSecret(paymentMethodRecord.bankAccountNum),
+            bankRoutingNum: decryptWithSecret(paymentMethodRecord.bankRoutingNum),
+        }
+        : null;
+
     // Can edit flag for frontend
     // If the user is viewing their own profile, they can edit
     // or if they have admin rights (rights including 2)
@@ -82,17 +121,41 @@ const renderProfile = async (req, res) => {
 
     const canEdit = user && ((user.rights && user.rights.includes(2)) || allowedIds.includes(userId));
 
+    // Process photoPath similar to agents.js
+    let photoPath = personalInfo?.photoPath || null;
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getEntraId(profile.email.toLowerCase());
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        photoPath = msaPhotoPath || photoPath;
+    }
+
+    // Generate signed URL for photoPath if it exists (from S3 or MSA)
+    if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
+    }
+
+    // Update personalInfo with the processed photoPath
+    if (personalInfo) {
+        personalInfo.photoPath = photoPath;
+    }
+
+    // Process S3 URLs to generate signed URLs for documents and companies
+    const processedDocuments = await processS3Urls(documents);
+    const processedAllCompanies = await processS3Urls(allCompanies);
+
     res.render("profile", {
         userId,
         user,
         profile,
-        personalInfo,
+        personalInfo: personalInfo,
         contactInfo,
         paymentMethod,
-        documents,
+        documents: processedDocuments,
         necesaryDocs,
         carriers,
-        allCompanies,
+        allCompanies: processedAllCompanies,
         allAgencies,
         activity,
         pinnedNotes,
@@ -204,8 +267,7 @@ async function createActivityEntry(log) {
     const variant = isCreate ? 'success' : isUpdate ? 'info' : 'danger';
 
     const userId = log.userId;
-    const personalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
-    const legalName = personalInfo?.legalName || '(Administrator User)';
+    const legalName = await resolveActorName(userId);
 
     if (table.includes('user')) {
         if (isCreate) {
@@ -220,19 +282,55 @@ async function createActivityEntry(log) {
         }
     } else if (table.includes('carriers')) {
         const carrierObj = Array.isArray(newObj) ? newObj[0] : newObj || {};
-        const company = carrierObj?.company ?? '(unknown)';
+        const companyId = carrierObj?.company ?? null;
         const state = carrierObj?.state ?? '(unknown)';
 
+        // Get company name from ID
+        let companyName = '(unknown)';
+        if (companyId) {
+            const company = await prisma.company.findUnique({
+                where: { id: companyId },
+                select: { externalId: true }
+            });
+            if (company?.externalId) {
+                const companyNamesMap = await getCompanyNamesMap([company.externalId]);
+                companyName = companyNamesMap.get(company.externalId)?.name ?? '(unknown)';
+            }
+        }
+
         if (isUpdate) {
-            title = `Carrier ${company} Updated by ${legalName}`;
+            title = `Carrier ${companyName} Updated by ${legalName}`;
             description = diffJson(log.oldValue, log.newValue);
         } else if (isCreate) {
-            title = `Carrier ${company} Created by ${legalName}`;
+            title = `Carrier ${companyName} Created by ${legalName}`;
             description = '';
         } else if (isDelete) {
             const oldCarrierObj = Array.isArray(oldObj) ? oldObj[0] : oldObj || {};
-            title = `Carrier ${oldCarrierObj.company ?? '(unknown)'} Deleted by ${legalName}`;
-            description = `The carrier ${oldCarrierObj.company ?? '(unknown)'} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
+            const oldCompanyId = oldCarrierObj.company ?? null;
+            const deletedStatus = (oldCarrierObj.status || '').toLowerCase();
+            let oldCompanyName = '(unknown)';
+            if (oldCompanyId) {
+                const oldCompany = await prisma.company.findUnique({
+                    where: { id: oldCompanyId },
+                    select: { externalId: true }
+                });
+                if (oldCompany?.externalId) {
+                    const oldCompanyNamesMap = await getCompanyNamesMap([oldCompany.externalId]);
+                    oldCompanyName = oldCompanyNamesMap.get(oldCompany.externalId)?.name ?? '(unknown)';
+                }
+            }
+            const isReleaseLog = deletedStatus === 'release';
+            const isDeleteLog = deletedStatus === 'delete';
+            if (isReleaseLog) {
+                title = `Carrier ${oldCompanyName} Released by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was removed due to Release.`;
+            } else if (isDeleteLog) {
+                title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was removed with Delete.`;
+            } else {
+                title = `Carrier ${oldCompanyName} Deleted by ${legalName}`;
+                description = `The carrier ${oldCompanyName} in state ${oldCarrierObj.state ?? '(unknown)'} was deleted.`;
+            }
         }
     } else {
         if (isUpdate) {
@@ -296,34 +394,75 @@ const renderNotes = async (req, res) => {
         where: { userId }
     });
 
-    // For Microsoft users, fetch photoPath from user_avatars table
-    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
-        const realId = await getMSARealId(profile.user_id);
-        const msaPhotoPath = await getMSAPhotoPath(realId);
-        if (msaPhotoPath && personalInfo) {
-            personalInfo.photoPath = msaPhotoPath;
-        }
-    }
-
     const contactInfo = await prisma.contactInfo.findUnique({
         where: { userId }
     });
 
     const notes = await prisma.note.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' }
+        where: { userId, parentId: null },
+        include: {
+            replies: {
+                orderBy: { createdAt: 'desc' }
+            }
+        },
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }]
     });
 
+    // Resolve display names for all createdBy IDs (notes + replies)
+    const creatorIds = new Set();
+    notes.forEach(n => {
+        if (n.createdBy) creatorIds.add(n.createdBy);
+        (n.replies || []).forEach(r => { if (r.createdBy) creatorIds.add(r.createdBy); });
+    });
+    const namesMap = new Map();
+    await Promise.all([...creatorIds].map(async id => {
+        namesMap.set(id, await resolveActorName(id));
+    }));
+    notes.forEach(n => {
+        n.createdByName = namesMap.get(n.createdBy) ?? n.createdBy;
+        (n.replies || []).forEach(r => { r.createdByName = namesMap.get(r.createdBy) ?? r.createdBy; });
+    });
 
-    res.render("notes", { userId, user, profile, personalInfo, contactInfo, notes, activePage: 'profile' });
+    // Process photoPath similar to agents.js
+    let photoPath = personalInfo?.photoPath || null;
+
+    // For Microsoft users, fetch photoPath from user_avatars table
+    if (profile.email && profile.email.endsWith('@goldentrust.com')) {
+        const realId = await getEntraId(profile.email.toLowerCase());
+        const msaPhotoPath = await getMSAPhotoPath(realId);
+        photoPath = msaPhotoPath || photoPath;
+    }
+
+    // Generate signed URL for photoPath if it exists (from S3 or MSA)
+    if (photoPath) {
+        photoPath = await getSignedS3Url(photoPath);
+    }
+
+    // Update personalInfo with the processed photoPath
+    if (personalInfo) {
+        personalInfo.photoPath = photoPath;
+    }
+
+    res.render("notes", { userId, user, profile, personalInfo: personalInfo, contactInfo, notes, activePage: 'profile' });
 }
 
 const postNote = async (req, res) => {
-    const { text, isPinned } = req.body;
+    const { text, isPinned, parentId } = req.body;
     const userId = req.params.id ?? req.user.user_id;
 
     if (!text) {
         return res.status(400).json({ error: "Note text is required." });
+    }
+
+    // Enforce single-level threading: parent must be a top-level note
+    if (parentId) {
+        const parent = await prisma.note.findUnique({ where: { id: parentId }, select: { parentId: true } });
+        if (!parent) {
+            return res.status(404).json({ error: "Parent note not found." });
+        }
+        if (parent.parentId !== null) {
+            return res.status(400).json({ error: "Cannot reply to a reply. Only one level of threading is allowed." });
+        }
     }
 
     const creatorUser = await prisma.user.findUnique({
@@ -338,11 +477,147 @@ const postNote = async (req, res) => {
                 data: {
                     userId,
                     text,
-                    isPinned: isPinned || false,
-                    createdBy: creator
+                    isPinned: parentId ? false : (isPinned || false),
+                    createdBy: req.user.user_id,
+                    parentId: parentId || null
                 }
             });
             res.status(201).json(note);
+
+            // Notifications (only for top-level notes)
+            if (!parentId) {
+                const buildNoteBody = (name) => ({
+                    name,
+                    intro: `${creator} has left a note in GoldenHealth.`,
+                    table: {
+                        data: [{ "Note": text }],
+                        columns: {
+                            customWidth: { "Note": "100%" },
+                            customAlignment: { "Note": "left" }
+                        }
+                    },
+                    outro: "Please log in to GoldenHealth to view and manage your notes."
+                });
+
+                // Fetch profile user and alert group
+                const recipientUser = await prisma.user.findUnique({
+                    where: { user_id: userId },
+                    select: { email: true, display_name: true }
+                });
+
+                const agentName = recipientUser?.display_name || recipientUser?.email || userId;
+                const alertEmails = await getEmailsToAlert();
+                const isSelfNote = req.user.user_id === userId;
+
+                if (isSelfNote) {
+                    // Case A: authenticated user IS the profile user → email each member of the notification group
+                    try {
+                        for (const alert of alertEmails) {
+                            if (alert.email === req.user.email) continue; // skip self
+
+                            sendMail(
+                                alert.email,
+                                `New note added on ${agentName} in GoldenHealth`,
+                                buildNoteBody(alert.display_name || alert.email)
+                            ).catch(err => console.error(`Error sending alert email to ${alert.email}:`, err));
+
+                            const alertUser = await prisma.user.findUnique({
+                                where: { email: alert.email },
+                                select: { user_id: true }
+                            });
+                            if (alertUser) {
+                                await prisma.notificacion.create({
+                                    data: {
+                                        userId: alertUser.user_id,
+                                        userEmail: alert.email,
+                                        message: `📝 ${creator} added a note on ${agentName}.`,
+                                        createdBy: req.user.user_id
+                                    }
+                                }).catch(err => console.error(`Error creating alert notification for ${alert.email}:`, err));
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error notifying alert list for note:", err);
+                    }
+                } else {
+                    // Case B: authenticated user is NOT the profile user → email profile user with CC to notification group
+                    const alertCcAddresses = alertEmails
+                        .filter(a => a.email !== req.user.email && a.email !== recipientUser?.email)
+                        .map(a => a.email);
+
+                    if (recipientUser?.email) {
+                        sendMail(
+                            recipientUser.email,
+                            `New note added on your profile in GoldenHealth`,
+                            buildNoteBody(recipientUser.display_name || recipientUser.email),
+                            alertCcAddresses
+                        ).catch(err => console.error("Error sending note email to profile user:", err));
+                    }
+
+                    // In-app notification for alert users
+                    try {
+                        for (const alert of alertEmails) {
+                            if (alert.email === req.user.email) continue;
+
+                            const alertUser = await prisma.user.findUnique({
+                                where: { email: alert.email },
+                                select: { user_id: true }
+                            });
+                            if (alertUser) {
+                                await prisma.notificacion.create({
+                                    data: {
+                                        userId: alertUser.user_id,
+                                        userEmail: alert.email,
+                                        message: `📝 ${creator} added a note on ${agentName}.`,
+                                        createdBy: req.user.user_id
+                                    }
+                                }).catch(err => console.error(`Error creating alert notification for ${alert.email}:`, err));
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error notifying alert list for note:", err);
+                    }
+                }
+
+                // 2. In-app notification to hierarchy owners above the recipient
+                try {
+                    const recipientPersonalInfo = await prisma.personalInfo.findUnique({
+                        where: { userId },
+                        select: { agency: true, franchise: true, legalName: true }
+                    });
+
+                    if (recipientPersonalInfo) {
+                        const hierarchy = await reverseGetAllAgencies(
+                            recipientPersonalInfo.agency,
+                            recipientPersonalInfo.franchise
+                        );
+
+                        const notifiedOwners = new Set();
+                        for (const level of hierarchy) {
+                            if (level.isAgency) {
+                                const agency = await prisma.agency.findUnique({
+                                    where: { id: level.id },
+                                    select: { owner: true }
+                                });
+
+                                if (agency?.owner && agency.owner !== req.user.user_id && !notifiedOwners.has(agency.owner)) {
+                                    notifiedOwners.add(agency.owner);
+                                    const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
+                                    await prisma.notificacion.create({
+                                        data: {
+                                            userId: agency.owner,
+                                            message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
+                                            createdBy: req.user.user_id
+                                        }
+                                    }).catch(err => console.error("Error creating hierarchy notification:", err));
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error notifying hierarchy for note:", err);
+                }
+            }
         });
     } catch (error) {
         console.error("Error creating note:", error);
@@ -422,16 +697,44 @@ const saveSection = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userId] }, async () => {
             let prevPersonalInfo = null;
             if (sectionKey === "personalInfo") {
                 prevPersonalInfo = await prisma.personalInfo.findUnique({ where: { userId } });
             }
 
+            const valuesToPersist = { ...values };
+
+            if (sectionKey === "personalInfo" && "ssn" in valuesToPersist) {
+                valuesToPersist.ssn = valuesToPersist.ssn ? encryptWithSecret(valuesToPersist.ssn) : null;
+            }
+
+            if (sectionKey === "paymentMethod") {
+                const assignToGTI = valuesToPersist.assignToGTI;
+
+                if (assignToGTI === false) {
+                    valuesToPersist.bankAccountNum = null;
+                    valuesToPersist.bankRoutingNum = null;
+                    valuesToPersist.bankAccountType = null;
+                    valuesToPersist.accountNickname = null;
+                } else {
+                    if ("bankAccountNum" in valuesToPersist) {
+                        valuesToPersist.bankAccountNum = valuesToPersist.bankAccountNum
+                            ? encryptWithSecret(valuesToPersist.bankAccountNum)
+                            : null;
+                    }
+                    if ("bankRoutingNum" in valuesToPersist) {
+                        valuesToPersist.bankRoutingNum = valuesToPersist.bankRoutingNum
+                            ? encryptWithSecret(valuesToPersist.bankRoutingNum)
+                            : null;
+                    }
+                }
+            }
+
             const updatedSection = await prisma[sectionKey].upsert({
                 where: { userId },
-                update: values,
-                create: { userId, ...values },
+                update: valuesToPersist,
+                create: { userId, ...valuesToPersist },
             });
 
             if (sectionKey === "personalInfo") {
@@ -462,7 +765,23 @@ const saveSection = async (req, res) => {
                 }
             }
 
-            res.status(200).json({ success: true, data: updatedSection });
+            let responseData = updatedSection;
+            if (sectionKey === "personalInfo") {
+                responseData = {
+                    ...updatedSection,
+                    ssn: updatedSection.ssn ? decryptWithSecret(updatedSection.ssn) : updatedSection.ssn,
+                };
+            }
+
+            if (sectionKey === "paymentMethod") {
+                responseData = {
+                    ...updatedSection,
+                    bankAccountNum: decryptWithSecret(updatedSection.bankAccountNum),
+                    bankRoutingNum: decryptWithSecret(updatedSection.bankRoutingNum),
+                };
+            }
+
+            res.status(200).json({ success: true, data: responseData });
         });
     } catch (error) {
         console.error("Error saving section:", error);
@@ -480,7 +799,7 @@ const addCarrierToUser = async (req, res) => {
     }
 
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userId] }, async () => {
             const newCarrier = await prisma.statesANDCarriers.create({
                 data: {
                     userId,
@@ -505,15 +824,28 @@ const addCarrierToUser = async (req, res) => {
 const deleteCarrierToUser = async (req, res) => {
     const { carrierId } = req.params;
     const requesterId = req.user.user_id;
+    const skipReleaseFlag = req.query?.skipReleaseFlag === "true";
 
     if (!carrierId) {
         return res.status(400).json({ success: false, message: "Carrier ID is required." });
     }
+    const carrierRecord = await prisma.statesANDCarriers.findUnique({
+        where: { id: carrierId }
+    });
+
+    if (!carrierRecord) {
+        return res.status(404).json({ success: false, message: "Carrier not found." });
+    }
+
+    const userToUpdate = carrierRecord.userId;
+
     try {
-        await prismaContext.run({ requesterId, affectedUserIds: [userId] }, async () => {
-            const userToUpdate = (await prisma.statesANDCarriers.findUnique({
-                where: { id: carrierId }
-            }))?.userId;
+        await prismaContext.run({ userId: requesterId, affectedUserIds: [userToUpdate] }, async () => {
+            // Mark status to preserve intent in audit logs before deletion
+            await prisma.statesANDCarriers.update({
+                where: { id: carrierId },
+                data: { status: skipReleaseFlag ? "Delete" : "Release" }
+            });
 
             await prisma.statesANDCarriers.delete({
                 where: { id: carrierId }
@@ -521,10 +853,10 @@ const deleteCarrierToUser = async (req, res) => {
 
             const remainingCarriers = await prisma.statesANDCarriers.findMany({
                 where: {
-                    id: userToUpdate
+                    userId: userToUpdate
                 }
             });
-            if (remainingCarriers.length === 0) {
+            if (!skipReleaseFlag && remainingCarriers.length === 0) {
                 await prisma.user.update({
                     where: { user_id: userToUpdate },
                     data: { isReleased: true }

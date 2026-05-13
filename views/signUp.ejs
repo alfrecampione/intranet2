@@ -78,7 +78,7 @@
                 value="<%= email ? email : '' %>" <%=email ? 'readonly' : '' %>
               autofocus
               />
-              <div class="mb-6 form-password-toggle">
+              <div class="mb-6 form-password-toggle" id="password-container">
                 <label class="form-label" for="password">Password</label>
                 <div class="input-group input-group-merge">
                   <input type="password" id="password" class="form-control" name="password"
@@ -155,46 +155,68 @@
             bsToast.show();
           }
 
-          document
-            .getElementById("formAuthentication")
-            .addEventListener("submit", async function (e) {
-              e.preventDefault();
+          document.addEventListener('DOMContentLoaded', () => {
+            const emailInput = document.getElementById('email');
+            const passwordContainer = document.getElementById('password-container');
 
-              const email = document.getElementById("email").value;
-              const password = document.getElementById("password").value;
-              const encrypted_email = JSON.parse(document.getElementById("encryptedEmail").textContent);
-              const userData = {
-                email: email,
-                password: password
-              };
+            function togglePasswordByDomain() {
+              const email = (emailInput.value || '').trim().toLowerCase();
+              const isMsDomain = email.endsWith('@goldentrust.com');
 
-              const overlay = document.getElementById("email-overlay");
-              overlay.style.display = "flex";
-
-              try {
-                const res = await fetch(`/signUp`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(userData),
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                  const offcanvas = document.getElementById("add-new-record");
-                  const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
-                  if (bsOffcanvas) bsOffcanvas.hide()
-
-                  window.location.href = `/email-validation?encryptedEmail=${encodeURIComponent(encrypted_email)}`;
-                } else {
-                  showToast("Error", data.message || "An error occurred during registration");
-                }
-              } catch (err) {
-                showToast("Error", "An unexpected error occurred. Please try again later.");
+              if (isMsDomain) {
+                passwordContainer.style.display = 'none';
+                document.getElementById('password').value = '';
+              } else {
+                passwordContainer.style.display = '';
               }
-            });
+            }
+
+            togglePasswordByDomain();
+            emailInput.addEventListener('input', togglePasswordByDomain);
+            emailInput.addEventListener('change', togglePasswordByDomain);
+
+            document
+              .getElementById("formAuthentication")
+              .addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById("email").value.trim();
+                const password = document.getElementById("password").value;
+                const encrypted_email = JSON.parse(document.getElementById("encryptedEmail").textContent);
+                const isMsDomain = email.toLowerCase().endsWith('@goldentrust.com');
+
+                const userData = isMsDomain ? { email } : { email, password };
+
+                const overlay = document.getElementById("email-overlay");
+                overlay.style.display = "flex";
+
+                try {
+                  const res = await fetch(`/signUp`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(userData),
+                  });
+
+                  const data = await res.json();
+
+                  if (res.ok) {
+                    const offcanvas = document.getElementById("add-new-record");
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+                    if (bsOffcanvas) bsOffcanvas.hide();
+
+                    window.location.href = `/email-validation?encryptedEmail=${encodeURIComponent(encrypted_email)}`;
+                  } else {
+                    showToast("Error", data.message || "An error occurred during registration");
+                  }
+                } catch (err) {
+                  showToast("Error", "An unexpected error occurred. Please try again later.");
+                } finally {
+                  overlay.style.display = "none";
+                }
+              });
+          });
         </script>
       </div>
     </div>

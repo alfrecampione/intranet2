@@ -1,1 +1,1 @@
-export const uploadFiles = async (req, res) => {};
+export const uploadFiles = async (req, res) => { };

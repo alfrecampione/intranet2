@@ -139,12 +139,13 @@ model NecesaryDocuments {
 }
 
 model StatesANDCarriers {
-  id      String  @id @default(uuid())
+  id      String   @id @default(uuid())
   state   String?
   userId  String
   company String?
   status  String?
-  user    User    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  carrier Company? @relation(fields: [company], references: [id], onDelete: SetNull)
 
   @@unique([userId, company, state])
   @@schema("health")
@@ -171,14 +172,15 @@ model NewUserAlerts {
 }
 
 model Company {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  States    String[]
-  createdAt DateTime @default(now())
-  phone     String
-  iconPath  String?
+  id         String   @id @default(uuid())
+  externalId Int?     @unique
+  name       String?  @unique
+  phone      String?
+  States     String[]
+  iconPath   String?
 
-  Commisions Commisions[]
+  Commisions        Commisions[]
+  statesANDCarriers StatesANDCarriers[]
 
   @@schema("health")
 }
@@ -225,8 +227,11 @@ model Note {
   createdAt DateTime @default(now())
   createdBy String
   isPinned  Boolean  @default(false)
+  parentId  String?
 
-  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  parent  Note?  @relation("NoteReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Note[] @relation("NoteReplies")
 
   @@schema("health")
 }
@@ -302,10 +307,13 @@ model Notificacion {
 }
 
 model OnboardingSentEmails {
-  id      String   @id @default(uuid())
-  email   String   @unique
-  sentAt  DateTime @default(now())
-  pending Boolean  @default(true)
+  id        String   @id @default(uuid())
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  agencyId  String?
+  sentAt    DateTime @default(now())
+  pending   Boolean  @default(true)
 
   @@schema("health")
 }

@@ -223,18 +223,19 @@
                     }
 
                     const tdName = document.createElement("td");
-                    tdName.textContent = carrier.company;
+                    tdName.textContent = carrier.carrier?.name || 'Unknown';
                     tr.appendChild(tdName);
 
                     const tdStatus = document.createElement("td");
-                    const statusOptions = ["Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release"];
-                    const currentStatus = carrier.status || "Request Received from Agent";
+                    const statusOptions = ["Empty", "Request Received from Agent", "Pending Submission", "Submitted to Carrier", "Carrier In Review", "Carrier Sent Contract to Agent", "Ready to Sell", "Rejected by Carrier", "Withdrawn by Agent", "Need Release", "Release", "Refering"];
+                    const currentStatus = carrier.status || "Empty";
 
                     const optionsHTML = statusOptions.map(status => {
                         const selected = status === currentStatus ? "selected" : "";
                         return `<option value="${status}" ${selected}>${status}</option>`;
                     }).join("");
 
+                    // Use company ID for the name attribute
                     tdStatus.innerHTML = `
                     <select name="${carrier.company}-${carrier.state}" class="form-select form-select-sm">
                         ${optionsHTML}

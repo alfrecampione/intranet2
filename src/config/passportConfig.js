@@ -5,6 +5,7 @@ import { cca, LOGIN_SCOPES } from "./msalConfig.js";
 import passport from "passport";
 import { getMSAPhotoPath, getMSARealId } from "./utils.js";
 import { get } from "https";
+import { getSignedS3Url } from "./s3Config.js";
 
 // ---------------------- PASSPORT INITIALIZE ----------------------
 const initialize = (passport) => {
@@ -69,6 +70,15 @@ const initialize = (passport) => {
           },
         });
 
+        if (!user) {
+          return done(null, false);
+        }
+
+        // Firmar photoPath si existe
+        if (user.personalInfo && user.personalInfo.photoPath) {
+          user.personalInfo.photoPath = await getSignedS3Url(user.personalInfo.photoPath);
+        }
+
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: user.email },
           include: { AgentRights: true },
@@ -81,7 +91,7 @@ const initialize = (passport) => {
             ? userRights.AgentRights.map((ar) => ar.idRight)
             : [],
         };
-        return done(null, filledUser || false);
+        return done(null, filledUser);
       } else if (obj.type === "ms") {
         const userRights = await prisma.allowedAgents.findUnique({
           where: { email: obj.email },
@@ -89,15 +99,18 @@ const initialize = (passport) => {
         });
 
         const realId = getMSARealId(obj.user_id);
-
         const entra_photoPath = await getMSAPhotoPath(realId);
+        let signedPhotoPath = null;
+        if (entra_photoPath) {
+          signedPhotoPath = await getSignedS3Url(entra_photoPath);
+        }
 
         const user = {
           user_id: realId,
           email: obj.email,
           display_name: obj.display_name,
           tenantId: obj.tenantId,
-          personalInfo: { photoPath: entra_photoPath },
+          personalInfo: { photoPath: signedPhotoPath },
           isMicrosoftLogin: true,
           rights: userRights
             ? userRights.AgentRights.map((ar) => ar.idRight)
@@ -115,10 +128,15 @@ const initialize = (passport) => {
 
 // ---------------------- POST LOGIN ----------------------
 const postLogin = async (req, res, next) => {
-  const { email } = req.body;
+  const rawEmail = req?.body?.email ?? req?.query?.email ?? req?.user?.email ?? "";
+  const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
+
+  if (!email) {
+    return res.status(400).json({ msg: "Email is required" });
+  }
 
   // MICROSOFT LOGIN
-  if (email.endsWith("@goldentrust.com")) {
+  if (email.toLowerCase().endsWith("@goldentrust.com")) {
     try {
       const isAllowed = await prisma.allowedAgents.findUnique({ where: { email } });
       const healthAgent = await prisma.user.findUnique({ where: { email } });

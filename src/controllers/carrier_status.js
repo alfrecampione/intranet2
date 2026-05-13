@@ -6,6 +6,7 @@ const renderCarrierStatus = async (req, res) => {
 
     const carriers = await prisma.statesANDCarriers.findMany({
         where: { userId },
+        include: { carrier: true },
         orderBy: { state: 'asc' },
     });
 

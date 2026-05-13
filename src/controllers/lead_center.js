@@ -1,5 +1,7 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
+import { getSignedS3Url } from "../config/s3Config.js";
+import { getCompanyNamesMap } from "../config/utils.js";
 
 const renderLeadCenter = async (req, res) => {
     try {
@@ -94,13 +96,36 @@ const deleteLead = async (req, res) => {
 }
 
 const renderNewLead = async (req, res) => {
-    const companies = await prisma.company.findMany({
-        select: {
-            id: true,
-            name: true,
-            iconPath: true,
-        },
-    });
+    // Get companies from health schema
+    const healthCompanies = await prisma.company.findMany();
+
+    // Get only the externalIds that exist in health schema
+    const externalIds = healthCompanies
+        .filter(hc => hc.externalId)
+        .map(hc => hc.externalId);
+
+    const qqNamesMap = await getCompanyNamesMap(externalIds);
+
+    // Combine both sources
+    const companies = [];
+
+    for (const hc of healthCompanies) {
+        if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+            const extComp = externalCompaniesMap.get(hc.externalId);
+            let iconPath = hc.iconPath || null;
+            if (iconPath) {
+                iconPath = await getSignedS3Url(iconPath);
+            }
+            companies.push({
+                id: hc.id,
+                name: extComp.name,
+                phone: extComp.phone || '',
+                iconPath: iconPath
+            });
+        }
+    }
+
+    companies.sort((a, b) => a.name.localeCompare(b.name));
 
     res.render("newLead", { companies, lead: {}, isLoaded: false });
 }
@@ -115,13 +140,38 @@ const loadLead = async (req, res) => {
         if (!lead) {
             return res.status(404).json({ error: "Lead not found" });
         }
-        const companies = await prisma.company.findMany({
-            select: {
-                id: true,
-                name: true,
-                iconPath: true,
-            },
-        });
+
+        // Get companies from health schema
+        const healthCompanies = await prisma.company.findMany();
+
+        // Get only the externalIds that exist in health schema
+        const externalIds = healthCompanies
+            .filter(hc => hc.externalId)
+            .map(hc => hc.externalId);
+
+        const externalCompaniesMap = await getCompanyNamesMap(externalIds);
+
+        // Combine both sources
+        const companies = [];
+
+        for (const hc of healthCompanies) {
+            if (hc.externalId && externalCompaniesMap.has(hc.externalId)) {
+                const extComp = externalCompaniesMap.get(hc.externalId);
+                let iconPath = hc.iconPath || null;
+                if (iconPath) {
+                    iconPath = await getSignedS3Url(iconPath);
+                }
+                companies.push({
+                    id: hc.id,
+                    name: extComp.name,
+                    phone: extComp.phone || '',
+                    iconPath: iconPath
+                });
+            }
+        }
+
+        companies.sort((a, b) => a.name.localeCompare(b.name));
+
         res.render("newLead", { companies, lead, isLoaded: true });
     } catch (error) {
         console.error("Error loading lead:", error);

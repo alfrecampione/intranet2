@@ -3,10 +3,7 @@ import dotenv from "dotenv";
 import Mailgen from "mailgen";
 import { pool, prisma } from "../config/dbConfig.js";
 import { encrypt } from "./crypto.js";
-import { createMessage } from "../config/utils.js";
 import { getEmailsToAlert } from "./config.js";
-import { get } from "https";
-import { on } from "events";
 
 dotenv.config();
 
@@ -40,7 +37,7 @@ async function getAccessToken() {
 /* ----------------------------
    SEND EMAILS (Graph with Fetch)
 ---------------------------- */
-async function sendMail(email, subject, body) {
+async function sendMail(email, subject, body, ccEmails = []) {
   try {
     if (!email || !subject || !body) {
       throw new Error("Email, subject and body are required");
@@ -71,6 +68,7 @@ async function sendMail(email, subject, body) {
           content: mailHtml,
         },
         toRecipients: [{ emailAddress: { address: email } }],
+        ccRecipients: ccEmails.map(cc => ({ emailAddress: { address: cc } })),
       },
       saveToSentItems: true,
     };
@@ -100,6 +98,41 @@ async function sendMail(email, subject, body) {
 /* ----------------------------
    READ EMAILS FUNCTION (Graph with Fetch)
 ---------------------------- */
+// Lightweight fetch with retry and timeout to handle Graph 5xx/504
+async function fetchWithRetry(url, options, { retries = 3, backoffMs = 800, timeoutMs = 15000 } = {}) {
+  let attempt = 0;
+  let lastErr;
+  while (attempt <= retries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      // Retry on 5xx (including 504) responses
+      if (!res.ok && res.status >= 500) {
+        lastErr = new Error(`Graph API error: ${res.status}`);
+        attempt++;
+        if (attempt > retries) throw lastErr;
+        await new Promise(r => setTimeout(r, backoffMs * attempt));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      // AbortError or network errors: retry
+      lastErr = err;
+      attempt++;
+      if (attempt > retries) {
+        console.error(`❌ fetchWithRetry failed after ${retries} retries:`, err.message);
+        throw lastErr;
+      }
+      console.log(`⚠️ Retry attempt ${attempt}/${retries} after error: ${err.message}`);
+      await new Promise(r => setTimeout(r, backoffMs * attempt));
+    }
+  }
+  throw lastErr;
+}
+
 async function getAllMessages(userEmail, folderName = "Inbox") {
   try {
     const token = await getAccessToken();
@@ -107,12 +140,12 @@ async function getAllMessages(userEmail, folderName = "Inbox") {
     let url = `https://graph.microsoft.com/v1.0/users/${userEmail}/mailFolders('${folderName}')/messages?$orderby=sentDateTime DESC&$select=id,subject,bodyPreview,from,toRecipients,sentDateTime,conversationId&$top=50`;
 
     while (url) {
-      const response = await fetch(url, {
+      const response = await fetchWithRetry(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      });
+      }, { timeoutMs: 30000 }); // Increase timeout to 30 seconds for email fetching
 
       if (!response.ok) {
         throw new Error(`Graph API error: ${response.status}`);
@@ -158,6 +191,7 @@ const passwordMail = async (req, res) => {
         encrypted_data: encryptedData,
         key: key,
         id: iv,
+        data: email
       },
     });
   } catch (error) {
@@ -227,10 +261,13 @@ const new_user_notification = async (req, res) => {
   try {
     const alerts = await getEmailsToAlert();
     if (!alerts || alerts.length === 0) {
+      console.warn("⚠️ No notification emails configured in newUserAlerts table.");
       return res
         .status(200)
         .json({ message: "No notification emails configured." });
     }
+
+    console.log(`📧 Sending new user notification for ${email} to ${alerts.length} recipient(s)...`);
 
     const subject = "New user created";
     const body = {
@@ -247,9 +284,17 @@ const new_user_notification = async (req, res) => {
       outro:
         "This is an automated message from the GoldenHealth.",
     };
-    try {
-      for (const alert of alerts) {
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const alert of alerts) {
+      try {
         await sendMail(alert.email, subject, body);
+        console.log(`✅ Notification sent to: ${alert.email}`);
+        successCount++;
+
+        // Create in-app notification for User
         const agent = await prisma.user.findUnique({
           where: { email: alert.email },
         });
@@ -263,6 +308,8 @@ const new_user_notification = async (req, res) => {
             },
           });
         }
+
+        // Create in-app notification for AllowedAgent
         const allowedAgent = await prisma.allowedAgents.findUnique({
           where: { email: alert.email },
         });
@@ -276,14 +323,21 @@ const new_user_notification = async (req, res) => {
             },
           });
         }
+      } catch (err) {
+        console.error(`❌ Error sending notification to ${alert.email}:`, err);
+        errorCount++;
       }
-    } catch (err) {
-      console.error(`Error sending notification: `, err);
     }
 
-    return res.status(200).json({ message: "Notifications sent." });
+    console.log(`📊 Notification summary: ${successCount} sent, ${errorCount} failed out of ${alerts.length} total.`);
+
+    return res.status(200).json({
+      message: "Notifications processed.",
+      sent: successCount,
+      failed: errorCount
+    });
   } catch (error) {
-    console.error("Error sending new user notifications:", error);
+    console.error("❌ Error sending new user notifications:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
@@ -341,9 +395,9 @@ const readEmails = async () => {
   try {
     const messages = await getAllMessages(process.env.G_EMAIL);
 
-    // Filtra solo los mensajes con [NEWS] al inicio
+    // Filter messages whose subject starts with [NEWS] in any letter case
     const newsMessages = messages.filter(
-      (msg) => msg.subject && msg.subject.trim().startsWith("[NEWS]")
+      (msg) => msg.subject && /^\[news\]/i.test(msg.subject.trim())
     );
 
     const seenIds = new Set();
@@ -354,7 +408,8 @@ const readEmails = async () => {
       const title = msg.subject.replace(/^\[NEWS\]\s*/i, "").trim() || "(No Subject)";
 
       let cleanContent = msg.bodyPreview?.trim() || "(No Content)";
-      const nextNewsIndex = cleanContent.indexOf("[NEWS]");
+      const nextNewsMatch = cleanContent.match(/\[news\]/i);
+      const nextNewsIndex = nextNewsMatch ? nextNewsMatch.index : -1;
       if (nextNewsIndex !== -1) {
         cleanContent = cleanContent.substring(0, nextNewsIndex).trim();
       }
@@ -412,4 +467,55 @@ const searchNews = async (req, res) => {
   return res.status(200).json({ results: textMatches });
 };
 
-export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews };
+/* ----------------------------
+   DELETE EMAIL FROM SENT ITEMS
+---------------------------- */
+const deleteEmail = async (email, subject = 'Create your account on GoldenHealth') => {
+  try {
+    const token = await getAccessToken();
+    let deletedCount = 0;
+
+    // Search for emails with subject and recipient
+    const searchUrl = `https://graph.microsoft.com/v1.0/users/${senderEmail}/mailFolders/SentItems/messages?$filter=subject eq '${subject}'&$select=id,toRecipients&$top=100`;
+
+    const messagesRes = await fetch(searchUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const messagesData = await messagesRes.json();
+
+    // Find and delete ALL emails sent to this specific email with matching subject
+    if (messagesData.value) {
+      for (const msg of messagesData.value) {
+        const recipient = msg.toRecipients?.[0]?.emailAddress?.address;
+        if (recipient && recipient.toLowerCase() === email.toLowerCase()) {
+          // Delete the email
+          await fetch(`https://graph.microsoft.com/v1.0/users/${senderEmail}/messages/${msg.id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          deletedCount++;
+          console.log(`✅ Deleted email from Sent Items for ${email} (subject: "${subject}")`);
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      console.log(`📧 Total deleted: ${deletedCount} email(s) for ${email} with subject "${subject}"`);
+    } else {
+      console.log(`⚠️ No emails found to delete for ${email} with subject "${subject}"`);
+    }
+
+    return deletedCount;
+  } catch (error) {
+    console.error("❌ Error deleting email from Sent Items:", error);
+    throw error;
+  }
+};
+
+export { sendMail, passwordMail, email_sender, new_user_notification, readEmails, readSentOnboardingEmails, searchNews, deleteEmail };
