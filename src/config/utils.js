@@ -36,7 +36,7 @@ async function getAgencies() {
         const franchise = await prisma.$queryRaw`
       SELECT * 
       FROM qq.locations 
-      WHERE (location_type = 2 OR location_id = 1) AND active = true
+      WHERE (location_type in (1,2)) AND active = true
       ORDER BY alias ASC
     `;
 
