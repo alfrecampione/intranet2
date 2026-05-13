@@ -358,6 +358,74 @@
                         });
                     }
 
+                    // Dynamic sub-filter columns: add when a filter type is selected but no specific value is chosen
+                    const filterValue = filterValueSelect.value;
+                    if (filterType === 'carrier' && !filterValue) {
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'state' && !filterValue) {
+                        columns.push({
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const states = [...new Set(data.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status' && !filterValue) {
+                        columns.push({
+                            title: "Status",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const statuses = [...new Set(data.map(sc => sc.status).filter(Boolean))];
+                                return statuses.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'carrier & state' && !filterValue) {
+                        columns.push({
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const states = [...new Set(data.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        }, {
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'carrier & state' && filterValue && !filterSubValueVal) {
+                        const stateSelected = filterValue;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.state === stateSelected);
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+
                     columns.push({
                         title: "Number",
                         data: "number",
