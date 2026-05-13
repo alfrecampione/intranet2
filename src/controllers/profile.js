@@ -402,7 +402,7 @@ const renderNotes = async (req, res) => {
         where: { userId, parentId: null },
         include: {
             replies: {
-                orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: 'asc' }
             }
         },
         orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }]
@@ -482,7 +482,7 @@ const postNote = async (req, res) => {
                     parentId: parentId || null
                 }
             });
-            res.status(201).json(note);
+            res.status(201).json({ ...note, createdByName: creator });
 
             // Notifications (only for top-level notes)
             if (!parentId) {
@@ -509,16 +509,31 @@ const postNote = async (req, res) => {
                 const alertEmails = await getEmailsToAlert();
                 const isSelfNote = req.user.user_id === userId;
 
+                // Helper: always resolve real display_name for an alert entry from User table or Entra
+                const resolveAlertName = async (alert) => {
+                    const u = await prisma.user.findUnique({ where: { email: alert.email }, select: { display_name: true } });
+                    if (u?.display_name) return u.display_name;
+                    // Fallback: try Entra
+                    try {
+                        const entraUser = await prisma.$queryRaw`
+                            SELECT display_name FROM entra.users WHERE mail = ${alert.email}
+                        `;
+                        if (entraUser?.[0]?.display_name) return entraUser[0].display_name;
+                    } catch (_) { }
+                    return alert.email;
+                };
+
                 if (isSelfNote) {
                     // Case A: authenticated user IS the profile user → email each member of the notification group
                     try {
                         for (const alert of alertEmails) {
                             if (alert.email === req.user.email) continue; // skip self
 
+                            const alertName = await resolveAlertName(alert);
                             sendMail(
                                 alert.email,
                                 `New note added on ${agentName} in GoldenHealth`,
-                                buildNoteBody(alert.display_name || alert.email)
+                                buildNoteBody(alertName)
                             ).catch(err => console.error(`Error sending alert email to ${alert.email}:`, err));
 
                             const alertUser = await prisma.user.findUnique({
