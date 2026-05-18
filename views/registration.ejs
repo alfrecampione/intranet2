@@ -799,6 +799,10 @@
     <%- JSON.stringify(personalInfo || {}) %>
   </script>
 
+  <script id="coOwnerAgency-data" type="application/json">
+    <%- JSON.stringify(coOwnerAgency || null) %>
+  </script>
+
   <script id="onboarding-agency-data" type="application/json">
     <%- JSON.stringify(onboardingAgencyId || null) %>
   </script>
@@ -841,6 +845,7 @@
         .filter(a => a.isAgency); // only real agencies, not franchises
 
       const personalInfoData = JSON.parse(document.getElementById('personalInfo-data').textContent);
+      const coOwnerAgency = JSON.parse(document.getElementById('coOwnerAgency-data').textContent);
 
       const searchInput = document.getElementById('agencySearchInput');
       const dropdown = document.getElementById('agencyDropdown');
@@ -850,7 +855,11 @@
       if (!searchInput) return;
 
       // Restore saved state on page load
-      if (personalInfoData.businessName) {
+      if (coOwnerAgency) {
+        searchInput.value = coOwnerAgency.name;
+        hiddenJoinId.value = coOwnerAgency.id;
+        hiddenName.value = '';
+      } else if (personalInfoData.businessName) {
         searchInput.value = personalInfoData.businessName;
         hiddenName.value = personalInfoData.businessName;
       }
