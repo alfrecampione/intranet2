@@ -1,5 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies, getOwnedAgency } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
@@ -463,11 +463,7 @@ async function getFranchiseAgencyCombinations(requester) {
             WHERE location_id = ${topFranchise.id} AND active = true
         `;
 
-        const topAgency = await prisma.agency.findUnique({
-            where: {
-                owner: requester.user_id
-            }
-        });
+        const topAgency = await getOwnedAgency(requester.user_id);
 
         if (topAgency) {
             const underAgenciesId = await getAllAgencyIds(topAgency.id);

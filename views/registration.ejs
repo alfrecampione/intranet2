@@ -194,11 +194,22 @@
 
                           <!-- Business Name (Required if business) -->
                           <div class="col-sm-6" id="businessNameGroup" style="display:none;">
-                            <label class="form-label" for="businessName">
-                              Business Name <span class="text-danger">*</span>
+                            <label class="form-label" for="agencySearchInput">
+                              Agency Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="businessName" id="businessName" class="form-control"
-                              placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
+                            <!-- Searchable dropdown: select existing agency OR create new -->
+                            <div class="position-relative">
+                              <input type="text" id="agencySearchInput" class="form-control" autocomplete="off"
+                                placeholder="Search or create agency..."
+                                value="<%= personalInfo?.businessName || '' %>" />
+                              <ul id="agencyDropdown" class="list-group position-absolute w-100 shadow-sm z-3"
+                                style="display:none; max-height:220px; overflow-y:auto; top:100%; left:0;">
+                              </ul>
+                            </div>
+                            <!-- Hidden inputs sent to the backend -->
+                            <input type="hidden" id="businessName" name="businessName"
+                              value="<%= personalInfo?.businessName || '' %>" />
+                            <input type="hidden" id="joinAgencyId" name="joinAgencyId" value="" />
                           </div>
 
                           <!-- EIN de la Compañía (Required if business) -->
@@ -757,7 +768,6 @@
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
       const einGroup = document.getElementById("einGroup");
-      const businessName = document.getElementById("businessName");
       const ein = document.getElementById("ein");
       const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
 
@@ -765,13 +775,11 @@
         if (contactType.value === "business") {
           businessNameGroup.style.display = "";
           einGroup.style.display = "";
-          businessName.required = true;
           ein.required = true;
           prefFirstNameGroup.style.display = "none";
         } else {
           businessNameGroup.style.display = "none";
           einGroup.style.display = "none";
-          businessName.required = false;
           ein.required = false;
           prefFirstNameGroup.style.display = "";
         }
@@ -823,6 +831,101 @@
         input.setAttribute('disabled', 'disabled');
         input.title = 'Agency preselected from onboarding';
       }
+    });
+  </script>
+
+  <!-- Agency searchable dropdown for business type -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const allAgencies = JSON.parse(document.getElementById('agencies-data').textContent)
+        .filter(a => a.isAgency); // only real agencies, not franchises
+
+      const personalInfoData = JSON.parse(document.getElementById('personalInfo-data').textContent);
+
+      const searchInput = document.getElementById('agencySearchInput');
+      const dropdown = document.getElementById('agencyDropdown');
+      const hiddenName = document.getElementById('businessName');
+      const hiddenJoinId = document.getElementById('joinAgencyId');
+
+      if (!searchInput) return;
+
+      // Restore saved state on page load
+      if (personalInfoData.businessName) {
+        searchInput.value = personalInfoData.businessName;
+        hiddenName.value = personalInfoData.businessName;
+      }
+
+      function renderDropdown(filter) {
+        dropdown.innerHTML = '';
+
+        const q = (filter || '').trim().toLowerCase();
+        const matches = q
+          ? allAgencies.filter(a => a.name.toLowerCase().includes(q))
+          : allAgencies;
+
+        matches.forEach(a => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item list-group-item-action py-2 px-3';
+          li.style.cursor = 'pointer';
+          li.textContent = a.name;
+          li.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            searchInput.value = a.name;
+            hiddenName.value = '';         // not creating new, clear businessName
+            hiddenJoinId.value = a.id;     // join existing agency
+            dropdown.style.display = 'none';
+          });
+          dropdown.appendChild(li);
+        });
+
+        // Always add "Create New" at the bottom
+        const createLi = document.createElement('li');
+        createLi.className = 'list-group-item list-group-item-action py-2 px-3 fw-semibold text-primary';
+        createLi.style.cursor = 'pointer';
+        const labelText = q ? `Create New: "${filter.trim()}"` : 'Create New';
+        createLi.textContent = labelText;
+        createLi.dataset.createNew = 'true';
+        createLi.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          const name = filter ? filter.trim() : '';
+          searchInput.value = name;
+          hiddenName.value = name;    // creating new agency with this name
+          hiddenJoinId.value = '';
+          dropdown.style.display = 'none';
+        });
+        dropdown.appendChild(createLi);
+
+        dropdown.style.display = 'block';
+      }
+
+      searchInput.addEventListener('focus', function () {
+        renderDropdown(searchInput.value);
+      });
+
+      searchInput.addEventListener('input', function () {
+        // Clear previous selection when user types
+        hiddenName.value = '';
+        hiddenJoinId.value = '';
+        renderDropdown(this.value);
+      });
+
+      searchInput.addEventListener('blur', function () {
+        // Delay to allow mousedown on list items to fire first
+        setTimeout(() => {
+          dropdown.style.display = 'none';
+          // If nothing selected yet but user typed something, treat as "Create New"
+          if (!hiddenName.value && !hiddenJoinId.value && searchInput.value.trim()) {
+            hiddenName.value = searchInput.value.trim();
+          }
+        }, 150);
+      });
+
+      // Close dropdown on outside click
+      document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
     });
   </script>
   <!--/ Personal Info -->
@@ -1132,6 +1235,7 @@
 
       const businessName = document.getElementById("businessName")?.value || "";
       const companyEIN = document.getElementById("ein")?.value || "";
+      const joinAgencyId = document.getElementById("joinAgencyId")?.value || "";
 
       const photoFile = photoInput?.files[0] || null;
       const existingPhotoURL = photoInput?.dataset.existingUrl || "";
@@ -1172,7 +1276,8 @@
         businessName: businessName || null,
         companyEIN: companyEIN || null,
         agency: agency,
-        franchise: franchise
+        franchise: franchise,
+        joinAgencyId: joinAgencyId || null
       };
 
       const response = await fetch(`${url}/steps/personal-info`, {

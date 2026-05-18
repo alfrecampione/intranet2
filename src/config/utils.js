@@ -62,6 +62,41 @@ async function getAgencies() {
 };
 
 /**
+ * Returns the agency where userId is the primary owner (Agency.owner) or a co-owner (AgencyCoOwner).
+ * Primary ownership is checked first.
+ *
+ * @param {string} userId
+ * @returns {Promise<Agency|null>}
+ */
+async function getOwnedAgency(userId) {
+    const primary = await prisma.agency.findUnique({ where: { owner: userId } });
+    if (primary) return primary;
+    const coOwnership = await prisma.agencyCoOwner.findFirst({
+        where: { userId },
+        include: { agency: true },
+    });
+    return coOwnership?.agency ?? null;
+}
+
+/**
+ * Returns all owner user IDs for a given agency — primary owner (Agency.owner) plus co-owners (AgencyCoOwner).
+ *
+ * @param {string} agencyId
+ * @returns {Promise<string[]>}
+ */
+async function getAgencyOwnerIds(agencyId) {
+    const agency = await prisma.agency.findUnique({
+        where: { id: agencyId },
+        select: { owner: true, coOwners: { select: { userId: true } } },
+    });
+    if (!agency) return [];
+    const ids = [];
+    if (agency.owner) ids.push(agency.owner);
+    ids.push(...agency.coOwners.map(c => c.userId));
+    return ids;
+}
+
+/**
  * Recursively retrieves all agency IDs under a given agency,
  * including nested (child) agencies owned by business agents.
  *
@@ -228,31 +263,30 @@ async function getVisibleAgentsId(requester) {
         visibleAgents = allAgents.map(agent => agent.user_id);
     }
     else if (requester.personalInfo?.contactType?.toLowerCase() === 'business') {
-        const agency = await prisma.agency.findUnique({
-            where: { owner: requester.user_id },
-        });
+        const agency = await getOwnedAgency(requester.user_id);
         if (!agency) return [requester.user_id];
         const agencyId = agency.id;
 
         const allAgencyIds = await getAllAgencyIds(agencyId);
-        const agencyOwners = await prisma.agency.findMany({
-            where: { id: { in: allAgencyIds } },
-            select: { owner: true },
-        });
-        const ownerIds = agencyOwners.map(a => a.owner);
-        visibleAgents.push(...ownerIds);
+
+        // Collect primary owners + co-owners across all agencies in the hierarchy
+        const ownerIdArrays = await Promise.all(allAgencyIds.map(id => getAgencyOwnerIds(id)));
+        const ownerIds = ownerIdArrays.flat();
+
         const agentsInAgencies = await prisma.user.findMany({
             where: {
                 isAgent: true,
                 personalInfo: { agency: { in: allAgencyIds } }
             },
         });
-        visibleAgents = agentsInAgencies.map(agent => agent.user_id);
 
-        // Ensure the agency owner is included in the list
-        if (!visibleAgents.includes(requester.user_id)) {
-            visibleAgents.push(requester.user_id);
-        }
+        visibleAgents = [
+            ...new Set([
+                ...agentsInAgencies.map(agent => agent.user_id),
+                ...ownerIds,
+                requester.user_id,
+            ])
+        ];
     }
     else {
         visibleAgents = [requester.user_id];
@@ -638,4 +672,4 @@ async function ensureDefaultUserRecords(userId, options = {}) {
     };
 }
 
-export { getCity, getAgencies, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords };
+export { getCity, getAgencies, getOwnedAgency, getAgencyOwnerIds, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords };

@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies, getAgencyOwnerIds } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 import { getCompanyNamesMap } from "../config/utils.js";
@@ -610,21 +610,20 @@ const postNote = async (req, res) => {
                         const notifiedOwners = new Set();
                         for (const level of hierarchy) {
                             if (level.isAgency) {
-                                const agency = await prisma.agency.findUnique({
-                                    where: { id: level.id },
-                                    select: { owner: true }
-                                });
+                                const ownerIds = await getAgencyOwnerIds(level.id);
+                                const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
 
-                                if (agency?.owner && agency.owner !== req.user.user_id && !notifiedOwners.has(agency.owner)) {
-                                    notifiedOwners.add(agency.owner);
-                                    const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
-                                    await prisma.notificacion.create({
-                                        data: {
-                                            userId: agency.owner,
-                                            message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
-                                            createdBy: req.user.user_id
-                                        }
-                                    }).catch(err => console.error("Error creating hierarchy notification:", err));
+                                for (const ownerId of ownerIds) {
+                                    if (ownerId !== req.user.user_id && !notifiedOwners.has(ownerId)) {
+                                        notifiedOwners.add(ownerId);
+                                        await prisma.notificacion.create({
+                                            data: {
+                                                userId: ownerId,
+                                                message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
+                                                createdBy: req.user.user_id
+                                            }
+                                        }).catch(err => console.error("Error creating hierarchy notification:", err));
+                                    }
                                 }
                             }
                         }

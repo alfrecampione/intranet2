@@ -1,5 +1,5 @@
 import { pool, prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getAllCompanies, getCompanyNamesMap } from "../config/utils.js";
+import { getAllAgencyIds, getAllCompanies, getCompanyNamesMap, getOwnedAgency } from "../config/utils.js";
 import { register } from "./registration.js";
 
 const redirect_dashboard = (req, res) => {
@@ -50,7 +50,7 @@ const renderDashboard = async (req, res) => {
     }
     // 2. Si es business agent
     else if (user && user.personalInfo?.contactType?.toLowerCase() === 'business') {
-      const agency = await prisma.agency.findUnique({ where: { owner: user.user_id } });
+      const agency = await getOwnedAgency(user.user_id);
       if (agency) {
         const allAgencyIds = await getAllAgencyIds(agency.id, prisma);
         const users = await prisma.user.findMany({
