@@ -197,18 +197,9 @@
                             <label class="form-label" for="agencySearchInput">
                               Agency Name <span class="text-danger">*</span>
                             </label>
-                            <!-- Searchable dropdown: select existing agency OR create new -->
-                            <div class="position-relative">
-                              <input type="text" id="agencySearchInput" class="form-control" autocomplete="off"
-                                placeholder="Search or create agency..."
-                                value="<%= personalInfo?.businessName || '' %>" />
-                              <ul id="agencyDropdown" class="list-group position-absolute w-100 shadow-sm z-3"
-                                style="display:none; max-height:220px; overflow-y:auto; top:100%; left:0;">
-                              </ul>
-                            </div>
+                            <select id="agencySearchInput" class="form-select" style="width:100%"></select>
                             <!-- Hidden inputs sent to the backend -->
-                            <input type="hidden" id="businessName" name="businessName"
-                              value="<%= personalInfo?.businessName || '' %>" />
+                            <input type="hidden" id="businessName" name="businessName" value="" />
                             <input type="hidden" id="joinAgencyId" name="joinAgencyId" value="" />
                           </div>
 
@@ -764,12 +755,68 @@
 
   <!-- Personal Info -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    $(function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
       const einGroup = document.getElementById("einGroup");
       const ein = document.getElementById("ein");
       const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
+      const hiddenName = document.getElementById('businessName');
+      const hiddenJoinId = document.getElementById('joinAgencyId');
+
+      const allAgencies = JSON.parse(document.getElementById('agencies-data').textContent)
+        .filter(a => a.isAgency);
+      const coOwnerAgency = JSON.parse(document.getElementById('coOwnerAgency-data').textContent);
+      const personalInfoData = JSON.parse(document.getElementById('personalInfo-data').textContent);
+
+      const agencyData = allAgencies.map(a => ({ id: 'existing:' + a.id, text: a.name, agencyId: a.id }));
+
+      $('#agencySearchInput').select2({
+        placeholder: 'Search or create agency...',
+        width: '100%',
+        tags: true,
+        data: agencyData,
+        createTag: function (params) {
+          const term = $.trim(params.term);
+          if (!term) return null;
+          return { id: 'new:' + term, text: term, newTag: true };
+        },
+        templateResult: function (item) {
+          if (item.newTag) return $('<span class="fw-semibold text-primary">Create New: "' + item.text + '"</span>');
+          return item.text;
+        },
+        language: { noResults: function () { return 'No agencies found'; } }
+      });
+
+      $('#agencySearchInput').on('select2:select', function (e) {
+        const data = e.params.data;
+        if (data.newTag || String(data.id).startsWith('new:')) {
+          hiddenName.value = data.text;
+          hiddenJoinId.value = '';
+        } else {
+          hiddenName.value = '';
+          hiddenJoinId.value = data.agencyId || String(data.id).replace('existing:', '');
+        }
+      });
+
+      $('#agencySearchInput').on('select2:unselect select2:clear', function () {
+        hiddenName.value = '';
+        hiddenJoinId.value = '';
+      });
+
+      // Restore saved state on page load
+      if (coOwnerAgency) {
+        const opt = new Option(coOwnerAgency.name, 'existing:' + coOwnerAgency.id, true, true);
+        $('#agencySearchInput').append(opt).trigger('change');
+        hiddenJoinId.value = coOwnerAgency.id;
+        hiddenName.value = '';
+      } else if (personalInfoData.businessName) {
+        const name = personalInfoData.businessName;
+        const opt = new Option(name, 'new:' + name, true, true);
+        $('#agencySearchInput').append(opt).trigger('change');
+        hiddenName.value = name;
+        hiddenJoinId.value = '';
+      }
 
       function toggleBusinessFields() {
         if (contactType.value === "business") {
@@ -784,106 +831,11 @@
           prefFirstNameGroup.style.display = "";
         }
       }
+
       if (contactType) {
         contactType.addEventListener("change", toggleBusinessFields);
         toggleBusinessFields();
       }
-
-      // Agency searchable dropdown for business type (must run AFTER toggle to ensure field is visible)
-      const allAgencies = JSON.parse(document.getElementById('agencies-data').textContent)
-        .filter(a => a.isAgency); // only real agencies, not franchises
-
-      const personalInfoData = JSON.parse(document.getElementById('personalInfo-data').textContent);
-      const coOwnerAgency = JSON.parse(document.getElementById('coOwnerAgency-data').textContent);
-
-      const searchInput = document.getElementById('agencySearchInput');
-      const dropdown = document.getElementById('agencyDropdown');
-      const hiddenName = document.getElementById('businessName');
-      const hiddenJoinId = document.getElementById('joinAgencyId');
-
-      if (!searchInput) return;
-
-      // Restore saved state on page load
-      if (coOwnerAgency) {
-        searchInput.value = coOwnerAgency.name;
-        hiddenJoinId.value = coOwnerAgency.id;
-        hiddenName.value = '';
-      } else if (personalInfoData.businessName) {
-        searchInput.value = personalInfoData.businessName;
-        hiddenName.value = personalInfoData.businessName;
-      }
-
-      function renderDropdown(filter) {
-        dropdown.innerHTML = '';
-
-        const q = (filter || '').trim().toLowerCase();
-        const matches = q
-          ? allAgencies.filter(a => a.name.toLowerCase().includes(q))
-          : allAgencies;
-
-        matches.forEach(a => {
-          const li = document.createElement('li');
-          li.className = 'list-group-item list-group-item-action py-2 px-3';
-          li.style.cursor = 'pointer';
-          li.textContent = a.name;
-          li.addEventListener('mousedown', function (e) {
-            e.preventDefault();
-            searchInput.value = a.name;
-            hiddenName.value = '';         // not creating new, clear businessName
-            hiddenJoinId.value = a.id;     // join existing agency
-            dropdown.style.display = 'none';
-          });
-          dropdown.appendChild(li);
-        });
-
-        // Always add "Create New" at the bottom
-        const createLi = document.createElement('li');
-        createLi.className = 'list-group-item list-group-item-action py-2 px-3 fw-semibold text-primary';
-        createLi.style.cursor = 'pointer';
-        const labelText = q ? `Create New: "${filter.trim()}"` : 'Create New';
-        createLi.textContent = labelText;
-        createLi.dataset.createNew = 'true';
-        createLi.addEventListener('mousedown', function (e) {
-          e.preventDefault();
-          const name = filter ? filter.trim() : '';
-          searchInput.value = name;
-          hiddenName.value = name;    // creating new agency with this name
-          hiddenJoinId.value = '';
-          dropdown.style.display = 'none';
-        });
-        dropdown.appendChild(createLi);
-
-        dropdown.style.display = 'block';
-      }
-
-      searchInput.addEventListener('focus', function () {
-        renderDropdown(searchInput.value);
-      });
-
-      searchInput.addEventListener('input', function () {
-        // Clear previous selection when user types
-        hiddenName.value = '';
-        hiddenJoinId.value = '';
-        renderDropdown(this.value);
-      });
-
-      searchInput.addEventListener('blur', function () {
-        // Delay to allow mousedown on list items to fire first
-        setTimeout(() => {
-          dropdown.style.display = 'none';
-          // If nothing selected yet but user typed something, treat as "Create New"
-          if (!hiddenName.value && !hiddenJoinId.value && searchInput.value.trim()) {
-            hiddenName.value = searchInput.value.trim();
-          }
-        }, 150);
-      });
-
-      // Close dropdown on outside click
-      document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.style.display = 'none';
-        }
-      });
     });
   </script>
 
