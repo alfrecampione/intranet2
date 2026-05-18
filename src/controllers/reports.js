@@ -115,6 +115,24 @@ async function handleAgencySummaryFilter(requester) {
 }
 
 /**
+ * Handles status & carrier filter
+ * @param {Array} processedAgents - Array of agent records
+ * @param {string} status - Status filter value
+ * @param {string|null|undefined} carrierId - Carrier id filter value (optional)
+ * @returns {Array} Filtered agents
+ */
+function handleStatusCarrierFilter(processedAgents, status, carrierId) {
+    return processedAgents.filter(agent => {
+        if (!Array.isArray(agent.statesAndCarriers)) return false;
+        return agent.statesAndCarriers.some(sc => {
+            if (sc.status !== status) return false;
+            if (!carrierId) return true;
+            return sc.company === carrierId || sc.carrier?.id === carrierId;
+        });
+    });
+}
+
+/**
  * Handles carrier & state filter
  * @param {Array} processedAgents - Array of agent records
  * @param {string} state - State filter value
@@ -591,6 +609,9 @@ const filterReport = async (req, res) => {
     else if (filterType === 'carrier & state' && singleFilterValue) {
         // If carrier is empty, fallback to state-only filter
         processedAgents = handleCarrierStateFilter(processedAgents, singleFilterValue, filterSubValue || null);
+    }
+    else if (filterType === 'status & carrier' && singleFilterValue) {
+        processedAgents = handleStatusCarrierFilter(processedAgents, singleFilterValue, filterSubValue || null);
     }
     else if (filterType && singleFilterValue) {
         processedAgents = handleGenericFilter(processedAgents, filterType, singleFilterValue);

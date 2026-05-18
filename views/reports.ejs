@@ -94,6 +94,7 @@
                                                 <option value="state">State</option>
                                                 <option value="carrier">Carrier</option>
                                                 <option value="carrier & state">Carrier & State</option>
+                                                <option value="status & carrier">Status & Carrier</option>
                                                 <option value="status">Status</option>
                                                 <option value="location">Location</option>
                                                 <option value="agency">Agency</option>
@@ -426,6 +427,71 @@
                         });
                     }
 
+                    if (filterType === 'status & carrier' && !filterValue) {
+                        columns.push({
+                            title: "Status",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const statuses = [...new Set(data.map(sc => sc.status).filter(Boolean))];
+                                return statuses.join(', ');
+                            }
+                        }, {
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status & carrier' && filterValue && !filterSubValueVal) {
+                        const statusSelected = filterValue;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected);
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        }, {
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected);
+                                const states = [...new Set(relevant.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status & carrier' && filterValue && filterSubValueVal) {
+                        const statusSelected = filterValue;
+                        const carrierSelected = filterSubValueVal;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected && (sc.company === carrierSelected || sc.carrier?.id === carrierSelected));
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        }, {
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected && (sc.company === carrierSelected || sc.carrier?.id === carrierSelected));
+                                const states = [...new Set(relevant.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+
                     columns.push({
                         title: "Number",
                         data: "number",
@@ -500,6 +566,26 @@
                         const opt = document.createElement('option');
                         opt.value = state;
                         opt.textContent = state;
+                        filterValueSelect.appendChild(opt);
+                    });
+                    filterValueSelect.disabled = false;
+
+                    filterSubValue.innerHTML = '<option value="">Select Carrier</option>';
+                    filtersData['carrier'].forEach(carrier => {
+                        const isObj = carrier && typeof carrier === 'object';
+                        const opt = document.createElement('option');
+                        opt.value = isObj ? (carrier.id ?? '') : carrier;
+                        opt.textContent = isObj ? (carrier.name ?? carrier.id ?? '') : carrier;
+                        filterSubValue.appendChild(opt);
+                    });
+                    filterSubValue.style.display = 'block';
+
+                } else if (type === 'status & carrier') {
+                    filterValueSelect.innerHTML = '<option value="">Select Status</option>';
+                    filtersData['status'].forEach(status => {
+                        const opt = document.createElement('option');
+                        opt.value = status;
+                        opt.textContent = status;
                         filterValueSelect.appendChild(opt);
                     });
                     filterValueSelect.disabled = false;
