@@ -726,12 +726,14 @@
             }
 
             filterValueSelect.addEventListener('change', () => {
-                if (isSelect2Active()) return;
+                const isMultiSelectMode = filterTypeSelect.value === 'location' || filterTypeSelect.value === 'agency';
+                if (isMultiSelectMode && isSelect2Active()) return;
                 applyFilterAndRender();
             });
 
             filterSubValue.addEventListener('change', () => {
-                if (isSelect2Active()) return;
+                const isMultiSelectMode = filterTypeSelect.value === 'location' || filterTypeSelect.value === 'agency';
+                if (isMultiSelectMode && isSelect2Active()) return;
                 applyFilterAndRender();
             });
 

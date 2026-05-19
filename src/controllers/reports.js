@@ -630,10 +630,10 @@ const filterReport = async (req, res) => {
         processedAgents = await handleAgencyFilter(filterValues, franchiseMap);
     }
     else if (filterType === 'agency') {
-        if (filterValues.length === 0) {
-            return res.json({ data: [], total: 0 });
+        if (filterValues.length > 0) {
+            processedAgents = await handleAgencyByIdFilter(filterValues);
         }
-        processedAgents = await handleAgencyByIdFilter(filterValues);
+        // else: no agency selected → return all visible agents (processedAgents unchanged)
     }
     else if (filterType === 'carrier & state' && singleFilterValue) {
         // If carrier is empty, fallback to state-only filter
