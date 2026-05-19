@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies, getAgencyOwnerIds } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies, getAgencyOwnerIds, promoteCoOwnerOrDeleteAgency } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 import { getCompanyNamesMap } from "../config/utils.js";
@@ -784,9 +784,9 @@ const saveSection = async (req, res) => {
                             update: {},
                             create: { agencyId: joinAgencyId, userId },
                         });
-                        // Remove own agency if any, since now they're a co-owner
+                        // Relinquish own agency — promote oldest co-owner or delete
                         if (existingAgency) {
-                            await prisma.agency.delete({ where: { owner: userId } });
+                            await promoteCoOwnerOrDeleteAgency(existingAgency.id);
                         }
                     } else if (businessName) {
                         // Remove co-owner record if switching to own agency
@@ -802,8 +802,12 @@ const saveSection = async (req, res) => {
                             });
                         }
                     }
-                } else if (contactType === "individual" && existingAgency) {
-                    await prisma.agency.delete({ where: { owner: userId } });
+                } else if (contactType === "individual") {
+                    if (existingAgency) {
+                        // Relinquish own agency — promote oldest co-owner or delete
+                        await promoteCoOwnerOrDeleteAgency(existingAgency.id);
+                    }
+                    await prisma.agencyCoOwner.deleteMany({ where: { userId } });
                 }
             }
 

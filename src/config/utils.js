@@ -97,6 +97,28 @@ async function getAgencyOwnerIds(agencyId) {
 }
 
 /**
+ * Promotes the oldest co-owner of an agency to primary owner.
+ * If no co-owners exist, deletes the agency entirely.
+ *
+ * @param {string} agencyId
+ */
+async function promoteCoOwnerOrDeleteAgency(agencyId) {
+    const next = await prisma.agencyCoOwner.findFirst({
+        where: { agencyId },
+        orderBy: { id: 'asc' },
+    });
+    if (next) {
+        await prisma.agency.update({
+            where: { id: agencyId },
+            data: { owner: next.userId },
+        });
+        await prisma.agencyCoOwner.delete({ where: { id: next.id } });
+    } else {
+        await prisma.agency.delete({ where: { id: agencyId } });
+    }
+}
+
+/**
  * Recursively retrieves all agency IDs under a given agency,
  * including nested (child) agencies owned by business agents.
  *
@@ -672,4 +694,4 @@ async function ensureDefaultUserRecords(userId, options = {}) {
     };
 }
 
-export { getCity, getAgencies, getOwnedAgency, getAgencyOwnerIds, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords };
+export { getCity, getAgencies, getOwnedAgency, getAgencyOwnerIds, getAllAgencyIds, reverseGetAllAgencies, getVisibleAgentsId, normalizeId, fetchCreators, mapNotifications, createMessage, getMSAPhotoPath, getMSARealId, getEntraId, getAllCompanies, getCompanyNamesMap, resolveActorName, ensureDefaultUserRecords, promoteCoOwnerOrDeleteAgency };
