@@ -754,18 +754,23 @@
                 th.textContent.trim()
             );
 
-            // Get data rows - extract only text content, excluding images
+            // Temporarily show all rows so we capture the full filtered dataset, not just the current page
+            const prevPageLen = dataTable.page.len();
+            dataTable.page.len(-1).draw();
+
+            // Get ALL data rows - extract only text content, excluding images
             const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
                 return Array.from(tr.querySelectorAll('td')).map(td => {
-                    // If the cell contains a link, extract just the text
                     const link = td.querySelector('a');
                     if (link) {
                         return link.textContent.trim();
                     }
-                    // Otherwise return the text content
                     return td.textContent.trim();
                 });
             });
+
+            // Restore pagination
+            dataTable.page.len(prevPageLen).draw();
 
             // Build summary metadata rows for export
             const summaryRows = [];
