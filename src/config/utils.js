@@ -130,20 +130,20 @@ async function getAllAgencyIds(agencyId) {
     const result = [agencyId];
 
     const usersUnderAgency = await prisma.user.findMany({
-        where: {
-            personalInfo: {
-                agency: agencyId
-            }
-        },
-        include: {
-            personalInfo: true
-        }
+        where: { personalInfo: { agency: agencyId } },
+        include: { personalInfo: true }
     });
 
     for (const u of usersUnderAgency) {
         if (u.isAgent && u.personalInfo?.contactType?.toLowerCase() === 'business') {
-            const childAgency = await prisma.agency.findUnique({
-                where: { owner: u.user_id }
+            // Check primary ownership first, then co-ownership
+            const childAgency = await prisma.agency.findFirst({
+                where: {
+                    OR: [
+                        { owner: u.user_id },
+                        { coOwners: { some: { userId: u.user_id } } }
+                    ]
+                }
             });
             if (childAgency) {
                 const subAgencies = await getAllAgencyIds(childAgency.id);

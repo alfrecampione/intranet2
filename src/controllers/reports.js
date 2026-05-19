@@ -1,5 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies, getOwnedAgency } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies, getOwnedAgency, getAgencyOwnerIds } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
@@ -94,11 +94,10 @@ async function handleAgencySummaryFilter(requester) {
             }
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
             const agentsInThisAgency = await prisma.personalInfo.count({
-                where: {
-                    agency: { in: agenciesUnderThis },
-                }
+                where: { agency: { in: agenciesUnderThis } }
             });
-            count += agentsInThisAgency + 1; // +1 for agency owner
+            const ownerIds = await getAgencyOwnerIds(agencyId);
+            count += agentsInThisAgency + ownerIds.length;
         }
         franchiseAgentCount.set(combination.franchise.id, count);
     }
@@ -328,14 +327,42 @@ async function handleAgencyByIdFilter(agencyIds) {
         })
         : [];
 
-    const agents = [...memberAgents, ...ownerAgents];
+    // Fetch co-owners of any of these agencies
+    const coOwnerRecords = await prisma.agencyCoOwner.findMany({
+        where: { agencyId: { in: uniqueAgencyIds } },
+        select: { userId: true, agencyId: true }
+    });
+    const seenIds = new Set([...memberIds, ...ownerUserIds]);
+    const coOwnerUserIds = coOwnerRecords
+        .filter(r => !seenIds.has(String(r.userId)))
+        .map(r => r.userId);
+
+    const coOwnerAgencyMap = new Map(); // userId -> agencyName for co-owners
+    coOwnerRecords.forEach(r => {
+        if (!seenIds.has(String(r.userId))) {
+            coOwnerAgencyMap.set(String(r.userId), agencyMap.get(String(r.agencyId)) || '');
+        }
+    });
+
+    const coOwnerAgents = coOwnerUserIds.length > 0
+        ? await prisma.user.findMany({
+            include: { personalInfo: true, contactInfo: true },
+            where: {
+                user_id: { in: coOwnerUserIds },
+                registrationCompleted: true
+            }
+        })
+        : [];
+
+    const agents = [...memberAgents, ...ownerAgents, ...coOwnerAgents];
 
     return await Promise.all(agents.map(async agent => {
         let photoPath = agent.personalInfo?.photoPath || '';
-        // Show the agent's own agency name; fall back to the agency they own (for owners)
+        // Show the agent's own agency name; fall back to owned agency or co-owned agency
         const agencyName =
             agencyMap.get(String(agent.personalInfo?.agency ?? '')) ||
             ownerMap.get(String(agent.user_id)) ||
+            coOwnerAgencyMap.get(String(agent.user_id)) ||
             '';
 
         if (agent.email && agent.email.endsWith('@goldentrust.com')) {
@@ -439,16 +466,18 @@ async function getFranchiseAgencyCombinations(requester) {
 
         for (const franchise of franchises) {
             const agencyOwners = await prisma.personalInfo.findMany({
-                where: {
-                    franchise: `${franchise.location_id}`
-                }
+                where: { franchise: `${franchise.location_id}` }
             });
 
+            const ownerUserIds = agencyOwners.map(a => a.userId);
+
+            // Agencies where these users are primary owner OR co-owner
             const topAgencies = await prisma.agency.findMany({
                 where: {
-                    owner: {
-                        in: agencyOwners.map(a => a.userId)
-                    }
+                    OR: [
+                        { owner: { in: ownerUserIds } },
+                        { coOwners: { some: { userId: { in: ownerUserIds } } } }
+                    ]
                 }
             });
 
