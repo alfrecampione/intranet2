@@ -655,30 +655,33 @@ const filterReport = async (req, res) => {
  */
 const exportData = async (req, res) => {
     try {
-        const { headers = [], rows = [] } = req.body;
+        const { headers = [], rows = [], summaryRows = [] } = req.body;
 
-        // Build CSV content
-        const headerRow = headers.join(',');
-        const dataRows = rows.map(row => {
-            const csvRow = row.map(value => {
+        const escapeVal = (value) => {
+            let v = String(value ?? '').replace(/"/g, '""');
+            if (v.includes(',') || v.includes('"') || v.includes('\n')) v = `"${v}"`;
+            return v;
+        };
+
+        const lines = [];
+
+        summaryRows.forEach(row => lines.push(row.map(escapeVal).join(',')));
+
+        lines.push(headers.join(','));
+        rows.forEach(row => {
+            lines.push(row.map(value => {
                 if (typeof value === 'string') {
-                    // Escape quotes and wrap in quotes if needed
                     let v = value.replace(/"/g, '""');
-                    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
-                        v = `"${v}"`;
-                    }
+                    if (v.includes(',') || v.includes('"') || v.includes('\n')) v = `"${v}"`;
                     return v;
                 }
                 return value ?? '';
-            });
-            return csvRow.join(',');
+            }).join(','));
         });
 
-        // Add BOM for UTF-8 encoding so Excel recognizes it properly
         const BOM = '\uFEFF';
-        const csvContent = BOM + [headerRow, ...dataRows].join('\n');
+        const csvContent = BOM + lines.join('\n');
 
-        // Set headers for download
         res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.send(csvContent);
