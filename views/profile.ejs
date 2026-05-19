@@ -264,6 +264,8 @@
   </script>
 
   <script src="/vendor/libs/jquery/jquery.js"></script>
+  <link href="/vendor/libs/select2/select2.css" rel="stylesheet">
+  <script src="/vendor/libs/select2/select2.js"></script>
   <script src="/vendor/libs/popper/popper.js"></script>
   <script src="/vendor/js/bootstrap.js"></script>
   <script src="/vendor/libs/node-waves/node-waves.js"></script>
@@ -305,6 +307,9 @@
     <% } %>
       <script id="agencies-data" type="application/json">
         <%- JSON.stringify(allAgencies || []) %>
+    </script>
+      <script id="coOwnerAgency-data" type="application/json">
+        <%- JSON.stringify(coOwnerAgency || null) %>
     </script>
       <script id="carriers-data" type="application/json">
         <%- JSON.stringify(carriers) %>
@@ -1210,6 +1215,85 @@
                   }
 
 
+                  // Business Name — Select2 with agency search + Create New
+                  else if (fieldName === 'businessName') {
+                    const wrapper = document.createElement('div');
+                    wrapper.dataset.field = 'businessName';
+                    wrapper.dataset.select2wrapper = 'true';
+
+                    const sel = document.createElement('select');
+                    sel.id = 'profileAgencySearchInput';
+                    sel.style.width = '100%';
+                    wrapper.appendChild(sel);
+
+                    const hiddenName = document.createElement('input');
+                    hiddenName.type = 'hidden';
+                    hiddenName.id = 'profileHiddenBusinessName';
+                    hiddenName.dataset.original = currentValue || '';
+                    wrapper.appendChild(hiddenName);
+
+                    const hiddenJoinId = document.createElement('input');
+                    hiddenJoinId.type = 'hidden';
+                    hiddenJoinId.id = 'profileHiddenJoinAgencyId';
+                    wrapper.appendChild(hiddenJoinId);
+
+                    replacementNode = wrapper;
+                    input = hiddenName; // used for originalValue tracking
+
+                    const allAgenciesForSelect = agencies.filter(a => a.isAgency);
+                    const agencySelectData = allAgenciesForSelect.map(a => ({ id: 'existing:' + a.id, text: a.name, agencyId: a.id }));
+
+                    const coOwnerAgencyData = JSON.parse(document.getElementById('coOwnerAgency-data').textContent);
+
+                    setTimeout(() => {
+                      $(sel).select2({
+                        placeholder: 'Search or create agency...',
+                        width: '100%',
+                        tags: true,
+                        data: agencySelectData,
+                        createTag: function (params) {
+                          const term = $.trim(params.term);
+                          if (!term) return null;
+                          return { id: 'new:' + term, text: term, newTag: true };
+                        },
+                        templateResult: function (item) {
+                          if (item.newTag) return $('<span class="fw-semibold text-primary">Create New: "' + item.text + '"</span>');
+                          return item.text;
+                        },
+                        language: { noResults: function () { return 'No agencies found'; } }
+                      });
+
+                      $(sel).on('select2:select', function (e) {
+                        const data = e.params.data;
+                        if (data.newTag || String(data.id).startsWith('new:')) {
+                          hiddenName.value = data.text;
+                          hiddenJoinId.value = '';
+                        } else {
+                          hiddenName.value = '';
+                          hiddenJoinId.value = data.agencyId || String(data.id).replace('existing:', '');
+                        }
+                      });
+
+                      $(sel).on('select2:unselect select2:clear', function () {
+                        hiddenName.value = '';
+                        hiddenJoinId.value = '';
+                      });
+
+                      // Restore saved state
+                      if (coOwnerAgencyData) {
+                        const opt = new Option(coOwnerAgencyData.name, 'existing:' + coOwnerAgencyData.id, true, true);
+                        $(sel).append(opt).trigger('change');
+                        hiddenJoinId.value = coOwnerAgencyData.id;
+                        hiddenName.value = '';
+                      } else if (currentValue && currentValue !== 'None') {
+                        const opt = new Option(currentValue, 'new:' + currentValue, true, true);
+                        $(sel).append(opt).trigger('change');
+                        hiddenName.value = currentValue;
+                        hiddenJoinId.value = '';
+                      }
+                    }, 0);
+                  }
+
                   // Default
                   else {
                     input = document.createElement('input');
@@ -1236,8 +1320,26 @@
                   input.classList.remove('is-invalid');
                   let newValue = input.value || null;
 
+                  // --- Business Name (Select2 co-owner dropdown) ---
+                  if (fieldName === 'businessName') {
+                    // Only process on the hidden name input; skip select and joinAgencyId hidden
+                    if (input.id !== 'profileHiddenBusinessName') continue;
+
+                    const nameInput = input;
+                    const joinIdInput = document.getElementById('profileHiddenJoinAgencyId');
+                    const bName = nameInput.value || null;
+                    const joinId = joinIdInput?.value || null;
+                    const origName = nameInput.dataset.original || null;
+
+                    if (bName !== origName || joinId) {
+                      if (bName) updatedValues.businessName = bName;
+                      if (joinId) updatedValues.joinAgencyId = joinId;
+                    }
+                    newValue = bName;
+                  }
+
                   // --- SSN ---
-                  if (fieldName === 'ssn') {
+                  else if (fieldName === 'ssn') {
                     const rawDigits = (input.value || '').replace(/\D/g, '').slice(0, 9);
                     const originalDigits = (originalValue || '').replace(/\D/g, '');
                     newValue = rawDigits;
@@ -1361,6 +1463,21 @@
                     const selectedOption = input.options[input.selectedIndex];
                     span.textContent = selectedOption ? selectedOption.textContent : 'None';
 
+                  } else if (fieldName === 'businessName') {
+                    const nameInput = document.getElementById('profileHiddenBusinessName');
+                    const joinIdInput = document.getElementById('profileHiddenJoinAgencyId');
+                    const joinId = joinIdInput?.value || null;
+                    const bName = nameInput?.value || null;
+                    if (joinId) {
+                      const found = agencies.find(a => String(a.id) === String(joinId));
+                      span.textContent = found ? found.name : bName || 'None';
+                    } else {
+                      span.textContent = bName || 'None';
+                    }
+                    // Destroy Select2 to avoid memory leaks
+                    const sel = document.getElementById('profileAgencySearchInput');
+                    if (sel && $(sel).data('select2')) $(sel).select2('destroy');
+
                   } else if (fieldName === 'personalPhone' || fieldName === 'secondaryPhone') {
                     span.textContent = formatPhone(newValue);
 
@@ -1383,7 +1500,7 @@
                     span.textContent = newValue || 'None';
                   }
 
-                  const editorNode = input.closest('[data-document-editor="true"]') || input;
+                  const editorNode = input.closest('[data-select2wrapper="true"]') || input.closest('[data-document-editor="true"]') || input;
                   editorNode.replaceWith(span);
                 }
 

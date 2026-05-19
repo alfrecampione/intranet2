@@ -76,6 +76,12 @@ const renderProfile = async (req, res) => {
 
     const allAgencies = await getAgencies();
 
+    const coOwnerRecord = await prisma.agencyCoOwner.findFirst({
+        where: { userId },
+        include: { agency: { select: { id: true, name: true } } }
+    });
+    const coOwnerAgency = coOwnerRecord?.agency || null;
+
     const logs = await prisma.logs.findMany({
         where: {
             OR: [
@@ -160,7 +166,8 @@ const renderProfile = async (req, res) => {
         activity,
         pinnedNotes,
         activePage: 'profile',
-        canEdit
+        canEdit,
+        coOwnerAgency
     });
 };
 
@@ -719,6 +726,10 @@ const saveSection = async (req, res) => {
 
             const valuesToPersist = { ...values };
 
+            if (sectionKey === "personalInfo") {
+                delete valuesToPersist.joinAgencyId;
+            }
+
             if (sectionKey === "personalInfo" && "ssn" in valuesToPersist) {
                 valuesToPersist.ssn = valuesToPersist.ssn ? encryptWithSecret(valuesToPersist.ssn) : null;
             }
@@ -759,20 +770,37 @@ const saveSection = async (req, res) => {
                 const businessName =
                     values.businessName ?? prevPersonalInfo?.businessName;
 
+                const joinAgencyId = values.joinAgencyId ?? null;
+
                 const existingAgency = await prisma.agency.findUnique({
                     where: { owner: userId },
                 });
 
                 if (contactType === "business") {
-                    if (!existingAgency && businessName) {
-                        await prisma.agency.create({
-                            data: { owner: userId, name: businessName },
+                    if (joinAgencyId) {
+                        // Becoming co-owner of an existing agency
+                        await prisma.agencyCoOwner.upsert({
+                            where: { agencyId_userId: { agencyId: joinAgencyId, userId } },
+                            update: {},
+                            create: { agencyId: joinAgencyId, userId },
                         });
-                    } else if (existingAgency && existingAgency.name !== businessName) {
-                        await prisma.agency.update({
-                            where: { owner: userId },
-                            data: { name: businessName },
-                        });
+                        // Remove own agency if any, since now they're a co-owner
+                        if (existingAgency) {
+                            await prisma.agency.delete({ where: { owner: userId } });
+                        }
+                    } else if (businessName) {
+                        // Remove co-owner record if switching to own agency
+                        await prisma.agencyCoOwner.deleteMany({ where: { userId } });
+                        if (!existingAgency) {
+                            await prisma.agency.create({
+                                data: { owner: userId, name: businessName },
+                            });
+                        } else if (existingAgency.name !== businessName) {
+                            await prisma.agency.update({
+                                where: { owner: userId },
+                                data: { name: businessName },
+                            });
+                        }
                     }
                 } else if (contactType === "individual" && existingAgency) {
                     await prisma.agency.delete({ where: { owner: userId } });
