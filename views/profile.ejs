@@ -1127,6 +1127,16 @@
                     });
 
                     input.dataset.original = currentValue?.toLowerCase() || '';
+
+                    input.addEventListener('change', function () {
+                      const isBiz = this.value === 'business';
+                      list.querySelectorAll(`li[data-section="${sectionKey}"]`).forEach(row => {
+                        const f = row.dataset.field;
+                        if (f === 'businessName' || f === 'companyEIN') {
+                          row.classList.toggle('d-none', !isBiz);
+                        }
+                      });
+                    });
                   }
 
                   // SSN
