@@ -22,6 +22,7 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
       npn,
       agency,
       franchise,
+      joinAgencyId,
     } = req.body;
 
     const encryptedSsn = ssn ? encryptWithSecret(ssn) : null;
@@ -42,16 +43,37 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
       franchise: franchise || null,
     };
 
-    if (contactType === "business" && businessName) {
-      const agencyData = {
-        owner: userId,
-        name: businessName,
-      };
-      await prisma.agency.upsert({
-        where: { owner: userId },
-        update: agencyData,
-        create: agencyData,
-      });
+    if (contactType === "business") {
+      if (joinAgencyId) {
+        // Join an existing agency as co-owner
+        await prisma.agencyCoOwner.upsert({
+          where: { agencyId_userId: { agencyId: joinAgencyId, userId } },
+          update: {},
+          create: { agencyId: joinAgencyId, userId },
+        });
+        // Populate businessName (and EIN if the owner has one) from the joined agency
+        const joinedAgency = await prisma.agency.findUnique({
+          where: { id: joinAgencyId },
+          include: { user: { include: { personalInfo: { select: { companyEIN: true } } } } },
+        });
+        if (joinedAgency) {
+          data.businessName = joinedAgency.name;
+          if (joinedAgency.user?.personalInfo?.companyEIN) {
+            data.companyEIN = joinedAgency.user.personalInfo.companyEIN;
+          }
+        }
+      } else if (businessName) {
+        // Create / update the user's own agency. Primary ownership is tracked via Agency.owner only.
+        const agencyData = {
+          owner: userId,
+          name: businessName,
+        };
+        await prisma.agency.upsert({
+          where: { owner: userId },
+          update: agencyData,
+          create: agencyData,
+        });
+      }
     }
 
     const personalInfo = await prisma.personalInfo.upsert({

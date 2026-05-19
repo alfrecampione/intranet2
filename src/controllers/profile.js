@@ -1,6 +1,6 @@
 import { prisma } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies } from "../config/utils.js";
+import { getAgencies, getVisibleAgentsId, getEntraId, getMSAPhotoPath, getAllCompanies, resolveActorName, reverseGetAllAgencies, getAgencyOwnerIds, promoteCoOwnerOrDeleteAgency } from "../config/utils.js";
 import { processS3Urls, getSignedS3Url } from "../config/s3Config.js";
 import { decryptWithSecret, encryptWithSecret } from "./crypto.js";
 import { getCompanyNamesMap } from "../config/utils.js";
@@ -75,6 +75,12 @@ const renderProfile = async (req, res) => {
     const allCompanies = await getAllCompanies();
 
     const allAgencies = await getAgencies();
+
+    const coOwnerRecord = await prisma.agencyCoOwner.findFirst({
+        where: { userId },
+        include: { agency: { select: { id: true, name: true } } }
+    });
+    const coOwnerAgency = coOwnerRecord?.agency || null;
 
     const logs = await prisma.logs.findMany({
         where: {
@@ -160,7 +166,8 @@ const renderProfile = async (req, res) => {
         activity,
         pinnedNotes,
         activePage: 'profile',
-        canEdit
+        canEdit,
+        coOwnerAgency
     });
 };
 
@@ -402,7 +409,7 @@ const renderNotes = async (req, res) => {
         where: { userId, parentId: null },
         include: {
             replies: {
-                orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: 'asc' }
             }
         },
         orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }]
@@ -482,7 +489,7 @@ const postNote = async (req, res) => {
                     parentId: parentId || null
                 }
             });
-            res.status(201).json(note);
+            res.status(201).json({ ...note, createdByName: creator });
 
             // Notifications (only for top-level notes)
             if (!parentId) {
@@ -509,16 +516,31 @@ const postNote = async (req, res) => {
                 const alertEmails = await getEmailsToAlert();
                 const isSelfNote = req.user.user_id === userId;
 
+                // Helper: always resolve real display_name for an alert entry from User table or Entra
+                const resolveAlertName = async (alert) => {
+                    const u = await prisma.user.findUnique({ where: { email: alert.email }, select: { display_name: true } });
+                    if (u?.display_name) return u.display_name;
+                    // Fallback: try Entra
+                    try {
+                        const entraUser = await prisma.$queryRaw`
+                            SELECT display_name FROM entra.users WHERE mail = ${alert.email}
+                        `;
+                        if (entraUser?.[0]?.display_name) return entraUser[0].display_name;
+                    } catch (_) { }
+                    return alert.email;
+                };
+
                 if (isSelfNote) {
                     // Case A: authenticated user IS the profile user → email each member of the notification group
                     try {
                         for (const alert of alertEmails) {
                             if (alert.email === req.user.email) continue; // skip self
 
+                            const alertName = await resolveAlertName(alert);
                             sendMail(
                                 alert.email,
                                 `New note added on ${agentName} in GoldenHealth`,
-                                buildNoteBody(alert.display_name || alert.email)
+                                buildNoteBody(alertName)
                             ).catch(err => console.error(`Error sending alert email to ${alert.email}:`, err));
 
                             const alertUser = await prisma.user.findUnique({
@@ -595,21 +617,20 @@ const postNote = async (req, res) => {
                         const notifiedOwners = new Set();
                         for (const level of hierarchy) {
                             if (level.isAgency) {
-                                const agency = await prisma.agency.findUnique({
-                                    where: { id: level.id },
-                                    select: { owner: true }
-                                });
+                                const ownerIds = await getAgencyOwnerIds(level.id);
+                                const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
 
-                                if (agency?.owner && agency.owner !== req.user.user_id && !notifiedOwners.has(agency.owner)) {
-                                    notifiedOwners.add(agency.owner);
-                                    const hierarchyAgentName = recipientPersonalInfo.legalName || recipientUser?.display_name || userId;
-                                    await prisma.notificacion.create({
-                                        data: {
-                                            userId: agency.owner,
-                                            message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
-                                            createdBy: req.user.user_id
-                                        }
-                                    }).catch(err => console.error("Error creating hierarchy notification:", err));
+                                for (const ownerId of ownerIds) {
+                                    if (ownerId !== req.user.user_id && !notifiedOwners.has(ownerId)) {
+                                        notifiedOwners.add(ownerId);
+                                        await prisma.notificacion.create({
+                                            data: {
+                                                userId: ownerId,
+                                                message: `📝 ${creator} added a note on ${hierarchyAgentName}.`,
+                                                createdBy: req.user.user_id
+                                            }
+                                        }).catch(err => console.error("Error creating hierarchy notification:", err));
+                                    }
                                 }
                             }
                         }
@@ -705,6 +726,10 @@ const saveSection = async (req, res) => {
 
             const valuesToPersist = { ...values };
 
+            if (sectionKey === "personalInfo") {
+                delete valuesToPersist.joinAgencyId;
+            }
+
             if (sectionKey === "personalInfo" && "ssn" in valuesToPersist) {
                 valuesToPersist.ssn = valuesToPersist.ssn ? encryptWithSecret(valuesToPersist.ssn) : null;
             }
@@ -745,23 +770,56 @@ const saveSection = async (req, res) => {
                 const businessName =
                     values.businessName ?? prevPersonalInfo?.businessName;
 
+                const joinAgencyId = values.joinAgencyId ?? null;
+
                 const existingAgency = await prisma.agency.findUnique({
                     where: { owner: userId },
                 });
 
                 if (contactType === "business") {
-                    if (!existingAgency && businessName) {
-                        await prisma.agency.create({
-                            data: { owner: userId, name: businessName },
+                    if (joinAgencyId) {
+                        // Becoming co-owner of an existing agency
+                        await prisma.agencyCoOwner.upsert({
+                            where: { agencyId_userId: { agencyId: joinAgencyId, userId } },
+                            update: {},
+                            create: { agencyId: joinAgencyId, userId },
                         });
-                    } else if (existingAgency && existingAgency.name !== businessName) {
-                        await prisma.agency.update({
-                            where: { owner: userId },
-                            data: { name: businessName },
+                        // Populate businessName (and EIN if owner has one) from the joined agency
+                        const joinedAgency = await prisma.agency.findUnique({
+                            where: { id: joinAgencyId },
+                            include: { user: { include: { personalInfo: { select: { companyEIN: true } } } } },
                         });
+                        if (joinedAgency) {
+                            const patch = { businessName: joinedAgency.name };
+                            if (joinedAgency.user?.personalInfo?.companyEIN) {
+                                patch.companyEIN = joinedAgency.user.personalInfo.companyEIN;
+                            }
+                            await prisma.personalInfo.update({ where: { userId }, data: patch });
+                        }
+                        // Relinquish own agency — promote oldest co-owner or delete
+                        if (existingAgency) {
+                            await promoteCoOwnerOrDeleteAgency(existingAgency.id);
+                        }
+                    } else if (businessName) {
+                        // Remove co-owner record if switching to own agency
+                        await prisma.agencyCoOwner.deleteMany({ where: { userId } });
+                        if (!existingAgency) {
+                            await prisma.agency.create({
+                                data: { owner: userId, name: businessName },
+                            });
+                        } else if (existingAgency.name !== businessName) {
+                            await prisma.agency.update({
+                                where: { owner: userId },
+                                data: { name: businessName },
+                            });
+                        }
                     }
-                } else if (contactType === "individual" && existingAgency) {
-                    await prisma.agency.delete({ where: { owner: userId } });
+                } else if (contactType === "individual") {
+                    if (existingAgency) {
+                        // Relinquish own agency — promote oldest co-owner or delete
+                        await promoteCoOwnerOrDeleteAgency(existingAgency.id);
+                    }
+                    await prisma.agencyCoOwner.deleteMany({ where: { userId } });
                 }
             }
 

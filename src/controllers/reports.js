@@ -1,5 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
-import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies } from "../config/utils.js";
+import { getAllAgencyIds, getVisibleAgentsId, reverseGetAllAgencies, getAllCompanies, getOwnedAgency, getAgencyOwnerIds } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 
 /* ============================
@@ -94,11 +94,10 @@ async function handleAgencySummaryFilter(requester) {
             }
             const agenciesUnderThis = await getAllAgencyIds(agencyId);
             const agentsInThisAgency = await prisma.personalInfo.count({
-                where: {
-                    agency: { in: agenciesUnderThis },
-                }
+                where: { agency: { in: agenciesUnderThis } }
             });
-            count += agentsInThisAgency + 1; // +1 for agency owner
+            const ownerIds = await getAgencyOwnerIds(agencyId);
+            count += agentsInThisAgency + ownerIds.length;
         }
         franchiseAgentCount.set(combination.franchise.id, count);
     }
@@ -112,6 +111,24 @@ async function handleAgencySummaryFilter(requester) {
     summaryData.sort((a, b) => a.location.localeCompare(b.location));
 
     return { summary: summaryData, total: summaryData.length };
+}
+
+/**
+ * Handles status & carrier filter
+ * @param {Array} processedAgents - Array of agent records
+ * @param {string} status - Status filter value
+ * @param {string|null|undefined} carrierId - Carrier id filter value (optional)
+ * @returns {Array} Filtered agents
+ */
+function handleStatusCarrierFilter(processedAgents, status, carrierId) {
+    return processedAgents.filter(agent => {
+        if (!Array.isArray(agent.statesAndCarriers)) return false;
+        return agent.statesAndCarriers.some(sc => {
+            if (sc.status !== status) return false;
+            if (!carrierId) return true;
+            return sc.company === carrierId || sc.carrier?.id === carrierId;
+        });
+    });
 }
 
 /**
@@ -310,14 +327,42 @@ async function handleAgencyByIdFilter(agencyIds) {
         })
         : [];
 
-    const agents = [...memberAgents, ...ownerAgents];
+    // Fetch co-owners of any of these agencies
+    const coOwnerRecords = await prisma.agencyCoOwner.findMany({
+        where: { agencyId: { in: uniqueAgencyIds } },
+        select: { userId: true, agencyId: true }
+    });
+    const seenIds = new Set([...memberIds, ...ownerUserIds]);
+    const coOwnerUserIds = coOwnerRecords
+        .filter(r => !seenIds.has(String(r.userId)))
+        .map(r => r.userId);
+
+    const coOwnerAgencyMap = new Map(); // userId -> agencyName for co-owners
+    coOwnerRecords.forEach(r => {
+        if (!seenIds.has(String(r.userId))) {
+            coOwnerAgencyMap.set(String(r.userId), agencyMap.get(String(r.agencyId)) || '');
+        }
+    });
+
+    const coOwnerAgents = coOwnerUserIds.length > 0
+        ? await prisma.user.findMany({
+            include: { personalInfo: true, contactInfo: true },
+            where: {
+                user_id: { in: coOwnerUserIds },
+                registrationCompleted: true
+            }
+        })
+        : [];
+
+    const agents = [...memberAgents, ...ownerAgents, ...coOwnerAgents];
 
     return await Promise.all(agents.map(async agent => {
         let photoPath = agent.personalInfo?.photoPath || '';
-        // Show the agent's own agency name; fall back to the agency they own (for owners)
+        // Show the agent's own agency name; fall back to owned agency or co-owned agency
         const agencyName =
             agencyMap.get(String(agent.personalInfo?.agency ?? '')) ||
             ownerMap.get(String(agent.user_id)) ||
+            coOwnerAgencyMap.get(String(agent.user_id)) ||
             '';
 
         if (agent.email && agent.email.endsWith('@goldentrust.com')) {
@@ -421,16 +466,18 @@ async function getFranchiseAgencyCombinations(requester) {
 
         for (const franchise of franchises) {
             const agencyOwners = await prisma.personalInfo.findMany({
-                where: {
-                    franchise: `${franchise.location_id}`
-                }
+                where: { franchise: `${franchise.location_id}` }
             });
 
+            const ownerUserIds = agencyOwners.map(a => a.userId);
+
+            // Agencies where these users are primary owner OR co-owner
             const topAgencies = await prisma.agency.findMany({
                 where: {
-                    owner: {
-                        in: agencyOwners.map(a => a.userId)
-                    }
+                    OR: [
+                        { owner: { in: ownerUserIds } },
+                        { coOwners: { some: { userId: { in: ownerUserIds } } } }
+                    ]
                 }
             });
 
@@ -463,11 +510,7 @@ async function getFranchiseAgencyCombinations(requester) {
             WHERE location_id = ${topFranchise.id} AND active = true
         `;
 
-        const topAgency = await prisma.agency.findUnique({
-            where: {
-                owner: requester.user_id
-            }
-        });
+        const topAgency = await getOwnedAgency(requester.user_id);
 
         if (topAgency) {
             const underAgenciesId = await getAllAgencyIds(topAgency.id);
@@ -587,14 +630,17 @@ const filterReport = async (req, res) => {
         processedAgents = await handleAgencyFilter(filterValues, franchiseMap);
     }
     else if (filterType === 'agency') {
-        if (filterValues.length === 0) {
-            return res.json({ data: [], total: 0 });
+        if (filterValues.length > 0) {
+            processedAgents = await handleAgencyByIdFilter(filterValues);
         }
-        processedAgents = await handleAgencyByIdFilter(filterValues);
+        // else: no agency selected → return all visible agents (processedAgents unchanged)
     }
     else if (filterType === 'carrier & state' && singleFilterValue) {
         // If carrier is empty, fallback to state-only filter
         processedAgents = handleCarrierStateFilter(processedAgents, singleFilterValue, filterSubValue || null);
+    }
+    else if (filterType === 'status & carrier' && singleFilterValue) {
+        processedAgents = handleStatusCarrierFilter(processedAgents, singleFilterValue, filterSubValue || null);
     }
     else if (filterType && singleFilterValue) {
         processedAgents = handleGenericFilter(processedAgents, filterType, singleFilterValue);
@@ -609,30 +655,33 @@ const filterReport = async (req, res) => {
  */
 const exportData = async (req, res) => {
     try {
-        const { headers = [], rows = [] } = req.body;
+        const { headers = [], rows = [], summaryRows = [] } = req.body;
 
-        // Build CSV content
-        const headerRow = headers.join(',');
-        const dataRows = rows.map(row => {
-            const csvRow = row.map(value => {
+        const escapeVal = (value) => {
+            let v = String(value ?? '').replace(/"/g, '""');
+            if (v.includes(',') || v.includes('"') || v.includes('\n')) v = `"${v}"`;
+            return v;
+        };
+
+        const lines = [];
+
+        summaryRows.forEach(row => lines.push(row.map(escapeVal).join(',')));
+
+        lines.push(headers.join(','));
+        rows.forEach(row => {
+            lines.push(row.map(value => {
                 if (typeof value === 'string') {
-                    // Escape quotes and wrap in quotes if needed
                     let v = value.replace(/"/g, '""');
-                    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
-                        v = `"${v}"`;
-                    }
+                    if (v.includes(',') || v.includes('"') || v.includes('\n')) v = `"${v}"`;
                     return v;
                 }
                 return value ?? '';
-            });
-            return csvRow.join(',');
+            }).join(','));
         });
 
-        // Add BOM for UTF-8 encoding so Excel recognizes it properly
         const BOM = '\uFEFF';
-        const csvContent = BOM + [headerRow, ...dataRows].join('\n');
+        const csvContent = BOM + lines.join('\n');
 
-        // Set headers for download
         res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.send(csvContent);

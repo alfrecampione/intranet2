@@ -17,7 +17,8 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     statesAndCarriersbyUser,
     allCompanies,
     recommendation,
-    onboardingRecord
+    onboardingRecord,
+    coOwnerRecord
   ] = await Promise.all([
     prisma.personalInfo.findUnique({ where: { userId } }),
     prisma.contactInfo.findUnique({ where: { userId } }),
@@ -26,7 +27,8 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     prisma.statesANDCarriers.findMany({ where: { userId } }),
     getAllCompanies(),
     prisma.recommendation.findUnique({ where: { userId } }),
-    prisma.onboardingSentEmails.findUnique({ where: { email: user.email } })
+    prisma.onboardingSentEmails.findUnique({ where: { email: user.email } }),
+    prisma.agencyCoOwner.findFirst({ where: { userId }, include: { agency: { select: { id: true, name: true } } } })
   ]);
 
   let necessaryDocuments;
@@ -74,7 +76,8 @@ async function getRegistrationData(userId, isEdit = false, reqUser) {
     statesAndCarriersbyUser,
     allCompanies,
     recommendation,
-    onboardingAgencyId: onboardingRecord?.agencyId || null
+    onboardingAgencyId: onboardingRecord?.agencyId || null,
+    coOwnerAgency: coOwnerRecord?.agency || null
   };
 }
 

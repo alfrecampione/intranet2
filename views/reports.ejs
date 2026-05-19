@@ -94,6 +94,7 @@
                                                 <option value="state">State</option>
                                                 <option value="carrier">Carrier</option>
                                                 <option value="carrier & state">Carrier & State</option>
+                                                <option value="status & carrier">Status & Carrier</option>
                                                 <option value="status">Status</option>
                                                 <option value="location">Location</option>
                                                 <option value="agency">Agency</option>
@@ -184,6 +185,8 @@
     </script>
 
     <script>
+        let currentFilterCtx = {};
+
         $(document).ready(function () {
             const filtersData = JSON.parse(document.getElementById("filters-data").textContent);
 
@@ -196,6 +199,71 @@
 
             let dataTable;
             const pageLength = 25;
+
+            function buildFilterContext(total, summary) {
+                const filterType = filterTypeSelect.value;
+                const filterTypeLabel = filterTypeSelect.options[filterTypeSelect.selectedIndex]?.text || '';
+
+                let filterValueLabel = '';
+                let filterSubValueLabel = '';
+                let selectedLocationLabels = [];
+
+                const isMultiSelect = filterType === 'location' || filterType === 'agency';
+
+                if (isMultiSelect) {
+                    const rawSelection = $(filterValueSelect).val() || [];
+                    const selectedIds = Array.isArray(rawSelection) ? rawSelection.filter(Boolean) : rawSelection ? [rawSelection] : [];
+                    selectedLocationLabels = selectedIds.map(id => {
+                        const opt = Array.from(filterValueSelect.options).find(o => o.value === String(id));
+                        return opt ? opt.text : id;
+                    });
+                } else {
+                    const fvOpt = filterValueSelect.options[filterValueSelect.selectedIndex];
+                    filterValueLabel = (fvOpt && fvOpt.value) ? fvOpt.text : '';
+                    const fsvOpt = filterSubValue.options[filterSubValue.selectedIndex];
+                    filterSubValueLabel = (fsvOpt && fsvOpt.value) ? fsvOpt.text : '';
+                }
+
+                let locationSummaryTotals = null;
+                if (filterType === 'location' && selectedLocationLabels.length === 0 && summary) {
+                    locationSummaryTotals = {
+                        locations: summary.length,
+                        agencies: summary.reduce((s, r) => s + (parseInt(r.agencies) || 0), 0),
+                        agents: summary.reduce((s, r) => s + (parseInt(r.agents) || 0), 0)
+                    };
+                }
+
+                return { filterType, filterTypeLabel, filterValueLabel, filterSubValueLabel, selectedLocationLabels, total, locationSummaryTotals };
+            }
+
+            function renderSummary(ctx) {
+                const filterParts = [];
+                if (ctx.filterTypeLabel) filterParts.push(`<span class="badge bg-label-primary">${ctx.filterTypeLabel}</span>`);
+                if (ctx.filterValueLabel) filterParts.push(`<span class="badge bg-label-info">${ctx.filterValueLabel}</span>`);
+                if (ctx.filterSubValueLabel) filterParts.push(`<span class="badge bg-label-info">${ctx.filterSubValueLabel}</span>`);
+                ctx.selectedLocationLabels.forEach(l => filterParts.push(`<span class="badge bg-label-info">${l}</span>`));
+
+                const filtersSection = filterParts.length > 0
+                    ? `<div class="mb-1 d-flex gap-1 flex-wrap align-items-center">
+                           <small class="text-muted fw-semibold me-1">Filters applied:</small>
+                           ${filterParts.join('')}
+                       </div>`
+                    : '';
+
+                let totalSection;
+                if (ctx.locationSummaryTotals) {
+                    const { locations, agencies, agents } = ctx.locationSummaryTotals;
+                    totalSection = `<div class="d-flex gap-3 flex-wrap mt-1">
+                        <span class="fw-bold"><i class="ti ti-map-pin me-1 text-secondary"></i>Locations: <span class="text-primary">${locations}</span></span>
+                        <span class="fw-bold"><i class="ti ti-building me-1 text-secondary"></i>Agencies: <span class="text-primary">${agencies}</span></span>
+                        <span class="fw-bold"><i class="ti ti-users me-1 text-secondary"></i>Agents: <span class="text-primary">${agents}</span></span>
+                    </div>`;
+                } else {
+                    totalSection = `<div class="mt-1"><span class="fw-bold fs-6"><i class="ti ti-users me-1 text-secondary"></i>Total agents: <span class="text-primary">${ctx.total}</span></span></div>`;
+                }
+
+                return `<div class="border rounded p-2 bg-light">${filtersSection}${totalSection}</div>`;
+            }
 
             function formatPhone(val) {
                 const digits = (val || '').replace(/\D/g, '').slice(0, 10);
@@ -291,7 +359,8 @@
                 const isLocationListView = (filterType === 'location' && selectedLocations.length > 0);
                 const isAgencyListView = (filterType === 'agency');
 
-                resultsCount.textContent = `Results found: ${total}`;
+                currentFilterCtx = buildFilterContext(total, summary);
+                resultsCount.innerHTML = renderSummary(currentFilterCtx);
 
                 let columns;
                 let tableData;
@@ -426,6 +495,71 @@
                         });
                     }
 
+                    if (filterType === 'status & carrier' && !filterValue) {
+                        columns.push({
+                            title: "Status",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const statuses = [...new Set(data.map(sc => sc.status).filter(Boolean))];
+                                return statuses.join(', ');
+                            }
+                        }, {
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const carriers = [...new Set(data.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status & carrier' && filterValue && !filterSubValueVal) {
+                        const statusSelected = filterValue;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected);
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        }, {
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected);
+                                const states = [...new Set(relevant.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+                    if (filterType === 'status & carrier' && filterValue && filterSubValueVal) {
+                        const statusSelected = filterValue;
+                        const carrierSelected = filterSubValueVal;
+                        columns.push({
+                            title: "Carrier",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected && (sc.company === carrierSelected || sc.carrier?.id === carrierSelected));
+                                const carriers = [...new Set(relevant.map(sc => sc.carrier?.name || sc.company).filter(Boolean))];
+                                return carriers.join(', ');
+                            }
+                        }, {
+                            title: "State",
+                            data: "statesAndCarriers",
+                            render: (data) => {
+                                if (!Array.isArray(data) || data.length === 0) return '';
+                                const relevant = data.filter(sc => sc.status === statusSelected && (sc.company === carrierSelected || sc.carrier?.id === carrierSelected));
+                                const states = [...new Set(relevant.map(sc => sc.state).filter(Boolean))];
+                                return states.join(', ');
+                            }
+                        });
+                    }
+
                     columns.push({
                         title: "Number",
                         data: "number",
@@ -514,6 +648,26 @@
                     });
                     filterSubValue.style.display = 'block';
 
+                } else if (type === 'status & carrier') {
+                    filterValueSelect.innerHTML = '<option value="">Select Status</option>';
+                    filtersData['status'].forEach(status => {
+                        const opt = document.createElement('option');
+                        opt.value = status;
+                        opt.textContent = status;
+                        filterValueSelect.appendChild(opt);
+                    });
+                    filterValueSelect.disabled = false;
+
+                    filterSubValue.innerHTML = '<option value="">Select Carrier</option>';
+                    filtersData['carrier'].forEach(carrier => {
+                        const isObj = carrier && typeof carrier === 'object';
+                        const opt = document.createElement('option');
+                        opt.value = isObj ? (carrier.id ?? '') : carrier;
+                        opt.textContent = isObj ? (carrier.name ?? carrier.id ?? '') : carrier;
+                        filterSubValue.appendChild(opt);
+                    });
+                    filterSubValue.style.display = 'block';
+
                 } else if (type === 'location') {
                     // Populate locations (franchises) as a multiselect
                     filterValueSelect.innerHTML = '';
@@ -572,12 +726,14 @@
             }
 
             filterValueSelect.addEventListener('change', () => {
-                if (isSelect2Active()) return;
+                const isMultiSelectMode = filterTypeSelect.value === 'location' || filterTypeSelect.value === 'agency';
+                if (isMultiSelectMode && isSelect2Active()) return;
                 applyFilterAndRender();
             });
 
             filterSubValue.addEventListener('change', () => {
-                if (isSelect2Active()) return;
+                const isMultiSelectMode = filterTypeSelect.value === 'location' || filterTypeSelect.value === 'agency';
+                if (isMultiSelectMode && isSelect2Active()) return;
                 applyFilterAndRender();
             });
 
@@ -611,11 +767,32 @@
                 });
             });
 
+            // Build summary metadata rows for export
+            const summaryRows = [];
+            const ctx = currentFilterCtx || {};
+            if (ctx.filterTypeLabel) {
+                summaryRows.push(['Report Summary', '']);
+                summaryRows.push(['Filter Type', ctx.filterTypeLabel]);
+                if (ctx.filterValueLabel) summaryRows.push(['Filter Value', ctx.filterValueLabel]);
+                if (ctx.filterSubValueLabel) summaryRows.push(['Sub-filter Value', ctx.filterSubValueLabel]);
+                if (ctx.selectedLocationLabels?.length > 0) {
+                    summaryRows.push(['Selected', ctx.selectedLocationLabels.join('; ')]);
+                }
+                if (ctx.locationSummaryTotals) {
+                    summaryRows.push(['Total Locations', ctx.locationSummaryTotals.locations]);
+                    summaryRows.push(['Total Agencies', ctx.locationSummaryTotals.agencies]);
+                    summaryRows.push(['Total Agents', ctx.locationSummaryTotals.agents]);
+                } else {
+                    summaryRows.push(['Total Agents', ctx.total]);
+                }
+                summaryRows.push(['', '']);
+            }
+
             // Send both headers and rows
             fetch('/users/reports/export', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ headers, rows })
+                body: JSON.stringify({ headers, rows, summaryRows })
             })
                 .then(res => res.blob())
                 .then(blob => {

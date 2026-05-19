@@ -1,6 +1,6 @@
 import { prisma, pool } from "../config/dbConfig.js";
 import { prismaContext } from "../config/prismaContext.js";
-import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath } from "../config/utils.js";
+import { getAllAgencyIds, getAgencies, getEntraId, getMSAPhotoPath, getOwnedAgency, promoteCoOwnerOrDeleteAgency } from "../config/utils.js";
 import { getSignedS3Url } from "../config/s3Config.js";
 import bcrypt from "bcrypt";
 import { encryptWithSecret } from "./crypto.js";
@@ -79,9 +79,7 @@ const renderMyAgents = async (req, res) => {
 
   let where = { isReleased: false };
 
-  const agency = await prisma.agency.findUnique({
-    where: { owner: user.user_id },
-  });
+  const agency = await getOwnedAgency(user.user_id);
 
   if (agency) {
     const allAgencyIds = await getAllAgencyIds(agency.id);
@@ -346,7 +344,13 @@ const deleteAgent = async (req, res) => {
   await prismaContext.run({ userId: req.user.user_id, affectedUserIds: [id] }, async () => {
     const user = await prisma.user.findUnique({
       where: { user_id: id }
-    })
+    });
+
+    // Handle primary agency ownership before deleting the user
+    const ownedAgency = await prisma.agency.findUnique({ where: { owner: id } });
+    if (ownedAgency) {
+      await promoteCoOwnerOrDeleteAgency(ownedAgency.id);
+    }
 
     await prisma.user.delete({
       where: { user_id: id }
@@ -354,7 +358,7 @@ const deleteAgent = async (req, res) => {
 
     await prisma.necesaryDocuments.delete({
       where: { email: user.email }
-    })
+    });
   });
 
   res.status(200).json({ message: "Agent deleted successfully." });

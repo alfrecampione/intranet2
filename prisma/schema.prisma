@@ -46,6 +46,7 @@ model User {
   Recommendation        Recommendation?
   statesAndCarriers     StatesANDCarriers[]
   Note                  Note[]
+  agencyCoOwnerships    AgencyCoOwner[]
 
   @@schema("health")
 }
@@ -201,9 +202,23 @@ model Agency {
   id           String         @id @default(uuid())
   owner        String?        @unique
   name         String
-  user         User?          @relation(fields: [owner], references: [user_id], onDelete: Cascade)
+  user         User?          @relation(fields: [owner], references: [user_id], onDelete: SetNull)
   PersonalInfo PersonalInfo[]
+  coOwners     AgencyCoOwner[]
 
+  @@schema("health")
+}
+
+/// Tracks additional (co-)owners of an existing agency. The primary owner is stored in Agency.owner.
+model AgencyCoOwner {
+  id       String @id @default(uuid())
+  agencyId String
+  userId   String
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+
+  @@unique([agencyId, userId])
   @@schema("health")
 }
 

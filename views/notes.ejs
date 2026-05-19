@@ -441,7 +441,7 @@
                         const newReply = await res.json();
                         const noteIndex = notes.findIndex(n => n.id === parentId);
                         if (noteIndex > -1) {
-                            notes[noteIndex].replies = [newReply, ...(notes[noteIndex].replies || [])];
+                            notes[noteIndex].replies = [...(notes[noteIndex].replies || []), newReply];
                         }
                         render();
                     }

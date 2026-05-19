@@ -194,11 +194,13 @@
 
                           <!-- Business Name (Required if business) -->
                           <div class="col-sm-6" id="businessNameGroup" style="display:none;">
-                            <label class="form-label" for="businessName">
-                              Business Name <span class="text-danger">*</span>
+                            <label class="form-label" for="agencySearchInput">
+                              Agency Name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="businessName" id="businessName" class="form-control"
-                              placeholder="Business LLC" value="<%= personalInfo?.businessName || '' %>" required />
+                            <select id="agencySearchInput" class="form-select" style="width:100%"></select>
+                            <!-- Hidden inputs sent to the backend -->
+                            <input type="hidden" id="businessName" name="businessName" value="" />
+                            <input type="hidden" id="joinAgencyId" name="joinAgencyId" value="" />
                           </div>
 
                           <!-- EIN de la Compañía (Required if business) -->
@@ -753,29 +755,83 @@
 
   <!-- Personal Info -->
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    $(function () {
       const contactType = document.getElementById("contactType");
       const businessNameGroup = document.getElementById("businessNameGroup");
       const einGroup = document.getElementById("einGroup");
-      const businessName = document.getElementById("businessName");
       const ein = document.getElementById("ein");
       const prefFirstNameGroup = document.getElementById("preferredFirstNameGroup");
+      const hiddenName = document.getElementById('businessName');
+      const hiddenJoinId = document.getElementById('joinAgencyId');
+
+      const allAgencies = JSON.parse(document.getElementById('agencies-data').textContent)
+        .filter(a => a.isAgency);
+      const coOwnerAgency = JSON.parse(document.getElementById('coOwnerAgency-data').textContent);
+      const personalInfoData = JSON.parse(document.getElementById('personalInfo-data').textContent);
+
+      const agencyData = allAgencies.map(a => ({ id: 'existing:' + a.id, text: a.name, agencyId: a.id }));
+
+      $('#agencySearchInput').select2({
+        placeholder: 'Search or create agency...',
+        width: '100%',
+        tags: true,
+        data: agencyData,
+        createTag: function (params) {
+          const term = $.trim(params.term);
+          if (!term) return null;
+          return { id: 'new:' + term, text: term, newTag: true };
+        },
+        templateResult: function (item) {
+          if (item.newTag) return $('<span class="fw-semibold text-primary">Create New: "' + item.text + '"</span>');
+          return item.text;
+        },
+        language: { noResults: function () { return 'No agencies found'; } }
+      });
+
+      $('#agencySearchInput').on('select2:select', function (e) {
+        const data = e.params.data;
+        if (data.newTag || String(data.id).startsWith('new:')) {
+          hiddenName.value = data.text;
+          hiddenJoinId.value = '';
+        } else {
+          hiddenName.value = '';
+          hiddenJoinId.value = data.agencyId || String(data.id).replace('existing:', '');
+        }
+      });
+
+      $('#agencySearchInput').on('select2:unselect select2:clear', function () {
+        hiddenName.value = '';
+        hiddenJoinId.value = '';
+      });
+
+      // Restore saved state on page load
+      if (coOwnerAgency) {
+        const opt = new Option(coOwnerAgency.name, 'existing:' + coOwnerAgency.id, true, true);
+        $('#agencySearchInput').append(opt).trigger('change');
+        hiddenJoinId.value = coOwnerAgency.id;
+        hiddenName.value = '';
+      } else if (personalInfoData.businessName) {
+        const name = personalInfoData.businessName;
+        const opt = new Option(name, 'new:' + name, true, true);
+        $('#agencySearchInput').append(opt).trigger('change');
+        hiddenName.value = name;
+        hiddenJoinId.value = '';
+      }
 
       function toggleBusinessFields() {
         if (contactType.value === "business") {
           businessNameGroup.style.display = "";
           einGroup.style.display = "";
-          businessName.required = true;
           ein.required = true;
           prefFirstNameGroup.style.display = "none";
         } else {
           businessNameGroup.style.display = "none";
           einGroup.style.display = "none";
-          businessName.required = false;
           ein.required = false;
           prefFirstNameGroup.style.display = "";
         }
       }
+
       if (contactType) {
         contactType.addEventListener("change", toggleBusinessFields);
         toggleBusinessFields();
@@ -789,6 +845,10 @@
 
   <script id="personalInfo-data" type="application/json">
     <%- JSON.stringify(personalInfo || {}) %>
+  </script>
+
+  <script id="coOwnerAgency-data" type="application/json">
+    <%- JSON.stringify(coOwnerAgency || null) %>
   </script>
 
   <script id="onboarding-agency-data" type="application/json">
@@ -825,6 +885,7 @@
       }
     });
   </script>
+
   <!--/ Personal Info -->
 
   <!-- Contact Info -->
@@ -1132,6 +1193,7 @@
 
       const businessName = document.getElementById("businessName")?.value || "";
       const companyEIN = document.getElementById("ein")?.value || "";
+      const joinAgencyId = document.getElementById("joinAgencyId")?.value || "";
 
       const photoFile = photoInput?.files[0] || null;
       const existingPhotoURL = photoInput?.dataset.existingUrl || "";
@@ -1172,7 +1234,8 @@
         businessName: businessName || null,
         companyEIN: companyEIN || null,
         agency: agency,
-        franchise: franchise
+        franchise: franchise,
+        joinAgencyId: joinAgencyId || null
       };
 
       const response = await fetch(`${url}/steps/personal-info`, {

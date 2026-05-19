@@ -1,5 +1,5 @@
 import { prisma, pool } from "../config/dbConfig.js";
-import { getAllAgencyIds, fetchCreators, mapNotifications } from "../config/utils.js";
+import { getAllAgencyIds, fetchCreators, mapNotifications, getOwnedAgency } from "../config/utils.js";
 
 const dataSearch = async (req, res) => {
   const { query } = req.body;
@@ -40,13 +40,9 @@ const dataSearch = async (req, res) => {
     let whereClause = { OR: searchConditions };
 
     if (user && !user.isMicrosoftLogin) {
-      const agency = await prisma.agency.findUnique({
-        where: { owner: agentId },
-      });
+      const agency = await getOwnedAgency(agentId);
 
-      const agencyId = await prisma.agency.findFirst({
-        where: { name: agency?.name },
-      }).then(a => a ? a.id : null);
+      const agencyId = agency ? agency.id : null;
 
       if (agencyId) {
         const allAgencyIds = await getAllAgencyIds(agencyId);

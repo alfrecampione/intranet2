@@ -4,7 +4,7 @@ import connectPgSimple from "connect-pg-simple";
 import pkg from "pg";
 import { PrismaClient } from "@prisma/client";
 import { prismaContext } from "./prismaContext.js";
-import { reverseGetAllAgencies, createMessage } from "../config/utils.js";
+import { reverseGetAllAgencies, createMessage, getAgencyOwnerIds } from "../config/utils.js";
 
 const { Pool } = pkg;
 
@@ -165,27 +165,27 @@ prisma.$use(async (params, next) => {
       if (!personalInfo) continue;
 
       const hierarchy = await reverseGetAllAgencies(personalInfo.agency, personalInfo.franchise);
+      const notifiedOwners = new Set();
 
       for (const level of hierarchy) {
         if (level.isAgency) {
-          const agency = await prisma.agency.findUnique({
-            where: { id: level.id },
-            select: { owner: true },
+          const ownerIds = await getAgencyOwnerIds(level.id);
+          const ownerMessage = await createMessage(log, {
+            isForOwner: true,
+            affectedUserName: personalInfo.legalName,
           });
 
-          if (agency?.owner && agency.owner !== actorUserId) {
-            const ownerMessage = await createMessage(log, {
-              isForOwner: true,
-              affectedUserName: personalInfo.legalName,
-            });
-
-            await prisma.notificacion.create({
-              data: {
-                userId: agency.owner,
-                message: `👤 ${ownerMessage}`,
-                createdBy: actorUserId,
-              },
-            });
+          for (const ownerId of ownerIds) {
+            if (ownerId !== actorUserId && !notifiedOwners.has(ownerId)) {
+              notifiedOwners.add(ownerId);
+              await prisma.notificacion.create({
+                data: {
+                  userId: ownerId,
+                  message: `👤 ${ownerMessage}`,
+                  createdBy: actorUserId,
+                },
+              });
+            }
           }
         }
       }
