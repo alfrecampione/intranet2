@@ -51,6 +51,17 @@ export const createPersonalInfo = asyncHandler(async (req, res) => {
           update: {},
           create: { agencyId: joinAgencyId, userId },
         });
+        // Populate businessName (and EIN if the owner has one) from the joined agency
+        const joinedAgency = await prisma.agency.findUnique({
+          where: { id: joinAgencyId },
+          include: { user: { include: { personalInfo: { select: { companyEIN: true } } } } },
+        });
+        if (joinedAgency) {
+          data.businessName = joinedAgency.name;
+          if (joinedAgency.user?.personalInfo?.companyEIN) {
+            data.companyEIN = joinedAgency.user.personalInfo.companyEIN;
+          }
+        }
       } else if (businessName) {
         // Create / update the user's own agency. Primary ownership is tracked via Agency.owner only.
         const agencyData = {

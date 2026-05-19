@@ -784,6 +784,18 @@ const saveSection = async (req, res) => {
                             update: {},
                             create: { agencyId: joinAgencyId, userId },
                         });
+                        // Populate businessName (and EIN if owner has one) from the joined agency
+                        const joinedAgency = await prisma.agency.findUnique({
+                            where: { id: joinAgencyId },
+                            include: { user: { include: { personalInfo: { select: { companyEIN: true } } } } },
+                        });
+                        if (joinedAgency) {
+                            const patch = { businessName: joinedAgency.name };
+                            if (joinedAgency.user?.personalInfo?.companyEIN) {
+                                patch.companyEIN = joinedAgency.user.personalInfo.companyEIN;
+                            }
+                            await prisma.personalInfo.update({ where: { userId }, data: patch });
+                        }
                         // Relinquish own agency — promote oldest co-owner or delete
                         if (existingAgency) {
                             await promoteCoOwnerOrDeleteAgency(existingAgency.id);
